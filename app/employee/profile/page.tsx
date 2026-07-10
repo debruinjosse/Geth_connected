@@ -7,8 +7,8 @@ function hasSupabaseServerConfig() {
   return Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
 }
 
-function getInitials(firstName: string, lastName: string) {
-  return `${firstName[0] ?? ""}${lastName[0] ?? ""}`.toUpperCase() || "EM";
+function getInitials(firstName: string | null, lastName: string | null) {
+  return `${firstName?.[0] ?? ""}${lastName?.[0] ?? ""}`.toUpperCase() || "EM";
 }
 
 export default async function EmployeeProfilePage() {
@@ -36,23 +36,29 @@ export default async function EmployeeProfilePage() {
 
   const { data: profile, error } = await supabase
     .from("profiles")
-    .select("first_name, last_name, email, role, status, company:companies(company_name), team:teams!profiles_team_id_fkey(name)")
+    .select("first_name, last_name, email, role, status, company_id, team_id")
     .eq("id", user.id)
     .maybeSingle<{
-      first_name: string;
-      last_name: string;
-      email: string;
-      role: string;
-      status: string;
-      company: { company_name: string } | Array<{ company_name: string }> | null;
-      team: { name: string } | Array<{ name: string }> | null;
+      first_name: string | null;
+      last_name: string | null;
+      email: string | null;
+      role: string | null;
+      status: string | null;
+      company_id: string | null;
+      team_id: string | null;
     }>();
 
   if (error || !profile) redirect("/auth/repair-profile");
 
-  const company = Array.isArray(profile.company) ? profile.company[0] : profile.company;
-  const team = Array.isArray(profile.team) ? profile.team[0] : profile.team;
-  const name = `${profile.first_name} ${profile.last_name}`.trim();
+  const [{ data: company }, { data: team }] = await Promise.all([
+    profile.company_id
+      ? supabase.from("companies").select("company_name").eq("id", profile.company_id).maybeSingle<{ company_name: string }>()
+      : Promise.resolve({ data: null }),
+    profile.team_id
+      ? supabase.from("teams").select("name").eq("id", profile.team_id).maybeSingle<{ name: string }>()
+      : Promise.resolve({ data: null })
+  ]);
+  const name = `${profile.first_name ?? ""} ${profile.last_name ?? ""}`.trim() || "GETH user";
 
   return (
     <DashboardShell
@@ -61,7 +67,7 @@ export default async function EmployeeProfilePage() {
       subtitle="Personal details, visible strengths, and the identity behind your recognition."
       user={{ name, initials: getInitials(profile.first_name, profile.last_name), team: team?.name ?? company?.company_name ?? "GETH" }}
     >
-      <ProfilePanels name={name} email={profile.email} team={team?.name ?? "Unassigned"} company={company?.company_name ?? "No company"} role={profile.role.replace("_", " ")} status={profile.status} />
+      <ProfilePanels name={name} email={profile.email ?? user.email ?? "No email"} team={team?.name ?? "Unassigned"} company={company?.company_name ?? "No company"} role={(profile.role ?? "employee").replace("_", " ")} status={profile.status ?? "active"} />
     </DashboardShell>
   );
 }

@@ -8,8 +8,8 @@ function hasSupabaseServerConfig() {
   return Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
 }
 
-function getInitials(firstName: string, lastName: string) {
-  return `${firstName[0] ?? ""}${lastName[0] ?? ""}`.toUpperCase() || "EM";
+function getInitials(firstName: string | null, lastName: string | null) {
+  return `${firstName?.[0] ?? ""}${lastName?.[0] ?? ""}`.toUpperCase() || "EM";
 }
 
 export default async function EmployeeSettingsPage() {
@@ -37,26 +37,32 @@ export default async function EmployeeSettingsPage() {
 
   const { data: profile, error } = await supabase
     .from("profiles")
-    .select("first_name, last_name, email, status, company:companies(company_name), team:teams!profiles_team_id_fkey(name)")
+    .select("first_name, last_name, email, status, company_id, team_id")
     .eq("id", user.id)
     .maybeSingle<{
-      first_name: string;
-      last_name: string;
-      email: string;
-      status: string;
-      company: { company_name: string } | Array<{ company_name: string }> | null;
-      team: { name: string } | Array<{ name: string }> | null;
+      first_name: string | null;
+      last_name: string | null;
+      email: string | null;
+      status: string | null;
+      company_id: string | null;
+      team_id: string | null;
     }>();
 
   if (error || !profile) redirect("/auth/repair-profile");
 
-  const company = Array.isArray(profile.company) ? profile.company[0] : profile.company;
-  const team = Array.isArray(profile.team) ? profile.team[0] : profile.team;
-  const name = `${profile.first_name} ${profile.last_name}`.trim();
+  const [{ data: company }, { data: team }] = await Promise.all([
+    profile.company_id
+      ? supabase.from("companies").select("company_name").eq("id", profile.company_id).maybeSingle<{ company_name: string }>()
+      : Promise.resolve({ data: null }),
+    profile.team_id
+      ? supabase.from("teams").select("name").eq("id", profile.team_id).maybeSingle<{ name: string }>()
+      : Promise.resolve({ data: null })
+  ]);
+  const name = `${profile.first_name ?? ""} ${profile.last_name ?? ""}`.trim() || "GETH user";
 
   return (
     <DashboardShell role="employee" title="Settings" subtitle="Account settings and workspace access." user={{ name, initials: getInitials(profile.first_name, profile.last_name), team: team?.name ?? company?.company_name ?? "GETH" }}>
-      <SettingsPanels email={profile.email} company={company?.company_name ?? "No company"} team={team?.name ?? "Unassigned"} status={profile.status} />
+      <SettingsPanels email={profile.email ?? user.email ?? "No email"} company={company?.company_name ?? "No company"} team={team?.name ?? "Unassigned"} status={profile.status ?? "active"} />
     </DashboardShell>
   );
 }

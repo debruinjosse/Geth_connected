@@ -54,17 +54,20 @@ export default async function EmployeeGrowthPage() {
 
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
-    .select("first_name, last_name, team:teams(name)")
+    .select("first_name, last_name, team_id")
     .eq("id", user.id)
     .maybeSingle<{
       first_name: string | null;
       last_name: string | null;
-      team: { name: string } | Array<{ name: string }> | null;
+      team_id: string | null;
     }>();
 
   if (profileError || !profile) redirect("/auth/repair-profile");
 
-  const [{ data: rows, error: rowsError }, unreadNotifications] = await Promise.all([
+  const [{ data: team }, { data: rows, error: rowsError }, unreadNotifications] = await Promise.all([
+    profile.team_id
+      ? supabase.from("teams").select("name").eq("id", profile.team_id).maybeSingle<{ name: string }>()
+      : Promise.resolve({ data: null }),
     supabase
       .from("recognition_events")
       .select("id, created_at, card:card_library(title, category)")
@@ -108,8 +111,6 @@ export default async function EmployeeGrowthPage() {
       value: recognitions.length ? Math.round((info.value / recognitions.length) * 100) : 0,
       category: info.category
     }));
-
-  const team = Array.isArray(profile.team) ? profile.team[0] : profile.team;
 
   return (
     <DashboardShell

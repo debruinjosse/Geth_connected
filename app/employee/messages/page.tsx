@@ -50,17 +50,20 @@ export default async function EmployeeMessagesPage() {
 
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
-    .select("first_name, last_name, team:teams(name)")
+    .select("first_name, last_name, team_id")
     .eq("id", user.id)
     .maybeSingle<{
       first_name: string | null;
       last_name: string | null;
-      team: { name: string } | Array<{ name: string }> | null;
+      team_id: string | null;
     }>();
 
   if (profileError || !profile) redirect("/auth/repair-profile");
 
-  const [{ data: messages, error: messagesError }, unreadNotifications] = await Promise.all([
+  const [{ data: team }, { data: messages, error: messagesError }, unreadNotifications] = await Promise.all([
+    profile.team_id
+      ? supabase.from("teams").select("name").eq("id", profile.team_id).maybeSingle<{ name: string }>()
+      : Promise.resolve({ data: null }),
     supabase
       .from("recognition_events")
       .select("id, created_at, personal_note, giver_name, giver_email, giver_user_id, card:card_library(title)")
@@ -77,7 +80,6 @@ export default async function EmployeeMessagesPage() {
     ? await supabase.from("profiles").select("id, first_name, last_name").in("id", giverIds)
     : { data: [] as Array<{ id: string; first_name: string | null; last_name: string | null }> };
   const giverMap = new Map((givers ?? []).map((giver) => [giver.id, `${giver.first_name ?? ""} ${giver.last_name ?? ""}`.trim() || "Colleague"]));
-  const team = Array.isArray(profile.team) ? profile.team[0] : profile.team;
 
   return (
     <DashboardShell

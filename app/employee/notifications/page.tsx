@@ -11,8 +11,8 @@ function hasSupabaseServerConfig() {
   return Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
 }
 
-function getInitials(firstName: string, lastName: string) {
-  return `${firstName[0] ?? ""}${lastName[0] ?? ""}`.toUpperCase() || "EM";
+function getInitials(firstName: string | null, lastName: string | null) {
+  return `${firstName?.[0] ?? ""}${lastName?.[0] ?? ""}`.toUpperCase() || "EM";
 }
 
 function DemoNotificationsPage() {
@@ -54,27 +54,31 @@ export default async function EmployeeNotificationsPage() {
 
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
-    .select("first_name, last_name, team:teams(name)")
+    .select("first_name, last_name, team_id")
     .eq("id", user.id)
-    .maybeSingle<{ first_name: string; last_name: string; team: { name: string } | Array<{ name: string }> | null }>();
+    .maybeSingle<{ first_name: string | null; last_name: string | null; team_id: string | null }>();
 
   if (profileError || !profile) {
     redirect("/auth/repair-profile?next=/employee/notifications");
   }
 
-  const { data: notifications, error: notificationsError } = await supabase
-    .from("notifications")
-    .select("id, type, title, body, href, read_at, created_at")
-    .eq("user_id", user.id)
-    .order("created_at", { ascending: false })
-    .limit(50);
+  const [{ data: team }, { data: notifications, error: notificationsError }] = await Promise.all([
+    profile.team_id
+      ? supabase.from("teams").select("name").eq("id", profile.team_id).maybeSingle<{ name: string }>()
+      : Promise.resolve({ data: null }),
+    supabase
+      .from("notifications")
+      .select("id, type, title, body, href, read_at, created_at")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(50)
+  ]);
 
   if (notificationsError) {
     throw new Error("Failed to load notifications.");
   }
 
   const unreadCount = await getUnreadNotificationCount(supabase, user.id);
-  const team = Array.isArray(profile.team) ? profile.team[0] : profile.team;
   const rows = (notifications ?? []) as NotificationInboxRow[];
 
   return (
@@ -83,7 +87,7 @@ export default async function EmployeeNotificationsPage() {
       title="Notifications"
       subtitle="Important recognition updates in one place."
       user={{
-        name: `${profile.first_name} ${profile.last_name}`.trim(),
+        name: `${profile.first_name ?? ""} ${profile.last_name ?? ""}`.trim() || "GETH user",
         initials: getInitials(profile.first_name, profile.last_name),
         team: team?.name ?? "Employee"
       }}

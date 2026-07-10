@@ -64,18 +64,21 @@ export default async function EmployeeCardsPage() {
 
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
-    .select("id, first_name, last_name, team:teams(name)")
+    .select("id, first_name, last_name, team_id")
     .eq("id", user.id)
     .maybeSingle<{
       id: string;
       first_name: string | null;
       last_name: string | null;
-      team: { name: string } | Array<{ name: string }> | null;
+      team_id: string | null;
     }>();
 
   if (profileError || !profile) redirect("/auth/repair-profile");
 
-  const [{ data: receivedRows, error: receivedError }, { data: givenRows, error: givenError }, unreadNotifications] = await Promise.all([
+  const [{ data: team }, { data: receivedRows, error: receivedError }, { data: givenRows, error: givenError }, unreadNotifications] = await Promise.all([
+    profile.team_id
+      ? supabase.from("teams").select("name").eq("id", profile.team_id).maybeSingle<{ name: string }>()
+      : Promise.resolve({ data: null }),
     supabase
       .from("recognition_events")
       .select("id, created_at, personal_note, giver_name, giver_email, giver_user_id, receiver_user_id, card:card_library(title, category)")
@@ -125,8 +128,6 @@ export default async function EmployeeCardsPage() {
       createdAt: row.created_at
     }];
   });
-
-  const team = Array.isArray(profile.team) ? profile.team[0] : profile.team;
 
   return (
     <DashboardShell
