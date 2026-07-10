@@ -3,7 +3,11 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   outputFileTracingRoot: path.join(process.cwd(), "..", ".."),
-  experimental: { serverActions: { bodySizeLimit: "2mb" } },
+  devIndicators: false,
+  experimental: {
+    devtoolSegmentExplorer: false,
+    serverActions: { bodySizeLimit: "2mb" }
+  },
   webpack(config, { dev }) {
     if (dev) {
       config.cache = false;
