@@ -1,4 +1,7 @@
 :root {
+  --font-display: "Oswald", "Arial Narrow", "Helvetica Neue", sans-serif;
+  --font-body: "Manrope", "Segoe UI", system-ui, sans-serif;
+  --font-editorial: "Cormorant Garamond", Georgia, serif;
   --theme-ink: #241033;
   --theme-night: #16091f;
   --theme-ink-soft: #321b46;
