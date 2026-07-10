@@ -9,6 +9,15 @@ export async function GET(request: NextRequest) {
   const next = request.nextUrl.searchParams.get("next");
   const safeNext = next?.startsWith("/") && !next.startsWith("//") ? next : "/login";
   const response = NextResponse.redirect(new URL(safeNext, request.url));
+  request.cookies.getAll().forEach((cookie) => {
+    if (cookie.name.startsWith("sb-")) {
+      response.cookies.set(cookie.name, "", {
+        path: "/",
+        maxAge: 0,
+        sameSite: "lax"
+      });
+    }
+  });
   response.cookies.set(DEMO_SESSION_COOKIE, "", {
     path: "/",
     maxAge: 0,
