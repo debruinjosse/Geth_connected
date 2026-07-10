@@ -115,7 +115,7 @@ export default async function CompanyBillingPage({
     }>();
 
   if (profileError || !profile?.company_id) {
-    redirect("/login?error=missing_profile");
+    redirect("/auth/repair-profile");
   }
 
   if (profile.role !== "company_admin") {

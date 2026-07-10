@@ -64,7 +64,7 @@ export default async function CompanyTeamsPage() {
     .maybeSingle<{ id: string; company_id: string | null; first_name: string; last_name: string; role: string }>();
 
   if (adminError || !adminProfile?.company_id || adminProfile.role !== "company_admin") {
-    redirect("/login?error=missing_profile");
+    redirect("/auth/repair-profile");
   }
 
   const [{ data: teams, error: teamsError }, { data: managers, error: managersError }, { data: members, error: membersError }, { data: recognitions, error: recognitionsError }] =

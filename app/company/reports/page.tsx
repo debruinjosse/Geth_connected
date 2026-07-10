@@ -61,7 +61,7 @@ export default async function CompanyReportsPage({
     .maybeSingle<{ id: string; company_id: string | null; first_name: string | null; last_name: string | null; role: string }>();
 
   if (profileError || !profile?.company_id) {
-    redirect("/login?error=missing_profile");
+    redirect("/auth/repair-profile");
   }
 
   if (profile.role !== "company_admin") {

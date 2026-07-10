@@ -73,7 +73,7 @@ export default async function EmployeeCardsPage() {
       team: { name: string } | Array<{ name: string }> | null;
     }>();
 
-  if (profileError || !profile) redirect("/login?error=missing_profile");
+  if (profileError || !profile) redirect("/auth/repair-profile");
 
   const [{ data: receivedRows, error: receivedError }, { data: givenRows, error: givenError }, unreadNotifications] = await Promise.all([
     supabase

@@ -62,7 +62,7 @@ export default async function EmployeeGrowthPage() {
       team: { name: string } | Array<{ name: string }> | null;
     }>();
 
-  if (profileError || !profile) redirect("/login?error=missing_profile");
+  if (profileError || !profile) redirect("/auth/repair-profile");
 
   const [{ data: rows, error: rowsError }, unreadNotifications] = await Promise.all([
     supabase

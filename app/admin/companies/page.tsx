@@ -33,7 +33,7 @@ export default async function AdminCompaniesPage() {
     .maybeSingle<{ first_name: string; last_name: string; role: string }>();
 
   if (profileError || !profile || !["platform_admin", "super_admin"].includes(profile.role)) {
-    redirect("/login?error=missing_profile");
+    redirect("/auth/repair-profile");
   }
 
   const [{ data: companies, error: companiesError }, { data: profiles, error: profilesError }, { data: teams, error: teamsError }] = await Promise.all([

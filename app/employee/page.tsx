@@ -40,7 +40,7 @@ export default async function EmployeeDashboardPage() {
     .maybeSingle<{ id: string; first_name: string; last_name: string; email: string; team_id: string | null; company_id: string | null }>();
 
   if (profileError || !profile) {
-    redirect("/login?error=missing_profile");
+    redirect("/auth/repair-profile");
   }
 
   const [{ data: team }, { data: receivedRows, error: receivedError }, { count: givenCount }] = await Promise.all([

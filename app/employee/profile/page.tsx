@@ -48,7 +48,7 @@ export default async function EmployeeProfilePage() {
       team: { name: string } | Array<{ name: string }> | null;
     }>();
 
-  if (error || !profile) redirect("/login?error=missing_profile");
+  if (error || !profile) redirect("/auth/repair-profile");
 
   const company = Array.isArray(profile.company) ? profile.company[0] : profile.company;
   const team = Array.isArray(profile.team) ? profile.team[0] : profile.team;

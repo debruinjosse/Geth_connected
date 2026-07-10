@@ -48,6 +48,12 @@ export function AuthExperience({
     window.location.replace(callbackUrl.toString());
   }, [inviteToken]);
 
+  useEffect(() => {
+    if (typeof window === "undefined" || authError !== "missing_profile") return;
+    setStatus("Repairing your GETH profile and opening your dashboard...");
+    window.location.replace("/auth/repair-profile");
+  }, [authError]);
+
   function updateField(field: keyof typeof form, value: string) {
     setForm((current) => ({ ...current, [field]: value }));
   }
@@ -70,8 +76,7 @@ export function AuthExperience({
   }
 
   function repairProfileAndOpenDashboard() {
-    const nextPath = mode === "login" ? "/employee" : "/employee";
-    window.location.assign(`/auth/repair-profile?next=${encodeURIComponent(nextPath)}`);
+    window.location.assign("/auth/repair-profile");
   }
 
   function getAuthErrorCopy(error?: string) {

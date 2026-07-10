@@ -65,7 +65,7 @@ export default async function ManagerReportsPage({
     .maybeSingle<{ id: string; company_id: string | null; first_name: string | null; last_name: string | null; role: string }>();
 
   if (profileError || !profile) {
-    redirect("/login?error=missing_profile");
+    redirect("/auth/repair-profile");
   }
 
   if (profile.role !== "manager") {

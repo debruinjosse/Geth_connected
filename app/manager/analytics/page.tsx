@@ -45,7 +45,7 @@ export default async function ManagerAnalyticsPage() {
   try {
     insights = await getManagerInsights(supabase, user.id);
   } catch (error) {
-    if (error instanceof Error && error.message === "missing_profile") redirect("/login?error=missing_profile");
+    if (error instanceof Error && error.message === "missing_profile") redirect("/auth/repair-profile");
     throw error;
   }
 

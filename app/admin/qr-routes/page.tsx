@@ -40,7 +40,7 @@ export default async function AdminQrRoutesPage() {
     .maybeSingle<{ first_name: string; last_name: string; role: string }>();
 
   if (profileError || !profile || !["platform_admin", "super_admin"].includes(profile.role)) {
-    redirect("/login?error=missing_profile");
+    redirect("/auth/repair-profile");
   }
 
   const [{ data: routes, error }, { data: recognitions, error: recognitionsError }] = await Promise.all([

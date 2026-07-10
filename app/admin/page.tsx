@@ -43,7 +43,7 @@ export default async function AdminDashboardPage() {
     .maybeSingle<{ first_name: string; last_name: string; role: string }>();
 
   if (profileError || !profile || !["platform_admin", "super_admin"].includes(profile.role)) {
-    redirect("/login?error=missing_profile");
+    redirect("/auth/repair-profile");
   }
   const unreadNotifications = await getUnreadNotificationCount(supabase, user.id);
 

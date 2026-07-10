@@ -69,7 +69,7 @@ export default async function CompanyEmployeesPage() {
     .maybeSingle<{ id: string; company_id: string | null; first_name: string; last_name: string }>();
 
   if (adminError || !adminProfile?.company_id) {
-    redirect("/login?error=missing_profile");
+    redirect("/auth/repair-profile");
   }
 
   const [{ data: teams, error: teamsError }, { data: employees, error: employeesError }, { data: invitations, error: invitationsError }, { data: recognitions, error: recognitionsError }] =

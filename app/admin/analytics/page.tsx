@@ -57,7 +57,7 @@ export default async function AdminAnalyticsPage() {
     .maybeSingle<{ first_name: string | null; last_name: string | null; role: string }>();
 
   if (profileError || !profile || !["platform_admin", "super_admin"].includes(profile.role)) {
-    redirect("/login?error=missing_profile");
+    redirect("/auth/repair-profile");
   }
 
   const [

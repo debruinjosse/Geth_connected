@@ -67,7 +67,7 @@ export default async function CompanyCardsPage() {
     }>();
 
   if (profileError || !profile) {
-    redirect("/login?error=missing_profile");
+    redirect("/auth/repair-profile");
   }
 
   if (profile.role !== "company_admin") {

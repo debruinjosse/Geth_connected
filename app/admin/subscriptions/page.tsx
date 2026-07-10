@@ -64,7 +64,7 @@ export default async function AdminSubscriptionsPage() {
     .maybeSingle<{ id: string; first_name: string | null; last_name: string | null; role: string }>();
 
   if (profileError || !profile) {
-    redirect("/login?error=missing_profile");
+    redirect("/auth/repair-profile");
   }
 
   if (profile.role !== "platform_admin" && profile.role !== "super_admin") {

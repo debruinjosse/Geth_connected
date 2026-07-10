@@ -45,7 +45,7 @@ export default async function CompanySettingsPage() {
       company: { company_name: string; industry: string | null; subscription_plan: string | null; status: string } | Array<{ company_name: string; industry: string | null; subscription_plan: string | null; status: string }> | null;
     }>();
 
-  if (error || !profile) redirect("/login?error=missing_profile");
+  if (error || !profile) redirect("/auth/repair-profile");
 
   const company = Array.isArray(profile.company) ? profile.company[0] : profile.company;
   const name = `${profile.first_name} ${profile.last_name}`.trim();

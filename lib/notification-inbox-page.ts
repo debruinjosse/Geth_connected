@@ -61,7 +61,7 @@ export async function getNotificationInboxPageData({
     }>();
 
   if (profileError || !profile) {
-    redirect("/login?error=missing_profile");
+    redirect("/auth/repair-profile");
   }
 
   if (!allowedRoles.includes(profile.role)) {

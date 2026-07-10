@@ -183,7 +183,7 @@ export default async function CompanyDashboardPage() {
     .maybeSingle<Pick<CompanyProfile, "id" | "company_id" | "first_name" | "last_name" | "role">>();
 
   if (profileError || !currentProfile || !currentProfile.company_id) {
-    redirect("/login?error=missing_profile");
+    redirect("/auth/repair-profile");
   }
 
   const companyId = currentProfile.company_id;

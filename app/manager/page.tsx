@@ -208,7 +208,7 @@ export default async function ManagerDashboardPage() {
     .maybeSingle<{ id: string; first_name: string; last_name: string; team_id: string | null }>();
 
   if (managerProfileError || !managerProfile) {
-    redirect("/login?error=missing_profile");
+    redirect("/auth/repair-profile");
   }
 
   const { data: managedTeams, error: teamsError } = await supabase

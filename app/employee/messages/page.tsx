@@ -58,7 +58,7 @@ export default async function EmployeeMessagesPage() {
       team: { name: string } | Array<{ name: string }> | null;
     }>();
 
-  if (profileError || !profile) redirect("/login?error=missing_profile");
+  if (profileError || !profile) redirect("/auth/repair-profile");
 
   const [{ data: messages, error: messagesError }, unreadNotifications] = await Promise.all([
     supabase
