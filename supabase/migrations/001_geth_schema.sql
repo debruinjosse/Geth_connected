@@ -1,0 +1,396 @@
+create extension if not exists "pgcrypto";
+
+create type user_role as enum ('employee', 'manager', 'company_admin', 'platform_admin', 'super_admin');
+create type company_status as enum ('active', 'inactive', 'demo');
+create type profile_status as enum ('active', 'invited', 'disabled');
+create type recognition_status as enum ('claimed', 'archived');
+create type invitation_status as enum ('pending', 'accepted', 'expired', 'revoked');
+
+create or replace function set_updated_at()
+returns trigger
+language plpgsql
+as $$
+begin
+  new.updated_at = now();
+  return new;
+end;
+$$;
+
+create table companies (
+  id uuid primary key default gen_random_uuid(),
+  company_name text not null,
+  slug text unique,
+  logo_url text,
+  industry text,
+  subscription_plan text default 'starter',
+  status company_status not null default 'demo',
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create table teams (
+  id uuid primary key default gen_random_uuid(),
+  company_id uuid not null references companies(id) on delete cascade,
+  name text not null,
+  manager_id uuid,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  constraint teams_company_name_unique unique (company_id, name)
+);
+
+create table profiles (
+  id uuid primary key references auth.users(id) on delete cascade,
+  company_id uuid references companies(id) on delete cascade,
+  team_id uuid references teams(id) on delete set null,
+  first_name text not null,
+  last_name text not null,
+  email text not null unique,
+  role user_role not null default 'employee',
+  profile_image text,
+  status profile_status not null default 'active',
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  constraint profiles_company_required_for_non_global_admin
+    check (role in ('platform_admin', 'super_admin') or company_id is not null)
+);
+
+alter table teams
+  add constraint teams_manager_id_fkey
+  foreign key (manager_id) references profiles(id) on delete set null;
+
+create table card_library (
+  id uuid primary key default gen_random_uuid(),
+  card_number int not null unique,
+  title text not null,
+  category text not null,
+  description text not null,
+  recognition_sentence text not null,
+  qr_slug text not null unique,
+  active boolean not null default true,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create table recognition_events (
+  id uuid primary key default gen_random_uuid(),
+  company_id uuid not null references companies(id) on delete cascade,
+  team_id uuid references teams(id) on delete set null,
+  card_id uuid not null references card_library(id),
+  receiver_user_id uuid not null references profiles(id) on delete cascade,
+  giver_user_id uuid references profiles(id) on delete set null,
+  giver_name text,
+  giver_email text,
+  personal_note text,
+  status recognition_status not null default 'claimed',
+  claimed_at timestamptz not null default now(),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  constraint no_self_recognition
+    check (giver_user_id is null or receiver_user_id <> giver_user_id)
+);
+
+create table invitations (
+  id uuid primary key default gen_random_uuid(),
+  company_id uuid not null references companies(id) on delete cascade,
+  team_id uuid references teams(id) on delete set null,
+  email text not null,
+  role user_role not null,
+  token text not null unique,
+  status invitation_status not null default 'pending',
+  invited_by uuid references profiles(id) on delete set null,
+  expires_at timestamptz not null,
+  accepted_at timestamptz,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index teams_company_idx on teams(company_id);
+create index profiles_company_team_idx on profiles(company_id, team_id);
+create index profiles_email_idx on profiles(email);
+create index recognition_company_created_idx on recognition_events(company_id, created_at desc);
+create index recognition_receiver_idx on recognition_events(receiver_user_id, created_at desc);
+create index recognition_giver_idx on recognition_events(giver_user_id, created_at desc);
+create index card_library_qr_slug_idx on card_library(qr_slug);
+create index invitations_company_email_idx on invitations(company_id, email);
+
+create trigger set_companies_updated_at
+before update on companies
+for each row
+execute function set_updated_at();
+
+create trigger set_teams_updated_at
+before update on teams
+for each row
+execute function set_updated_at();
+
+create trigger set_profiles_updated_at
+before update on profiles
+for each row
+execute function set_updated_at();
+
+create trigger set_card_library_updated_at
+before update on card_library
+for each row
+execute function set_updated_at();
+
+create trigger set_recognition_events_updated_at
+before update on recognition_events
+for each row
+execute function set_updated_at();
+
+create trigger set_invitations_updated_at
+before update on invitations
+for each row
+execute function set_updated_at();
+
+alter table companies enable row level security;
+alter table teams enable row level security;
+alter table profiles enable row level security;
+alter table card_library enable row level security;
+alter table recognition_events enable row level security;
+alter table invitations enable row level security;
+
+create or replace function current_profile_company_id()
+returns uuid
+language sql
+stable
+security definer
+as $$
+  select company_id
+  from profiles
+  where id = auth.uid()
+$$;
+
+create or replace function is_company_admin()
+returns boolean
+language sql
+stable
+security definer
+as $$
+  select exists (
+    select 1
+    from profiles
+    where id = auth.uid()
+      and role = 'company_admin'
+  )
+$$;
+
+create or replace function is_global_admin()
+returns boolean
+language sql
+stable
+security definer
+as $$
+  select exists (
+    select 1
+    from profiles
+    where id = auth.uid()
+      and role in ('platform_admin', 'super_admin')
+  )
+$$;
+
+create policy "authenticated users can read active cards"
+on card_library for select
+to authenticated
+using (active = true or is_global_admin());
+
+create policy "global admins can manage card library"
+on card_library for all
+to authenticated
+using (is_global_admin())
+with check (is_global_admin());
+
+create policy "users can read own profile"
+on profiles for select
+to authenticated
+using (id = auth.uid());
+
+create policy "users can read profiles in their company"
+on profiles for select
+to authenticated
+using (
+  company_id = current_profile_company_id()
+  or is_global_admin()
+);
+
+create policy "company admins can manage profiles in their company"
+on profiles for all
+to authenticated
+using (
+  is_global_admin()
+  or (
+    is_company_admin()
+    and company_id = current_profile_company_id()
+  )
+)
+with check (
+  is_global_admin()
+  or (
+    is_company_admin()
+    and company_id = current_profile_company_id()
+  )
+);
+
+create policy "users can read their company"
+on companies for select
+to authenticated
+using (
+  id = current_profile_company_id()
+  or is_global_admin()
+);
+
+create policy "global admins can manage companies"
+on companies for all
+to authenticated
+using (is_global_admin())
+with check (is_global_admin());
+
+create policy "users can read teams in their company"
+on teams for select
+to authenticated
+using (
+  company_id = current_profile_company_id()
+  or is_global_admin()
+);
+
+create policy "company admins can manage teams in their company"
+on teams for all
+to authenticated
+using (
+  is_global_admin()
+  or (
+    is_company_admin()
+    and company_id = current_profile_company_id()
+  )
+)
+with check (
+  is_global_admin()
+  or (
+    is_company_admin()
+    and company_id = current_profile_company_id()
+  )
+);
+
+create policy "users can read recognition in their company"
+on recognition_events for select
+to authenticated
+using (
+  company_id = current_profile_company_id()
+  or is_global_admin()
+);
+
+create policy "users can claim recognition for themselves"
+on recognition_events for insert
+to authenticated
+with check (
+  receiver_user_id = auth.uid()
+  and company_id = current_profile_company_id()
+);
+
+create policy "company admins can manage recognition in their company"
+on recognition_events for all
+to authenticated
+using (
+  is_global_admin()
+  or (
+    is_company_admin()
+    and company_id = current_profile_company_id()
+  )
+)
+with check (
+  is_global_admin()
+  or (
+    is_company_admin()
+    and company_id = current_profile_company_id()
+  )
+);
+
+create policy "users can read invitations in their company"
+on invitations for select
+to authenticated
+using (
+  company_id = current_profile_company_id()
+  or is_global_admin()
+);
+
+create policy "company admins can manage invitations in their company"
+on invitations for all
+to authenticated
+using (
+  is_global_admin()
+  or (
+    is_company_admin()
+    and company_id = current_profile_company_id()
+  )
+)
+with check (
+  is_global_admin()
+  or (
+    is_company_admin()
+    and company_id = current_profile_company_id()
+  )
+);
+
+insert into card_library (card_number, title, category, description, recognition_sentence, qr_slug, active)
+values
+(1, 'Luisteraar', 'Communicatie', 'Jij geeft mensen de ruimte om volledig hun verhaal te doen zonder te onderbreken. Door jouw aandacht voelen mensen zich gehoord en serieus.', 'Jij luisterde naar mij vandaag, oprecht geinteresseerd, zonder te onderbreken. Ik voelde me echt gehoord.', 'luisteraar', true),
+(2, 'Helder', 'Communicatie', 'Jij vertaalt complexe situaties naar begrijpelijke taal, afgestemd op de ander. Jij weet precies hoe je iets op de juiste manier kunt overbrengen, zodat het echt landt.', 'Dankzij jouw duidelijke uitleg begreep ik wat er precies bedoeld werd.', 'helder', true),
+(3, 'Eerlijk', 'Communicatie', 'Jij benoemt wat nodig is op een duidelijke en respectvolle manier. Door jouw eerlijkheid ontstaat helderheid en weten anderen waar ze aan toe zijn.', 'Ik waardeer dat je het eerlijk benoemde. Dat gaf duidelijkheid en hielp ons een betere keuze maken.', 'eerlijk', true),
+(4, 'Verbinder', 'Communicatie', 'Jij ziet wat mensen met elkaar gemeen hebben en brengt hen op een natuurlijke manier samen. Daardoor ontstaan verbindingen die het werk en de samenwerking versterken.', 'Jij brengt mensen bij elkaar die elkaar verder helpen en versterken. Het is je tweede natuur.', 'verbinder', true),
+(5, 'Empathisch', 'Communicatie', 'Jij voelt aan wat iemand nodig heeft, eventueel ook zonder dat het uitgesproken wordt. Jouw medeleven en vermogen om je in een ander te verplaatsen maakt de samenwerking menselijk.', 'Bij jou hoef ik niets uit te leggen, jij voelt de sfeer aan en hebt begrip voor de situatie. Ik voel mij echt begrepen.', 'empathisch', true),
+(6, 'Overtuigend', 'Communicatie', 'Jij weet mensen mee te nemen in jouw verhaal zonder te forceren. Je combineert logica met gevoel en daardoor ontstaat beweging vanzelf.', 'Jij overtuigde me vandaag niet met druk, maar met inzicht. Daardoor kon ik volmondig ja zeggen waardoor het echt als mijn keuze voelde.', 'overtuigend', true),
+(7, 'Gastvrij', 'Communicatie', 'Jij zorgt ervoor dat mensen zich welkom voelen vanaf het eerste moment. Jij hebt een natuurlijk gevoel voor wat iemand nodig heeft om zich op zijn gemak te voelen.', 'Jij zorgde er vandaag voor dat ik me welkom voelde. Dat is niet vanzelfsprekend en zorgt ervoor dat ik hier graag naartoe kom.', 'gastvrij', true),
+(8, 'Inspirerend', 'Communicatie', 'Jij geeft mensen met jouw woorden en energie zin om dingen op te pakken of door te pakken. Na een gesprek met jou voelt er vaak meer mogelijk.', 'Na ons gesprek kreeg ik nieuwe energie om door te pakken. Jij liet me inzien dat het mogelijk is.', 'inspirerend', true),
+(9, 'Diplomatiek', 'Communicatie', 'Jij voelt aan wanneer een gesprek lastig wordt en weet dan precies de juiste, verzachtende woorden te kiezen. Daardoor zorg jij dat situaties niet escaleren en iedereen betrokken blijft.', 'De manier waarop jij de juiste woorden koos, hield het gesprek rustig en zorgde dat iedereen bleef luisteren.', 'diplomatiek', true),
+(10, 'Leidend', 'Communicatie', 'Jij geeft helder richting zonder te overheersen. Wanneer anderen twijfelen, bied jij handvatten en laat je zien welke mogelijkheden er zijn om verder te kunnen.', 'Jij gaf ons precies de duidelijkheid en handvatten die we nodig hadden om verder te kunnen.', 'leidend', true),
+(11, 'Nieuwsgierig', 'Communicatie', 'Jij wilt graag alle kanten van een verhaal begrijpen. Door jouw vragen ontstaat er verdieping en krijgen mensen een completer beeld van wat er speelt.', 'Jouw vragen lieten me verder kijken dan ik zelf zou zijn gegaan. Daardoor begreep ik de situatie pas echt.', 'nieuwsgierig', true),
+(12, 'Enthousiast', 'Communicatie', 'Jij brengt leven in een gesprek. Jouw enthousiasme werkt aanstekelijk.', 'Elke keer als jij praat, raak ik enthousiast en krijg ik zin om mee te helpen. Dat is een gave die jij gewoon hebt.', 'enthousiast', true),
+(13, 'Geruststeller', 'Communicatie', 'Jij hebt het vermogen om mensen tot rust te brengen in onzekere momenten. Jouw woorden en aanwezigheid geven kalmte aan wie dat nodig heeft.', 'Jij zorgde ervoor dat ik rustig werd juist toen ik het nodig had. Door jou voel ik me weer op mijn gemak.', 'geruststeller', true),
+(14, 'Vernieuwend', 'Creativiteit', 'Jij denkt out of the box. Jouw ideeen openen vensters die anderen nog niet zagen. Jij geeft een frisse, innovatieve blik op wat er mogelijk kan zijn.', 'Jouw idee bracht precies de frisse blik die nodig was, dat heeft echt iets opgeleverd.', 'vernieuwend', true),
+(15, 'Avontuurlijk', 'Creativiteit', 'Jij omarmt het onbekende. Waar anderen voorzichtig worden, zie jij een kans. Jouw bereidheid om risico te nemen opent nieuwe wegen voor het hele team.', 'Jij durfde vandaag een stap te zetten die wij allemaal spannend vonden. Dankzij jou komen we verder.', 'avontuurlijk', true),
+(16, 'Humor', 'Creativiteit', 'Jij brengt plezier, luchtigheid en positiviteit in wat dreigt vast te lopen. Dankzij jouw humor voelt het prettig om mee te doen.', 'Jij bracht precies de energie die nodig was om het prettig te laten voelen en dat voelde ik direct.', 'humor', true),
+(17, 'Visionair', 'Creativiteit', 'Jij ziet voor je wat er mogelijk is op langere termijn en weet daar richting aan te geven. Daarmee help je anderen om verder te kijken dan vandaag.', 'Jij liet me zien waar we in de toekomst kunnen staan. Dat maakte het ineens concreet en tastbaar.', 'visionair', true),
+(18, 'Onderzoekend', 'Creativiteit', 'Jij stelt scherpe vragen en ontdekt inzichten die anderen helpen betere keuzes te maken.', 'Dat jij verder keek dan de rest en doorvroeg, hielp ons een beter besluit te nemen. Zonder jou hadden we dat gemist.', 'onderzoekend', true),
+(19, 'Authentiek', 'Creativiteit', 'Jij laat je niet leiden door wat gangbaar is. In wat jij maakt of zegt zit iets eigens dat herkenbaar en onderscheidend is.', 'Ik herken jou direct in wat jij maakt, doet of zegt. Jij brengt altijd iets dat echt van jou is.', 'authentiek', true),
+(20, 'Opmerkzaam', 'Creativiteit', 'Jij ziet wat anderen niet zien. Puur omdat jij zo kijkt. Details, sfeer, wat er onder de oppervlakte speelt. Niets gaat aan jou voorbij.', 'Jij merkte vandaag iets op wat de rest had gemist. Dankzij jou hebben we het niet laten liggen.', 'opmerkzaam', true),
+(21, 'Verzorgd', 'Creativiteit', 'Jij levert nooit half werk. Wat jij maakt ziet er goed uit. Dat gevoel voor kwaliteit straalt af op alles wat jij aanraakt.', 'Wat jij vandaag maakte straalde kwaliteit uit en was tot in de puntjes verzorgd. Dat is jouw standaard.', 'verzorgd', true),
+(22, 'Oplosser', 'Creativiteit', 'Jij ziet problemen als uitnodigingen om anders te kijken. Waar anderen vastlopen, ontdek jij vaak een creatieve doorgang.', 'Jij zag een kans waar wij vooral een probleem zagen. Waardevol dat jij dat zag.', 'oplosser', true),
+(23, 'Intuitief', 'Creativiteit', 'Jij durft te vertrouwen op je gevoel. Jouw intuitie is geen losse ingeving, maar een gevoeligheid voor wat klopt in het moment.', 'Je voelde feilloos aan wat hier nodig was, nog voordat alles was uitgesproken.', 'intuitief', true),
+(24, 'Improvisator', 'Creativiteit', 'Jij blijft kalm als plannen veranderen. Jij maakt van onverwachte situaties iets bruikbaars.', 'Dat jij zo soepel schakelde, zorgde ervoor dat wij ook rustig konden blijven.', 'improvisator', true),
+(25, 'Uitdager', 'Creativiteit', 'Jij daagt constructief de status quo uit. Jij stelt de vraag "maar waarom eigenlijk?" en die vraag zorgt voor inzicht.', 'Jij liet me vandaag mijn eigen aannames zien. Dit was ongemakkelijk maar verhelderend en precies wat ik nodig had.', 'uitdager', true),
+(26, 'Dromer', 'Creativiteit', 'Jij durft groot te denken. Jouw dromen zijn de zaadjes van de toekomst voor jou en voor anderen.', 'Jouw droom van vandaag gaf mij moed om ook iets groots te durven denken.', 'dromer', true),
+(27, 'Doelgericht', 'Competentie', 'Jij weet waar je naartoe werkt en houdt scherp wat er echt toe doet. Daardoor help je anderen om focus te houden op het doel.', 'Jij hield ons bij de kern toen wij dreigden af te dwalen. Dankzij jou hielden we het doel in zicht.', 'doelgericht', true),
+(28, 'Analytisch', 'Competentie', 'Jij ziet structuur waar anderen chaos zien. Jij ontleedt problemen met precisie en vindt de kern van de zaak snel.', 'Jouw analyse bracht rust in iets wat voor ons ondoorzichtig was. Helder en direct, dat gaf mij vertrouwen.', 'analytisch', true),
+(29, 'Betrouwbaar', 'Competentie', 'Wat jij zegt, doe jij. Altijd. Jouw betrouwbaarheid is het fundament waarop anderen durven bouwen.', 'Ik kan op jou bouwen; dat geeft stabiliteit voor mij, voor het team en voor het resultaat.', 'betrouwbaar', true),
+(30, 'Strategisch', 'Competentie', 'Jij denkt drie stappen vooruit. Jij ziet patronen en kansen die anderen nog niet zien, en geeft inzichten die op lange termijn kloppen.', 'Jij zag vandaag wat deze beslissing over twee jaar betekent.', 'strategisch', true),
+(31, 'Nauwkeurig', 'Competentie', 'Jij mist niets. Jouw oog voor detail beschermt de kwaliteit, ook als anderen al tevreden zouden zijn.', 'Jij zag wat wij niet zagen. En daardoor werd ons werk echt goed.', 'nauwkeurig', true),
+(32, 'Daadkrachtig', 'Competentie', 'Jij komt in beweging waar anderen nog afwegen. Door jouw daadkracht ontstaat er tempo en wordt het voor anderen makkelijker om ook mee te gaan.', 'Dat jij gewoon begon, gaf ons allemaal het zetje dat we nodig hadden.', 'daadkrachtig', true),
+(33, 'Leergierig', 'Competentie', 'Jij groeit bewust. Jij zoekt feedback op, omarmt ongemak en maakt van elke fout een stap vooruit.', 'De manier waarop jij omging met die feedback liet mij zien hoe groei ontstaat en je van fouten kunt leren.', 'leergierig', true),
+(34, 'Organisator', 'Competentie', 'Jij brengt orde in complexiteit. Jouw vermogen om te structureren maakt het voor iedereen mogelijk om te presteren.', 'Dankzij jou wist iedereen vandaag wat hij of zij moest doen. Dat is van onschatbare waarde.', 'organisator', true),
+(35, 'Veerkrachtig', 'Competentie', 'Jij bent stabiel als het tegenzit. Tegenslagen breng jij in perspectief en jij herpakt je snel, waardoor het niet als een grote tegenslag aanvoelt.', 'De manier waarop jij je herpakte, inspireerde mij. Jij liet zien dat je je niet laat stoppen.', 'veerkrachtig', true),
+(36, 'Resultaatgericht', 'Competentie', 'Jij houdt het einddoel scherp voor ogen. Jij weet het verschil tussen druk zijn en productief zijn, en kiest altijd voor wat echt bijdraagt aan het doel.', 'Jij bracht focus op wat echt bijdraagt. Dankzij jou maken we echte stappen.', 'resultaatgericht', true),
+(37, 'Proactief', 'Competentie', 'Jij wacht niet af. Jij ziet wat er nodig is voordat anderen het opmerken, en handelt al voordat er gevraagd wordt.', 'Jij had dit al geregeld voor ik er uberhaupt aan had gedacht. Dat geeft rust.', 'proactief', true),
+(38, 'Besluitvaardig', 'Competentie', 'Jij neemt beslissingen, ook als niet alles duidelijk is. Jij weet dat niet beslissen ook een keuze kan zijn en neemt verantwoordelijkheid voor je keuze.', 'Jij nam een besluit toen wij bleven twijfelen. Dankzij jou konden we verder.', 'besluitvaardig', true),
+(39, 'Kritisch', 'Competentie', 'Jij accepteert niet zomaar wat voor je wordt neergelegd. Jouw kritische blik beschermt de kwaliteit en zorgt dat het beste naar boven komt.', 'Doordat jij durfde te vragen, kwamen we op tijd tot inzicht. Zonder jou hadden we dat gemist.', 'kritisch', true),
+(40, 'Zorgzaam', 'Collegialiteit', 'Jij let op mensen, niet vanuit plicht, maar vanuit echte aandacht. Jij merkt op wanneer het minder goed gaat, voordat iemand het zelf heeft gezegd.', 'Dankzij jouw zorgzaamheid voelde ik me gezien op een moment dat ik dat hard nodig had.', 'zorgzaam', true),
+(41, 'Loyaal', 'Collegialiteit', 'Jij blijft staan voor de mensen om je heen, juist wanneer het moeilijk wordt. Je verlaat mensen niet wanneer het tegenzit, maar kiest voor trouw, vertrouwen en echte verbondenheid.', 'Dat jij er was, ook toen het moeilijk was, betekent meer dan jij weet. Jouw loyaliteit gaf mij vertrouwen, stabiliteit en de zekerheid dat ik op je kan bouwen.', 'loyaal', true),
+(42, 'Teamspeler', 'Collegialiteit', 'Jij plaatst het belang van het team voorop. Jij deelt credits, ondersteunt anderen en draagt bij aan het gezamenlijk doel.', 'Jij hield vandaag het team sterk zonder zelf op de voorgrond te hoeven staan. Juist daardoor kon iedereen beter presteren.', 'teamspeler', true),
+(43, 'Vertrouwenspersoon', 'Collegialiteit', 'Mensen kiezen jou als ze iets vertrouwelijks moeten delen. Jij bewaart dat vertrouwen zorgvuldig en discreet.', 'Ik kan jou dingen vertellen die ik niemand anders vertel. Dat vertrouwen is niet vanzelfsprekend en ik ben blij dat jij er bent.', 'vertrouwenspersoon', true),
+(44, 'Ondersteunend', 'Collegialiteit', 'Jij bent er voor anderen op het moment dat het telt. Jij helpt en geeft steun wanneer ze dat echt nodig hebben.', 'Jij was er voor mij, dat was precies genoeg. Jij gaf me rust en vertrouwen toen ik het nodig had.', 'ondersteunend', true),
+(45, 'Respectvol', 'Collegialiteit', 'Jij respecteert de grenzen, het tempo en de perspectieven van anderen. Jij legt niets op, maar schept ruimte zodat de ander zichzelf kan zijn.', 'Jij gaf mij vandaag de ruimte om op mijn eigen manier bij te dragen. Dat voelde als oprechte samenwerking.', 'respectvol', true),
+(46, 'Dankbaar', 'Collegialiteit', 'Jij ziet wat anderen bijdragen en spreekt dat uit. Jij laat mensen weten dat hun bijdrage telt, en dat verandert de sfeer.', 'Dat jij dat vandaag hardop zei, waardeer ik. Het geeft me energie om door te gaan.', 'dankbaar', true),
+(47, 'Inclusief', 'Collegialiteit', 'Jij zorgt ervoor dat niemand buitengesloten wordt. Jij trekt stille stemmen naar voren en maakt ruimte voor wie normaal geen ruimte krijgt.', 'Jij zorgde er vandaag voor dat ik er ook bij hoorde. Dat geeft me het gevoel van gelijkwaardigheid en dat ik iets bijdraag.', 'inclusief', true),
+(48, 'Geduldig', 'Collegialiteit', 'Jij geeft mensen de tijd die ze nodig hebben. Jij dwingt geen tempo op dat niet bij hen past en dat maakt samenwerken veilig.', 'Dat jij mij de tijd gaf zonder ongeduld, nam de druk weg. Daardoor kon ik laten zien wat ik in huis heb.', 'geduldig', true),
+(49, 'Beschermend', 'Collegialiteit', 'Jij staat op voor anderen als dat nodig is. Jij laat niet toe dat mensen weggezet of genegeerd worden, zacht maar standvastig. Jij zorgt voor iemands welzijn.', 'Dat jij voor mij opkwam, waardeer ik. Jij zorgde ervoor dat ik me veilig voelde.', 'beschermend', true),
+(50, 'Energiek', 'Collegialiteit', 'Jij brengt leven in een ruimte. Jouw aanwezigheid tilt de energie van het team omhoog en zorgt ervoor dat we doorgaan op het moment dat anderen afhaken.', 'Elke keer als jij er bent, is de sfeer beter. Dat is puur jouw bijdrage. Jouw energie werkt aanstekelijk en brengt enthousiasme.', 'energiek', true),
+(51, 'Aanwezig', 'Collegialiteit', 'Jij bent echt aanwezig. Geen halve aandacht, geen afleiding, jij richt je volledig op de mens voor je.', 'Jij was er vandaag volledig, en ik voelde dat. Dat maakt het verschil. Volle aandacht is het beste wat je iemand kunt geven.', 'aanwezig', true),
+(52, 'Waarderend', 'Collegialiteit', 'Jij ziet het goede in mensen. Jouw waardering is geen complimentje, het is een spiegel die mensen groter laat zijn. Jij maakt iemands bijdrage zichtbaar door te waarderen. Deze kwaliteit is de basis voor een goede werkomgeving, goede medewerkers en een goed resultaat.', 'Dat je mijn bijdrage waardeert, geeft me het gevoel dat ik gezien word. Dit geeft me kracht, positiviteit en energie.', 'waarderend', true),
+(53, 'Open Categorie', 'Open kaart', 'Vul de te waarderen kwaliteit in:', 'Maak je eigen erkenningszin:', 'open-categorie', true)
+on conflict (card_number) do update set
+  title = excluded.title,
+  category = excluded.category,
+  description = excluded.description,
+  recognition_sentence = excluded.recognition_sentence,
+  qr_slug = excluded.qr_slug,
+  active = excluded.active,
+  updated_at = now();
