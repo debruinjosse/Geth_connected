@@ -4,6 +4,13 @@ import { GoldenLeaves } from "@/components/GoldenLeaves";
 import { HeroDashboardMockup } from "@/components/HeroDashboardMockup";
 import { PublicSiteChrome } from "@/components/PublicSiteChrome";
 import { Reveal } from "@/components/Reveal";
+import { categoryMeta, getCategoryDisplayName, gethCards, type CardCategory } from "@/lib/cards";
+
+const cardPreviewCategories: CardCategory[] = ["Communicatie", "Creativiteit", "Competentie", "Collegialiteit", "Open kaart"];
+const cardPreviews = cardPreviewCategories.flatMap((category) => {
+  const card = gethCards.find((item) => item.active && item.category === category);
+  return card ? [card] : [];
+});
 
 export default function LandingPage() {
   return (
@@ -45,6 +52,21 @@ export default function LandingPage() {
               <UsersRound size={18} /> Built for teams
             </span>
           </Reveal>
+          <Reveal className="hero-card-preview" delay={0.42} distance={12}>
+            <div className="hero-card-preview-head">
+              <span className="eyebrow">Card deck preview</span>
+              <Link href="/cards">View all cards <ArrowRight size={13} /></Link>
+            </div>
+            <div className="hero-card-preview-grid">
+              {cardPreviews.map((card) => (
+                <Link className="hero-card-chip" href={`/claim-card/${card.slug}`} key={card.slug}>
+                  <span style={{ background: categoryMeta[card.category as CardCategory]?.color ?? "var(--theme-gold)" }} />
+                  <strong>{card.title}</strong>
+                  <small>{getCategoryDisplayName(card.category)}</small>
+                </Link>
+              ))}
+            </div>
+          </Reveal>
         </div>
 
         <HeroDashboardMockup />
@@ -69,6 +91,29 @@ export default function LandingPage() {
               <p>{text}</p>
             </Reveal>
           ))}
+        </div>
+      </section>
+
+      <section className="section-shell cards-teaser-section" id="cards">
+        <div className="section-head">
+          <div className="eyebrow">Cards</div>
+          <h2 className="section-title">A card for every kind of impact</h2>
+          <p className="section-copy">Browse the full GETH deck when you are ready, or claim a card directly from a QR scan.</p>
+        </div>
+        <div className="cards-teaser-row">
+          {cardPreviews.map((card, index) => (
+            <Reveal className="cards-teaser-card" key={card.slug} delay={index * 0.04}>
+              <div className="card-library-meta">
+                <span>{getCategoryDisplayName(card.category)}</span>
+                <span>{String(card.cardNumber).padStart(2, "0")}</span>
+              </div>
+              <h3>{card.title}</h3>
+              <p>{card.description}</p>
+            </Reveal>
+          ))}
+        </div>
+        <div className="cards-teaser-actions">
+          <Link className="btn btn-dark" href="/cards">Open card library <ArrowRight size={16} /></Link>
         </div>
       </section>
 
