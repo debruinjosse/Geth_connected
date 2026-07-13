@@ -22,7 +22,8 @@ const PROTECTED_ROUTE_RULES: Array<{
   { prefix: "/employee", allowedRoles: ["employee"] },
   { prefix: "/manager", allowedRoles: ["manager"] },
   { prefix: "/company", allowedRoles: ["company_admin"] },
-  { prefix: "/admin", allowedRoles: ["platform_admin", "super_admin"] }
+  { prefix: "/admin", allowedRoles: ["platform_admin", "super_admin"] },
+  { prefix: "/dashboard", allowedRoles: ["employee", "manager", "company_admin", "platform_admin", "super_admin"] }
 ];
 
 function hasSupabaseServerConfig() {

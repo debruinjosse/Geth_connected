@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { updateCompanyStatusAction } from "@/app/actions/adminControls";
 import { DashboardShell } from "@/components/DashboardShell";
 import { EmptyState } from "@/components/EmptyState";
@@ -82,7 +83,11 @@ export default async function AdminCompaniesPage() {
               <tbody>
                 {companies.map((company) => (
                   <tr key={company.id}>
-                    <td><strong>{company.company_name}</strong><p style={{ margin: "4px 0 0", color: "var(--theme-muted)" }}>{company.industry ?? "No industry set"}</p></td>
+                    <td>
+                      <strong>{company.company_name}</strong>
+                      <p style={{ margin: "4px 0 0", color: "var(--theme-muted)" }}>{company.industry ?? "No industry set"}</p>
+                      <Link className="panel-link" href={`/admin/companies/${company.id}`}>Open hierarchy</Link>
+                    </td>
                     <td>{company.subscription_plan}</td>
                     <td><span className="admin-status-pill">{company.status}</span></td>
                     <td>{profileCounts.get(company.id) ?? 0}</td>
