@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useLocale } from "next-intl";
@@ -208,7 +209,7 @@ export function DashboardShell({
             </Link>
             <div className="dashboard-avatar-chip" title={`${user.name} - ${user.team}`}>
               <div className="avatar">
-                {user.imageUrl ? <img src={user.imageUrl} alt={`${user.name} profile`} /> : user.initials || <CircleUserRound size={18} />}
+                {user.imageUrl ? <Image src={user.imageUrl} alt={`${user.name} profile`} width={32} height={32} unoptimized /> : user.initials || <CircleUserRound size={18} />}
               </div>
             </div>
             <button className="btn btn-secondary dashboard-logout dashboard-top-signout" type="button" onClick={handleLogout} disabled={loggingOut}>

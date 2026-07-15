@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { Camera, KeyRound, Save, UploadCloud } from "lucide-react";
 import { sendPasswordResetFromSettingsAction, updateOwnProfileNameAction, updateOwnProfilePhotoAction } from "@/app/actions/accountSettings";
 
@@ -61,7 +62,7 @@ export function AccountSettingsPanel({
         <input type="hidden" name="returnTo" value={returnTo} />
         <div className="settings-photo-preview">
           <div className="profile-photo-large">
-            {profileImageUrl ? <img src={profileImageUrl} alt={`${firstName || "Your"} profile`} /> : <span>{initials}</span>}
+            {profileImageUrl ? <Image src={profileImageUrl} alt={`${firstName || "Your"} profile`} width={82} height={82} unoptimized /> : <span>{initials}</span>}
           </div>
           <div>
             <strong>Profile photo</strong>

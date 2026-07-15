@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useDeferredValue, useState, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
@@ -26,7 +27,7 @@ type ClaimGiverOption = {
 function ProfileAvatar({ person }: { person: Pick<ClaimGiverOption, "name" | "initials" | "imageUrl"> }) {
   return (
     <div className="avatar">
-      {person.imageUrl ? <img src={person.imageUrl} alt={`${person.name} profile`} /> : person.initials}
+      {person.imageUrl ? <Image src={person.imageUrl} alt={`${person.name} profile`} width={48} height={48} unoptimized /> : person.initials}
     </div>
   );
 }
