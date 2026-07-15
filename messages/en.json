@@ -1,0 +1,147 @@
+{
+  "metadata": {
+    "title": "GETH Connected Cards",
+    "description": "Physical recognition. Digital culture insight."
+  },
+  "language": {
+    "label": "Language",
+    "aria": "Choose site language",
+    "en": "English",
+    "nl": "Nederlands",
+    "fr": "Français",
+    "da": "Danish"
+  },
+  "nav": {
+    "howItWorks": "How it works",
+    "forCompanies": "For companies",
+    "cards": "Cards",
+    "pricing": "Pricing",
+    "resources": "Resources",
+    "login": "Log in",
+    "bookDemo": "Book a demo",
+    "openDashboard": "Open dashboard",
+    "signOut": "Sign out",
+    "hi": "Hi, {name}"
+  },
+  "auth": {
+    "bullets": {
+      "recognition": "Physical recognition, digital insight",
+      "private": "Private, thoughtful, measurable",
+      "teams": "Designed for modern teams"
+    },
+    "login": {
+      "owner": {
+        "eyebrow": "Owner access",
+        "title": "Log in to the GETH owner console",
+        "subtitle": "Control companies, card routes, platform analytics, and super admin operations."
+      },
+      "manager": {
+        "eyebrow": "Manager access",
+        "title": "Log in to your manager workspace",
+        "subtitle": "Review team recognition, signals, reports, and the insight you need to support your people."
+      },
+      "company": {
+        "eyebrow": "Company admin access",
+        "title": "Log in to your company portal",
+        "subtitle": "Manage teams, employees, invitations, billing, cards, and company-wide recognition insight."
+      },
+      "employee": {
+        "eyebrow": "Employee access",
+        "title": "Log in to your employee portal",
+        "subtitle": "Claim cards, follow your growth, and keep recognition visible across your team."
+      }
+    },
+    "signup": {
+      "invite": {
+        "eyebrow": "Invited user onboarding",
+        "title": "Create your invited GETH account",
+        "subtitle": "Join your company workspace, accept your role, and start claiming recognition cards."
+      },
+      "company": {
+        "eyebrow": "Company admin onboarding",
+        "title": "Create your company admin account",
+        "subtitle": "Set up your company workspace, invite your team, and start turning appreciation into culture insight."
+      },
+      "manager": {
+        "eyebrow": "Manager onboarding",
+        "title": "Create your manager account",
+        "subtitle": "Join your workspace, support your team, and keep recognition visible across the people you lead."
+      },
+      "employee": {
+        "eyebrow": "Employee onboarding",
+        "title": "Create your GETH account",
+        "subtitle": "Employees and managers usually join through a company invitation so their team and role are assigned correctly."
+      }
+    }
+  },
+  "cardsPage": {
+    "cta": "Claim a card",
+    "eyebrow": "Public card library",
+    "title": "Explore all 53 GETH recognition cards",
+    "copy": "Browse the live deck by category, search for card themes, and open the claim route for every active GETH Connected Card."
+  },
+  "home": {
+    "eyebrow": "GETH Connected Cards",
+    "headlineLine1": "Small moments.",
+    "headlineLine2": "Big impact.",
+    "description": "Turn everyday recognition into measurable culture insights. Our connected cards help teams feel seen, stay energized, and grow together.",
+    "seeHow": "See how it works",
+    "scrollExplore": "Scroll to explore",
+    "trustSecure": "Secure & private",
+    "trustInsights": "Actionable insights",
+    "trustTeams": "Built for teams",
+    "deckPreview": "Card Deck Preview",
+    "deckPreviewTitle": "See how recognition comes to life.",
+    "deckPreviewCopy": "Preview a few cards from our impact categories.",
+    "viewAllCards": "View all cards",
+    "previousCards": "Previous cards",
+    "nextCards": "Next cards",
+    "previewCommunication": "Communication",
+    "previewCreativity": "Creativity",
+    "previewCompetence": "Competence",
+    "previewCollegiality": "Collegiality",
+    "previewListening": "Luisteraar",
+    "previewRenewing": "Vernieuwer",
+    "previewGoalOriented": "Doelgericht",
+    "previewCaring": "Zorgzaam",
+    "previewListeningCopy": "Jij geeft mensen de ruimte om echt te spreken, zonder oordeel. Je aandacht maakt het verschil.",
+    "previewRenewingCopy": "Jij brengt frisse ideeën en nieuwe perspectieven die anderen helpen groeien en nieuwe mogelijkheden zien.",
+    "previewGoalOrientedCopy": "Jij stelt duidelijke doelen, maakt plannen en brengt ze stap voor stap tot leven.",
+    "previewCaringCopy": "Jij hebt aandacht voor collega’s en draagt bij aan een positieve, veilige en betrokken werkomgeving.",
+    "howEyebrow": "How it works",
+    "howTitle": "Recognition that moves",
+    "howCopy": "Real-world appreciation becomes digital visibility in four thoughtful steps.",
+    "step1Title": "Give a card",
+    "step1Copy": "Choose a card that matches the moment and the impact.",
+    "step2Title": "Scan QR code",
+    "step2Copy": "They scan the QR code to access their digital experience.",
+    "step3Title": "Claim recognition",
+    "step3Copy": "They see your message, claim the compliment, and feel seen.",
+    "step4Title": "View growth & insights",
+    "step4Copy": "Recognition turns into insights that help your team grow.",
+    "companiesLabel": "For companies",
+    "companiesTitle": "Culture intelligence at scale.",
+    "companiesCopy": "Build a culture of recognition that drives engagement, retention, and measurable impact.",
+    "managersLabel": "For managers",
+    "managersTitle": "See your team clearly.",
+    "managersCopy": "Spot what matters, celebrate often, and lead with data that helps your team thrive.",
+    "employeesLabel": "For employees",
+    "employeesTitle": "Own your growth story.",
+    "employeesCopy": "Feel valued, energized, and connected through everyday recognition.",
+    "learnMore": "Learn more",
+    "ctaEyebrow": "Ready to build a recognition culture?",
+    "ctaTitle": "Make recognition visible, measurable, and beautifully human.",
+    "viewPricing": "View pricing",
+    "registerCompany": "Register your company"
+  },
+  "footer": {
+    "banner": "Recognition that grows culture.",
+    "title": "Bridging physical recognition with digital culture intelligence.",
+    "copy": "GETH helps companies turn meaningful appreciation into visible insight across employees, managers, and entire organizations.",
+    "product": "Product",
+    "privacy": "Privacy",
+    "terms": "Terms",
+    "security": "Security",
+    "copyright": "© 2026 GETH Connected Cards."
+  }
+}

@@ -1,5 +1,12 @@
 import nodemailer from "nodemailer";
-import { getInviteEmailHtml, getInviteEmailSubject, getInviteEmailText } from "@/lib/mail/templates";
+import {
+  getInviteEmailHtml,
+  getInviteEmailSubject,
+  getInviteEmailText,
+  getInvoiceEmailHtml,
+  getInvoiceEmailSubject,
+  getInvoiceEmailText
+} from "@/lib/mail/templates";
 
 export type InviteEmailErrorCode =
   | "SMTP_MISSING"
@@ -98,5 +105,87 @@ export async function sendInviteEmail({
     });
   } catch (error) {
     throw new InviteEmailError(classifySmtpError(error), "Invitation email could not be sent.", error);
+  }
+}
+
+export async function sendInvoiceEmail({
+  to,
+  companyName,
+  invoiceNumber,
+  totalLabel,
+  dueDate,
+  invoiceUrl,
+  pdf
+}: {
+  to: string;
+  companyName: string;
+  invoiceNumber: string;
+  totalLabel: string;
+  dueDate: string;
+  invoiceUrl: string;
+  pdf: Buffer;
+}) {
+  const from = process.env.SMTP_FROM || "GETH <hello@get.pro>";
+  const replyTo = process.env.SMTP_REPLY_TO || undefined;
+
+  try {
+    await getTransport().sendMail({
+      from,
+      replyTo,
+      to,
+      subject: getInvoiceEmailSubject(invoiceNumber),
+      text: getInvoiceEmailText({ companyName, invoiceNumber, totalLabel, dueDate, invoiceUrl }),
+      html: getInvoiceEmailHtml({ companyName, invoiceNumber, totalLabel, dueDate, invoiceUrl }),
+      attachments: [
+        {
+          filename: `${invoiceNumber}.pdf`,
+          content: pdf,
+          contentType: "application/pdf"
+        }
+      ]
+    });
+  } catch (error) {
+    throw new InviteEmailError(classifySmtpError(error), "Invoice email could not be sent.", error);
+  }
+}
+
+export async function sendCalendarInviteEmail({
+  to,
+  subject,
+  text,
+  ics,
+  filename = "geth-final-project-review.ics"
+}: {
+  to: string;
+  subject: string;
+  text: string;
+  ics: string;
+  filename?: string;
+}) {
+  const from = process.env.SMTP_FROM || "GETH <hello@get.pro>";
+  const replyTo = process.env.SMTP_REPLY_TO || undefined;
+
+  try {
+    await getTransport().sendMail({
+      from,
+      replyTo,
+      to,
+      subject,
+      text,
+      icalEvent: {
+        filename,
+        method: "PUBLISH",
+        content: ics
+      },
+      attachments: [
+        {
+          filename,
+          content: ics,
+          contentType: "text/calendar; charset=utf-8"
+        }
+      ]
+    });
+  } catch (error) {
+    throw new InviteEmailError(classifySmtpError(error), "Calendar invite email could not be sent.", error);
   }
 }

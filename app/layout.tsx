@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -10,10 +9,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" data-scroll-behavior="smooth">
-      <body>
-        {children}
-        <LanguageSwitcher />
-      </body>
+      <body>{children}</body>
     </html>
   );
 }

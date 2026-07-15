@@ -1,0 +1,147 @@
+{
+  "metadata": {
+    "title": "GETH Connected Cards",
+    "description": "Fysieke waardering. Digitale cultuurinzichten."
+  },
+  "language": {
+    "label": "Taal",
+    "aria": "Kies de taal van de website",
+    "en": "English",
+    "nl": "Nederlands",
+    "fr": "Français",
+    "da": "Deens"
+  },
+  "nav": {
+    "howItWorks": "Hoe het werkt",
+    "forCompanies": "Voor bedrijven",
+    "cards": "Kaarten",
+    "pricing": "Prijzen",
+    "resources": "Resources",
+    "login": "Inloggen",
+    "bookDemo": "Demo boeken",
+    "openDashboard": "Dashboard openen",
+    "signOut": "Uitloggen",
+    "hi": "Hi, {name}"
+  },
+  "home": {
+    "eyebrow": "GETH Connected Cards",
+    "headlineLine1": "Kleine momenten.",
+    "headlineLine2": "Grote impact.",
+    "description": "Maak dagelijkse waardering zichtbaar als meetbare cultuurinzichten. Onze connected cards helpen teams zich gezien te voelen, energie vast te houden en samen te groeien.",
+    "seeHow": "Bekijk hoe het werkt",
+    "scrollExplore": "Scroll om te ontdekken",
+    "trustSecure": "Veilig & privé",
+    "trustInsights": "Inzichten die helpen",
+    "trustTeams": "Gemaakt voor teams",
+    "deckPreview": "Preview van de kaartenset",
+    "deckPreviewTitle": "Zie hoe waardering tot leven komt.",
+    "deckPreviewCopy": "Bekijk een paar kaarten uit onze impactcategorieën.",
+    "viewAllCards": "Bekijk alle kaarten",
+    "previousCards": "Vorige kaarten",
+    "nextCards": "Volgende kaarten",
+    "previewCommunication": "Communicatie",
+    "previewCreativity": "Creativiteit",
+    "previewCompetence": "Competentie",
+    "previewCollegiality": "Collegialiteit",
+    "previewListening": "Luisteraar",
+    "previewRenewing": "Vernieuwer",
+    "previewGoalOriented": "Doelgericht",
+    "previewCaring": "Zorgzaam",
+    "previewListeningCopy": "Jij geeft mensen de ruimte om echt te spreken, zonder oordeel. Je aandacht maakt het verschil.",
+    "previewRenewingCopy": "Jij brengt frisse ideeën en nieuwe perspectieven die anderen helpen groeien en nieuwe mogelijkheden zien.",
+    "previewGoalOrientedCopy": "Jij stelt duidelijke doelen, maakt plannen en brengt ze stap voor stap tot leven.",
+    "previewCaringCopy": "Jij hebt aandacht voor collega’s en draagt bij aan een positieve, veilige en betrokken werkomgeving.",
+    "howEyebrow": "Hoe het werkt",
+    "howTitle": "Waardering die beweging brengt",
+    "howCopy": "Echte waardering wordt digitale zichtbaarheid in vier doordachte stappen.",
+    "step1Title": "Geef een kaart",
+    "step1Copy": "Kies een kaart die past bij het moment en de impact.",
+    "step2Title": "Scan de QR-code",
+    "step2Copy": "De ontvanger scant de QR-code om de digitale ervaring te openen.",
+    "step3Title": "Claim de waardering",
+    "step3Copy": "De ontvanger ziet je boodschap, claimt het compliment en voelt zich gezien.",
+    "step4Title": "Bekijk groei & inzichten",
+    "step4Copy": "Waardering wordt inzicht dat je team helpt groeien.",
+    "companiesLabel": "Voor bedrijven",
+    "companiesTitle": "Cultuurinzichten op schaal.",
+    "companiesCopy": "Bouw aan een waarderingscultuur die betrokkenheid, behoud en meetbare impact versterkt.",
+    "managersLabel": "Voor managers",
+    "managersTitle": "Zie je team scherper.",
+    "managersCopy": "Zie wat ertoe doet, vier vaker successen en leid met data die je team vooruithelpt.",
+    "employeesLabel": "Voor medewerkers",
+    "employeesTitle": "Maak je groei zichtbaar.",
+    "employeesCopy": "Voel je gewaardeerd, energiek en verbonden door dagelijkse erkenning.",
+    "learnMore": "Meer weten",
+    "ctaEyebrow": "Klaar om een waarderingscultuur te bouwen?",
+    "ctaTitle": "Maak waardering zichtbaar, meetbaar en menselijk.",
+    "viewPricing": "Bekijk prijzen",
+    "registerCompany": "Registreer je bedrijf"
+  },
+  "footer": {
+    "banner": "Waardering die cultuur laat groeien.",
+    "title": "De brug tussen fysieke waardering en digitale cultuurinzichten.",
+    "copy": "GETH helpt bedrijven betekenisvolle waardering om te zetten in zichtbare inzichten voor medewerkers, managers en organisaties.",
+    "product": "Product",
+    "privacy": "Privacy",
+    "terms": "Voorwaarden",
+    "security": "Security",
+    "copyright": "© 2026 GETH Connected Cards."
+  },
+  "auth": {
+    "bullets": {
+      "recognition": "Fysieke erkenning, digitale inzicht",
+      "private": "Privé, zorgzaam, meetbaar",
+      "teams": "Ontworpen voor moderne teams"
+    },
+    "login": {
+      "owner": {
+        "eyebrow": "Eigenaar toegang",
+        "title": "Aanmelden bij het GETH-eigenaarconsole",
+        "subtitle": "Bedrijven, kaartroutes, platformanalyses en superbeheeractiviteiten controleren."
+      },
+      "manager": {
+        "eyebrow": "Manager toegang",
+        "title": "Aanmelden bij uw managerwerkruimte",
+        "subtitle": "Teamherkenning, signalen, rapporten en de inzichten die u nodig hebt om uw mensen te ondersteunen."
+      },
+      "company": {
+        "eyebrow": "Bedrijfsbeheerder toegang",
+        "title": "Aanmelden bij uw bedrijfsportal",
+        "subtitle": "Teams, medewerkers, uitnodigingen, facturering, kaarten en bedrijfsbrede erkenning inzicht beheren."
+      },
+      "employee": {
+        "eyebrow": "Medewerker toegang",
+        "title": "Aanmelden bij uw medewerkerportal",
+        "subtitle": "Kaarten claimen, uw groei volgen en erkenning zichtbaar maken over uw team."
+      }
+    },
+    "signup": {
+      "invite": {
+        "eyebrow": "Uitgenodigde gebruiker registratie",
+        "title": "Maak uw uitgenodigde GETH-account aan",
+        "subtitle": "Uw bedrijfswerkruimte, uw rol aanvaarden en erkenning kaarten claimen."
+      },
+      "company": {
+        "eyebrow": "Bedrijfsbeheerder registratie",
+        "title": "Maak uw bedrijfsbeheerderaccount aan",
+        "subtitle": "Uw bedrijfswerkruimte instellen, uw team uitnodigen en waardering omzetten in cultuurinformatie."
+      },
+      "manager": {
+        "eyebrow": "Manager registratie",
+        "title": "Maak uw manageraccount aan",
+        "subtitle": "Uw werkruimte, uw team ondersteunen en erkenning zichtbaar maken over de mensen die u leidt."
+      },
+      "employee": {
+        "eyebrow": "Medewerker registratie",
+        "title": "Maak uw GETH-account aan",
+        "subtitle": "Medewerkers en managers worden meestal uitgenodigd door hun bedrijf, zodat hun team en rol correct worden toegekend."
+      }
+    }
+  },
+  "cardsPage": {
+    "cta": "Een kaart claimen",
+    "eyebrow": "Publieke kaartbibliotheek",
+    "title": "Ontdek alle 53 GETH-erkenning kaarten",
+    "copy": "Blader door de live deck per categorie, zoek naar kaartthema's en open de claimroute voor elke actieve GETH-verbonden kaart."
+  }
+}

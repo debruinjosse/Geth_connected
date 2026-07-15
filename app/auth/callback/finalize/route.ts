@@ -33,8 +33,9 @@ function jsonWithCookies(base: NextResponse, body: Record<string, string>, statu
 }
 
 export async function POST(request: NextRequest) {
-  const { inviteToken } = (await request.json().catch(() => ({}))) as {
+  const { inviteToken, targetPath } = (await request.json().catch(() => ({}))) as {
     inviteToken?: string | null;
+    targetPath?: string | null;
   };
   const { response, supabase } = buildSupabaseResponse(request);
 
@@ -49,15 +50,20 @@ export async function POST(request: NextRequest) {
 
   try {
     const { redirectTo, invitationApplied } = await bootstrapProfile(user, inviteToken);
+    const safeTargetPath =
+      targetPath && targetPath.startsWith("/") && !targetPath.startsWith("//") && !targetPath.startsWith("/api") && !targetPath.startsWith("/auth")
+        ? targetPath
+        : "";
+    const finalRedirect = safeTargetPath === redirectTo || safeTargetPath.startsWith(`${redirectTo}/`) ? safeTargetPath : redirectTo;
 
     if (inviteToken && invitationApplied) {
       const inviteUrl = new URL(`/invite/${inviteToken}`, request.url);
       inviteUrl.searchParams.set("status", "accepted");
-      inviteUrl.searchParams.set("next", redirectTo);
+      inviteUrl.searchParams.set("next", finalRedirect);
       return jsonWithCookies(response, { redirectTo: `${inviteUrl.pathname}${inviteUrl.search}` });
     }
 
-    return jsonWithCookies(response, { redirectTo });
+    return jsonWithCookies(response, { redirectTo: finalRedirect });
   } catch (error) {
     if (inviteToken && error instanceof InvitationBootstrapError) {
       const inviteUrl = new URL(`/invite/${inviteToken}`, request.url);

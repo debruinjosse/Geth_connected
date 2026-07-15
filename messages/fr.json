@@ -1,0 +1,147 @@
+{
+  "metadata": {
+    "title": "GETH Connected Cards",
+    "description": "Reconnaissance physique. Culture numérique d'insight."
+  },
+  "language": {
+    "label": "Langue",
+    "aria": "Choisissez la langue du site",
+    "en": "Anglais",
+    "nl": "Néerlandais",
+    "fr": "Français",
+    "da": "Danois"
+  },
+  "nav": {
+    "howItWorks": "Comment ça marche",
+    "forCompanies": "Pour les entreprises",
+    "cards": "Cartes",
+    "pricing": "Tarifs",
+    "resources": "Ressources",
+    "login": "Se connecter",
+    "bookDemo": "Réserver une démo",
+    "openDashboard": "Ouvrir le tableau de bord",
+    "signOut": "Se déconnecter",
+    "hi": "Bonjour, {name}"
+  },
+  "home": {
+    "eyebrow": "GETH Connected Cards",
+    "headlineLine1": "Petits moments.",
+    "headlineLine2": "Grand impact.",
+    "description": "Tournez la reconnaissance quotidienne en culture d'insight mesurable. Nos cartes connectées aident les équipes à se sentir vues, à rester énergisées et à grandir ensemble.",
+    "seeHow": "Voir comment ça marche",
+    "scrollExplore": "Faites défiler pour explorer",
+    "trustSecure": "Sécurisé & privé",
+    "trustInsights": "Insights actionnables",
+    "trustTeams": "Conçu pour les équipes",
+    "deckPreview": "Prévisualisation de la carte Deck",
+    "deckPreviewTitle": "Voir comment la reconnaissance prend vie.",
+    "deckPreviewCopy": "Prévisualisez quelques cartes de nos catégories d'impact.",
+    "viewAllCards": "Voir toutes les cartes",
+    "previousCards": "Cartes précédentes",
+    "nextCards": "Cartes suivantes",
+    "previewCommunication": "Communication",
+    "previewCreativity": "Créativité",
+    "previewCompetence": "Compétence",
+    "previewCollegiality": "Collegialité",
+    "previewListening": "Écouteur",
+    "previewRenewing": "Renouveau",
+    "previewGoalOriented": "Orienté vers les objectifs",
+    "previewCaring": "S'occuper",
+    "previewListeningCopy": "Vous donnez aux gens l'espace de parler vraiment, sans jugement. Votre attention fait la différence.",
+    "previewRenewingCopy": "Vous apportez de nouvelles idées et de nouveaux points de vue qui aident les autres à grandir et à voir de nouvelles possibilités.",
+    "previewGoalOrientedCopy": "Vous fixez des objectifs clairs, vous faites des plans et vous les mettez en œuvre étape par étape.",
+    "previewCaringCopy": "Vous vous souciez de vos collègues et vous contribuez à une atmosphère positive, sûre et engagée au travail.",
+    "howEyebrow": "Comment ça marche",
+    "howTitle": "La reconnaissance qui bouge",
+    "howCopy": "La reconnaissance du monde réel devient une visibilité numérique en quatre étapes réfléchies.",
+    "step1Title": "Donnez une carte",
+    "step1Copy": "Choisissez une carte qui correspond au moment et à l'impact.",
+    "step2Title": "Scannez le code QR",
+    "step2Copy": "Ils scannent le code QR pour accéder à leur expérience numérique.",
+    "step3Title": "Revendiquez la reconnaissance",
+    "step3Copy": "Ils voient votre message, revendiquent le compliment et se sentent vus.",
+    "step4Title": "Voyez la croissance et les insights",
+    "step4Copy": "La reconnaissance se transforme en insights qui aident votre équipe à grandir.",
+    "companiesLabel": "Pour les entreprises",
+    "companiesTitle": "L'intelligence culturelle à l'échelle.",
+    "companiesCopy": "Construirez une culture de reconnaissance qui pousse l'engagement, la rétention et l'impact mesurable.",
+    "managersLabel": "Pour les managers",
+    "managersTitle": "Voyez votre équipe clairement.",
+    "managersCopy": "Repérez ce qui compte, célébrez souvent et dirigez avec des données qui aident votre équipe à prospérer.",
+    "employeesLabel": "Pour les employés",
+    "employeesTitle": "Propriétaire de votre histoire de croissance.",
+    "employeesCopy": "Vous vous sentez valorisé, énergisé et connecté grâce à la reconnaissance quotidienne.",
+    "learnMore": "En savoir plus",
+    "ctaEyebrow": "Prêt à construire une culture de reconnaissance?",
+    "ctaTitle": "Faites de la reconnaissance visible, mesurable et magnifiquement humaine.",
+    "viewPricing": "Voir les tarifs",
+    "registerCompany": "Inscrivez votre entreprise"
+  },
+  "footer": {
+    "banner": "La reconnaissance qui grandit la culture.",
+    "title": "La reconnaissance physique et l'intelligence culturelle numérique se rencontrent.",
+    "copy": "GETH aide les entreprises à transformer l'appréciation significative en visibilité visible à travers les employés, les managers et les organisations entières.",
+    "product": "Produit",
+    "privacy": "Confidentialité",
+    "terms": "Conditions",
+    "security": "Sécurité",
+    "copyright": "© 2026 GETH Connected Cards."
+  },
+  "auth": {
+    "bullets": {
+      "recognition": "Reconnaissance physique, intuition numérique",
+      "private": "Privé, réfléchi, mesurable",
+      "teams": "Conçu pour les équipes modernes"
+    },
+    "login": {
+      "owner": {
+        "eyebrow": "Accès propriétaire",
+        "title": "Se connecter au console propriétaire GETH",
+        "subtitle": "Contrôler les sociétés, les routes des cartes, les analyses de plateforme et les opérations super-admin."
+      },
+      "manager": {
+        "eyebrow": "Accès gestionnaire",
+        "title": "Se connecter à votre espace de travail gestionnaire",
+        "subtitle": "Examiner la reconnaissance d'équipe, les signaux, les rapports et les informations nécessaires pour soutenir votre personnel."
+      },
+      "company": {
+        "eyebrow": "Accès administrateur de société",
+        "title": "Se connecter à votre portail de société",
+        "subtitle": "Gérer les équipes, les employés, les invitations, les factures, les cartes et les informations de reconnaissance sociétale."
+      },
+      "employee": {
+        "eyebrow": "Accès employé",
+        "title": "Se connecter à votre portail employé",
+        "subtitle": "Réclamer des cartes, suivre votre croissance et garder la reconnaissance visible au sein de votre équipe."
+      }
+    },
+    "signup": {
+      "invite": {
+        "eyebrow": "Invité utilisateur de l'inscription",
+        "title": "Créer votre compte GETH invité",
+        "subtitle": "Rejoindre votre espace de travail de société, accepter votre rôle et commencer à réclamer des cartes de reconnaissance."
+      },
+      "company": {
+        "eyebrow": "Inscription de l'administrateur de société",
+        "title": "Créer votre compte administrateur de société",
+        "subtitle": "Configurer votre espace de travail de société, inviter votre équipe et commencer à transformer l'appréciation en informations de culture."
+      },
+      "manager": {
+        "eyebrow": "Inscription du gestionnaire",
+        "title": "Créer votre compte gestionnaire",
+        "subtitle": "Rejoindre votre espace de travail, soutenir votre équipe et garder la reconnaissance visible au sein des personnes que vous dirigez."
+      },
+      "employee": {
+        "eyebrow": "Inscription employé",
+        "title": "Créer votre compte GETH",
+        "subtitle": "Les employés et les gestionnaires rejoignent généralement par invitation de société afin que leur équipe et leur rôle soient attribués correctement."
+      }
+    }
+  },
+  "cardsPage": {
+    "cta": "Réclamer une carte",
+    "eyebrow": "Bibliothèque de cartes publiques",
+    "title": "Explorer toutes les 53 cartes de reconnaissance GETH",
+    "copy": "Parcourir le deck en direct par catégorie, rechercher des thèmes de cartes et ouvrir la route de réclamation pour chaque carte active GETH Connected."
+  }
+}

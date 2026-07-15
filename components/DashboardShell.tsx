@@ -4,14 +4,14 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
+import { useLocale } from "next-intl";
 import {
+  Activity,
   BarChart3,
   Bell,
   Building2,
-  CreditCard,
   FileBarChart2,
   Home,
-  Library,
   Menu,
   MessageSquare,
   QrCode,
@@ -27,25 +27,24 @@ import { BrandLogo } from "@/components/BrandLogo";
 import { GoldenLeaves } from "@/components/GoldenLeaves";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { clearDemoSession, getDemoSession, hasSupabaseBrowserConfig } from "@/lib/demo-session";
+import { stripLocaleFromPathname, type AppLocale } from "@/i18n/routing";
 
 const navByRole = {
   employee: [
     ["Home", "/employee", Home],
-    ["My Cards", "/employee/cards", CreditCard],
+    ["Scan Card", "/employee/scan", QrCode],
+    ["My Cards", "/employee/cards", VerticalCardIcon],
     ["Growth", "/employee/growth", BarChart3],
     ["Messages", "/employee/messages", MessageSquare],
-    ["Profile", "/employee/profile", UserRound],
-    ["Notifications", "/employee/notifications", Bell],
-    ["Settings", "/employee/settings", Settings]
+    ["Profile", "/employee/profile", UserRound]
   ],
   manager: [
     ["Overview", "/manager", Home],
     ["My Team", "/manager/team", UsersRound],
-    ["Signals", "/manager/signals", Bell],
-    ["Notifications", "/manager/notifications", Bell],
+    ["Signals", "/manager/signals", Activity],
     ["Analytics", "/manager/analytics", BarChart3],
-    ["Reports", "/manager/reports", FileBarChart2],
-    ["Settings", "/manager/settings", Settings]
+    ["Cards", "/cards", VerticalCardIcon],
+    ["Reports", "/manager/reports", FileBarChart2]
   ],
   company: [
     ["Overview", "/company", Home],
@@ -53,22 +52,36 @@ const navByRole = {
     ["Employees", "/company/employees", UserRound],
     ["Managers", "/company/managers", Shield],
     ["Reports", "/company/reports", BarChart3],
-    ["Notifications", "/company/notifications", Bell],
-    ["Cards & Decks", "/company/cards", Library],
-    ["Settings", "/company/settings", Settings],
+    ["Cards & Decks", "/company/cards", VerticalCardIcon],
     ["Billing", "/company/billing", Building2]
   ],
   admin: [
     ["Overview", "/admin", Home],
     ["Companies", "/admin/companies", Building2],
-    ["Subscriptions", "/admin/subscriptions", CreditCard],
-    ["Cards", "/admin/cards", Library],
+    ["Subscriptions", "/admin/subscriptions", VerticalCardIcon],
+    ["Cards", "/admin/cards", VerticalCardIcon],
     ["QR Routes", "/admin/qr-routes", QrCode],
-    ["Analytics", "/admin/analytics", BarChart3],
-    ["Notifications", "/admin/notifications", Bell],
-    ["Settings", "/admin/settings", Settings]
+    ["Analytics", "/admin/analytics", BarChart3]
   ]
 } as const;
+
+function VerticalCardIcon({ size = 19 }: { size?: number }) {
+  return (
+    <svg
+      aria-hidden="true"
+      fill="none"
+      height={size}
+      viewBox="0 0 20 24"
+      width={size}
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <rect x="4.25" y="2.75" width="11.5" height="18.5" rx="2.4" stroke="currentColor" strokeWidth="1.8" />
+      <path d="M7.25 7.25H12.75" stroke="currentColor" strokeLinecap="round" strokeWidth="1.55" />
+      <path d="M7.25 11.25H12.75" stroke="currentColor" strokeLinecap="round" strokeWidth="1.55" />
+      <path d="M8.5 16.5H11.5" stroke="currentColor" strokeLinecap="round" strokeWidth="1.55" />
+    </svg>
+  );
+}
 
 const eyebrowCopy = {
   employee: "GETH employee dashboard",
@@ -84,6 +97,14 @@ const notificationHrefByRole = {
   admin: "/admin/notifications"
 } as const;
 
+function localizeDashboardHref(href: string, locale: AppLocale) {
+  if (!href.startsWith("/") || href.startsWith("/auth")) {
+    return href;
+  }
+
+  return `/${locale}${href}`;
+}
+
 export function DashboardShell({
   role,
   title,
@@ -96,13 +117,15 @@ export function DashboardShell({
   role: keyof typeof navByRole;
   title: string;
   subtitle: string;
-  user: { name: string; initials: string; team: string };
+  user: { name: string; initials: string; team: string; imageUrl?: string | null };
   children: ReactNode;
   actions?: ReactNode;
   unreadNotifications?: number;
 }) {
   const pathname = usePathname();
   const router = useRouter();
+  const locale = useLocale() as AppLocale;
+  const basePathname = stripLocaleFromPathname(pathname);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
   const nav = navByRole[role];
@@ -122,7 +145,7 @@ export function DashboardShell({
       }
     } finally {
       setMobileOpen(false);
-      router.replace("/login");
+      router.replace(localizeDashboardHref("/login", locale));
       router.refresh();
       setLoggingOut(false);
     }
@@ -139,7 +162,7 @@ export function DashboardShell({
       <aside className={`dashboard-sidebar ${mobileOpen ? "open" : ""}`.trim()}>
         <div className="dashboard-sidebar-top">
           <div className="dashboard-sidebar-head">
-            <BrandLogo tagline href="/" />
+            <BrandLogo tagline href={`/${locale}`} />
             <button className="mobile-nav-close" type="button" onClick={() => setMobileOpen(false)} aria-label="Close navigation">
               <X size={18} />
             </button>
@@ -147,9 +170,9 @@ export function DashboardShell({
           <nav className="side-links" aria-label={`${role} navigation`}>
             {nav.map(([label, href, Icon]) => {
               const isRootDashboard = href === `/${role}` || (role === "company" && href === "/company");
-              const active = pathname === href || (!isRootDashboard && pathname.startsWith(`${href}/`));
+              const active = basePathname === href || (!isRootDashboard && basePathname.startsWith(`${href}/`));
               return (
-                <Link href={href} className={active ? "active" : ""} key={label} onClick={() => setMobileOpen(false)}>
+                <Link href={localizeDashboardHref(href, locale)} className={active ? "active" : ""} key={label} onClick={() => setMobileOpen(false)}>
                   <Icon size={19} />
                   <span>{label}</span>
                 </Link>
@@ -167,7 +190,7 @@ export function DashboardShell({
         </div>
       </aside>
 
-      <main className="dashboard-main">
+      <main className={`dashboard-main dashboard-main-${role}`}>
         <div className="dashboard-header">
           <div>
             <div className="eyebrow">{eyebrowCopy[role]}</div>
@@ -176,15 +199,17 @@ export function DashboardShell({
           </div>
           <div className="dashboard-header-actions">
             {actions}
-            <Link className="dashboard-icon-button notification-icon-button" href={notificationHrefByRole[role]} aria-label={`${unreadNotifications} unread notifications`}>
+            <Link className="dashboard-icon-button notification-icon-button" href={localizeDashboardHref(notificationHrefByRole[role], locale)} aria-label={`${unreadNotifications} unread notifications`}>
               <Bell size={17} />
               {unreadNotifications > 0 ? <span className="notification-count">{unreadNotifications > 9 ? "9+" : unreadNotifications}</span> : null}
             </Link>
-            <Link className="dashboard-icon-button" href={`/${role === "company" ? "company" : role}/settings`} aria-label="Settings">
+            <Link className="dashboard-icon-button" href={localizeDashboardHref(`/${role === "company" ? "company" : role}/settings`, locale)} aria-label="Settings">
               <Settings size={17} />
             </Link>
             <div className="dashboard-avatar-chip" title={`${user.name} - ${user.team}`}>
-              <div className="avatar">{user.initials || <CircleUserRound size={18} />}</div>
+              <div className="avatar">
+                {user.imageUrl ? <img src={user.imageUrl} alt={`${user.name} profile`} /> : user.initials || <CircleUserRound size={18} />}
+              </div>
             </div>
             <button className="btn btn-secondary dashboard-logout dashboard-top-signout" type="button" onClick={handleLogout} disabled={loggingOut}>
               <LogOut size={16} />

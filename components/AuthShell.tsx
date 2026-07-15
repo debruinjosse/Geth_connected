@@ -1,18 +1,24 @@
 import type { ReactNode } from "react";
+import { getTranslations } from "next-intl/server";
 import { BrandLogo } from "@/components/BrandLogo";
 import { GoldenLeaves } from "@/components/GoldenLeaves";
+import { defaultLocale } from "@/i18n/routing";
 
-export function AuthShell({
+export async function AuthShell({
   title,
   subtitle,
   eyebrow,
-  children
+  children,
+  locale = defaultLocale
 }: {
   title: string;
   subtitle: string;
   eyebrow: string;
   children: ReactNode;
+  locale?: string;
 }) {
+  const t = await getTranslations({ locale, namespace: "auth.bullets" });
+
   return (
     <main className="auth-page">
       <section className="auth-story">
@@ -21,9 +27,9 @@ export function AuthShell({
         <h1>{title}</h1>
         <p>{subtitle}</p>
         <div className="auth-bullets">
-          <span>Physical recognition, digital insight</span>
-          <span>Private, thoughtful, measurable</span>
-          <span>Designed for modern teams</span>
+          <span>{t("recognition")}</span>
+          <span>{t("private")}</span>
+          <span>{t("teams")}</span>
         </div>
         <GoldenLeaves className="auth-leaves" />
       </section>

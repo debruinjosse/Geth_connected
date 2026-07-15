@@ -36,6 +36,11 @@ Thumbs.db
 *.tmp
 *.temp
 temp-logo-extract/
+artifacts/
 
 # accidental local token/session dump
 -
+
+design specs/geth-qr-codes.pdf
+
+design specs/

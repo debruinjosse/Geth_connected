@@ -6,6 +6,7 @@ export type ManagerInsights = {
   profile: {
     first_name: string | null;
     last_name: string | null;
+    profile_image: string | null;
   };
   teamLabel: string;
   teamIds: string[];
@@ -47,9 +48,9 @@ function getEnergyBucket(totalReceived: number, recentReceived: number): TeamMem
 export async function getManagerInsights(supabase: SupabaseClient, userId: string): Promise<ManagerInsights> {
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
-    .select("first_name, last_name")
+    .select("first_name, last_name, profile_image")
     .eq("id", userId)
-    .maybeSingle<{ first_name: string | null; last_name: string | null }>();
+    .maybeSingle<{ first_name: string | null; last_name: string | null; profile_image: string | null }>();
 
   if (profileError || !profile) {
     throw new Error("missing_profile");
@@ -85,7 +86,7 @@ export async function getManagerInsights(supabase: SupabaseClient, userId: strin
   }
 
   const [{ data: members, error: membersError }, { data: recognitionRows, error: recognitionsError }] = await Promise.all([
-    supabase.from("profiles").select("id, first_name, last_name, team_id").in("team_id", teamIds),
+    supabase.from("profiles").select("id, first_name, last_name, team_id").in("team_id", teamIds).eq("role", "employee"),
     supabase
       .from("recognition_events")
       .select("id, receiver_user_id, giver_user_id, team_id, created_at, card:card_library(title, category)")

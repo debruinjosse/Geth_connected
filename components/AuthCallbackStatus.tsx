@@ -14,7 +14,7 @@ function getHashParams() {
   return new URLSearchParams(window.location.hash.replace(/^#/, ""));
 }
 
-async function finalizeAuth(inviteToken?: string | null) {
+async function finalizeAuth(inviteToken?: string | null, targetPath?: string | null) {
   const response = await fetch("/auth/callback/finalize", {
     method: "POST",
     headers: {
@@ -22,7 +22,8 @@ async function finalizeAuth(inviteToken?: string | null) {
     },
     credentials: "include",
     body: JSON.stringify({
-      inviteToken: inviteToken ?? null
+      inviteToken: inviteToken ?? null,
+      targetPath: targetPath ?? null
     })
   });
 
@@ -30,7 +31,7 @@ async function finalizeAuth(inviteToken?: string | null) {
   return payload?.redirectTo || "/login?error=profile_bootstrap_failed";
 }
 
-export function AuthCallbackStatus({ inviteToken }: { inviteToken?: string }) {
+export function AuthCallbackStatus({ inviteToken, targetPath }: { inviteToken?: string; targetPath?: string }) {
   const searchParams = useSearchParams();
   const [status, setStatus] = useState("Completing your secure sign-in...");
 
@@ -90,7 +91,7 @@ export function AuthCallbackStatus({ inviteToken }: { inviteToken?: string }) {
           return;
         }
 
-        const redirectTo = await finalizeAuth(inviteToken);
+        const redirectTo = await finalizeAuth(inviteToken, targetPath);
 
         if (!cancelled) {
           setStatus("Redirecting you to your workspace...");
@@ -108,7 +109,7 @@ export function AuthCallbackStatus({ inviteToken }: { inviteToken?: string }) {
     return () => {
       cancelled = true;
     };
-  }, [inviteToken, searchParams]);
+  }, [inviteToken, searchParams, targetPath]);
 
   return (
     <div className="auth-card">

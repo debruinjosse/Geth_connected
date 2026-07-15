@@ -1,8 +1,9 @@
-import { readFileSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { createClient } from "@supabase/supabase-js";
 
 const ROOT = process.cwd();
+const ARTIFACTS_DIR = resolve(ROOT, "artifacts", "uat");
 const PASSWORD = "GethDemo!2026";
 const APP_URL = "http://localhost:3000";
 
@@ -95,8 +96,9 @@ async function main() {
   }
 
   const csv = results.map((row) => row.map((cell) => `"${String(cell).replaceAll('"', '""')}"`).join(",")).join("\n");
-  writeFileSync(resolve(ROOT, "GETH_UAT_RESULTS.csv"), csv);
-  console.log("UAT auth/route checks written to GETH_UAT_RESULTS.csv");
+  mkdirSync(ARTIFACTS_DIR, { recursive: true });
+  writeFileSync(resolve(ARTIFACTS_DIR, "GETH_UAT_RESULTS.csv"), csv);
+  console.log("UAT auth/route checks written to artifacts/uat/GETH_UAT_RESULTS.csv");
   console.table(results.slice(1).map(([area, useCase, role, email, expected, actual, status]) => ({ area, useCase, role, email, expected, actual, status })));
 }
 

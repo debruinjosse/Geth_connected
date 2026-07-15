@@ -11,6 +11,7 @@ export async function claimRecognition(input: {
   giverName?: string;
   giverEmail?: string;
   personalNote?: string;
+  claimOrigin?: "qr_scan" | "direct_link" | "card_library" | "manual_entry";
 }) {
   const resolvedCardSlug = resolveCardSlug(input.cardSlug);
   const hasSupabaseConfig = Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
@@ -56,6 +57,7 @@ export async function claimRecognition(input: {
       return { ok: false as const, error: "Card not found.", code: "CARD_NOT_FOUND" as const };
     }
 
+    const claimOrigin = input.claimOrigin ?? "direct_link";
     const { data: insertedRecognition, error: insertError } = await supabase.from("recognition_events").insert({
       company_id: receiverProfile.company_id,
       team_id: receiverProfile.team_id,
@@ -65,6 +67,8 @@ export async function claimRecognition(input: {
       giver_name: input.giverName?.trim() || null,
       giver_email: input.giverEmail?.trim() || null,
       personal_note: input.personalNote?.trim() || null,
+      claim_origin: claimOrigin,
+      originated_digitally: ["qr_scan", "direct_link", "card_library", "manual_entry"].includes(claimOrigin),
       status: "claimed",
       claimed_at: new Date().toISOString()
     }).select("id").single<{ id: string }>();

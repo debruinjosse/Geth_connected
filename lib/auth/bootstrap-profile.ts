@@ -8,12 +8,14 @@ type ProfileRecord = {
   company_id: string | null;
   role: AppRole;
   team_id?: string | null;
+  department_id?: string | null;
 };
 
 type InvitationRecord = {
   id: string;
   company_id: string;
   team_id: string | null;
+  department_id: string | null;
   email: string;
   role: AppRole;
   status: "pending" | "accepted" | "expired" | "revoked";
@@ -105,7 +107,7 @@ async function loadInvitation(admin: SupabaseClient, token: string, email: strin
   const normalizedEmail = email.trim().toLowerCase();
   const { data: invitation, error } = await admin
     .from("invitations")
-    .select("id, company_id, team_id, email, role, status, expires_at, accepted_at, token")
+    .select("id, company_id, team_id, department_id, email, role, status, expires_at, accepted_at, token")
     .eq("token", token)
     .maybeSingle<InvitationRecord>();
 
@@ -206,11 +208,12 @@ async function applyInvitationToExistingProfile(admin: SupabaseClient, profileId
     .update({
       company_id: invitation.company_id,
       team_id: invitation.team_id,
+      department_id: invitation.department_id,
       role: invitation.role,
       status: "active"
     })
     .eq("id", profileId)
-    .select("id, company_id, role, team_id")
+    .select("id, company_id, role, team_id, department_id")
     .single<ProfileRecord>();
 
   if (error) {
@@ -227,7 +230,7 @@ export async function bootstrapProfile(user: User, invitationToken?: string | nu
 
   const { data: existingProfile, error: existingProfileError } = await admin
     .from("profiles")
-    .select("id, company_id, role, team_id")
+    .select("id, company_id, role, team_id, department_id")
     .eq("id", user.id)
     .maybeSingle<ProfileRecord>();
 
@@ -262,11 +265,13 @@ export async function bootstrapProfile(user: User, invitationToken?: string | nu
 
   let companyId: string | null = null;
   let teamId: string | null = null;
+  let departmentId: string | null = null;
   let role: AppRole = metadataRole;
 
   if (inviteContext) {
     companyId = inviteContext.invitation.company_id;
     teamId = inviteContext.invitation.team_id;
+    departmentId = inviteContext.invitation.department_id;
     role = normalizeAppRole(inviteContext.invitation.role);
   } else if (role !== "platform_admin" && role !== "super_admin") {
     companyId = await findOrCreateCompany(admin, companyName || getFallbackCompanyName(user.email));
@@ -278,13 +283,14 @@ export async function bootstrapProfile(user: User, invitationToken?: string | nu
       id: user.id,
       company_id: companyId,
       team_id: teamId,
+      department_id: departmentId,
       first_name: firstName,
       last_name: lastName,
       email: user.email,
       role,
       status: "active"
     })
-    .select("id, company_id, role, team_id")
+    .select("id, company_id, role, team_id, department_id")
     .single<ProfileRecord>();
 
   if (createProfileError) {

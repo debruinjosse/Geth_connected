@@ -1,0 +1,147 @@
+{
+  "metadata": {
+    "title": "GETH Connected Cards",
+    "description": "Fysisk anerkendelse. Digital kulturinsigt."
+  },
+  "language": {
+    "label": "Sprog",
+    "aria": "Vælg hjemmeside sprog",
+    "en": "Engelsk",
+    "nl": "Nederlands",
+    "fr": "Fransk",
+    "da": "Dansk"
+  },
+  "nav": {
+    "howItWorks": "Hvordan det fungerer",
+    "forCompanies": "For virksomheder",
+    "cards": "Kort",
+    "pricing": "Priser",
+    "resources": "Ressourcer",
+    "login": "Log ind",
+    "bookDemo": "Bog en demo",
+    "openDashboard": "Åbn dashboard",
+    "signOut": "Log ud",
+    "hi": "Hej, {name}"
+  },
+  "home": {
+    "eyebrow": "GETH Connected Cards",
+    "headlineLine1": "Lille øjeblikke.",
+    "headlineLine2": "Stort indtryk.",
+    "description": "Omdanne hverdagsanerkendelse til målbare kulturinsider. Vores forbundne kort hjælper hold med at føle sig set, blive energiseret og vokse sammen.",
+    "seeHow": "Se hvordan det fungerer",
+    "scrollExplore": "Rul ned for at udforske",
+    "trustSecure": "Sikker & privat",
+    "trustInsights": "Handlingsegnende indsigt",
+    "trustTeams": "Bygget til hold",
+    "deckPreview": "Kortdekkers forudvisning",
+    "deckPreviewTitle": "Se hvordan anerkendelse kommer til live.",
+    "deckPreviewCopy": "Forudvise et par kort fra vores impact-kategorier.",
+    "viewAllCards": "Se alle kort",
+    "previousCards": "Tidligere kort",
+    "nextCards": "Næste kort",
+    "previewCommunication": "Kommunikation",
+    "previewCreativity": "Kreativitet",
+    "previewCompetence": "Kompetence",
+    "previewCollegiality": "Kollegialitet",
+    "previewListening": "Lyttende",
+    "previewRenewing": "Vernieuwer",
+    "previewGoalOriented": "Målrettet",
+    "previewCaring": "Omsorgsfuld",
+    "previewListeningCopy": "Du giver mennesker plads til at tale rigtigt, uden domme. Din opmærksomhed gør forskellen.",
+    "previewRenewingCopy": "Du bringer friske ideer og nye perspektiver, der hjælper andre med at vokse og se nye muligheder.",
+    "previewGoalOrientedCopy": "Du står for klare mål, laver planer og bringer dem skridt for skridt til live.",
+    "previewCaringCopy": "Du har opmærksomhed for dine kolleger og bidrager til en positiv, tryg og engageret arbejdsmiljø.",
+    "howEyebrow": "Sådan fungerer det",
+    "howTitle": "Genkendelse, der bevæger sig",
+    "howCopy": "Verdensomspændende anerkendelse bliver digital synlighed i fire overvejende trin.",
+    "step1Title": "Giv en kort",
+    "step1Copy": "Vælg en kort, der passer til øjeblikket og indtrykket.",
+    "step2Title": "Scann QR-kode",
+    "step2Copy": "De scannere QR-koden for at få adgang til deres digitale oplevelse.",
+    "step3Title": "Kræv anerkendelse",
+    "step3Copy": "De ser din besked, kræver anerkendelsen og føler sig set.",
+    "step4Title": "Se vækst og indsigt",
+    "step4Copy": "Anerkendelsen bliver til indsigt, der hjælper din team at vokse.",
+    "companiesLabel": "For virksomheder",
+    "companiesTitle": "Kulturintelliens på skala.",
+    "companiesCopy": "Byg en kultur af anerkendelse, der driver engagement, fastholdelse og målbare indvirkninger.",
+    "managersLabel": "For ledere",
+    "managersTitle": "Se din team tydeligt.",
+    "managersCopy": "Spot, hvad der er vigtigt, fejre ofte og føl med data, der hjælper dit team til at trives.",
+    "employeesLabel": "For ansatte",
+    "employeesTitle": "Ej din vækstshistorie.",
+    "employeesCopy": "Føl værd, energiser og forbundet gennem hverdagsanerkendelse.",
+    "learnMore": "Lær mere",
+    "ctaEyebrow": "Er du klar til at bygge en anerkendelseskultur?",
+    "ctaTitle": "Gør anerkendelsen synlig, målbart og smukt menneskelig.",
+    "viewPricing": "Se priser",
+    "registerCompany": "Tilmeld din virksomhed"
+  },
+  "footer": {
+    "banner": "Anerkendelse, der vokser kultur.",
+    "title": "Broen mellem fysiske anerkendelser og digital kulturintelliens.",
+    "copy": "GETH hjælper virksomheder med at vende meningfulde anerkendelser til synlige indsigt over hele ansatte, ledere og hele organisationer.",
+    "product": "Produkt",
+    "privacy": "Privatsfæren",
+    "terms": "Betingelser",
+    "security": "Sikkerhed",
+    "copyright": "© 2026 GETH Connected Cards."
+  },
+  "auth": {
+    "bullets": {
+      "recognition": "Fysisk genkendelse, digital indsigt",
+      "private": "Privat, tankefuld, målbart",
+      "teams": "Designet til moderne hold"
+    },
+    "login": {
+      "owner": {
+        "eyebrow": "Ejeradgang",
+        "title": "Log ind på GETH ejer-konsol",
+        "subtitle": "Styr over selskaber, kortruter, platform-analyser og super-administration."
+      },
+      "manager": {
+        "eyebrow": "Manager-adgang",
+        "title": "Log ind på din manager-arbejdsplads",
+        "subtitle": "Gennemse hold-genkendelse, signaler, rapporter og indsigt til at støtte dine mennesker."
+      },
+      "company": {
+        "eyebrow": "Selskabsadministrator-adgang",
+        "title": "Log ind på din selskabsportal",
+        "subtitle": "Administrer hold, ansatte, invitationer, regninger, kort og selskabsvidenskablig genkendelse."
+      },
+      "employee": {
+        "eyebrow": "Ansættelsesadgang",
+        "title": "Log ind på din ansættelsesportal",
+        "subtitle": "Kræv kort, følg din vækst og hold genkendelsen synlig overfor dit hold."
+      }
+    },
+    "signup": {
+      "invite": {
+        "eyebrow": "Inviteret bruger påboarding",
+        "title": "Opret din inviterede GETH-konto",
+        "subtitle": "Del din virksomhedsarbejdsplads, accept dit rolle og begynd at kræve genkendelseskort."
+      },
+      "company": {
+        "eyebrow": "Selskabsadministrator påboarding",
+        "title": "Opret din selskabsadministrator-konto",
+        "subtitle": "Opsæt din virksomhedsarbejdsplads, invitere dine medarbejdere og begynd at omsætte taknemmelighed til kulturforskning."
+      },
+      "manager": {
+        "eyebrow": "Manager påboarding",
+        "title": "Opret din manager-konto",
+        "subtitle": "Del din arbejdsplads, støt dine medarbejdere og hold genkendelsen synlig overfor de mennesker du leder."
+      },
+      "employee": {
+        "eyebrow": "Ansættelses påboarding",
+        "title": "Opret din GETH-konto",
+        "subtitle": "Medarbejdere og ledere deltager normalt gennem en invitation fra deres virksomhed, så deres hold og rolle bliver tildeelt korrekt."
+      }
+    }
+  },
+  "cardsPage": {
+    "cta": "Kræv et kort",
+    "eyebrow": "Offentlig kortbibliotek",
+    "title": "Udnyt alle 53 GETH-genkendelseskort",
+    "copy": "Browse den levende deck efter kategori, søg efter kortemner og åbn kræv-ruten for hver aktiv GETH-Connected Card."
+  }
+}

@@ -1,9 +1,7 @@
 "use client";
 
-import type { ReactNode } from "react";
-import { motion, useReducedMotion } from "framer-motion";
-
-const ease = [0.22, 1, 0.36, 1] as const;
+import { useEffect, useRef, useState } from "react";
+import type { CSSProperties, ReactNode } from "react";
 
 export function Reveal({
   children,
@@ -16,22 +14,40 @@ export function Reveal({
   delay?: number;
   distance?: number;
 }) {
-  const prefersReducedMotion = useReducedMotion();
+  const ref = useRef<HTMLDivElement>(null);
+  const [visible, setVisible] = useState(false);
+  const style = {
+    "--reveal-delay": `${delay}s`,
+    "--reveal-distance": `${distance}px`
+  } as CSSProperties;
 
-  if (prefersReducedMotion) {
-    return <div className={className}>{children}</div>;
-  }
+  useEffect(() => {
+    const node = ref.current;
+    if (!node) return;
+
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      setVisible(true);
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setVisible(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: "0px 0px -10% 0px", threshold: 0.12 }
+    );
+
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
 
   return (
-    <motion.div
-      className={className}
-      initial={{ opacity: 0, y: distance }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, amount: 0.2 }}
-      transition={{ duration: 0.6, delay, ease }}
-    >
+    <div ref={ref} className={`${visible ? "is-visible " : ""}${className ? `reveal-stable ${className}` : "reveal-stable"}`} style={style}>
       {children}
-    </motion.div>
+    </div>
   );
 }
 
@@ -44,15 +60,36 @@ export function FadeUp({
   className?: string;
   delay?: number;
 }) {
-  const prefersReducedMotion = useReducedMotion();
+  const ref = useRef<HTMLDivElement>(null);
+  const [visible, setVisible] = useState(false);
+  const style = { "--reveal-delay": `${delay}s` } as CSSProperties;
 
-  if (prefersReducedMotion) {
-    return <div className={className}>{children}</div>;
-  }
+  useEffect(() => {
+    const node = ref.current;
+    if (!node) return;
+
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      setVisible(true);
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setVisible(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: "0px 0px -10% 0px", threshold: 0.12 }
+    );
+
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
 
   return (
-    <motion.div className={className} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45, delay, ease }}>
+    <div ref={ref} className={`${visible ? "is-visible " : ""}${className ? `reveal-stable ${className}` : "reveal-stable"}`} style={style}>
       {children}
-    </motion.div>
+    </div>
   );
 }

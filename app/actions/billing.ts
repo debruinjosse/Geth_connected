@@ -1,6 +1,17 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import {
+  addDays,
+  calculateVat,
+  createInvoiceNumber,
+  createInvoicePdf,
+  formatMoney,
+  getInvoiceConfig,
+  getMissingInvoiceConfig,
+  toDateOnly
+} from "@/lib/billing/eu-invoice";
+import { sendInvoiceEmail } from "@/lib/mail/nodemailer";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getAppUrl, getStripe, hasStripeBillingConfig } from "@/lib/stripe/server";
@@ -56,6 +67,190 @@ async function getCompanyBillingContext(): Promise<CompanyBillingContext> {
     adminEmail: profile.email,
     stripeCustomerId: company.stripe_customer_id
   };
+}
+
+export async function requestInvoicePaymentAction(formData: FormData) {
+  const planId = String(formData.get("planId") ?? "");
+  const billingEmail = String(formData.get("billingEmail") ?? "").trim();
+  const vatNumber = String(formData.get("vatNumber") ?? "").trim();
+  const purchaseOrderNumber = String(formData.get("purchaseOrderNumber") ?? "").trim();
+  const billingAddress = String(formData.get("billingAddress") ?? "").trim();
+  const notes = String(formData.get("notes") ?? "").trim();
+  const locale = String(formData.get("locale") ?? "en").trim() || "en";
+  const context = await getCompanyBillingContext();
+  const supabase = await createSupabaseServerClient();
+
+  if (!planId) {
+    redirect("/company/billing?billing=plan_not_found");
+  }
+
+  const missingInvoiceConfig = getMissingInvoiceConfig();
+  if (missingInvoiceConfig.length) {
+    redirect(`/${locale}/company/billing?billing=invoice_config_missing`);
+  }
+
+  const { data: plan, error: planError } = await supabase
+    .from("plans")
+    .select("id, plan_key, name, invoice_enabled, price_cents, currency, interval")
+    .eq("id", planId)
+    .eq("active", true)
+    .maybeSingle<{
+      id: string;
+      plan_key: string;
+      name: string;
+      invoice_enabled: boolean | null;
+      price_cents: number;
+      currency: string;
+      interval: string;
+    }>();
+
+  if (planError || !plan) {
+    redirect("/company/billing?billing=plan_not_found");
+  }
+
+  if (plan.invoice_enabled === false) {
+    redirect("/company/billing?billing=invoice_not_enabled");
+  }
+
+  const contactEmail = billingEmail || context.adminEmail;
+  const adminSupabase = createSupabaseAdminClient();
+  const now = new Date().toISOString();
+  const invoiceConfig = getInvoiceConfig();
+  const issueDate = new Date();
+  const dueDate = addDays(issueDate, invoiceConfig.paymentTermsDays);
+  const subtotalCents = plan.price_cents ?? 0;
+  const vatCents = calculateVat(subtotalCents, invoiceConfig.vatRateBps);
+  const invoiceNumber = createInvoiceNumber();
+  const referenceSource = purchaseOrderNumber || invoiceNumber;
+  const paymentReference = invoiceConfig.paymentReferencePrefix
+    ? `${invoiceConfig.paymentReferencePrefix}-${referenceSource}`
+    : referenceSource;
+  const paymentTerms = [invoiceConfig.paymentTerms, invoiceConfig.paymentBankName ? `Bank: ${invoiceConfig.paymentBankName}.` : ""]
+    .filter(Boolean)
+    .join(" ");
+
+  const { data: invoiceRequest, error: requestError } = await adminSupabase
+    .from("billing_invoice_requests")
+    .insert({
+      company_id: context.companyId,
+      plan_id: plan.id,
+      requested_by: context.userId,
+      billing_email: contactEmail,
+      vat_number: vatNumber || null,
+      purchase_order_number: purchaseOrderNumber || null,
+      billing_address: billingAddress || null,
+      notes: notes || null,
+      status: "generated"
+    })
+    .select("id")
+    .single<{ id: string }>();
+
+  if (requestError || !invoiceRequest) {
+    redirect(`/${locale}/company/billing?billing=invoice_request_failed`);
+  }
+
+  const { data: subscription } = await adminSupabase
+    .from("subscriptions")
+    .upsert(
+      {
+        company_id: context.companyId,
+        plan_id: plan.id,
+        payment_method: "invoice",
+        invoice_status: "issued",
+        invoice_requested_at: now,
+        billing_contact_email: contactEmail,
+        status: "invoice_issued",
+        updated_at: now
+      },
+      { onConflict: "company_id" }
+    )
+    .select("id")
+    .single<{ id: string }>();
+
+  const invoicePayload = {
+    company_id: context.companyId,
+    subscription_id: subscription?.id ?? null,
+    invoice_request_id: invoiceRequest.id,
+    plan_id: plan.id,
+    invoice_number: invoiceNumber,
+    status: "issued",
+    issue_date: toDateOnly(issueDate),
+    due_date: toDateOnly(dueDate),
+    currency: plan.currency ?? "eur",
+    subtotal_cents: subtotalCents,
+    vat_rate_bps: invoiceConfig.vatRateBps,
+    vat_cents: vatCents,
+    total_cents: subtotalCents + vatCents,
+    billing_email: contactEmail,
+    buyer_name: context.companyName,
+    buyer_vat_number: vatNumber || null,
+    buyer_billing_address: billingAddress || null,
+    seller_legal_name: invoiceConfig.sellerLegalName,
+    seller_vat_number: invoiceConfig.sellerVatNumber || null,
+    seller_billing_address: invoiceConfig.sellerBillingAddress,
+    seller_email: invoiceConfig.sellerEmail,
+    payment_iban: invoiceConfig.paymentIban,
+    payment_bic: invoiceConfig.paymentBic || null,
+    payment_reference: paymentReference,
+    payment_terms: paymentTerms,
+    notes: notes || null,
+    created_by: context.userId
+  };
+
+  const { data: invoice, error: invoiceError } = await adminSupabase
+    .from("billing_invoices")
+    .insert(invoicePayload)
+    .select("id")
+    .single<{ id: string }>();
+
+  if (invoiceError || !invoice) {
+    redirect(`/${locale}/company/billing?billing=invoice_generation_failed`);
+  }
+
+  await adminSupabase
+    .from("companies")
+    .update({
+      subscription_plan: plan.plan_key,
+      subscription_status: "invoice_issued",
+      billing_payment_method: "invoice",
+      billing_email: contactEmail,
+      billing_notes: notes || null
+    })
+    .eq("id", context.companyId);
+
+  const invoiceUrl = `${getAppUrl()}/${locale}/company/billing/invoices/${invoice.id}/pdf`;
+
+  try {
+    const pdf = createInvoicePdf({
+      ...invoicePayload,
+      plan: { name: plan.name, plan_key: plan.plan_key },
+      company: { company_name: context.companyName }
+    });
+
+    await sendInvoiceEmail({
+      to: contactEmail,
+      companyName: context.companyName,
+      invoiceNumber,
+      totalLabel: formatMoney(subtotalCents + vatCents, plan.currency ?? "eur"),
+      dueDate: toDateOnly(dueDate),
+      invoiceUrl,
+      pdf
+    });
+
+    await adminSupabase
+      .from("billing_invoices")
+      .update({ email_sent_at: new Date().toISOString(), email_error: null })
+      .eq("id", invoice.id);
+  } catch (error) {
+    await adminSupabase
+      .from("billing_invoices")
+      .update({ email_error: error instanceof Error ? error.message : "Invoice email failed" })
+      .eq("id", invoice.id);
+
+    redirect(`/${locale}/company/billing?billing=invoice_generated_email_failed&invoice=${invoice.id}`);
+  }
+
+  redirect(`/${locale}/company/billing?billing=invoice_generated&invoice=${invoice.id}`);
 }
 
 export async function startCheckoutSessionAction(formData: FormData) {

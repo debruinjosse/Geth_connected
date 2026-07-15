@@ -3,6 +3,7 @@ import { AuthCallbackStatus } from "@/components/AuthCallbackStatus";
 
 type CallbackSearchParams = {
   invite?: string;
+  next?: string;
 };
 
 export default async function AuthCallbackPage({
@@ -10,7 +11,7 @@ export default async function AuthCallbackPage({
 }: {
   searchParams: Promise<CallbackSearchParams>;
 }) {
-  const { invite } = await searchParams;
+  const { invite, next } = await searchParams;
 
   return (
     <AuthShell
@@ -18,7 +19,7 @@ export default async function AuthCallbackPage({
       title="Finishing your sign-in"
       subtitle="We are connecting your magic link, profile, and workspace access right now."
     >
-      <AuthCallbackStatus inviteToken={invite} />
+      <AuthCallbackStatus inviteToken={invite} targetPath={next} />
     </AuthShell>
   );
 }

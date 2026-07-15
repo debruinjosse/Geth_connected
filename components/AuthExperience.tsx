@@ -2,28 +2,50 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useLocale } from "next-intl";
 import { ArrowRight, CheckCircle2, Eye, EyeOff } from "lucide-react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { hasSupabaseBrowserConfig, type DemoRole } from "@/lib/demo-session";
 
 const signupRoles: Array<{ value: DemoRole; label: string }> = [
   { value: "employee", label: "Employee / invited user" },
+  { value: "manager", label: "Manager / invited leader" },
   { value: "company_admin", label: "Company admin / new company" }
 ];
+
+const roleShortcuts: Array<{ value: DemoRole; label: string }> = [
+  { value: "employee", label: "Join as employee" },
+  { value: "manager", label: "Join as manager" },
+  { value: "company_admin", label: "Register company" }
+];
+
+const loginRoles = [...roleShortcuts, { value: "super_admin" as DemoRole, label: "Owner login" }];
+
+function getSelectableAuthRole(role: DemoRole) {
+  return loginRoles.some((option) => option.value === role) ? role : "employee";
+}
 
 export function AuthExperience({
   mode,
   inviteToken,
-  authError
+  authError,
+  initialRole = "employee",
+  targetPath
 }: {
   mode: "login" | "signup";
   inviteToken?: string;
   authError?: string;
+  initialRole?: DemoRole;
+  targetPath?: string;
 }) {
-  const [busy, setBusy] = useState(false);
+  const locale = useLocale();
+  const [submitBusy, setSubmitBusy] = useState(false);
+  const [magicLinkBusy, setMagicLinkBusy] = useState(false);
+  const [passwordResetBusy, setPasswordResetBusy] = useState(false);
   const [status, setStatus] = useState("");
+  const [statusTone, setStatusTone] = useState<"success" | "error" | "info">("info");
   const [showPassword, setShowPassword] = useState(false);
-  const [selectedRole, setSelectedRole] = useState<DemoRole>("employee");
+  const [selectedRole, setSelectedRole] = useState<DemoRole>(initialRole);
   const [form, setForm] = useState({
     name: "",
     company: "",
@@ -32,7 +54,53 @@ export function AuthExperience({
   });
 
   const supabaseReady = useMemo(() => hasSupabaseBrowserConfig(), []);
+  const busy = submitBusy || magicLinkBusy || passwordResetBusy;
   const selectedSignupRole = signupRoles.some((role) => role.value === selectedRole) ? selectedRole : "employee";
+
+  function getLocalizedPublicPath(path: string) {
+    if (!path.startsWith("/") || path.startsWith("/auth")) {
+      return path;
+    }
+
+    if (path === "/") {
+      return `/${locale}`;
+    }
+
+    return `/${locale}${path}`;
+  }
+
+  function getAuthModeHref(nextMode: "login" | "signup", role = selectedRole, nextOverride?: string) {
+    const params = new URLSearchParams();
+    const nextRole = nextMode === "signup" && role === "super_admin" ? "company_admin" : role;
+    if (nextRole) {
+      params.set("role", nextRole);
+    }
+    if (inviteToken) {
+      params.set("invite", inviteToken);
+    }
+    const safeNext = getSafeTargetPath(nextOverride);
+    if (safeNext) {
+      params.set("next", safeNext);
+    }
+
+    const query = params.toString();
+    return `/${locale}/${nextMode}${query ? `?${query}` : ""}`;
+  }
+
+  function getSafeTargetPath(path?: string) {
+    if (!path || !path.startsWith("/") || path.startsWith("//") || path.startsWith("/api") || path.startsWith("/auth")) {
+      return "";
+    }
+
+    return path;
+  }
+
+  function resolvePostAuthRedirect(actualRedirect: string) {
+    const safeTarget = getSafeTargetPath(targetPath);
+    if (!safeTarget) return actualRedirect;
+
+    return safeTarget === actualRedirect || safeTarget.startsWith(`${actualRedirect}/`) ? safeTarget : actualRedirect;
+  }
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -44,12 +112,17 @@ export function AuthExperience({
     if (inviteToken) {
       callbackUrl.searchParams.set("invite", inviteToken);
     }
+    const safeTargetPath = getSafeTargetPath(targetPath);
+    if (safeTargetPath) {
+      callbackUrl.searchParams.set("next", safeTargetPath);
+    }
     callbackUrl.hash = window.location.hash.replace(/^#/, "");
     window.location.replace(callbackUrl.toString());
-  }, [inviteToken]);
+  }, [inviteToken, targetPath]);
 
   useEffect(() => {
     if (typeof window === "undefined" || authError !== "missing_profile") return;
+    setStatusTone("info");
     setStatus("Repairing your GETH profile and opening your dashboard...");
     window.location.replace("/auth/repair-profile");
   }, [authError]);
@@ -64,7 +137,7 @@ export function AuthExperience({
       headers: {
         "Content-Type": "application/json"
       },
-      body: JSON.stringify({ inviteToken: inviteToken ?? null })
+      body: JSON.stringify({ inviteToken: inviteToken ?? null, targetPath: getSafeTargetPath(targetPath) || null })
     });
     const payload = (await response.json().catch(() => ({}))) as { redirectTo?: string };
 
@@ -72,7 +145,7 @@ export function AuthExperience({
       throw new Error("Your account was authenticated, but profile setup failed.");
     }
 
-    window.location.assign(payload.redirectTo);
+    window.location.assign(resolvePostAuthRedirect(payload.redirectTo));
   }
 
   function repairProfileAndOpenDashboard() {
@@ -140,8 +213,9 @@ export function AuthExperience({
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setBusy(true);
+    setSubmitBusy(true);
     setStatus("");
+    setStatusTone("info");
 
     try {
       if (supabaseReady && form.email) {
@@ -180,7 +254,7 @@ export function AuthExperience({
 
           if (error) throw error;
 
-          window.location.assign(signupPayload.redirectTo);
+          window.location.assign(resolvePostAuthRedirect(signupPayload.redirectTo));
           return;
         }
 
@@ -197,15 +271,17 @@ export function AuthExperience({
 
       throw new Error("Supabase is not configured yet. Add the Supabase environment variables before using real login.");
     } catch (error) {
+      setStatusTone("error");
       setStatus(getFriendlyAuthError(error));
     } finally {
-      setBusy(false);
+      setSubmitBusy(false);
     }
   }
 
   async function sendPasswordReset() {
-    setBusy(true);
+    setPasswordResetBusy(true);
     setStatus("");
+    setStatusTone("info");
 
     try {
       if (!supabaseReady || !form.email) {
@@ -220,17 +296,20 @@ export function AuthExperience({
 
       if (error) throw error;
 
+      setStatusTone("success");
       setStatus("Password reset email sent. Open the GETH button in your inbox to set a new password.");
     } catch (error) {
+      setStatusTone("error");
       setStatus(getErrorMessage(error, "We couldn't send that reset email. Check your email address and Supabase email settings."));
     } finally {
-      setBusy(false);
+      setPasswordResetBusy(false);
     }
   }
 
   async function sendMagicLink() {
-    setBusy(true);
+    setMagicLinkBusy(true);
     setStatus("");
+    setStatusTone("info");
 
     try {
       if (!supabaseReady || !form.email) {
@@ -242,6 +321,10 @@ export function AuthExperience({
       const authRole = mode === "signup" ? selectedSignupRole : "employee";
       if (inviteToken) {
         redirectTo.searchParams.set("invite", inviteToken);
+      }
+      const safeTargetPath = getSafeTargetPath(targetPath);
+      if (safeTargetPath) {
+        redirectTo.searchParams.set("next", safeTargetPath);
       }
 
       const { error } =
@@ -268,11 +351,17 @@ export function AuthExperience({
 
       if (error) throw error;
 
-      setStatus(mode === "signup" ? "Magic link sent. Open the GETH button in your email to finish setup." : "Magic link sent. Open the GETH button in your email to continue.");
+      setStatusTone("success");
+      setStatus(
+        mode === "signup"
+          ? `Mail sent successfully to ${form.email}. Open the GETH button in your inbox to finish setup.`
+          : `Mail sent successfully to ${form.email}. Open the GETH button in your inbox to continue.`
+      );
     } catch (error) {
+      setStatusTone("error");
       setStatus(getErrorMessage(error, "We couldn't send that magic link. Check Supabase Auth email settings."));
     } finally {
-      setBusy(false);
+      setMagicLinkBusy(false);
     }
   }
 
@@ -285,14 +374,32 @@ export function AuthExperience({
           : "Use your work email and password to access your workspace."}
       </p>
       {mode === "login" ? (
-        <Link className="btn btn-secondary btn-full auth-switch-cta" href={inviteToken ? `/signup?invite=${inviteToken}` : "/signup"}>
-          Create account <ArrowRight size={16} />
+        <Link className={`auth-owner-shortcut ${selectedRole === "super_admin" ? "active" : ""}`} href={getAuthModeHref("login", "super_admin", "/admin")}>
+          <span>Owner / super admin login</span>
+          <ArrowRight size={15} />
         </Link>
-      ) : (
-        <Link className="btn btn-secondary btn-full auth-switch-cta" href={inviteToken ? `/login?invite=${inviteToken}` : "/login"}>
+      ) : null}
+      {mode === "signup" ? (
+        <Link className="btn btn-secondary btn-full auth-switch-cta" href={getAuthModeHref("login")}>
           Already have an account? Log in <ArrowRight size={16} />
         </Link>
-      )}
+      ) : null}
+      <div className="auth-role-shortcuts" aria-label={mode === "signup" ? "Choose signup role" : "Choose login role"}>
+        <p>Choose how you want to enter GETH.</p>
+        <div className="auth-role-shortcut-list">
+          {roleShortcuts.map((role) => (
+            <Link
+              className={`auth-role-shortcut ${selectedRole === role.value ? "active" : ""}`}
+              href={getAuthModeHref(mode, role.value)}
+              key={role.value}
+              aria-current={selectedRole === role.value ? "page" : undefined}
+            >
+              {role.label}
+            </Link>
+          ))}
+        </div>
+        {inviteToken ? <span className="auth-role-shortcuts-note">Invitation details decide your final company, team, and role.</span> : null}
+      </div>
       {inviteToken ? <p className="auth-status invite-status">This sign-in will apply your invitation after the magic link is opened.</p> : null}
       {getAuthErrorCopy(authError) ? <p className="auth-status auth-error-status">{getAuthErrorCopy(authError)}</p> : null}
       {authError === "missing_profile" ? (
@@ -341,32 +448,32 @@ export function AuthExperience({
         ) : null}
 
         <button className={`btn ${mode === "signup" ? "btn-primary" : "btn-dark"} btn-full`} disabled={busy} type="submit">
-          {busy ? "Working..." : supabaseReady ? (mode === "signup" ? "Create account" : "Log in") : "Continue in demo mode"} <ArrowRight size={16} />
+          {submitBusy ? "Working..." : supabaseReady ? (mode === "signup" ? "Create account" : "Log in") : "Continue in demo mode"} <ArrowRight size={16} />
         </button>
       </form>
 
       {supabaseReady ? (
         <button className="btn btn-secondary btn-full auth-demo-cta" type="button" onClick={sendMagicLink} disabled={busy}>
-          {mode === "signup" ? "Send magic link instead" : "Email me a magic link instead"}
+          {magicLinkBusy ? "Sending magic link..." : mode === "signup" ? "Send magic link instead" : "Email me a magic link instead"}
         </button>
       ) : null}
 
       {supabaseReady && mode === "login" ? (
         <button className="btn btn-secondary btn-full auth-demo-cta" type="button" onClick={sendPasswordReset} disabled={busy}>
-          Reset password
+          {passwordResetBusy ? "Sending reset email..." : "Reset password"}
         </button>
       ) : null}
 
       {status ? (
-        <p className="auth-status">
+        <p className={`auth-status auth-status-${statusTone}`}>
           <CheckCircle2 size={16} />
           {status}
         </p>
       ) : null}
 
-      <div className="auth-links">
-        {mode === "signup" ? <Link href={inviteToken ? `/login?invite=${inviteToken}` : "/login"}>Already have an account?</Link> : <Link href={inviteToken ? `/signup?invite=${inviteToken}` : "/signup"}>Create account</Link>}
-        <Link href="/">Back to site</Link>
+      <div className={`auth-links ${mode === "login" ? "auth-links-single" : ""}`}>
+        {mode === "signup" ? <Link href={getAuthModeHref("login")}>Already have an account?</Link> : null}
+        <Link href={getLocalizedPublicPath("/")}>Back to site</Link>
       </div>
     </div>
   );

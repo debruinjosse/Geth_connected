@@ -1,9 +1,10 @@
-import { readFileSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { createClient } from "@supabase/supabase-js";
 
 const ROOT = process.cwd();
 const ENV_PATH = resolve(ROOT, ".env.local");
+const ARTIFACTS_DIR = resolve(ROOT, "artifacts", "uat");
 const PASSWORD = "GethDemo!2026";
 
 function loadEnvFile() {
@@ -242,8 +243,9 @@ async function main() {
     ["Employee 3", "employee3@geth-demo.com", PASSWORD, "http://localhost:3000/login", "/employee", "Seed recognitions included"],
     ["Employee 4", "employee4@geth-demo.com", PASSWORD, "http://localhost:3000/login", "/employee", "Seed recognitions included"]
   ];
+  mkdirSync(ARTIFACTS_DIR, { recursive: true });
   const credentialCsv = credentialRows.map((row) => row.map((cell) => `"${String(cell).replaceAll('"', '""')}"`).join(",")).join("\n");
-  writeFileSync(resolve(ROOT, "GETH_TEST_CREDENTIALS.csv"), credentialCsv);
+  writeFileSync(resolve(ARTIFACTS_DIR, "GETH_TEST_CREDENTIALS.csv"), credentialCsv);
 
   const useCases = [
     ["Area", "Use case", "Role", "Route", "Expected result", "Status"],
@@ -260,11 +262,11 @@ async function main() {
     ["Admin", "Platform overview", "Super Admin", "/admin", "Admin portal accessible for super_admin role", "Seeded access"]
   ];
   const useCaseCsv = useCases.map((row) => row.map((cell) => `"${String(cell).replaceAll('"', '""')}"`).join(",")).join("\n");
-  writeFileSync(resolve(ROOT, "GETH_UAT_USE_CASES.csv"), useCaseCsv);
+  writeFileSync(resolve(ARTIFACTS_DIR, "GETH_UAT_USE_CASES.csv"), useCaseCsv);
 
   console.log("UAT accounts seeded successfully.");
-  console.log("Credentials written to GETH_TEST_CREDENTIALS.csv");
-  console.log("Use cases written to GETH_UAT_USE_CASES.csv");
+  console.log("Credentials written to artifacts/uat/GETH_TEST_CREDENTIALS.csv");
+  console.log("Use cases written to artifacts/uat/GETH_UAT_USE_CASES.csv");
   console.table(credentialRows.slice(1).map(([role, email, password, login, dashboard]) => ({ role, email, password, login, dashboard })));
 }
 
