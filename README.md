@@ -37,3 +37,4 @@ Open `http://localhost:3000`.
 3. Claim-card insert into Supabase
 4. Replace demo dashboard data with SQL aggregations
 5. Super admin card and company management
+bbbbh
