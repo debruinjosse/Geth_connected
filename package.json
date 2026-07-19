@@ -5,7 +5,6 @@
   "scripts": {
     "dev": "powershell -ExecutionPolicy Bypass -File ./scripts/dev-auto.ps1 -PushMigrations",
     "dev:plain": "next dev",
-    "prebuild": "powershell -ExecutionPolicy Bypass -File ./scripts/supabase-auto-push.ps1",
     "build": "next build",
     "start": "powershell -ExecutionPolicy Bypass -File ./scripts/start-auto.ps1",
     "start:next": "next start",
@@ -21,6 +20,7 @@
     "supabase:migration:new": "powershell -ExecutionPolicy Bypass -File ./scripts/supabase-new-migration.ps1",
     "supabase:push": "powershell -ExecutionPolicy Bypass -File ./scripts/supabase-push.ps1",
     "supabase:auto": "powershell -ExecutionPolicy Bypass -File ./scripts/dev-auto.ps1 -PushMigrations -NoDev",
+    "db:push": "powershell -ExecutionPolicy Bypass -File ./scripts/supabase-auto-push.ps1",
     "translate:messages": "node scripts/translate-messages.mjs --full --locales=da,fr"
   },
   "dependencies": {
