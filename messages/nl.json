@@ -1,6 +1,6 @@
 {
   "metadata": {
-    "title": "GETH Connected Cards",
+    "title": "GETH",
     "description": "Fysieke waardering. Digitale cultuurinzichten."
   },
   "language": {
@@ -24,10 +24,10 @@
     "hi": "Hi, {name}"
   },
   "home": {
-    "eyebrow": "GETH Connected Cards",
+    "eyebrow": "Herkennen om energie te geven",
     "headlineLine1": "Kleine momenten.",
     "headlineLine2": "Grote impact.",
-    "description": "Maak dagelijkse waardering zichtbaar als meetbare cultuurinzichten. Onze connected cards helpen teams zich gezien te voelen, energie vast te houden en samen te groeien.",
+    "description": "Maak waardering zichtbaar, meetbaar en onderdeel van het dagelijks werk. GETH helpt organisaties positieve impact te creeren door dagelijkse waardering.",
     "seeHow": "Bekijk hoe het werkt",
     "scrollExplore": "Scroll om te ontdekken",
     "trustSecure": "Veilig & privé",
@@ -36,7 +36,6 @@
     "deckPreview": "Preview van de kaartenset",
     "deckPreviewTitle": "Zie hoe waardering tot leven komt.",
     "deckPreviewCopy": "Bekijk een paar kaarten uit onze impactcategorieën.",
-    "viewAllCards": "Bekijk alle kaarten",
     "previousCards": "Vorige kaarten",
     "nextCards": "Volgende kaarten",
     "previewCommunication": "Communicatie",
@@ -71,7 +70,6 @@
     "employeesLabel": "Voor medewerkers",
     "employeesTitle": "Maak je groei zichtbaar.",
     "employeesCopy": "Voel je gewaardeerd, energiek en verbonden door dagelijkse erkenning.",
-    "learnMore": "Meer weten",
     "ctaEyebrow": "Klaar om een waarderingscultuur te bouwen?",
     "ctaTitle": "Maak waardering zichtbaar, meetbaar en menselijk.",
     "viewPricing": "Bekijk prijzen",
@@ -140,8 +138,15 @@
   },
   "cardsPage": {
     "cta": "Een kaart claimen",
-    "eyebrow": "Publieke kaartbibliotheek",
-    "title": "Ontdek alle 53 GETH-erkenning kaarten",
-    "copy": "Blader door de live deck per categorie, zoek naar kaartthema's en open de claimroute voor elke actieve GETH-verbonden kaart."
+    "eyebrow": "Kaartbibliotheek voor teams",
+    "title": "Ontdek je GETH-erkenningskaarten",
+    "copy": "Blader door de live deck per categorie, zoek naar kaartthema's en open de claimroute voor elke actieve GETH Connected Card.",
+    "lockedEyebrow": "Preview van de kaartenset",
+    "lockedTitle": "De volledige GETH-set wordt ontgrendeld na onboarding.",
+    "lockedCopy": "Klanten krijgen toegang tot de complete set van 53 erkenningskaarten na bedrijfsregistratie of een begeleide demo. Tot die tijd toont de homepage alleen een kleine preview zonder het volledige product prijs te geven.",
+    "lockedPanelTitle": "Wil je de volledige set zien?",
+    "lockedPanelCopy": "Boek een demo of registreer je bedrijf zodat we de juiste workspace en kaarttoegang voor je team kunnen instellen.",
+    "lockedDemo": "Demo boeken",
+    "lockedRegister": "Registreer je bedrijf"
   }
 }

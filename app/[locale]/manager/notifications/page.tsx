@@ -31,7 +31,9 @@ function DemoNotificationsPage() {
   );
 }
 
-export default async function ManagerNotificationsPage() {
+export default async function ManagerNotificationsPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+
   if (!hasSupabaseServerConfig()) {
     return <DemoNotificationsPage />;
   }
@@ -67,6 +69,7 @@ export default async function ManagerNotificationsPage() {
             emptyCopy="Team recognition alerts, invite acceptances, and important manager updates will appear here."
             emptyActionLabel="View team"
             emptyActionHref="/manager/team"
+            locale={locale}
           />
         </article>
       </section>

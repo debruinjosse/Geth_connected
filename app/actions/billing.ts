@@ -12,6 +12,7 @@ import {
   toDateOnly
 } from "@/lib/billing/eu-invoice";
 import { sendInvoiceEmail } from "@/lib/mail/nodemailer";
+import { createPlatformAdminNotifications } from "@/lib/notifications";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getAppUrl, getStripe, hasStripeBillingConfig } from "@/lib/stripe/server";
@@ -23,6 +24,10 @@ type CompanyBillingContext = {
   adminEmail: string;
   stripeCustomerId: string | null;
 };
+
+function getBillingReturnUrl(locale: string, companyOwned: boolean) {
+  return companyOwned ? `/${locale}/company/billing` : `/${locale}/admin/subscriptions`;
+}
 
 async function getCompanyBillingContext(): Promise<CompanyBillingContext> {
   const supabase = await createSupabaseServerClient();
@@ -69,24 +74,71 @@ async function getCompanyBillingContext(): Promise<CompanyBillingContext> {
   };
 }
 
+async function getPlatformBillingContext(companyId: string): Promise<CompanyBillingContext> {
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+    error: userError
+  } = await supabase.auth.getUser();
+
+  if (userError || !user) {
+    redirect("/login");
+  }
+
+  const { data: profile, error: profileError } = await supabase
+    .from("profiles")
+    .select("id, email, role")
+    .eq("id", user.id)
+    .maybeSingle<{ id: string; email: string | null; role: string }>();
+
+  if (profileError || !profile || !["platform_admin", "super_admin"].includes(profile.role)) {
+    redirect("/admin/subscriptions?billing=unauthorized");
+  }
+
+  const { data: company, error: companyError } = await supabase
+    .from("companies")
+    .select("id, company_name, billing_email, stripe_customer_id")
+    .eq("id", companyId)
+    .maybeSingle<{ id: string; company_name: string; billing_email: string | null; stripe_customer_id: string | null }>();
+
+  if (companyError || !company) {
+    redirect("/admin/subscriptions?billing=missing_company");
+  }
+
+  return {
+    userId: user.id,
+    companyId: company.id,
+    companyName: company.company_name,
+    adminEmail: company.billing_email || profile.email || "",
+    stripeCustomerId: company.stripe_customer_id
+  };
+}
+
 export async function requestInvoicePaymentAction(formData: FormData) {
   const planId = String(formData.get("planId") ?? "");
+  const companyId = String(formData.get("companyId") ?? "").trim();
   const billingEmail = String(formData.get("billingEmail") ?? "").trim();
   const vatNumber = String(formData.get("vatNumber") ?? "").trim();
   const purchaseOrderNumber = String(formData.get("purchaseOrderNumber") ?? "").trim();
   const billingAddress = String(formData.get("billingAddress") ?? "").trim();
   const notes = String(formData.get("notes") ?? "").trim();
   const locale = String(formData.get("locale") ?? "en").trim() || "en";
-  const context = await getCompanyBillingContext();
+  const companyOwned = !companyId;
+  const returnUrl = getBillingReturnUrl(locale, companyOwned);
+  const context = companyId ? await getPlatformBillingContext(companyId) : await getCompanyBillingContext();
   const supabase = await createSupabaseServerClient();
 
+  if (!companyId) {
+    redirect(`/${locale}/company/billing?billing=owner_managed`);
+  }
+
   if (!planId) {
-    redirect("/company/billing?billing=plan_not_found");
+    redirect(`${returnUrl}?billing=plan_not_found`);
   }
 
   const missingInvoiceConfig = getMissingInvoiceConfig();
   if (missingInvoiceConfig.length) {
-    redirect(`/${locale}/company/billing?billing=invoice_config_missing`);
+    redirect(`${returnUrl}?billing=invoice_config_missing`);
   }
 
   const { data: plan, error: planError } = await supabase
@@ -105,11 +157,11 @@ export async function requestInvoicePaymentAction(formData: FormData) {
     }>();
 
   if (planError || !plan) {
-    redirect("/company/billing?billing=plan_not_found");
+    redirect(`${returnUrl}?billing=plan_not_found`);
   }
 
   if (plan.invoice_enabled === false) {
-    redirect("/company/billing?billing=invoice_not_enabled");
+    redirect(`${returnUrl}?billing=invoice_not_enabled`);
   }
 
   const contactEmail = billingEmail || context.adminEmail;
@@ -146,7 +198,7 @@ export async function requestInvoicePaymentAction(formData: FormData) {
     .single<{ id: string }>();
 
   if (requestError || !invoiceRequest) {
-    redirect(`/${locale}/company/billing?billing=invoice_request_failed`);
+    redirect(`${returnUrl}?billing=invoice_request_failed`);
   }
 
   const { data: subscription } = await adminSupabase
@@ -204,7 +256,7 @@ export async function requestInvoicePaymentAction(formData: FormData) {
     .single<{ id: string }>();
 
   if (invoiceError || !invoice) {
-    redirect(`/${locale}/company/billing?billing=invoice_generation_failed`);
+    redirect(`${returnUrl}?billing=invoice_generation_failed`);
   }
 
   await adminSupabase
@@ -247,10 +299,26 @@ export async function requestInvoicePaymentAction(formData: FormData) {
       .update({ email_error: error instanceof Error ? error.message : "Invoice email failed" })
       .eq("id", invoice.id);
 
-    redirect(`/${locale}/company/billing?billing=invoice_generated_email_failed&invoice=${invoice.id}`);
+    await createPlatformAdminNotifications(adminSupabase, {
+      companyId: context.companyId,
+      type: "invoice_email_failed",
+      title: "Invoice generated but email failed",
+      body: `${invoiceNumber} was generated for ${context.companyName}, but SMTP delivery failed. Download and send the PDF manually or check get.pro SMTP settings.`,
+      href: `/admin/subscriptions`
+    });
+
+    redirect(`${returnUrl}?billing=invoice_generated_email_failed&invoice=${invoice.id}`);
   }
 
-  redirect(`/${locale}/company/billing?billing=invoice_generated&invoice=${invoice.id}`);
+  await createPlatformAdminNotifications(adminSupabase, {
+    companyId: context.companyId,
+    type: "invoice_issued",
+    title: "Invoice issued",
+    body: `${invoiceNumber} was generated for ${context.companyName}. After payment is confirmed, invite or activate the company admin.`,
+    href: `/admin/subscriptions`
+  });
+
+  redirect(`${returnUrl}?billing=invoice_generated&invoice=${invoice.id}`);
 }
 
 export async function startCheckoutSessionAction(formData: FormData) {

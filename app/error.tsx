@@ -18,7 +18,7 @@ export default function AppError({ error, reset }: AppErrorProps) {
   return (
     <main className="app-error-shell">
       <section className="app-error-card">
-        <p className="eyebrow">GETH Connected Cards</p>
+        <p className="eyebrow">GETH</p>
         <h1>Something interrupted this page.</h1>
         <p>
           The app is still running. Try reloading this view, or return to the homepage and open the page again.

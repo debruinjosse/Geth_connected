@@ -23,8 +23,8 @@ function getInitials(firstName: string, lastName: string) {
   return `${firstName[0] ?? ""}${lastName[0] ?? ""}`.toUpperCase() || "GC";
 }
 
-export default async function ClaimCardPage({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params;
+export default async function ClaimCardPage({ params }: { params: Promise<{ locale: string; slug: string }> }) {
+  const { locale, slug } = await params;
   const card = await getPublicCardBySlug(slug);
   let giverOptions: ClaimGiverOption[] = people.map((person) => ({
     id: person.id,
@@ -37,7 +37,7 @@ export default async function ClaimCardPage({ params }: { params: Promise<{ slug
     name: "there",
     initials: "GU",
     team: "",
-    dashboardHref: "/employee"
+    dashboardHref: `/${locale}/employee`
   };
 
   if (hasSupabaseServerConfig()) {
@@ -87,7 +87,7 @@ export default async function ClaimCardPage({ params }: { params: Promise<{ slug
           name: `${profile.first_name} ${profile.last_name}`.trim(),
           initials: getInitials(profile.first_name, profile.last_name),
           team: receiverTeam?.name ?? "Your company",
-          dashboardHref: "/employee"
+          dashboardHref: `/${locale}/employee`
         };
       } else {
         giverOptions = [];
@@ -100,7 +100,7 @@ export default async function ClaimCardPage({ params }: { params: Promise<{ slug
   return (
     <main className="claim-page">
       <header className="claim-header">
-        <BrandLogo href="/" />
+        <BrandLogo href={`/${locale}`} />
         <div className="claim-header-right">
           <a className="claim-help" href="mailto:hello@geth.com?subject=GETH%20claim%20card%20help">
             <HelpCircle size={16} style={{ verticalAlign: "middle", marginRight: 6 }} />
@@ -111,7 +111,7 @@ export default async function ClaimCardPage({ params }: { params: Promise<{ slug
           </Link>
         </div>
       </header>
-      <ClaimCardClient card={card ?? null} requestedSlug={slug} giverOptions={giverOptions} receiverName={receiverUser.name} />
+      <ClaimCardClient card={card ?? null} requestedSlug={slug} giverOptions={giverOptions} receiverName={receiverUser.name} locale={locale} />
     </main>
   );
 }

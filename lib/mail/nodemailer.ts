@@ -189,3 +189,134 @@ export async function sendCalendarInviteEmail({
     throw new InviteEmailError(classifySmtpError(error), "Calendar invite email could not be sent.", error);
   }
 }
+
+export async function sendDemoBookingRequestEmails({
+  adminEmails,
+  requesterEmail,
+  requesterName,
+  company,
+  teamSize,
+  role,
+  preferredSlot,
+  message,
+  adminUrl
+}: {
+  adminEmails: string[];
+  requesterEmail: string;
+  requesterName: string;
+  company: string;
+  teamSize: string;
+  role: string;
+  preferredSlot: string;
+  message: string;
+  adminUrl: string;
+}) {
+  const from = process.env.SMTP_FROM || "GETH <hello@get.pro>";
+  const replyTo = process.env.SMTP_REPLY_TO || requesterEmail;
+  const adminText = [
+    "New GETH demo request",
+    "",
+    `Name: ${requesterName}`,
+    `Email: ${requesterEmail}`,
+    `Company: ${company}`,
+    `Team size: ${teamSize}`,
+    `Role: ${role}`,
+    `Preferred slot: ${preferredSlot}`,
+    "",
+    `Message: ${message || "No message provided."}`,
+    "",
+    `Approve or decline: ${adminUrl}`
+  ].join("\n");
+
+  const requesterText = [
+    `Hi ${requesterName},`,
+    "",
+    "Thanks for booking a GETH demo. We received your request and will confirm the time shortly.",
+    "",
+    `Preferred slot: ${preferredSlot}`,
+    `Company: ${company}`,
+    "",
+    "If anything changes, reply to this email."
+  ].join("\n");
+
+  try {
+    const transport = getTransport();
+    await transport.sendMail({
+      from,
+      replyTo,
+      to: adminEmails.join(","),
+      subject: `New GETH demo request - ${company}`,
+      text: adminText
+    });
+    await transport.sendMail({
+      from,
+      replyTo,
+      to: requesterEmail,
+      subject: "GETH demo request received",
+      text: requesterText
+    });
+  } catch (error) {
+    throw new InviteEmailError(classifySmtpError(error), "Demo booking email could not be sent.", error);
+  }
+}
+
+export async function sendDemoBookingDecisionEmail({
+  to,
+  requesterName,
+  company,
+  status,
+  preferredSlot,
+  adminNote,
+  ics
+}: {
+  to: string;
+  requesterName: string;
+  company: string;
+  status: "approved" | "declined";
+  preferredSlot: string;
+  adminNote: string;
+  ics?: string;
+}) {
+  const from = process.env.SMTP_FROM || "GETH <hello@get.pro>";
+  const replyTo = process.env.SMTP_REPLY_TO || undefined;
+  const approved = status === "approved";
+  const text = [
+    `Hi ${requesterName},`,
+    "",
+    approved
+      ? `Your GETH demo for ${company} has been approved.`
+      : `Thanks for your interest in GETH. We cannot confirm the requested demo slot for ${company} yet.`,
+    `Requested slot: ${preferredSlot}`,
+    adminNote ? `Note: ${adminNote}` : "",
+    "",
+    approved ? "A calendar file is attached so you can add it to Google Calendar, Outlook, or Apple Calendar." : "Please reply to this email and we will find another suitable time."
+  ].filter(Boolean).join("\n");
+
+  try {
+    await getTransport().sendMail({
+      from,
+      replyTo,
+      to,
+      subject: approved ? "Your GETH demo is confirmed" : "GETH demo request update",
+      text,
+      ...(ics
+        ? {
+            icalEvent: {
+              filename: "geth-demo.ics",
+              method: "PUBLISH",
+              content: ics
+            },
+            attachments: [
+              {
+                filename: "geth-demo.ics",
+                content: ics,
+                contentType: "text/calendar; charset=utf-8"
+              }
+            ]
+          }
+        : {})
+    });
+  } catch (error) {
+    throw new InviteEmailError(classifySmtpError(error), "Demo booking decision email could not be sent.", error);
+  }
+}

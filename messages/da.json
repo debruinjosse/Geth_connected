@@ -1,6 +1,6 @@
 {
   "metadata": {
-    "title": "GETH Connected Cards",
+    "title": "GETH",
     "description": "Fysisk anerkendelse. Digital kulturinsigt."
   },
   "language": {
@@ -24,10 +24,10 @@
     "hi": "Hej, {name}"
   },
   "home": {
-    "eyebrow": "GETH Connected Cards",
+    "eyebrow": "Anerkendelse giver energi",
     "headlineLine1": "Lille øjeblikke.",
     "headlineLine2": "Stort indtryk.",
-    "description": "Omdanne hverdagsanerkendelse til målbare kulturinsider. Vores forbundne kort hjælper hold med at føle sig set, blive energiseret og vokse sammen.",
+    "description": "Gor anerkendelse synlig, malbar og til en del af hverdagsarbejdet. GETH hjaelper organisationer med at skabe positiv effekt gennem daglig paaskonnelse.",
     "seeHow": "Se hvordan det fungerer",
     "scrollExplore": "Rul ned for at udforske",
     "trustSecure": "Sikker & privat",
@@ -36,7 +36,6 @@
     "deckPreview": "Kortdekkers forudvisning",
     "deckPreviewTitle": "Se hvordan anerkendelse kommer til live.",
     "deckPreviewCopy": "Forudvise et par kort fra vores impact-kategorier.",
-    "viewAllCards": "Se alle kort",
     "previousCards": "Tidligere kort",
     "nextCards": "Næste kort",
     "previewCommunication": "Kommunikation",
@@ -44,7 +43,7 @@
     "previewCompetence": "Kompetence",
     "previewCollegiality": "Kollegialitet",
     "previewListening": "Lyttende",
-    "previewRenewing": "Vernieuwer",
+    "previewRenewing": "Innovator",
     "previewGoalOriented": "Målrettet",
     "previewCaring": "Omsorgsfuld",
     "previewListeningCopy": "Du giver mennesker plads til at tale rigtigt, uden domme. Din opmærksomhed gør forskellen.",
@@ -71,7 +70,6 @@
     "employeesLabel": "For ansatte",
     "employeesTitle": "Ej din vækstshistorie.",
     "employeesCopy": "Føl værd, energiser og forbundet gennem hverdagsanerkendelse.",
-    "learnMore": "Lær mere",
     "ctaEyebrow": "Er du klar til at bygge en anerkendelseskultur?",
     "ctaTitle": "Gør anerkendelsen synlig, målbart og smukt menneskelig.",
     "viewPricing": "Se priser",
@@ -140,8 +138,15 @@
   },
   "cardsPage": {
     "cta": "Kræv et kort",
-    "eyebrow": "Offentlig kortbibliotek",
-    "title": "Udnyt alle 53 GETH-genkendelseskort",
-    "copy": "Browse den levende deck efter kategori, søg efter kortemner og åbn kræv-ruten for hver aktiv GETH-Connected Card."
+    "eyebrow": "Kortbibliotek for teams",
+    "title": "Udforsk dine GETH-anerkendelseskort",
+    "copy": "Gennemse det aktive deck efter kategori, søg efter korttemaer og åbn claim-ruten for hver aktiv GETH Connected Card.",
+    "lockedEyebrow": "Forhåndsvisning af kortdeck",
+    "lockedTitle": "Det fulde GETH-deck låses op efter onboarding.",
+    "lockedCopy": "Kunder får adgang til det komplette deck med 53 anerkendelseskort efter virksomhedsregistrering eller en guidet demo. Indtil da viser forsiden kun en lille forhåndsvisning uden at afsløre hele produktet.",
+    "lockedPanelTitle": "Vil du se hele decket?",
+    "lockedPanelCopy": "Book en demo eller registrer din virksomhed, så vi kan oprette det rigtige workspace og den rigtige kortadgang for dit team.",
+    "lockedDemo": "Book en demo",
+    "lockedRegister": "Registrer din virksomhed"
   }
 }

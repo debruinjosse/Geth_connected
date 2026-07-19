@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import { locales, type AppLocale } from "@/i18n/routing";
 
 const languageLabels: Record<AppLocale, string> = {
@@ -23,16 +24,14 @@ function getLocalizedPath(pathname: string, nextLocale: AppLocale) {
 }
 
 export function LanguageSwitcher({ floating = false }: { floating?: boolean }) {
-  const [locationState, setLocationState] = useState({ pathname: "/en", search: "" });
-  const { pathname, search } = locationState;
-  const activeLocale = (pathname.split("/")[1] || "en") as AppLocale;
+  const pathname = usePathname() || "/en";
+  const [search, setSearch] = useState("");
+  const pathLocale = pathname.split("/")[1];
+  const activeLocale = ((locales as readonly string[]).includes(pathLocale) ? pathLocale : "en") as AppLocale;
 
   useEffect(() => {
-    setLocationState({
-      pathname: window.location.pathname || "/en",
-      search: window.location.search || ""
-    });
-  }, []);
+    setSearch(window.location.search || "");
+  }, [pathname]);
 
   return (
     <nav className={`language-switcher ${floating ? "floating" : ""}`.trim()} aria-label="Choose language">

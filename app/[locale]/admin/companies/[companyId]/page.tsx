@@ -74,7 +74,7 @@ export default async function AdminCompanyDetailPage({
   const returnTo = `/${locale}/admin/companies/${companyId}`;
 
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-    redirect("/admin/companies");
+    redirect(`/${locale}/admin/companies`);
   }
 
   const supabase = await createSupabaseServerClient();
@@ -84,7 +84,7 @@ export default async function AdminCompanyDetailPage({
   } = await supabase.auth.getUser();
 
   if (userError || !user) {
-    redirect("/login");
+    redirect(`/${locale}/login`);
   }
 
   const { data: adminProfile, error: adminError } = await supabase
@@ -153,7 +153,7 @@ export default async function AdminCompanyDetailPage({
         initials: getInitials(adminProfile.first_name, adminProfile.last_name),
         team: "GETH Platform"
       }}
-      actions={<Link className="btn btn-secondary" href="/admin/companies">Back to companies</Link>}
+      actions={<Link className="btn btn-secondary" href={`/${locale}/admin/companies`}>Back to companies</Link>}
       unreadNotifications={unreadNotifications}
     >
       <section className="metrics-grid">
@@ -214,6 +214,7 @@ export default async function AdminCompanyDetailPage({
           <form action={createCompanyInviteFromAdminAction} className="admin-invite-form">
             <input type="hidden" name="companyId" value={company.id} />
             <input type="hidden" name="returnTo" value={returnTo} />
+            <input type="hidden" name="locale" value={locale} />
             <div>
               <h3>Send an invite to this company</h3>
               <p className="section-copy">Create a role-specific onboarding link for this workspace.</p>
@@ -281,7 +282,7 @@ export default async function AdminCompanyDetailPage({
                   <div>
                     <strong>{invite.email}</strong>
                     <p>{invite.role.replace("_", " ")} invite expires {formatDate(invite.expires_at)}.</p>
-                    <Link className="panel-link" href={`/invite/${invite.token}`}>Open registration link</Link>
+                    <Link className="panel-link" href={`/${locale}/invite/${invite.token}`}>Open registration link</Link>
                   </div>
                   <span className="quality-pill">{invite.status}</span>
                 </div>

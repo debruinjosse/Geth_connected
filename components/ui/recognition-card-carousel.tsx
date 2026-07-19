@@ -3,7 +3,6 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
-import { Link } from "@/i18n/navigation";
 import { GoldenLeaves } from "@/components/GoldenLeaves";
 
 export interface RecognitionCardData {
@@ -23,7 +22,7 @@ interface RecognitionCardCarouselProps {
 
 function RecognitionCard({ card }: { card: RecognitionCardData }) {
   return (
-    <Link className="recognitionCard" href="/cards">
+    <article className="recognitionCard">
       <div className="recognitionCardTop">
         <span className="recognitionCardLogo">
           <Image alt="GETH crest" src="/assets/geth-crest-mark.png" width={30} height={28} />
@@ -37,7 +36,7 @@ function RecognitionCard({ card }: { card: RecognitionCardData }) {
         <h3>{card.title}</h3>
         <p>{card.description}</p>
       </div>
-    </Link>
+    </article>
   );
 }
 

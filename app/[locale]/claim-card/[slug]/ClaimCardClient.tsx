@@ -8,7 +8,7 @@ import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { ArrowLeft, ArrowRight, CheckCircle2, Search } from "lucide-react";
 import { claimRecognition } from "@/app/actions/claimRecognition";
 import { GethCardVisual } from "@/components/GethCardVisual";
-import type { GethCard } from "@/lib/cards";
+import { getLocalizedCardTitle, getLocalizedCategoryDisplayName, type GethCard } from "@/lib/cards";
 import { people } from "@/lib/demo-data";
 import { hasSupabaseBrowserConfig, saveStoredRecognition } from "@/lib/demo-session";
 
@@ -36,18 +36,21 @@ export function ClaimCardClient({
   card,
   requestedSlug,
   giverOptions,
-  receiverName
+  receiverName,
+  locale
 }: {
   card: GethCard | null;
   requestedSlug: string;
   giverOptions?: ClaimGiverOption[];
   receiverName?: string;
+  locale: string;
 }) {
   const prefersReducedMotion = useReducedMotion();
   const router = useRouter();
   const searchParams = useSearchParams();
   const source = searchParams.get("source");
   const claimOrigin = source === "qr_scan" ? "qr_scan" : source === "manual_entry" ? "manual_entry" : "direct_link";
+  const localePrefix = `/${locale}`;
   const [selectedGiver, setSelectedGiver] = useState("");
   const [note, setNote] = useState("");
   const [query, setQuery] = useState("");
@@ -58,6 +61,13 @@ export function ClaimCardClient({
   const deferredQuery = useDeferredValue(query);
   const availablePeople = giverOptions?.length ? giverOptions : hasSupabaseBrowserConfig() ? [] : people;
   const resolvedReceiverName = receiverName ?? "Sarah van den Berg";
+  const displayCard = card
+    ? {
+        ...card,
+        title: getLocalizedCardTitle(card, locale),
+        category: getLocalizedCategoryDisplayName(card.category, locale)
+      }
+    : null;
 
   if (!card) {
     return (
@@ -67,10 +77,10 @@ export function ClaimCardClient({
           <h1 style={{ margin: "12px 0", fontSize: 52 }}>We couldn&apos;t find &ldquo;{requestedSlug}&rdquo;.</h1>
           <p className="section-copy">The QR route may be inactive, renamed, or not part of this deck.</p>
           <div style={{ display: "flex", justifyContent: "center", gap: 14, marginTop: 26, flexWrap: "wrap" }}>
-            <Link className="btn btn-dark" href="/cards">
+            <Link className="btn btn-dark" href={`${localePrefix}/cards`}>
               Open card library
             </Link>
-            <Link className="btn btn-secondary" href="/">
+            <Link className="btn btn-secondary" href={localePrefix}>
               Back home
             </Link>
           </div>
@@ -104,8 +114,8 @@ export function ClaimCardClient({
       if (!result.ok) {
         setSubmitError(result.error);
         if (result.code === "AUTH_REQUIRED") {
-          const nextUrl = `/claim-card/${requestedSlug}${claimOrigin === "qr_scan" ? "?source=qr_scan" : ""}`;
-          router.push(`/login?next=${encodeURIComponent(nextUrl)}`);
+          const nextUrl = `${localePrefix}/claim-card/${requestedSlug}${claimOrigin === "qr_scan" ? "?source=qr_scan" : ""}`;
+          router.push(`${localePrefix}/login?next=${encodeURIComponent(nextUrl)}`);
         }
         return;
       }
@@ -114,8 +124,8 @@ export function ClaimCardClient({
         saveStoredRecognition({
           id: `stored-${Date.now()}`,
           cardSlug: card.slug,
-          cardTitle: card.title,
-          category: card.category,
+          cardTitle: displayCard?.title ?? card.title,
+          category: displayCard?.category ?? card.category,
           giverId: selectedGiver,
           giverName: selectedPerson?.name ?? "Unknown giver",
           receiverName: resolvedReceiverName,
@@ -145,7 +155,7 @@ export function ClaimCardClient({
           })}
         </div>
 
-        <GethCardVisual card={card} variant="claim" />
+        <GethCardVisual card={displayCard ?? card} variant="claim" />
       </div>
 
       <div className="claim-right">
@@ -156,10 +166,10 @@ export function ClaimCardClient({
               <h2 style={{ marginTop: 22 }}>Recognition claimed</h2>
               <p>This card has been added to your dashboard, the giver&apos;s dashboard, and company insights.</p>
               <div style={{ display: "flex", justifyContent: "center", gap: 14, marginTop: 24, flexWrap: "wrap" }}>
-                <Link className="btn btn-dark" href="/employee">
+                <Link className="btn btn-dark" href={`${localePrefix}/employee`}>
                   Open my dashboard
                 </Link>
-                <Link className="btn btn-secondary" href="/cards">
+                <Link className="btn btn-secondary" href={`${localePrefix}/cards`}>
                   Claim another card
                 </Link>
               </div>

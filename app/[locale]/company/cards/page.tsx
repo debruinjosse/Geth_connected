@@ -14,9 +14,9 @@ function getInitials(firstName: string | null, lastName: string | null) {
   return `${firstName?.[0] ?? ""}${lastName?.[0] ?? ""}`.toUpperCase() || "CA";
 }
 
-function renderDemoCards() {
+function renderDemoCards(locale = "en") {
   return (
-    <DashboardShell role="company" title="Cards & Decks" subtitle="Manage deck visibility, statuses, and linked claim routes." user={companyAdmin} actions={<a className="btn btn-dark" href="/cards">Open public library</a>}>
+    <DashboardShell role="company" title="Cards & Decks" subtitle="Manage deck visibility, statuses, and linked claim routes." user={companyAdmin} actions={<a className="btn btn-dark" href={`/${locale}/cards`}>Open public library</a>}>
       <article className="panel dashboard-panel">
         <div className="company-card-admin-grid">
           {cardManagementRows.map((card) => (
@@ -30,7 +30,7 @@ function renderDemoCards() {
                 <span>#{card.number}</span>
                 <span className="energy high">{card.status}</span>
               </div>
-              <a className="btn btn-secondary" href={`/claim-card/${card.slug}`}>Open QR route</a>
+              <a className="btn btn-secondary" href={`/${locale}/claim-card/${card.slug}`}>Open QR route</a>
             </article>
           ))}
         </div>
@@ -39,9 +39,11 @@ function renderDemoCards() {
   );
 }
 
-export default async function CompanyCardsPage() {
+export default async function CompanyCardsPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+
   if (!hasSupabaseServerConfig()) {
-    return renderDemoCards();
+    return renderDemoCards(locale);
   }
 
   const supabase = await createSupabaseServerClient();
@@ -51,7 +53,7 @@ export default async function CompanyCardsPage() {
   } = await supabase.auth.getUser();
 
   if (userError || !user) {
-    return renderDemoCards();
+    return renderDemoCards(locale);
   }
 
   const { data: profile, error: profileError } = await supabase
@@ -71,7 +73,7 @@ export default async function CompanyCardsPage() {
   }
 
   if (profile.role !== "company_admin") {
-    redirect("/company");
+    redirect(`/${locale}/company`);
   }
 
   const [{ data: cards, error: cardsError }, { data: recognitions, error: recognitionsError }, unreadNotifications] = await Promise.all([
@@ -105,7 +107,7 @@ export default async function CompanyCardsPage() {
         initials: getInitials(profile.first_name, profile.last_name),
         team: company?.company_name ?? "Company admin"
       }}
-      actions={<a className="btn btn-dark" href="/cards">Open public library</a>}
+      actions={<a className="btn btn-dark" href={`/${locale}/cards`}>Open public library</a>}
       unreadNotifications={unreadNotifications}
     >
       <article className="panel dashboard-panel">
@@ -123,7 +125,7 @@ export default async function CompanyCardsPage() {
                   <span className={`energy ${card.active ? "high" : "low"}`.trim()}>{card.active ? "Active" : "Inactive"}</span>
                   <span>{usageCounts.get(card.id) ?? 0} used</span>
                 </div>
-                <a className="btn btn-secondary" href={`/claim-card/${card.qr_slug}`}>Open QR route</a>
+                <a className="btn btn-secondary" href={`/${locale}/claim-card/${card.qr_slug}`}>Open QR route</a>
               </article>
             ))}
           </div>

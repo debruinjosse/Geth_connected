@@ -1,12 +1,15 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
+import { useLocale } from "next-intl";
 import { ArrowRight, CalendarDays, Heart, Megaphone, QrCode, Send, Sparkles, Star, Zap } from "lucide-react";
 import { BarChart } from "@/components/BarChart";
 import { DashboardShell } from "@/components/DashboardShell";
 import { EmptyState } from "@/components/EmptyState";
 import { MetricCard } from "@/components/MetricCard";
 import { RecognitionList, type RecognitionItem } from "@/components/RecognitionList";
+import { SignalList } from "@/components/SignalList";
 import { currentUser, employeeCategoryBreakdown, employeeGrowthPoints, employeeTopQualities, recognitions } from "@/lib/demo-data";
 import { getStoredRecognitions, type StoredRecognition } from "@/lib/demo-session";
 
@@ -38,6 +41,8 @@ type EmployeeDashboardData = {
   energyScore: number;
   quartersActive: number;
   topQualitiesCount: number;
+  topStrengthLabel?: string;
+  recognitionSignals?: Array<{ id: string; tone: string; title: string; detail: string }>;
   topQualities: QualityPill[];
   categoryBreakdown: CategoryBreakdown[];
   recentRecognitions: RecognitionItem[];
@@ -61,6 +66,7 @@ const zeroQualityRows: Array<QualityPill & { value: number }> = [
 ];
 
 export function EmployeeDashboardClient({ data }: { data?: EmployeeDashboardData }) {
+  const locale = useLocale();
   const [storedRecognitions, setStoredRecognitions] = useState<StoredRecognition[]>([]);
   const [announcementVisible, setAnnouncementVisible] = useState(true);
   const resolvedData = data ?? {
@@ -74,6 +80,15 @@ export function EmployeeDashboardClient({ data }: { data?: EmployeeDashboardData
     energyScore: 78,
     quartersActive: 3,
     topQualitiesCount: 11,
+    topStrengthLabel: "Great communicator",
+    recognitionSignals: [
+      {
+        id: "demo-signal-communication",
+        tone: "var(--theme-emerald)",
+        title: "Great communicator",
+        detail: "Communication cards are appearing most often in your recognition story."
+      }
+    ],
     topQualities: employeeTopQualities,
     categoryBreakdown: employeeCategoryBreakdown,
     recentRecognitions: recognitions.map((recognition) => ({
@@ -98,7 +113,7 @@ export function EmployeeDashboardClient({ data }: { data?: EmployeeDashboardData
   const recognitionItems = resolvedData.mode === "demo" ? [...storedRecognitions, ...resolvedData.recentRecognitions] : resolvedData.recentRecognitions;
   const hasAnyRecognitionItems = recognitionItems.length > 0;
   const firstName = resolvedData.user.name?.split(" ")[0] || "there";
-  const topQuality = resolvedData.topQualities[0]?.label ?? `${resolvedData.topQualitiesCount} qualities`;
+  const topQuality = resolvedData.topStrengthLabel ?? resolvedData.topQualities[0]?.label ?? `${resolvedData.topQualitiesCount} qualities`;
   const displayCategories = resolvedData.categoryBreakdown.length ? resolvedData.categoryBreakdown : zeroCategoryBreakdown;
   const categoryTotal = displayCategories.reduce((sum, item) => sum + item.value, 0);
   const qualityRows = resolvedData.topQualities.length
@@ -115,7 +130,7 @@ export function EmployeeDashboardClient({ data }: { data?: EmployeeDashboardData
       title={`Good evening, ${firstName}`}
       subtitle="Every recognition creates a stronger, more connected team."
       user={resolvedData.user}
-      actions={<a className="btn btn-primary compact" href="/employee/scan"><QrCode size={16} /> Scan card</a>}
+      actions={<Link className="btn btn-primary compact" href={`/${locale}/employee/scan`}><QrCode size={16} /> Scan card</Link>}
       unreadNotifications={resolvedData.unreadNotifications ?? 0}
     >
       <div className="employee-dashboard">
@@ -126,7 +141,7 @@ export function EmployeeDashboardClient({ data }: { data?: EmployeeDashboardData
                 <Megaphone size={18} />
               </div>
               <p>Team update: Recognition momentum is building. Scan a physical card or recognize a teammate today.</p>
-              <a href="/employee/scan">Scan card <ArrowRight size={14} /></a>
+              <Link href={`/${locale}/employee/scan`}>Scan card <ArrowRight size={14} /></Link>
               <button className="announcement-close" type="button" onClick={() => setAnnouncementVisible(false)} aria-label="Dismiss announcement">x</button>
             </div>
           </section>
@@ -139,6 +154,19 @@ export function EmployeeDashboardClient({ data }: { data?: EmployeeDashboardData
           <MetricCard icon={<CalendarDays />} value={resolvedData.quartersActive} label="Quarters active" helper="Consistent growth" />
           <MetricCard icon={<Star />} value={topQuality} label="Top quality" helper={`${resolvedData.topQualitiesCount} strengths seen`} tone="var(--theme-gold)" iconBackground="rgba(216, 162, 58, 0.12)" />
         </section>
+
+        {resolvedData.recognitionSignals?.length ? (
+          <article className="panel dashboard-panel">
+            <div className="panel-top">
+              <div>
+                <h2>Recognition signals</h2>
+                <p>Automatic insights based on repeated cards, category patterns, and recognition momentum.</p>
+              </div>
+              <span className="quality-pill">{resolvedData.recognitionSignals.length} active</span>
+            </div>
+            <SignalList items={resolvedData.recognitionSignals} />
+          </article>
+        ) : null}
 
         <section className="employee-analytics-grid">
           <article className="panel dashboard-panel trend-panel">
@@ -203,7 +231,7 @@ export function EmployeeDashboardClient({ data }: { data?: EmployeeDashboardData
                 </div>
               ))}
             </div>
-            <a className="panel-link" href="/employee/growth">Growth insights <ArrowRight size={14} /></a>
+            <Link className="panel-link" href={`/${locale}/employee/growth`}>Growth insights <ArrowRight size={14} /></Link>
             {!hasAnyRecognitionItems ? <p className="section-copy">Top qualities are ready and currently at 0.</p> : null}
           </article>
         </section>
@@ -215,7 +243,7 @@ export function EmployeeDashboardClient({ data }: { data?: EmployeeDashboardData
                 <h2>Recent recognitions</h2>
                 <p>Your latest claimed cards and messages.</p>
               </div>
-              <a href="/employee/cards">View all</a>
+              <Link href={`/${locale}/employee/cards`}>View all</Link>
             </div>
             {hasAnyRecognitionItems ? (
               <RecognitionList items={recognitionItems} compact />
@@ -225,7 +253,7 @@ export function EmployeeDashboardClient({ data }: { data?: EmployeeDashboardData
                 title="Your recognition feed is still getting started"
                 copy="Claim your first GETH card to start building a visible history of appreciation and growth."
                 actionLabel="Browse cards"
-                actionHref="/cards"
+                actionHref={`/${locale}/cards`}
               />
             )}
           </article>
@@ -238,9 +266,9 @@ export function EmployeeDashboardClient({ data }: { data?: EmployeeDashboardData
               <h2>Scan a physical card</h2>
               <p>Use your camera to claim a GETH card from its QR code.</p>
             </div>
-            <a className="btn btn-dark" href="/employee/scan">
+            <Link className="btn btn-dark" href={`/${locale}/employee/scan`}>
               Scan card <QrCode size={16} />
-            </a>
+            </Link>
           </article>
         </section>
       </div>

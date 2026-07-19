@@ -31,7 +31,9 @@ function DemoNotificationsPage() {
   );
 }
 
-export default async function AdminNotificationsPage() {
+export default async function AdminNotificationsPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+
   if (!hasSupabaseServerConfig()) {
     return <DemoNotificationsPage />;
   }
@@ -67,6 +69,7 @@ export default async function AdminNotificationsPage() {
             emptyCopy="Platform-level billing, company, and operational alerts will appear here."
             emptyActionLabel="View companies"
             emptyActionHref="/admin/companies"
+            locale={locale}
           />
         </article>
       </section>

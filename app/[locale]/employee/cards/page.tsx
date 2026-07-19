@@ -4,6 +4,7 @@ import { QrCode } from "lucide-react";
 import { DashboardShell } from "@/components/DashboardShell";
 import { EmptyState } from "@/components/EmptyState";
 import { RecognitionList, type RecognitionItem } from "@/components/RecognitionList";
+import { getLocalizedCardTitle } from "@/lib/cards";
 import { currentUser, recognitions as demoRecognitions } from "@/lib/demo-data";
 import { getUnreadNotificationCount } from "@/lib/notifications";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -28,14 +29,16 @@ type RecognitionRow = {
   giver_email: string | null;
   giver_user_id: string | null;
   receiver_user_id: string;
-  card: { title: string; category: string } | Array<{ title: string; category: string }> | null;
+  card: { title: string; category: string; qr_slug?: string | null } | Array<{ title: string; category: string; qr_slug?: string | null }> | null;
 };
 
 function cardFromRow(row: RecognitionRow) {
   return Array.isArray(row.card) ? row.card[0] : row.card;
 }
 
-export default async function EmployeeCardsPage() {
+export default async function EmployeeCardsPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+
   if (!hasSupabaseServerConfig()) {
     return (
       <DashboardShell role="employee" title="My cards" subtitle="Every recognition you've received or shared lives here." user={currentUser} actions={<span className="quality-pill">Demo fallback</span>}>
@@ -61,7 +64,7 @@ export default async function EmployeeCardsPage() {
     error: userError
   } = await supabase.auth.getUser();
 
-  if (userError || !user) redirect("/login");
+  if (userError || !user) redirect(`/${locale}/login`);
 
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
@@ -82,12 +85,12 @@ export default async function EmployeeCardsPage() {
       : Promise.resolve({ data: null }),
     supabase
       .from("recognition_events")
-      .select("id, created_at, personal_note, giver_name, giver_email, giver_user_id, receiver_user_id, card:card_library(title, category)")
+      .select("id, created_at, personal_note, giver_name, giver_email, giver_user_id, receiver_user_id, card:card_library(title, category, qr_slug)")
       .eq("receiver_user_id", user.id)
       .order("created_at", { ascending: false }),
     supabase
       .from("recognition_events")
-      .select("id, created_at, personal_note, giver_name, giver_email, giver_user_id, receiver_user_id, card:card_library(title, category)")
+      .select("id, created_at, personal_note, giver_name, giver_email, giver_user_id, receiver_user_id, card:card_library(title, category, qr_slug)")
       .eq("giver_user_id", user.id)
       .order("created_at", { ascending: false }),
     getUnreadNotificationCount(supabase, user.id)
@@ -108,7 +111,7 @@ export default async function EmployeeCardsPage() {
     return [{
       id: row.id,
       from: row.giver_user_id ? peopleMap.get(row.giver_user_id) ?? "Colleague" : row.giver_name ?? row.giver_email ?? "Colleague",
-      card: card.title,
+      card: getLocalizedCardTitle({ title: card.title, slug: card.qr_slug ?? undefined }, locale),
       category: card.category,
       note: row.personal_note ?? "Recognition recorded without a personal note.",
       date: displayDate(row.created_at),
@@ -122,7 +125,7 @@ export default async function EmployeeCardsPage() {
     return [{
       id: row.id,
       from: `To ${peopleMap.get(row.receiver_user_id) ?? "teammate"}`,
-      card: card.title,
+      card: getLocalizedCardTitle({ title: card.title, slug: card.qr_slug ?? undefined }, locale),
       category: card.category,
       note: row.personal_note ?? "Recognition recorded without a personal note.",
       date: displayDate(row.created_at),
@@ -142,8 +145,8 @@ export default async function EmployeeCardsPage() {
       }}
       actions={
         <>
-          <Link className="btn btn-primary" href="/employee/scan"><QrCode size={16} /> Scan card</Link>
-          <Link className="btn btn-dark" href="/cards">Browse cards</Link>
+          <Link className="btn btn-primary" href={`/${locale}/employee/scan`}><QrCode size={16} /> Scan card</Link>
+          <Link className="btn btn-dark" href={`/${locale}/cards`}>Browse cards</Link>
         </>
       }
       unreadNotifications={unreadNotifications}
@@ -161,7 +164,7 @@ export default async function EmployeeCardsPage() {
             <h2>Cards given</h2>
             <span className="quality-pill">{given.length} sent</span>
           </div>
-          {given.length ? <RecognitionList items={given} compact /> : <EmptyState title="No cards given yet" copy="Browse the card library to recognize a teammate and start your giving history." actionLabel="Open card library" actionHref="/cards" />}
+          {given.length ? <RecognitionList items={given} compact /> : <EmptyState title="No cards given yet" copy="Browse the card library to recognize a teammate and start your giving history." actionLabel="Open card library" actionHref={`/${locale}/cards`} />}
         </article>
       </section>
     </DashboardShell>

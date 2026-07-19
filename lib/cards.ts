@@ -21,6 +21,8 @@ export type CardLibraryRow = {
   active: boolean;
 };
 
+export type SupportedCardLocale = "en" | "nl" | "fr" | "da";
+
 const rawCards: GethCard[] = [
   {
     "id": 1,
@@ -583,6 +585,98 @@ export const categoryMeta: Record<CardCategory, { label: string; color: string }
   "Open kaart": { label: "Open Card", color: "var(--theme-ink)" }
 };
 
+const categoryLabelsByLocale: Record<SupportedCardLocale, Record<CardCategory, string>> = {
+  en: {
+    Communicatie: "Communication",
+    Creativiteit: "Creativity",
+    Competentie: "Competence",
+    Collegialiteit: "Collegiality",
+    "Open kaart": "Open Card"
+  },
+  nl: {
+    Communicatie: "Communicatie",
+    Creativiteit: "Creativiteit",
+    Competentie: "Competentie",
+    Collegialiteit: "Collegialiteit",
+    "Open kaart": "Open kaart"
+  },
+  fr: {
+    Communicatie: "Communication",
+    Creativiteit: "Creativite",
+    Competentie: "Competence",
+    Collegialiteit: "Esprit d'equipe",
+    "Open kaart": "Carte ouverte"
+  },
+  da: {
+    Communicatie: "Kommunikation",
+    Creativiteit: "Kreativitet",
+    Competentie: "Kompetence",
+    Collegialiteit: "Kollegialitet",
+    "Open kaart": "Abent kort"
+  }
+};
+
+const cardTitleTranslations: Record<string, Record<SupportedCardLocale, string>> = {
+  luisteraar: { en: "Listener", nl: "Luisteraar", fr: "A l'ecoute", da: "Lytter" },
+  helder: { en: "Clear", nl: "Helder", fr: "Clair", da: "Tydelig" },
+  eerlijk: { en: "Honest", nl: "Eerlijk", fr: "Honnete", da: "AErling" },
+  verbinder: { en: "Connector", nl: "Verbinder", fr: "Connecteur", da: "Forbinder" },
+  empathisch: { en: "Empathetic", nl: "Empathisch", fr: "Empathique", da: "Empatisk" },
+  overtuigend: { en: "Persuasive", nl: "Overtuigend", fr: "Persuasif", da: "Overbevisende" },
+  gastvrij: { en: "Welcoming", nl: "Gastvrij", fr: "Accueillant", da: "Gaestfri" },
+  inspirerend: { en: "Inspiring", nl: "Inspirerend", fr: "Inspirant", da: "Inspirerende" },
+  diplomatiek: { en: "Diplomatic", nl: "Diplomatiek", fr: "Diplomate", da: "Diplomatisk" },
+  leidend: { en: "Guiding", nl: "Leidend", fr: "Guide", da: "Vejledende" },
+  nieuwsgierig: { en: "Curious", nl: "Nieuwsgierig", fr: "Curieux", da: "Nysgerrig" },
+  enthousiast: { en: "Enthusiastic", nl: "Enthousiast", fr: "Enthousiaste", da: "Entusiastisk" },
+  geruststeller: { en: "Reassurer", nl: "Geruststeller", fr: "Rassurant", da: "Beroligende" },
+  vernieuwend: { en: "Innovative", nl: "Vernieuwend", fr: "Innovant", da: "Fornyende" },
+  avontuurlijk: { en: "Adventurous", nl: "Avontuurlijk", fr: "Aventureux", da: "Eventyrlysten" },
+  humor: { en: "Humor", nl: "Humor", fr: "Humour", da: "Humor" },
+  visionair: { en: "Visionary", nl: "Visionair", fr: "Visionnaire", da: "Visionaer" },
+  onderzoekend: { en: "Investigative", nl: "Onderzoekend", fr: "Explorateur", da: "Undersogende" },
+  authentiek: { en: "Authentic", nl: "Authentiek", fr: "Authentique", da: "Autentisk" },
+  opmerkzaam: { en: "Observant", nl: "Opmerkzaam", fr: "Observateur", da: "Opmaerksom" },
+  verzorgd: { en: "Thoughtful", nl: "Verzorgd", fr: "Soigne", da: "Omsorgsfuld" },
+  oplosser: { en: "Problem solver", nl: "Oplosser", fr: "Solutionneur", da: "Problemloser" },
+  intuitief: { en: "Intuitive", nl: "Intuitief", fr: "Intuitif", da: "Intuitiv" },
+  improvisator: { en: "Improviser", nl: "Improvisator", fr: "Improvisateur", da: "Improvisator" },
+  uitdager: { en: "Challenger", nl: "Uitdager", fr: "Challenger", da: "Udfordrer" },
+  dromer: { en: "Dreamer", nl: "Dromer", fr: "Reveur", da: "Drommer" },
+  doelgericht: { en: "Goal-oriented", nl: "Doelgericht", fr: "Oriente objectif", da: "Malrettet" },
+  analytisch: { en: "Analytical", nl: "Analytisch", fr: "Analytique", da: "Analytisk" },
+  betrouwbaar: { en: "Reliable", nl: "Betrouwbaar", fr: "Fiable", da: "Paalidelig" },
+  strategisch: { en: "Strategic", nl: "Strategisch", fr: "Strategique", da: "Strategisk" },
+  nauwkeurig: { en: "Precise", nl: "Nauwkeurig", fr: "Precis", da: "Praecis" },
+  daadkrachtig: { en: "Decisive", nl: "Daadkrachtig", fr: "Determine", da: "Handlekraftig" },
+  leergierig: { en: "Eager to learn", nl: "Leergierig", fr: "Avide d'apprendre", da: "Laeringsvillig" },
+  organisator: { en: "Organizer", nl: "Organisator", fr: "Organisateur", da: "Organisator" },
+  veerkrachtig: { en: "Resilient", nl: "Veerkrachtig", fr: "Resilient", da: "Robust" },
+  resultaatgericht: { en: "Results-driven", nl: "Resultaatgericht", fr: "Oriente resultats", da: "Resultatorienteret" },
+  proactief: { en: "Proactive", nl: "Proactief", fr: "Proactif", da: "Proaktiv" },
+  besluitvaardig: { en: "Decision maker", nl: "Besluitvaardig", fr: "Decisionnaire", da: "Beslutningsdygtig" },
+  kritisch: { en: "Critical thinker", nl: "Kritisch", fr: "Esprit critique", da: "Kritisk taenker" },
+  zorgzaam: { en: "Caring", nl: "Zorgzaam", fr: "Attentionne", da: "Omsorgsfuld" },
+  loyaal: { en: "Loyal", nl: "Loyaal", fr: "Loyal", da: "Loyal" },
+  teamspeler: { en: "Team player", nl: "Teamspeler", fr: "Esprit d'equipe", da: "Holdspiller" },
+  vertrouwenspersoon: { en: "Trusted person", nl: "Vertrouwenspersoon", fr: "Personne de confiance", da: "Tillidsperson" },
+  ondersteunend: { en: "Supportive", nl: "Ondersteunend", fr: "Soutenant", da: "Stottende" },
+  respectvol: { en: "Respectful", nl: "Respectvol", fr: "Respectueux", da: "Respektfuld" },
+  dankbaar: { en: "Grateful", nl: "Dankbaar", fr: "Reconnaissant", da: "Taknemmelig" },
+  inclusief: { en: "Inclusive", nl: "Inclusief", fr: "Inclusif", da: "Inkluderende" },
+  geduldig: { en: "Patient", nl: "Geduldig", fr: "Patient", da: "Talmodig" },
+  beschermend: { en: "Protective", nl: "Beschermend", fr: "Protecteur", da: "Beskyttende" },
+  energiek: { en: "Energetic", nl: "Energiek", fr: "Energique", da: "Energisk" },
+  aanwezig: { en: "Present", nl: "Aanwezig", fr: "Present", da: "Naervaerende" },
+  waarderend: { en: "Appreciative", nl: "Waarderend", fr: "Valorisant", da: "Vaerdsaettende" },
+  "open-categorie": { en: "Open Category", nl: "Open Categorie", fr: "Categorie ouverte", da: "Aben kategori" }
+};
+
+function normalizeLocale(locale?: string): SupportedCardLocale {
+  if (locale === "nl" || locale === "fr" || locale === "da") return locale;
+  return "en";
+}
+
 export const categoryColors: Record<string, string> = Object.fromEntries(
   Object.entries(categoryMeta).map(([category, meta]) => [category, meta.color])
 );
@@ -618,6 +712,33 @@ export function getCardBySlug(slug: string) {
 
 export function getCategoryDisplayName(category: string) {
   return categoryMeta[category as CardCategory]?.label ?? category;
+}
+
+export function getLocalizedCategoryDisplayName(category: string, locale?: string) {
+  const normalizedLocale = normalizeLocale(locale);
+  return categoryLabelsByLocale[normalizedLocale][category as CardCategory] ?? getCategoryDisplayName(category);
+}
+
+export function getLocalizedCardTitle(cardOrTitle: Pick<GethCard, "title"> & Partial<Pick<GethCard, "slug">> | string, locale?: string) {
+  const normalizedLocale = normalizeLocale(locale);
+  const title = typeof cardOrTitle === "string" ? cleanText(cardOrTitle) : cleanText(cardOrTitle.title);
+  const slug = typeof cardOrTitle === "string" ? gethCards.find((card) => card.title === title)?.slug : cardOrTitle.slug;
+  return slug ? cardTitleTranslations[slug]?.[normalizedLocale] ?? title : title;
+}
+
+export function getAnalyticCategoryLabel(category: string) {
+  switch (category) {
+    case "Communicatie":
+      return "Great communicator";
+    case "Creativiteit":
+      return "Most creative";
+    case "Competentie":
+      return "Strong competence builder";
+    case "Collegialiteit":
+      return "Great teammate";
+    default:
+      return "Recognized strength";
+  }
 }
 
 export function mapCardLibraryRowToCard(row: CardLibraryRow): GethCard {

@@ -1,4 +1,6 @@
 import { redirect } from "next/navigation";
+import { FileText } from "lucide-react";
+import { requestInvoicePaymentAction } from "@/app/actions/billing";
 import { DashboardShell } from "@/components/DashboardShell";
 import { EmptyState } from "@/components/EmptyState";
 import { subscriptions, superAdminUser } from "@/lib/demo-data";
@@ -16,6 +18,27 @@ function getInitials(firstName: string | null, lastName: string | null) {
 function formatDate(value: string | null) {
   if (!value) return "Not set";
   return new Intl.DateTimeFormat("en", { dateStyle: "medium" }).format(new Date(value));
+}
+
+function getBillingMessage(code?: string) {
+  switch (code) {
+    case "invoice_generated":
+      return "Invoice generated and emailed successfully. The company admin can download it from their billing page.";
+    case "invoice_generated_email_failed":
+      return "Invoice generated, but email delivery failed. Check SMTP/get.pro settings.";
+    case "invoice_generation_failed":
+      return "Invoice request was saved, but the invoice document could not be generated.";
+    case "invoice_config_missing":
+      return "Invoice generation is blocked until seller and payment account details are configured.";
+    case "invoice_request_failed":
+      return "Invoice request could not be saved. Please check the billing details and try again.";
+    case "invoice_not_enabled":
+      return "Invoice payment is not enabled for this plan.";
+    case "unauthorized":
+      return "Only the GETH owner/super admin can manage billing.";
+    default:
+      return null;
+  }
 }
 
 function renderDemoSubscriptions() {
@@ -42,7 +65,15 @@ function renderDemoSubscriptions() {
   );
 }
 
-export default async function AdminSubscriptionsPage() {
+export default async function AdminSubscriptionsPage({
+  params,
+  searchParams
+}: {
+  params: Promise<{ locale: string }>;
+  searchParams: Promise<{ billing?: string }>;
+}) {
+  const [{ locale }, queryParams] = await Promise.all([params, searchParams]);
+
   if (!hasSupabaseServerConfig()) {
     return renderDemoSubscriptions();
   }
@@ -71,7 +102,7 @@ export default async function AdminSubscriptionsPage() {
     redirect("/admin");
   }
 
-  const [{ data: companies, error: companiesError }, { data: subscriptionRows, error: subscriptionsError }, unreadNotifications] = await Promise.all([
+  const [{ data: companies, error: companiesError }, { data: subscriptionRows, error: subscriptionsError }, { data: plans, error: plansError }, unreadNotifications] = await Promise.all([
     supabase
       .from("companies")
       .select("id, company_name, subscription_plan, subscription_status, subscription_current_period_end, billing_payment_method, billing_email, stripe_customer_id, stripe_subscription_id")
@@ -80,16 +111,18 @@ export default async function AdminSubscriptionsPage() {
       .from("subscriptions")
       .select("company_id, status, current_period_end, cancel_at_period_end, payment_method, invoice_status, invoice_requested_at, billing_contact_email, stripe_subscription_id, plan:plans(name, plan_key)")
       .order("updated_at", { ascending: false }),
+    supabase.from("plans").select("id, plan_key, name, price_cents, currency, interval, invoice_enabled").eq("active", true).order("sort_order"),
     getUnreadNotificationCount(supabase, user.id)
   ]);
 
-  if (companiesError || subscriptionsError) {
+  if (companiesError || subscriptionsError || plansError) {
     throw new Error("Failed to load subscription data.");
   }
 
   const subscriptionMap = new Map((subscriptionRows ?? []).map((row) => [row.company_id, row]));
   const activeCount = (companies ?? []).filter((company) => ["active", "trialing"].includes(company.subscription_status ?? "")).length;
   const invoiceCount = (subscriptionRows ?? []).filter((subscription) => subscription.payment_method === "invoice" || subscription.invoice_status === "requested").length;
+  const message = getBillingMessage(queryParams.billing);
 
   return (
     <DashboardShell
@@ -103,6 +136,12 @@ export default async function AdminSubscriptionsPage() {
       }}
       unreadNotifications={unreadNotifications}
     >
+      {message ? (
+        <section className="panel dashboard-panel billing-status-banner">
+          <strong>{message}</strong>
+        </section>
+      ) : null}
+
       <section className="dashboard-grid three report-summary-grid">
         <article className="panel dashboard-panel report-summary-card">
           <span className="eyebrow">Companies</span>
@@ -120,6 +159,66 @@ export default async function AdminSubscriptionsPage() {
           <p>invoice-based accounts</p>
         </article>
       </section>
+
+      <article className="panel dashboard-panel">
+        <div className="panel-top">
+          <div>
+            <h2>Generate company invoice</h2>
+            <p className="section-copy">Billing is owner-managed: generate the invoice first, confirm payment, then invite the first company admin from the company hierarchy.</p>
+          </div>
+        </div>
+        {companies?.length && plans?.length ? (
+          <form action={requestInvoicePaymentAction} className="form-grid admin-company-create-form">
+            <input type="hidden" name="locale" value={locale} />
+            <div className="form-field">
+              <label htmlFor="companyId">Company</label>
+              <select id="companyId" className="input" name="companyId" required>
+                <option value="">Choose company</option>
+                {companies.map((company) => (
+                  <option key={company.id} value={company.id}>{company.company_name}</option>
+                ))}
+              </select>
+            </div>
+            <div className="form-field">
+              <label htmlFor="planId">Plan</label>
+              <select id="planId" className="input" name="planId" required>
+                <option value="">Choose plan</option>
+                {plans.map((plan) => (
+                  <option key={plan.id} value={plan.id} disabled={plan.invoice_enabled === false}>
+                    {plan.name} - {plan.currency.toUpperCase()} {(plan.price_cents / 100).toFixed(2)} / {plan.interval}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="form-field">
+              <label htmlFor="billingEmail">Billing email</label>
+              <input id="billingEmail" className="input" name="billingEmail" type="email" placeholder="finance@company.eu" required />
+            </div>
+            <div className="form-field">
+              <label htmlFor="vatNumber">VAT number</label>
+              <input id="vatNumber" className="input" name="vatNumber" placeholder="EU VAT number, if applicable" />
+            </div>
+            <div className="form-field">
+              <label htmlFor="purchaseOrderNumber">Purchase order</label>
+              <input id="purchaseOrderNumber" className="input" name="purchaseOrderNumber" placeholder="Optional PO number" />
+            </div>
+            <div className="form-field">
+              <label htmlFor="billingAddress">Billing address</label>
+              <textarea id="billingAddress" className="input" name="billingAddress" rows={3} placeholder="Company legal billing address" required />
+            </div>
+            <div className="form-field">
+              <label htmlFor="notes">Notes</label>
+              <textarea id="notes" className="input" name="notes" rows={3} placeholder="Payment terms, onboarding notes, or admin invite reminder" />
+            </div>
+            <div className="form-field admin-company-create-submit">
+              <span className="field-help">After payment is confirmed, create or send the company admin invite so they can add managers and employees.</span>
+              <button className="btn btn-primary" type="submit"><FileText size={16} /> Generate invoice</button>
+            </div>
+          </form>
+        ) : (
+          <EmptyState eyebrow="Setup needed" title="Companies or plans missing" copy="Create a company workspace and seed billing plans before generating invoices." />
+        )}
+      </article>
 
       <article className="panel dashboard-panel">
         <div className="panel-top">

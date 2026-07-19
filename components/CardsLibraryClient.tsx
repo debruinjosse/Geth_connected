@@ -1,9 +1,10 @@
 "use client";
 
 import { useDeferredValue, useState } from "react";
+import { useLocale } from "next-intl";
 import { ArrowRight, Search } from "lucide-react";
 import { GethCardVisual } from "@/components/GethCardVisual";
-import { getCategoryDisplayName, type CardCategory, type GethCard } from "@/lib/cards";
+import { getCategoryDisplayName, getLocalizedCardTitle, getLocalizedCategoryDisplayName, type CardCategory, type GethCard } from "@/lib/cards";
 
 const filters: Array<{ value: "all" | CardCategory; label: string }> = [
   { value: "all", label: "All categories" },
@@ -33,13 +34,15 @@ function normalizeSearchText(value: string) {
     .trim();
 }
 
-function getCardSearchText(card: GethCard) {
+function getCardSearchText(card: GethCard, locale: string) {
   return normalizeSearchText(
     [
       card.cardNumber,
       card.title,
+      getLocalizedCardTitle(card, locale),
       card.category,
       getCategoryDisplayName(card.category),
+      getLocalizedCategoryDisplayName(card.category, locale),
       categorySearchAliases[card.category],
       card.description,
       card.recognitionSentence,
@@ -49,6 +52,7 @@ function getCardSearchText(card: GethCard) {
 }
 
 export function CardsLibraryClient({ cards }: { cards: GethCard[] }) {
+  const locale = useLocale();
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<"all" | CardCategory>("all");
   const deferredQuery = useDeferredValue(query);
@@ -57,7 +61,7 @@ export function CardsLibraryClient({ cards }: { cards: GethCard[] }) {
 
   const visibleCards = cards.filter((card) => {
     const matchesCategory = category === "all" || card.category === category;
-    const haystack = getCardSearchText(card);
+    const haystack = getCardSearchText(card, locale);
     const matchesQuery = queryTokens.length === 0 || queryTokens.every((token) => haystack.includes(token));
     return matchesCategory && matchesQuery;
   });
@@ -95,16 +99,16 @@ export function CardsLibraryClient({ cards }: { cards: GethCard[] }) {
       {visibleCards.length ? (
         <section className="cards-grid">
           {visibleCards.map((card) => (
-          <a className="card-library-card" href={`/claim-card/${card.slug}`} key={card.slug}>
+          <a className="card-library-card" href={`/${locale}/claim-card/${card.slug}`} key={card.slug}>
             <div className="card-library-copy">
               <div className="card-library-meta">
-                <span>{getCategoryDisplayName(card.category)}</span>
+                <span>{getLocalizedCategoryDisplayName(card.category, locale)}</span>
                 <span>{String(card.cardNumber).padStart(2, "0")}</span>
               </div>
-              <GethCardVisual card={card} variant="library" />
+              <GethCardVisual card={{ ...card, title: getLocalizedCardTitle(card, locale), category: getLocalizedCategoryDisplayName(card.category, locale) }} variant="library" />
               <div>
                 <h3 className="panel-title" style={{ marginTop: 0 }}>
-                  {card.title}
+                  {getLocalizedCardTitle(card, locale)}
                 </h3>
                 <p>{card.description}</p>
                 <p style={{ color: "var(--theme-ink)", fontWeight: 600 }}>{card.recognitionSentence}</p>

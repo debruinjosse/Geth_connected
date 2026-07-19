@@ -27,6 +27,30 @@ export async function createNotification(
   }
 }
 
+export async function createPlatformAdminNotifications(
+  supabase: SupabaseClient,
+  notification: Omit<NotificationInsert, "userId">
+) {
+  const { data: admins, error } = await supabase
+    .from("profiles")
+    .select("id")
+    .in("role", ["platform_admin", "super_admin"]);
+
+  if (error) {
+    console.error("Failed to load platform admins for notification", error);
+    return;
+  }
+
+  await Promise.all(
+    (admins ?? []).map((admin) =>
+      createNotification(supabase, {
+        ...notification,
+        userId: admin.id
+      })
+    )
+  );
+}
+
 export async function getUnreadNotificationCount(
   supabase: SupabaseClient,
   userId: string

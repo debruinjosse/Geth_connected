@@ -2,9 +2,8 @@ import type { Metadata } from "next";
 import { NextIntlClientProvider, hasLocale } from "next-intl";
 import { getMessages, getTranslations, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
-import { GoogleTranslateWidget } from "@/components/GoogleTranslateWidget";
-import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { LocaleHtmlLang } from "@/components/LocaleHtmlLang";
+import { PlatformAnalyticsTracker } from "@/components/PlatformAnalyticsTracker";
 import { locales, routing, type AppLocale } from "@/i18n/routing";
 
 type LocaleLayoutProps = {
@@ -44,9 +43,8 @@ export default async function LocaleLayout({ children, params }: LocaleLayoutPro
   return (
     <NextIntlClientProvider locale={locale} messages={messages}>
       <LocaleHtmlLang locale={locale as AppLocale} />
+      <PlatformAnalyticsTracker locale={locale} />
       {children}
-      <LanguageSwitcher floating />
-      <GoogleTranslateWidget />
     </NextIntlClientProvider>
   );
 }

@@ -26,26 +26,46 @@ export function formatNotificationTime(value: string) {
   return new Intl.DateTimeFormat("en", { month: "short", day: "numeric" }).format(new Date(value));
 }
 
+function getLocalizedHref(href: string | undefined, locale: string) {
+  if (!href || href.startsWith("http") || href.startsWith("mailto:") || href.startsWith("#")) {
+    return href;
+  }
+
+  if (!href.startsWith("/")) {
+    return href;
+  }
+
+  if (href.startsWith(`/${locale}/`) || href === `/${locale}` || href.startsWith("/auth/")) {
+    return href;
+  }
+
+  return `/${locale}${href}`;
+}
+
 export function NotificationInbox({
   notifications,
   emptyTitle,
   emptyCopy,
   emptyActionHref,
-  emptyActionLabel
+  emptyActionLabel,
+  locale = "en"
 }: {
   notifications: NotificationInboxRow[];
   emptyTitle: string;
   emptyCopy: string;
   emptyActionHref?: string;
   emptyActionLabel?: string;
+  locale?: string;
 }) {
+  const localizedEmptyActionHref = getLocalizedHref(emptyActionHref, locale);
+
   if (!notifications.length) {
     return (
       <EmptyState
         eyebrow="No notifications"
         title={emptyTitle}
         copy={emptyCopy}
-        actionHref={emptyActionHref}
+        actionHref={localizedEmptyActionHref}
         actionLabel={emptyActionLabel}
       />
     );
@@ -65,7 +85,7 @@ export function NotificationInbox({
             </div>
             <p>{notification.body}</p>
             {notification.href ? (
-              <Link href={notification.href} style={{ color: "var(--theme-ink)", fontWeight: 800 }}>
+              <Link href={getLocalizedHref(notification.href, locale) ?? notification.href} style={{ color: "var(--theme-ink)", fontWeight: 800 }}>
                 Open update
               </Link>
             ) : null}

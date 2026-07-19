@@ -56,6 +56,15 @@ async function ensureProfilePhotosBucket() {
   return admin;
 }
 
+async function tryEnsureProfilePhotosBucket() {
+  try {
+    await ensureProfilePhotosBucket();
+  } catch {
+    // The normal upload path uses authenticated storage policies. Bucket creation
+    // is best-effort for local/dev environments that still have a service role key.
+  }
+}
+
 export async function updateOwnProfileNameAction(formData: FormData) {
   const firstName = String(formData.get("firstName") ?? "").trim();
   const lastName = String(formData.get("lastName") ?? "").trim();
@@ -115,25 +124,33 @@ export async function updateOwnProfilePhotoAction(formData: FormData) {
   }
 
   try {
-    const admin = await ensureProfilePhotosBucket();
     const extension = getProfilePhotoExtension(photo);
     const objectPath = `profiles/${user.id}/${Date.now()}-${randomUUID()}.${extension}`;
     const buffer = Buffer.from(await photo.arrayBuffer());
-    const { error: uploadError } = await admin.storage.from(PROFILE_PHOTOS_BUCKET).upload(objectPath, buffer, {
+
+    let uploadResult = await supabase.storage.from(PROFILE_PHOTOS_BUCKET).upload(objectPath, buffer, {
       contentType: photo.type,
       cacheControl: "3600",
       upsert: false
     });
 
-    if (uploadError) {
-      throw uploadError;
+    if (uploadResult.error && /bucket|not found|does not exist/i.test(uploadResult.error.message)) {
+      await tryEnsureProfilePhotosBucket();
+      uploadResult = await supabase.storage.from(PROFILE_PHOTOS_BUCKET).upload(objectPath, buffer, {
+        contentType: photo.type,
+        cacheControl: "3600",
+        upsert: false
+      });
     }
 
-    const { data: publicUrlData } = admin.storage.from(PROFILE_PHOTOS_BUCKET).getPublicUrl(objectPath);
-    const { error: updateError } = await admin
-      .from("profiles")
-      .update({ profile_image: publicUrlData.publicUrl })
-      .eq("id", user.id);
+    if (uploadResult.error) {
+      throw uploadResult.error;
+    }
+
+    const { data: publicUrlData } = supabase.storage.from(PROFILE_PHOTOS_BUCKET).getPublicUrl(objectPath);
+    const { error: updateError } = await supabase.rpc("update_own_profile_photo", {
+      profile_image_input: publicUrlData.publicUrl
+    });
 
     if (updateError) {
       throw updateError;

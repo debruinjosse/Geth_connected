@@ -1,6 +1,4 @@
-import { ArrowRight } from "lucide-react";
 import { getTranslations } from "next-intl/server";
-import { Link } from "@/i18n/navigation";
 import { RecognitionCardCarousel, type RecognitionCardData } from "@/components/ui/recognition-card-carousel";
 
 export async function CardDeckPreview({ locale }: { locale: string }) {
@@ -41,9 +39,6 @@ export async function CardDeckPreview({ locale }: { locale: string }) {
           <h2 id="card-deck-preview-title">{t("deckPreviewTitle")}</h2>
           <p>{t("deckPreviewCopy")}</p>
         </div>
-        <Link className="card-deck-preview-link" href="/cards">
-          {t("viewAllCards")} <ArrowRight size={15} />
-        </Link>
       </div>
       <RecognitionCardCarousel
         cards={recognitionCards}

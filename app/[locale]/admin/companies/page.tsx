@@ -10,7 +10,9 @@ function getInitials(firstName: string, lastName: string) {
   return `${firstName[0] ?? ""}${lastName[0] ?? ""}`.toUpperCase() || "GA";
 }
 
-export default async function AdminCompaniesPage() {
+export default async function AdminCompaniesPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
     return (
       <DashboardShell role="admin" title="Companies" subtitle="Connect Supabase to review company environments." user={superAdminUser}>
@@ -25,7 +27,7 @@ export default async function AdminCompaniesPage() {
     error: userError
   } = await supabase.auth.getUser();
 
-  if (userError || !user) redirect("/login");
+  if (userError || !user) redirect(`/${locale}/login`);
 
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
@@ -83,6 +85,7 @@ export default async function AdminCompaniesPage() {
           </div>
         </div>
         <form action={createCompanyWorkspaceAction} className="form-grid admin-company-create-form">
+          <input type="hidden" name="locale" value={locale} />
           <div className="form-field">
             <label htmlFor="companyName">Company name</label>
             <input id="companyName" className="input" name="companyName" placeholder="ABC Company" required />
@@ -133,7 +136,7 @@ export default async function AdminCompaniesPage() {
                     <td>
                       <strong>{company.company_name}</strong>
                       <p style={{ margin: "4px 0 0", color: "var(--theme-muted)" }}>{company.industry ?? "No industry set"}</p>
-                      <Link className="panel-link" href={`/admin/companies/${company.id}`}>Open hierarchy</Link>
+                      <Link className="panel-link" href={`/${locale}/admin/companies/${company.id}`}>Open hierarchy</Link>
                     </td>
                     <td>{company.subscription_plan}</td>
                     <td><span className="admin-status-pill">{company.status}</span></td>

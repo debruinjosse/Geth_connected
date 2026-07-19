@@ -37,7 +37,9 @@ function DemoNotificationsPage() {
   );
 }
 
-export default async function EmployeeNotificationsPage() {
+export default async function EmployeeNotificationsPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+
   if (!hasSupabaseServerConfig()) {
     return <DemoNotificationsPage />;
   }
@@ -110,6 +112,7 @@ export default async function EmployeeNotificationsPage() {
             emptyCopy="Recognition updates, invite activity, and important workspace events will appear here."
             emptyActionLabel="Browse cards"
             emptyActionHref="/cards"
+            locale={locale}
           />
         </article>
       </section>

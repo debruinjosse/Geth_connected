@@ -1,6 +1,6 @@
 {
   "metadata": {
-    "title": "GETH Connected Cards",
+    "title": "GETH",
     "description": "Reconnaissance physique. Culture numérique d'insight."
   },
   "language": {
@@ -24,10 +24,10 @@
     "hi": "Bonjour, {name}"
   },
   "home": {
-    "eyebrow": "GETH Connected Cards",
+    "eyebrow": "Reconnaître pour dynamiser",
     "headlineLine1": "Petits moments.",
     "headlineLine2": "Grand impact.",
-    "description": "Tournez la reconnaissance quotidienne en culture d'insight mesurable. Nos cartes connectées aident les équipes à se sentir vues, à rester énergisées et à grandir ensemble.",
+    "description": "Rendez la reconnaissance visible, mesurable et integree au travail quotidien. GETH aide les organisations a creer un impact positif grace a l'appreciation quotidienne.",
     "seeHow": "Voir comment ça marche",
     "scrollExplore": "Faites défiler pour explorer",
     "trustSecure": "Sécurisé & privé",
@@ -36,7 +36,6 @@
     "deckPreview": "Prévisualisation de la carte Deck",
     "deckPreviewTitle": "Voir comment la reconnaissance prend vie.",
     "deckPreviewCopy": "Prévisualisez quelques cartes de nos catégories d'impact.",
-    "viewAllCards": "Voir toutes les cartes",
     "previousCards": "Cartes précédentes",
     "nextCards": "Cartes suivantes",
     "previewCommunication": "Communication",
@@ -71,7 +70,6 @@
     "employeesLabel": "Pour les employés",
     "employeesTitle": "Propriétaire de votre histoire de croissance.",
     "employeesCopy": "Vous vous sentez valorisé, énergisé et connecté grâce à la reconnaissance quotidienne.",
-    "learnMore": "En savoir plus",
     "ctaEyebrow": "Prêt à construire une culture de reconnaissance?",
     "ctaTitle": "Faites de la reconnaissance visible, mesurable et magnifiquement humaine.",
     "viewPricing": "Voir les tarifs",
@@ -140,8 +138,15 @@
   },
   "cardsPage": {
     "cta": "Réclamer une carte",
-    "eyebrow": "Bibliothèque de cartes publiques",
-    "title": "Explorer toutes les 53 cartes de reconnaissance GETH",
-    "copy": "Parcourir le deck en direct par catégorie, rechercher des thèmes de cartes et ouvrir la route de réclamation pour chaque carte active GETH Connected."
+    "eyebrow": "Bibliothèque de cartes pour les équipes",
+    "title": "Explorez vos cartes de reconnaissance GETH",
+    "copy": "Parcourez le deck actif par catégorie, recherchez des thèmes de cartes et ouvrez le parcours de réclamation pour chaque GETH Connected Card active.",
+    "lockedEyebrow": "Aperçu du deck de cartes",
+    "lockedTitle": "Le deck GETH complet se débloque après l'onboarding.",
+    "lockedCopy": "Les clients reçoivent l'accès au deck complet de 53 cartes de reconnaissance après l'inscription de leur entreprise ou une démo guidée. Avant cela, la page d'accueil affiche seulement un petit aperçu sans révéler tout le produit.",
+    "lockedPanelTitle": "Vous voulez voir le deck complet ?",
+    "lockedPanelCopy": "Réservez une démo ou inscrivez votre entreprise afin que nous puissions configurer le bon espace de travail et l'accès aux cartes pour votre équipe.",
+    "lockedDemo": "Réserver une démo",
+    "lockedRegister": "Inscrire votre entreprise"
   }
 }

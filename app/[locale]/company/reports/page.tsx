@@ -34,16 +34,19 @@ function renderDemoReports() {
 }
 
 export default async function CompanyReportsPage({
+  params,
   searchParams
 }: {
+  params: Promise<{ locale: string }>;
   searchParams: Promise<{ from?: string; to?: string }>;
 }) {
+  const [{ locale }, queryParams] = await Promise.all([params, searchParams]);
+
   if (!hasSupabaseServerConfig()) {
     return renderDemoReports();
   }
 
-  const params = await searchParams;
-  const range = getRecognitionReportRange(params);
+  const range = getRecognitionReportRange(queryParams);
   const supabase = await createSupabaseServerClient();
   const {
     data: { user },
@@ -65,7 +68,7 @@ export default async function CompanyReportsPage({
   }
 
   if (profile.role !== "company_admin") {
-    redirect("/company");
+    redirect(`/${locale}/company`);
   }
 
   const [rows, unreadNotifications] = await Promise.all([
@@ -73,7 +76,7 @@ export default async function CompanyReportsPage({
     getUnreadNotificationCount(supabase, user.id)
   ]);
 
-  const exportHref = `/company/reports/export?from=${encodeURIComponent(range.from)}&to=${encodeURIComponent(range.to)}`;
+  const exportHref = `/${locale}/company/reports/export?from=${encodeURIComponent(range.from)}&to=${encodeURIComponent(range.to)}`;
   const receiverCount = new Set(rows.map((row) => row.receiver)).size;
   const teamCount = new Set(rows.map((row) => row.team)).size;
 
@@ -107,7 +110,7 @@ export default async function CompanyReportsPage({
           <button className="btn btn-primary" type="submit">
             Apply range
           </button>
-          <a className="btn btn-secondary" href="/company/reports">
+          <a className="btn btn-secondary" href={`/${locale}/company/reports`}>
             Reset
           </a>
         </form>

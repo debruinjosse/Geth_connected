@@ -23,6 +23,41 @@ declare global {
 const MAX_DECODE_SIZE = 960;
 const VALID_LOCALES = new Set(["en", "nl", "fr", "da"]);
 const SLUG_PATTERN = /^[a-z0-9][a-z0-9-]{1,80}$/i;
+const CAMERA_CONSTRAINTS: MediaStreamConstraints[] = [
+  {
+    video: {
+      facingMode: { exact: "environment" },
+      height: { ideal: 1080 },
+      width: { ideal: 1920 }
+    },
+    audio: false
+  },
+  {
+    video: {
+      facingMode: { ideal: "environment" },
+      height: { ideal: 720 },
+      width: { ideal: 1280 }
+    },
+    audio: false
+  },
+  {
+    video: true,
+    audio: false
+  }
+];
+
+function getSlugCandidate(value: string | null | undefined) {
+  let decoded = value ?? "";
+
+  try {
+    decoded = decodeURIComponent(decoded);
+  } catch {
+    decoded = value ?? "";
+  }
+
+  const candidate = decoded.trim().replace(/[?#].*$/, "").replace(/^\/+|\/+$/g, "");
+  return SLUG_PATTERN.test(candidate) ? candidate : "";
+}
 
 function resolveClaimSlug(value: string) {
   const trimmed = value.trim();
@@ -33,15 +68,29 @@ function resolveClaimSlug(value: string) {
     const claimIndex = parts.findIndex((part) => part === "claim-card");
 
     if (claimIndex < 0) return "";
-    const maybeSlug = parts[claimIndex + 1] ?? "";
-    return SLUG_PATTERN.test(maybeSlug) ? maybeSlug : "";
+    return getSlugCandidate(parts[claimIndex + 1]);
+  };
+
+  const slugFromSearch = (searchParams: URLSearchParams) => {
+    for (const key of ["slug", "card", "cardSlug", "card_slug", "qr", "qrSlug", "qr_slug"]) {
+      const slug = getSlugCandidate(searchParams.get(key));
+
+      if (slug) return slug;
+    }
+
+    return "";
   };
 
   if (/^https?:\/\//i.test(trimmed)) {
     try {
       const url = new URL(trimmed);
-      const slug = slugFromPath(url.pathname);
-      return slug ? decodeURIComponent(slug) : "";
+      const pathSlug = slugFromPath(url.pathname);
+      const querySlug = slugFromSearch(url.searchParams);
+      const hashSlug = getSlugCandidate(url.hash.replace(/^#/, ""));
+      const pathParts = url.pathname.split("/").filter(Boolean);
+      const looseCardsSlug = pathParts.some((part) => part === "cards") ? getSlugCandidate(pathParts.at(-1)) : "";
+
+      return pathSlug || querySlug || hashSlug || looseCardsSlug;
     } catch {
       return "";
     }
@@ -51,16 +100,25 @@ function resolveClaimSlug(value: string) {
   const parts = withoutQuery.split("/").filter(Boolean);
   const [firstPart, secondPart, thirdPart] = parts;
 
-  if (VALID_LOCALES.has(firstPart) && secondPart === "claim-card" && SLUG_PATTERN.test(thirdPart ?? "")) {
-    return thirdPart;
+  if (VALID_LOCALES.has(firstPart) && secondPart === "claim-card") {
+    return getSlugCandidate(thirdPart);
   }
 
-  if (firstPart === "claim-card" && SLUG_PATTERN.test(secondPart ?? "")) {
-    return secondPart;
+  if (firstPart === "claim-card") {
+    return getSlugCandidate(secondPart);
   }
 
-  if (parts.length === 1 && SLUG_PATTERN.test(firstPart)) {
-    return firstPart;
+  if (VALID_LOCALES.has(firstPart) && secondPart === "cards") {
+    return getSlugCandidate(thirdPart);
+  }
+
+  if (firstPart === "cards") {
+    return getSlugCandidate(secondPart);
+  }
+
+  if (parts.length === 1) {
+    const queryStyleMatch = firstPart.match(/^(?:slug|card|cardSlug|card_slug|qr|qrSlug|qr_slug)=(.+)$/i);
+    return getSlugCandidate(queryStyleMatch?.[1] ?? firstPart);
   }
 
   return "";
@@ -81,6 +139,60 @@ export function QrScanClient() {
   const [imageScanning, setImageScanning] = useState(false);
 
   const locale = typeof params.locale === "string" ? params.locale : "en";
+
+  async function requestCameraStream() {
+    if (!navigator.mediaDevices?.getUserMedia) {
+      throw new Error("camera_unsupported");
+    }
+
+    let lastError: unknown = null;
+
+    for (const constraints of CAMERA_CONSTRAINTS) {
+      try {
+        return await navigator.mediaDevices.getUserMedia(constraints);
+      } catch (error) {
+        lastError = error;
+      }
+    }
+
+    throw lastError instanceof Error ? lastError : new Error("camera_unavailable");
+  }
+
+  function waitForVideoReady(video: HTMLVideoElement) {
+    if (video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA && video.videoWidth > 0 && video.videoHeight > 0) {
+      return Promise.resolve();
+    }
+
+    return new Promise<void>((resolve, reject) => {
+      const timeout = window.setTimeout(() => {
+        cleanup();
+        reject(new Error("video_timeout"));
+      }, 5000);
+
+      const cleanup = () => {
+        window.clearTimeout(timeout);
+        video.removeEventListener("loadedmetadata", handleReady);
+        video.removeEventListener("canplay", handleReady);
+        video.removeEventListener("error", handleError);
+      };
+
+      const handleReady = () => {
+        if (video.videoWidth > 0 && video.videoHeight > 0) {
+          cleanup();
+          resolve();
+        }
+      };
+
+      const handleError = () => {
+        cleanup();
+        reject(new Error("video_error"));
+      };
+
+      video.addEventListener("loadedmetadata", handleReady);
+      video.addEventListener("canplay", handleReady);
+      video.addEventListener("error", handleError);
+    });
+  }
 
   function getCanvas() {
     if (!canvasRef.current) {
@@ -141,6 +253,7 @@ export function QrScanClient() {
 
   async function detectQrFromVideo(video: HTMLVideoElement) {
     if (video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA) return "";
+    if (!video.videoWidth || !video.videoHeight) return "";
 
     const nativeResult = await detectWithNativeScanner(video);
     if (nativeResult) return nativeResult;
@@ -183,24 +296,26 @@ export function QrScanClient() {
   async function startScanner() {
     try {
       stopScanner();
+
+      if (!window.isSecureContext && window.location.hostname !== "localhost") {
+        setStatus("Camera scanning needs HTTPS. Open the live secure domain, or scan from a photo below.");
+        return;
+      }
+
       setStatus("Requesting camera access...");
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: {
-          facingMode: { ideal: "environment" },
-          height: { ideal: 720 },
-          width: { ideal: 1280 }
-        },
-        audio: false
-      });
+      const stream = await requestCameraStream();
       streamRef.current = stream;
       setScanning(true);
-      setStatus("Camera ready. Point your camera at the QR code.");
 
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
+        videoRef.current.setAttribute("playsinline", "true");
+        videoRef.current.muted = true;
         await videoRef.current.play();
+        await waitForVideoReady(videoRef.current);
       }
 
+      setStatus("Camera ready. Hold the QR code flat, bright, and inside the gold square.");
       const session = scanSessionRef.current;
       let lastScanAt = 0;
       let decoding = false;
@@ -208,7 +323,7 @@ export function QrScanClient() {
       const tick = async (timestamp: number) => {
         if (session !== scanSessionRef.current || !videoRef.current || !streamRef.current) return;
 
-        if (!decoding && timestamp - lastScanAt > 220) {
+        if (!decoding && timestamp - lastScanAt > 140) {
           decoding = true;
           lastScanAt = timestamp;
 
@@ -229,10 +344,30 @@ export function QrScanClient() {
       };
 
       animationFrameRef.current = window.requestAnimationFrame(tick);
-    } catch {
-      setStatus("Permission denied or camera unavailable. Paste the QR link or card slug below.");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "";
+      const permissionText = /denied|permission|notallowed/i.test(message)
+        ? "Camera permission was blocked. Allow camera access in the browser settings, or scan from a photo below."
+        : "Camera unavailable on this browser. Scan from a photo, paste the QR link, or enter the card slug below.";
+
+      setStatus(permissionText);
       setScanning(false);
     }
+  }
+
+  function loadImageFromFile(file: File) {
+    return new Promise<HTMLImageElement>((resolve, reject) => {
+      const objectUrl = URL.createObjectURL(file);
+      const image = new Image();
+
+      image.onload = () => resolve(image);
+      image.onerror = () => {
+        URL.revokeObjectURL(objectUrl);
+        reject(new Error("image_load_failed"));
+      };
+      image.src = objectUrl;
+      image.dataset.objectUrl = objectUrl;
+    });
   }
 
   async function handleImageUpload(event: ChangeEvent<HTMLInputElement>) {
@@ -245,15 +380,10 @@ export function QrScanClient() {
     setImageScanning(true);
     setStatus("Reading QR code from selected image...");
 
-    let objectUrl = "";
+    let image: HTMLImageElement | null = null;
 
     try {
-      objectUrl = URL.createObjectURL(file);
-      const image = new Image();
-      image.decoding = "async";
-      image.src = objectUrl;
-
-      await image.decode();
+      image = await loadImageFromFile(file);
 
       const canvas = drawSourceToCanvas(image, image.naturalWidth, image.naturalHeight);
       const code = canvas ? await detectQrFromCanvas(canvas) : "";
@@ -267,7 +397,7 @@ export function QrScanClient() {
     } catch {
       setStatus("Could not read that image. Try a screenshot/photo with the QR code fully visible.");
     } finally {
-      if (objectUrl) URL.revokeObjectURL(objectUrl);
+      if (image?.dataset.objectUrl) URL.revokeObjectURL(image.dataset.objectUrl);
       setImageScanning(false);
     }
   }
@@ -298,7 +428,7 @@ export function QrScanClient() {
         </div>
 
         <div className="qr-camera-frame">
-          <video ref={videoRef} playsInline muted />
+          <video ref={videoRef} autoPlay playsInline muted />
           {!scanning ? (
             <div className="qr-camera-placeholder">
               <Camera size={44} />

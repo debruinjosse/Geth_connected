@@ -14,6 +14,8 @@ type InvoiceEmailInput = {
   invoiceUrl: string;
 };
 
+const emailFontStack = "Aptos, Segoe UI, Helvetica Neue, Arial, sans-serif";
+
 export function getInviteEmailSubject(companyName: string) {
   return `You're invited to join ${companyName} on GETH`;
 }
@@ -30,7 +32,7 @@ export function getInviteEmailHtml({ recipientEmail, inviteLink, companyName, ro
   const expiryLabel = formatExpiry(expiresAt);
 
   return `
-    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin:0;padding:0;background:#fbf8f1;font-family:Manrope,Inter,Arial,sans-serif;color:#241033;">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin:0;padding:0;background:#fbf8f1;font-family:${emailFontStack};color:#241033;">
       <tr>
         <td align="center" style="padding:40px 20px;">
           <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:560px;background:#fffdf8;border:1px solid #e7ded0;border-radius:24px;overflow:hidden;">
@@ -78,7 +80,7 @@ export function getInvoiceEmailSubject(invoiceNumber: string) {
 
 export function getInvoiceEmailHtml({ companyName, invoiceNumber, totalLabel, dueDate, invoiceUrl }: InvoiceEmailInput) {
   return `
-    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin:0;padding:0;background:#fbf8f1;font-family:Manrope,Inter,Arial,sans-serif;color:#241033;">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin:0;padding:0;background:#fbf8f1;font-family:${emailFontStack};color:#241033;">
       <tr>
         <td align="center" style="padding:40px 20px;">
           <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:560px;background:#fffdf8;border:1px solid #e7ded0;border-radius:24px;overflow:hidden;">

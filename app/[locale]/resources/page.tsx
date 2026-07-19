@@ -5,13 +5,14 @@ const resources = [
   ["Documentation", "Implementation guidance, onboarding notes, and setup walkthroughs."],
   ["API", "How connected-card routes, recognitions, and dashboards can be wired to backend systems."],
   ["Blog", "Stories, launch notes, and culture design insights from the GETH team."],
-  ["Support", "Contact help, submit rollout questions, and review security resources."],
-  ["Final review invite", "Download the Sunday project review calendar invite for launch-readiness alignment."]
+  ["Support", "Contact help, submit rollout questions, and review security resources."]
 ];
 
-export default function ResourcesPage() {
+export default async function ResourcesPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+
   return (
-    <PublicSiteChrome>
+    <PublicSiteChrome locale={locale}>
       <section className="section-shell page-shell">
         <div className="section-head">
           <div className="eyebrow">Resources</div>
@@ -24,8 +25,8 @@ export default function ResourcesPage() {
               <div className="eyebrow">{title}</div>
               <h3>{title}</h3>
               <p>{copy}</p>
-              <Link href={title === "Final review invite" ? "/calendar/final-review" : "/book-demo"} style={{ color: "var(--theme-ink)", fontWeight: 700 }}>
-                {title === "Final review invite" ? "Download calendar invite" : `Open ${title.toLowerCase()}`}
+              <Link href={`/${locale}/book-demo`} style={{ color: "var(--theme-ink)", fontWeight: 700 }}>
+                {`Open ${title.toLowerCase()}`}
               </Link>
             </article>
           ))}

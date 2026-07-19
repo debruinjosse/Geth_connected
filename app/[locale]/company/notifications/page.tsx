@@ -31,7 +31,9 @@ function DemoNotificationsPage() {
   );
 }
 
-export default async function CompanyNotificationsPage() {
+export default async function CompanyNotificationsPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+
   if (!hasSupabaseServerConfig()) {
     return <DemoNotificationsPage />;
   }
@@ -67,6 +69,7 @@ export default async function CompanyNotificationsPage() {
             emptyCopy="Invite acceptances, billing events, and company-wide activity alerts will appear here."
             emptyActionLabel="Manage employees"
             emptyActionHref="/company/employees"
+            locale={locale}
           />
         </article>
       </section>

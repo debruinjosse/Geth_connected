@@ -2,6 +2,11 @@
 
 import Image from "next/image";
 
+function getVisionMissionHref(homeHref: string) {
+  const match = homeHref.match(/^\/(en|nl|fr|da)(?:\/|$)/);
+  return match?.[1] ? `/${match[1]}/vision-mission` : "/en/vision-mission";
+}
+
 export function BrandLogo({
   dark = false,
   compact = false,
@@ -15,8 +20,7 @@ export function BrandLogo({
   href?: string;
   interactive?: boolean;
 }) {
-  const content = (
-    <>
+  const image = (
       <Image
         alt="GETH crest"
         className="brand-symbol"
@@ -25,20 +29,36 @@ export function BrandLogo({
         height={compact ? 31 : 46}
         priority
       />
+  );
+  const wordmark = (
       <span className="brand-copy">
-        <span className="brand-wordmark">GETH</span>
+        <span className="brand-wordmark">
+          GETH
+          <sup className="brand-registered-mark" aria-label="registered trademark">
+            &reg;
+          </sup>
+        </span>
         {tagline ? <span className="brand-tagline">Recognize to energize.</span> : null}
       </span>
-    </>
   );
 
   if (!interactive) {
-    return <span className={`brand-logo ${dark ? "dark" : ""} ${compact ? "compact" : ""}`.trim()}>{content}</span>;
+    return (
+      <span className={`brand-logo ${dark ? "dark" : ""} ${compact ? "compact" : ""}`.trim()}>
+        {image}
+        {wordmark}
+      </span>
+    );
   }
 
   return (
-    <a className={`brand-logo ${dark ? "dark" : ""} ${compact ? "compact" : ""}`.trim()} href={href} aria-label="GETH">
-      {content}
-    </a>
+    <span className={`brand-logo ${dark ? "dark" : ""} ${compact ? "compact" : ""}`.trim()}>
+      <a className="brand-symbol-link" href={href} aria-label="Back to home">
+        {image}
+      </a>
+      <a className="brand-wordmark-link" href={getVisionMissionHref(href)} aria-label="GETH vision, mission, and meaning">
+        {wordmark}
+      </a>
+    </span>
   );
 }

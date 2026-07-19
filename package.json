@@ -5,8 +5,10 @@
   "scripts": {
     "dev": "powershell -ExecutionPolicy Bypass -File ./scripts/dev-auto.ps1 -PushMigrations",
     "dev:plain": "next dev",
+    "prebuild": "powershell -ExecutionPolicy Bypass -File ./scripts/supabase-auto-push.ps1",
     "build": "next build",
-    "start": "next start",
+    "start": "powershell -ExecutionPolicy Bypass -File ./scripts/start-auto.ps1",
+    "start:next": "next start",
     "lint": "eslint .",
     "clean": "powershell -ExecutionPolicy Bypass -File ./scripts/clean-next-cache.ps1",
     "dev:fresh": "powershell -ExecutionPolicy Bypass -File ./scripts/dev-auto.ps1 -Clean -PushMigrations",
@@ -18,6 +20,7 @@
     "supabase:migration:auto": "powershell -ExecutionPolicy Bypass -File ./scripts/supabase-new-migration.ps1",
     "supabase:migration:new": "powershell -ExecutionPolicy Bypass -File ./scripts/supabase-new-migration.ps1",
     "supabase:push": "powershell -ExecutionPolicy Bypass -File ./scripts/supabase-push.ps1",
+    "supabase:auto": "powershell -ExecutionPolicy Bypass -File ./scripts/dev-auto.ps1 -PushMigrations -NoDev",
     "translate:messages": "node scripts/translate-messages.mjs --full --locales=da,fr"
   },
   "dependencies": {

@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { EmployeeDashboardClient } from "@/components/EmployeeDashboardClient";
 import type { RecognitionItem } from "@/components/RecognitionList";
-import { categoryMeta, getCategoryDisplayName, type CardCategory } from "@/lib/cards";
+import { categoryMeta, getAnalyticCategoryLabel, getCategoryDisplayName, getLocalizedCardTitle, type CardCategory } from "@/lib/cards";
 import { currentUser, employeeCategoryBreakdown, employeeGrowthPoints, employeeTopQualities, recognitions } from "@/lib/demo-data";
 import { getUnreadNotificationCount } from "@/lib/notifications";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -18,7 +18,9 @@ function getMonthKey(date: Date) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
 }
 
-export default async function EmployeeDashboardPage() {
+export default async function EmployeeDashboardPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+
   if (!hasSupabaseServerConfig()) {
     return <EmployeeDashboardClient />;
   }
@@ -49,7 +51,7 @@ export default async function EmployeeDashboardPage() {
       : Promise.resolve({ data: null }),
     supabase
       .from("recognition_events")
-      .select("id, created_at, personal_note, giver_name, giver_email, giver_user_id, card:card_library(title, category)")
+      .select("id, created_at, personal_note, giver_name, giver_email, giver_user_id, card:card_library(title, category, qr_slug)")
       .eq("receiver_user_id", user.id)
       .order("created_at", { ascending: false }),
     supabase.from("recognition_events").select("id", { count: "exact", head: true }).eq("giver_user_id", user.id)
@@ -66,7 +68,7 @@ export default async function EmployeeDashboardPage() {
     giver_name: string | null;
     giver_email: string | null;
     giver_user_id: string | null;
-    card: { title: string; category: string } | Array<{ title: string; category: string }> | null;
+    card: { title: string; category: string; qr_slug?: string | null } | Array<{ title: string; category: string; qr_slug?: string | null }> | null;
   }>;
 
   const giverIds = Array.from(new Set(received.map((item) => item.giver_user_id).filter((value): value is string => Boolean(value))));
@@ -92,7 +94,7 @@ export default async function EmployeeDashboardPage() {
         {
           id: item.id,
           from,
-          card: card.title,
+          card: getLocalizedCardTitle({ title: card.title, slug: card.qr_slug ?? undefined }, locale),
           category: card.category,
           note: item.personal_note ?? "Recognition recorded without a personal note.",
           createdAt: item.created_at
@@ -119,6 +121,9 @@ export default async function EmployeeDashboardPage() {
       label,
       tone: categoryMeta[info.category as keyof typeof categoryMeta]?.color ?? "var(--theme-ink)"
     }));
+
+  const topCategory = Array.from(categoryCounts.entries()).sort((a, b) => b[1] - a[1])[0];
+  const topQualityEntry = Array.from(qualityCounts.entries()).sort((a, b) => b[1].count - a[1].count)[0];
 
   const fourCCategories: CardCategory[] = ["Communicatie", "Creativiteit", "Competentie", "Collegialiteit"];
   const categoryBreakdown = fourCCategories
@@ -165,6 +170,53 @@ export default async function EmployeeDashboardPage() {
     ? Math.min(96, Math.max(42, normalizedRecognitions.length * 12 + recent30DaysCount * 8))
     : 0;
   const unreadNotifications = await getUnreadNotificationCount(supabase, user.id);
+  const recognitionSignals = [];
+
+  if (!normalizedRecognitions.length) {
+    recognitionSignals.push({
+      id: "employee-signal-empty",
+      tone: "var(--theme-gold)",
+      title: "No recognition cards yet",
+      detail: "Claim your first card to start building your visible growth story."
+    });
+  }
+
+  if (topCategory && topCategory[1] >= 5) {
+    recognitionSignals.push({
+      id: `employee-signal-category-${topCategory[0]}`,
+      tone: categoryMeta[topCategory[0] as CardCategory]?.color ?? "var(--theme-gold)",
+      title: getAnalyticCategoryLabel(topCategory[0]),
+      detail: `${topCategory[1]} recognitions show this as one of your strongest patterns.`
+    });
+  }
+
+  if (topQualityEntry && topQualityEntry[1].count >= 5) {
+    recognitionSignals.push({
+      id: `employee-signal-card-${topQualityEntry[0]}`,
+      tone: categoryMeta[topQualityEntry[1].category as CardCategory]?.color ?? "var(--theme-emerald)",
+      title: `${topQualityEntry[0]} x${topQualityEntry[1].count}`,
+      detail: "This repeated card is now a clear personal strength signal."
+    });
+  }
+
+  if (recent30DaysCount >= 5) {
+    recognitionSignals.push({
+      id: "employee-signal-streak",
+      tone: "var(--theme-emerald)",
+      title: "5-card recognition streak",
+      detail: "You are receiving strong recent peer validation. Keep that momentum visible."
+    });
+  }
+
+  if (!recognitionSignals.length && topQualityEntry) {
+    recognitionSignals.push({
+      id: "employee-signal-growing",
+      tone: categoryMeta[topQualityEntry[1].category as CardCategory]?.color ?? "var(--theme-emerald)",
+      title: "Growth pattern forming",
+      detail: `${topQualityEntry[0]} is currently your most recognized card.`
+    });
+  }
+  const topStrengthLabel = topCategory && topCategory[1] >= 5 ? getAnalyticCategoryLabel(topCategory[0]) : topQualities[0]?.label ?? "No signal yet";
 
   return (
     <EmployeeDashboardClient
@@ -183,6 +235,8 @@ export default async function EmployeeDashboardPage() {
         energyScore,
         quartersActive: quarterKeys.has("NaN-QNaN") ? Math.max(quarterKeys.size - 1, 0) : quarterKeys.size,
         topQualitiesCount: qualityCounts.size,
+        topStrengthLabel,
+        recognitionSignals,
         topQualities,
         categoryBreakdown,
         recentRecognitions: normalizedRecognitions.slice(0, 6),

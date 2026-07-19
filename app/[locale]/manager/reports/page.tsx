@@ -71,7 +71,7 @@ export default async function ManagerReportsPage({
   }
 
   if (profile.role !== "manager") {
-    redirect("/manager");
+    redirect(`/${locale}/manager`);
   }
 
   const { data: teams, error: teamsError } = await supabase
@@ -124,7 +124,7 @@ export default async function ManagerReportsPage({
           <button className="btn btn-primary" type="submit">
             Apply range
           </button>
-          <a className="btn btn-secondary" href="/manager/reports">
+          <a className="btn btn-secondary" href={`/${locale}/manager/reports`}>
             Reset
           </a>
         </form>

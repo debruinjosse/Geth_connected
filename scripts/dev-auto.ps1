@@ -8,6 +8,19 @@ $ErrorActionPreference = "Stop"
 
 $projectRoot = Split-Path -Parent $PSScriptRoot
 
+function Get-ExistingNextDevProcess {
+  $escapedProjectRoot = [regex]::Escape($projectRoot)
+
+  Get-CimInstance Win32_Process |
+    Where-Object {
+      $_.ProcessId -ne $PID -and
+      $_.CommandLine -match $escapedProjectRoot -and
+      $_.CommandLine -match 'next' -and
+      $_.CommandLine -match '\bdev\b'
+    } |
+    Select-Object -First 1
+}
+
 Push-Location $projectRoot
 try {
   if ($Clean) {
@@ -27,6 +40,15 @@ try {
   }
 
   if (-not $NoDev) {
+    $existingDevProcess = Get-ExistingNextDevProcess
+
+    if ($existingDevProcess) {
+      Write-Host "Next.js dev server is already running for this project."
+      Write-Host "PID: $($existingDevProcess.ProcessId)"
+      Write-Host "Stop it with: taskkill /PID $($existingDevProcess.ProcessId) /F"
+      return
+    }
+
     Write-Host "Starting Next.js dev server..."
     $nextCommand = Join-Path $projectRoot "node_modules\.bin\next.cmd"
 

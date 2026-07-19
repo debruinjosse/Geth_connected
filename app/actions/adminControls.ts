@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { sendInviteEmail } from "@/lib/mail/nodemailer";
+import { createPlatformAdminNotifications } from "@/lib/notifications";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 async function requirePlatformAdmin() {
@@ -101,6 +102,11 @@ function getRoleLabel(role: string) {
   return role.replace("_", " ");
 }
 
+function getActionLocale(formData: FormData) {
+  const locale = String(formData.get("locale") ?? "en").trim();
+  return ["en", "nl", "fr", "da"].includes(locale) ? locale : "en";
+}
+
 export async function createCompanyWorkspaceAction(formData: FormData) {
   const auth = await requirePlatformAdmin();
   if (!auth.ok) {
@@ -114,6 +120,7 @@ export async function createCompanyWorkspaceAction(formData: FormData) {
   const companyAdminEmail = normalizeEmail(formData.get("companyAdminEmail"));
   const managerEmail = normalizeEmail(formData.get("managerEmail"));
   const teamName = String(formData.get("teamName") ?? "").trim();
+  const locale = getActionLocale(formData);
 
   if (!companyName || !companyAdminEmail) {
     return;
@@ -172,9 +179,17 @@ export async function createCompanyWorkspaceAction(formData: FormData) {
     });
   }
 
+  await createPlatformAdminNotifications(auth.supabase, {
+    companyId: company.id,
+    type: "company_created",
+    title: "New company workspace created",
+    body: `${companyName} was created with the ${subscriptionPlan} plan. Confirm billing, then send the first company admin invite if needed.`,
+    href: `/admin/companies/${company.id}`
+  });
+
   revalidatePath("/admin");
   revalidatePath("/admin/companies");
-  redirect(`/admin/companies/${company.id}?created=1`);
+  redirect(`/${locale}/admin/companies/${company.id}?created=1`);
 }
 
 export async function updateCompanyStatusAction(formData: FormData) {
@@ -205,6 +220,7 @@ export async function createCompanyInviteFromAdminAction(formData: FormData) {
   const email = normalizeEmail(formData.get("email"));
   const role = String(formData.get("role") ?? "").trim() as "company_admin" | "manager" | "employee";
   const returnTo = String(formData.get("returnTo") ?? `/admin/companies/${companyId}`);
+  const locale = getActionLocale(formData);
 
   if (!companyId || !email || !["company_admin", "manager", "employee"].includes(role)) {
     redirect(`${returnTo}?invite=invalid`);
@@ -234,7 +250,7 @@ export async function createCompanyInviteFromAdminAction(formData: FormData) {
     try {
       await sendInviteEmail({
         to: email,
-        inviteLink: `${getInviteBaseUrl()}/invite/${invitation.token}`,
+        inviteLink: `${getInviteBaseUrl()}/${locale}/invite/${invitation.token}`,
         companyName: company?.company_name ?? "this company",
         roleLabel: getRoleLabel(role),
         expiresAt: invitation.expires_at

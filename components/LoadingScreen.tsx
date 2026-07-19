@@ -8,12 +8,14 @@ export function LoadingScreen() {
       <GoldenLeaves className="loading-leaves right" mirrored />
       <div className="loading-panel">
         <BrandLogo />
-        <div className="loading-orbit" aria-hidden="true">
-          <span />
-          <span />
-          <span />
+        <div className="loading-status">
+          <p>Preparing your recognition experience</p>
+          <div className="loading-orbit" aria-hidden="true">
+            <span />
+            <span />
+            <span />
+          </div>
         </div>
-        <p>Preparing your recognition experience.</p>
       </div>
     </main>
   );

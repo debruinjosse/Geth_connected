@@ -74,7 +74,7 @@ try {
   }
 
   Invoke-SupabaseChecked $supabaseCommand @("link", "--project-ref", $env:SUPABASE_PROJECT_ID, "--password", $env:SUPABASE_DB_PASSWORD)
-  Invoke-SupabaseChecked $supabaseCommand @("db", "push")
+  Invoke-SupabaseChecked $supabaseCommand @("db", "push", "--yes")
   Write-Host "Supabase migrations pushed. Storage buckets declared in migrations are now applied."
 }
 finally {

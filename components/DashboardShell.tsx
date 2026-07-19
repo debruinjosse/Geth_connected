@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 import { BrandLogo } from "@/components/BrandLogo";
 import { GoldenLeaves } from "@/components/GoldenLeaves";
+import { GoogleTranslateWidget } from "@/components/GoogleTranslateWidget";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { clearDemoSession, getDemoSession, hasSupabaseBrowserConfig } from "@/lib/demo-session";
 import { stripLocaleFromPathname, type AppLocale } from "@/i18n/routing";
@@ -59,12 +60,25 @@ const navByRole = {
   admin: [
     ["Overview", "/admin", Home],
     ["Companies", "/admin/companies", Building2],
+    ["Demo bookings", "/admin/demo-bookings", CalendarIcon],
     ["Subscriptions", "/admin/subscriptions", VerticalCardIcon],
     ["Cards", "/admin/cards", VerticalCardIcon],
     ["QR Routes", "/admin/qr-routes", QrCode],
     ["Analytics", "/admin/analytics", BarChart3]
   ]
 } as const;
+
+function CalendarIcon({ size = 19 }: { size?: number }) {
+  return (
+    <svg aria-hidden="true" fill="none" height={size} viewBox="0 0 24 24" width={size} xmlns="http://www.w3.org/2000/svg">
+      <rect x="3.75" y="5.25" width="16.5" height="15" rx="2.5" stroke="currentColor" strokeWidth="1.8" />
+      <path d="M7 3.75V7" stroke="currentColor" strokeLinecap="round" strokeWidth="1.8" />
+      <path d="M17 3.75V7" stroke="currentColor" strokeLinecap="round" strokeWidth="1.8" />
+      <path d="M4.5 9H19.5" stroke="currentColor" strokeLinecap="round" strokeWidth="1.8" />
+      <path d="M9 14L11 16L15.5 11.5" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" />
+    </svg>
+  );
+}
 
 function VerticalCardIcon({ size = 19 }: { size?: number }) {
   return (
@@ -200,6 +214,7 @@ export function DashboardShell({
           </div>
           <div className="dashboard-header-actions">
             {actions}
+            <GoogleTranslateWidget />
             <Link className="dashboard-icon-button notification-icon-button" href={localizeDashboardHref(notificationHrefByRole[role], locale)} aria-label={`${unreadNotifications} unread notifications`}>
               <Bell size={17} />
               {unreadNotifications > 0 ? <span className="notification-count">{unreadNotifications > 9 ? "9+" : unreadNotifications}</span> : null}

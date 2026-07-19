@@ -15,13 +15,17 @@ function normalizeRole(value: string | undefined) {
   return value === "company_admin" ? "company_admin" : "employee";
 }
 
+function isValidEmail(value: string) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+}
+
 export async function POST(request: NextRequest) {
   const body = (await request.json().catch(() => ({}))) as PasswordSignupBody;
   const email = body.email?.trim().toLowerCase();
   const password = body.password ?? "";
   const role = normalizeRole(body.role);
 
-  if (!email || !password || password.length < 6) {
+  if (!email || !isValidEmail(email) || !password || password.length < 6) {
     return NextResponse.json({ error: "Enter a valid email and a password with at least 6 characters." }, { status: 400 });
   }
 

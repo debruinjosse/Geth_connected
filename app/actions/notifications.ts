@@ -8,6 +8,29 @@ export type NotificationMutationResult = {
   message: string;
 };
 
+async function getNotificationSession() {
+  try {
+    const supabase = await createSupabaseServerClient();
+    const {
+      data: { user },
+      error
+    } = await supabase.auth.getUser();
+
+    if (error || !user) {
+      if (error) {
+        console.warn("Skipping notification mutation because the auth session could not be read", error.message);
+      }
+
+      return null;
+    }
+
+    return { supabase, user };
+  } catch (error) {
+    console.warn("Skipping notification mutation because Supabase auth threw", error);
+    return null;
+  }
+}
+
 export async function markNotificationReadAction(formData: FormData): Promise<void> {
   const notificationId = String(formData.get("notification_id") || "").trim();
 
@@ -15,16 +38,12 @@ export async function markNotificationReadAction(formData: FormData): Promise<vo
     return;
   }
 
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-    error: userError
-  } = await supabase.auth.getUser();
-
-  if (userError || !user) {
+  const session = await getNotificationSession();
+  if (!session) {
     return;
   }
 
+  const { supabase, user } = session;
   const { error } = await supabase
     .from("notifications")
     .update({ read_at: new Date().toISOString() })
@@ -47,16 +66,12 @@ export async function markNotificationReadAction(formData: FormData): Promise<vo
 }
 
 export async function markAllNotificationsReadAction(): Promise<void> {
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-    error: userError
-  } = await supabase.auth.getUser();
-
-  if (userError || !user) {
+  const session = await getNotificationSession();
+  if (!session) {
     return;
   }
 
+  const { supabase, user } = session;
   const { error } = await supabase
     .from("notifications")
     .update({ read_at: new Date().toISOString() })

@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { QualityBarItem } from "@/components/QualityBars";
 import type { TeamMemberRow } from "@/components/TeamTable";
+import { categoryColors, getAnalyticCategoryLabel } from "@/lib/cards";
 
 export type ManagerInsights = {
   profile: {
@@ -43,6 +44,24 @@ function getEnergyBucket(totalReceived: number, recentReceived: number): TeamMem
   if (totalReceived >= 3 || recentReceived >= 2) return "HOOG";
   if (totalReceived >= 1 || recentReceived >= 1) return "GEMIDDELD";
   return "LAAG";
+}
+
+function countByCard(received: Array<{ card: { title: string; category: string } | Array<{ title: string; category: string }> | null }>) {
+  const cardCounts = new Map<string, { value: number; category: string }>();
+  const categoryCounts = new Map<string, number>();
+
+  for (const recognition of received) {
+    const card = Array.isArray(recognition.card) ? recognition.card[0] : recognition.card;
+    if (!card) continue;
+    const cardEntry = cardCounts.get(card.title);
+    cardCounts.set(card.title, { value: (cardEntry?.value ?? 0) + 1, category: card.category });
+    categoryCounts.set(card.category, (categoryCounts.get(card.category) ?? 0) + 1);
+  }
+
+  const topCard = Array.from(cardCounts.entries()).sort((a, b) => b[1].value - a[1].value)[0];
+  const topCategory = Array.from(categoryCounts.entries()).sort((a, b) => b[1] - a[1])[0];
+
+  return { cardCounts, categoryCounts, topCard, topCategory };
 }
 
 export async function getManagerInsights(supabase: SupabaseClient, userId: string): Promise<ManagerInsights> {
@@ -137,11 +156,11 @@ export async function getManagerInsights(supabase: SupabaseClient, userId: strin
     const received = recognitionsByReceiver.get(member.id) ?? [];
     const given = recognitionsByGiver.get(member.id) ?? [];
     const recentReceived = received.filter((recognition) => Date.now() - new Date(recognition.created_at).getTime() <= 30 * 24 * 60 * 60 * 1000).length;
-    const topQualityCounter = new Map<string, number>();
-    for (const recognition of received) {
-      const card = Array.isArray(recognition.card) ? recognition.card[0] : recognition.card;
-      if (card) topQualityCounter.set(card.title, (topQualityCounter.get(card.title) ?? 0) + 1);
-    }
+    const { topCard, topCategory } = countByCard(received);
+    const topQuality =
+      topCategory && topCategory[1] >= 3
+        ? getAnalyticCategoryLabel(topCategory[0])
+        : topCard?.[0] ?? "No recognitions yet";
 
     return {
       id: member.id,
@@ -151,19 +170,78 @@ export async function getManagerInsights(supabase: SupabaseClient, userId: strin
       cardsGiven: given.length,
       trend: getTrendForDates(received.map((recognition) => recognition.created_at)),
       energy: getEnergyBucket(received.length, recentReceived),
-      topQuality: Array.from(topQualityCounter.entries()).sort((a, b) => b[1] - a[1])[0]?.[0] ?? "No recognitions yet"
+      topQuality
     };
   });
 
-  const signalItems = teamRows
-    .filter((member) => member.cardsReceived === 0 || member.energy === "LAAG")
-    .slice(0, 6)
-    .map((member) => ({
-      id: `signal-${member.id}`,
-      tone: member.cardsReceived === 0 ? "var(--theme-red)" : "var(--theme-gold)",
-      title: member.cardsReceived === 0 ? `${member.name} has not received a card yet` : `${member.name} needs recognition support`,
-      detail: member.cardsReceived === 0 ? "Create a moment of recognition to get them started." : "Recent recognition activity is below the team average."
-    }));
+  const signalItems: ManagerInsights["signalItems"] = [];
+
+  for (const member of teamRows) {
+    if (member.cardsReceived === 0) {
+      signalItems.push({
+        id: `signal-gap-${member.id}`,
+        tone: "var(--theme-red)",
+        title: `${member.name} has not received a card yet`,
+        detail: "Create a moment of recognition to get them started."
+      });
+    } else if (member.energy === "LAAG") {
+      signalItems.push({
+        id: `signal-low-${member.id}`,
+        tone: "var(--theme-gold)",
+        title: `${member.name} needs recognition support`,
+        detail: "Recognition activity is present, but the recent rhythm is below the team average."
+      });
+    }
+  }
+
+  for (const member of teamRows) {
+    const received = recognitionsByReceiver.get(member.id) ?? [];
+    const { topCard, topCategory } = countByCard(received);
+
+    if (topCard && topCard[1].value >= 5) {
+      signalItems.push({
+        id: `signal-card-repeat-${member.id}-${topCard[0]}`,
+        tone: categoryColors[topCard[1].category] ?? "var(--theme-emerald)",
+        title: `${member.name}: ${topCard[0]} x${topCard[1].value}`,
+        detail: `This repeated card pattern is becoming a visible strength for ${member.name}.`
+      });
+    }
+
+    if (topCategory && topCategory[1] >= 5) {
+      signalItems.push({
+        id: `signal-category-${member.id}-${topCategory[0]}`,
+        tone: categoryColors[topCategory[0]] ?? "var(--theme-gold)",
+        title: `${member.name} is a ${getAnalyticCategoryLabel(topCategory[0]).toLowerCase()}`,
+        detail: `${topCategory[1]} recognitions point to a clear ${topCategory[0].toLowerCase()} strength.`
+      });
+    }
+
+    if (received.length >= 5) {
+      signalItems.push({
+        id: `signal-streak-${member.id}`,
+        tone: "var(--theme-emerald)",
+        title: `${member.name} has a 5-card recognition streak`,
+        detail: "This employee is receiving repeated peer validation and should be celebrated."
+      });
+    }
+  }
+
+  const thirtyDaysAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
+  const recentlyRecognizedEmployees = new Set(
+    recognitions
+      .filter((recognition) => new Date(recognition.created_at).getTime() >= thirtyDaysAgo)
+      .map((recognition) => recognition.receiver_user_id)
+  );
+  const activeShare = teamRows.length ? recentlyRecognizedEmployees.size / teamRows.length : 0;
+
+  if (teamRows.length && activeShare >= 0.7) {
+    signalItems.push({
+      id: "signal-team-momentum",
+      tone: "var(--theme-emerald)",
+      title: "Recognition momentum is high",
+      detail: `${recentlyRecognizedEmployees.size} of ${teamRows.length} employees received cards in the last 30 days.`
+    });
+  }
 
   if (!signalItems.length && teamRows.length) {
     signalItems.push({
@@ -184,7 +262,7 @@ export async function getManagerInsights(supabase: SupabaseClient, userId: strin
     teamLabel,
     teamIds,
     teamRows,
-    signalItems,
+    signalItems: signalItems.slice(0, 10),
     trendPoints: monthWindows.map((month) => monthlyCounts.get(month.key) ?? 0),
     trendLabels: monthWindows.map((month) => month.label),
     qualityBars: Array.from(qualityCounts.entries())

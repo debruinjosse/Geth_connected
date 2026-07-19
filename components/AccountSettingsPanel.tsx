@@ -1,6 +1,7 @@
 import Image from "next/image";
-import { Camera, KeyRound, Save, UploadCloud } from "lucide-react";
+import { KeyRound, Save, UploadCloud } from "lucide-react";
 import { sendPasswordResetFromSettingsAction, updateOwnProfileNameAction, updateOwnProfilePhotoAction } from "@/app/actions/accountSettings";
+import { ProfilePhotoUploadField } from "@/components/ProfilePhotoUploadField";
 
 function getSettingsMessage(code?: string) {
   switch (code) {
@@ -69,11 +70,7 @@ export function AccountSettingsPanel({
             <p>Upload an HD JPG, PNG, WEBP, or GIF up to 50 MB. This photo appears in your dashboard and claim-card people picker.</p>
           </div>
         </div>
-        <label className="profile-photo-upload">
-          <Camera size={16} />
-          <span>Choose photo</span>
-          <input type="file" name="profilePhoto" accept="image/jpeg,image/png,image/webp,image/gif" required />
-        </label>
+        <ProfilePhotoUploadField />
         <div className="settings-action-row">
           <button className="btn btn-secondary" type="submit">
             <UploadCloud size={16} /> Upload photo

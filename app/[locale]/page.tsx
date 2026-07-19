@@ -37,10 +37,11 @@ export default async function LandingPage({ params }: LandingPageProps) {
   ];
 
   const audiences = [
-    [t("companiesLabel"), t("companiesTitle"), t("companiesCopy"), "/signup?role=company_admin&next=/company", Building2],
-    [t("managersLabel"), t("managersTitle"), t("managersCopy"), "/login?next=/manager", UsersRound],
-    [t("employeesLabel"), t("employeesTitle"), t("employeesCopy"), "/login?next=/employee", HeartHandshake]
+    [t("companiesLabel"), t("companiesTitle"), t("companiesCopy"), Building2],
+    [t("managersLabel"), t("managersTitle"), t("managersCopy"), UsersRound],
+    [t("employeesLabel"), t("employeesTitle"), t("employeesCopy"), HeartHandshake]
   ];
+  const bookDemoHref = `/${locale}/book-demo`;
 
   return (
     <PublicSiteChrome locale={locale}>
@@ -119,14 +120,14 @@ export default async function LandingPage({ params }: LandingPageProps) {
       <section className="section-shell section-shell-follow" id="for-companies">
         <div className="pageContainer">
           <div className="audience-grid audienceGrid">
-            {audiences.map(([label, title, copy, href, Icon], index) => (
+            {audiences.map(([label, title, copy, Icon], index) => (
               <Reveal className="audience-card audienceCard" key={label as string} delay={index * 0.08}>
                 <Icon className="audienceCardIcon" size={34} strokeWidth={1.6} />
                 <div className="eyebrow">{label as string}</div>
                 <h3>{title as string}</h3>
                 <p>{copy as string}</p>
-                <Link href={href as string} style={{ color: "var(--theme-ink)", fontWeight: 700 }}>
-                  {t("learnMore")} <ArrowRight size={14} />
+                <Link href={bookDemoHref} className="audience-demo-cta">
+                  {nav("bookDemo")} <ArrowRight size={14} />
                 </Link>
                 <GoldenLeaves className="golden-leaves" />
               </Reveal>

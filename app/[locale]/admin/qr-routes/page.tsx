@@ -16,7 +16,9 @@ function getInitials(firstName: string, lastName: string) {
   return `${firstName[0] ?? ""}${lastName[0] ?? ""}`.toUpperCase() || "GA";
 }
 
-export default async function AdminQrRoutesPage() {
+export default async function AdminQrRoutesPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
     return (
       <DashboardShell role="admin" title="QR routes" subtitle="Connect Supabase to inspect live QR destinations." user={superAdminUser}>
@@ -31,7 +33,7 @@ export default async function AdminQrRoutesPage() {
     error: userError
   } = await supabase.auth.getUser();
 
-  if (userError || !user) redirect("/login");
+  if (userError || !user) redirect(`/${locale}/login`);
 
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
@@ -69,7 +71,7 @@ export default async function AdminQrRoutesPage() {
         initials: getInitials(profile.first_name, profile.last_name),
         team: "GETH Platform"
       }}
-      actions={<Link className="btn btn-secondary compact" href="/admin/cards">Manage cards</Link>}
+      actions={<Link className="btn btn-secondary compact" href={`/${locale}/admin/cards`}>Manage cards</Link>}
     >
       <article className="panel dashboard-panel">
         <div className="table-wrap">
@@ -81,7 +83,7 @@ export default async function AdminQrRoutesPage() {
                   <tr key={route.id}>
                     <td><strong>{route.qr_slug}</strong></td>
                     <td>{route.title}</td>
-                    <td><Link className="panel-link" href={`/claim-card/${route.qr_slug}`}>/claim-card/{route.qr_slug}</Link></td>
+                    <td><Link className="panel-link" href={`/${locale}/claim-card/${route.qr_slug}`}>/{locale}/claim-card/{route.qr_slug}</Link></td>
                     <td><span className="admin-status-pill">{route.active ? "active" : "paused"}</span></td>
                     <td>{usageCounts.get(route.id) ?? 0}</td>
                   </tr>

@@ -9,6 +9,7 @@ function hasSupabaseServerConfig() {
 }
 
 type InvitePageParams = {
+  locale: string;
   token: string;
 };
 
@@ -40,7 +41,7 @@ export default async function InvitePage({
   params: Promise<InvitePageParams>;
   searchParams: Promise<InviteSearchParams>;
 }) {
-  const { token } = await params;
+  const { locale, token } = await params;
   const { status, reason, next } = await searchParams;
 
   if (!hasSupabaseServerConfig()) {
@@ -48,7 +49,7 @@ export default async function InvitePage({
       <AuthShell eyebrow="Invitation onboarding" title="Invitations need Supabase" subtitle="Connect Supabase in this environment to generate and accept real company invitations.">
         <div className="auth-card">
           <p className="section-copy">Invite links are disabled until the Supabase environment variables are available in this project.</p>
-          <Link className="btn btn-dark" href="/login">
+          <Link className="btn btn-dark" href={`/${locale}/login`}>
             Back to login
           </Link>
         </div>
@@ -118,7 +119,7 @@ export default async function InvitePage({
               <CheckCircle2 size={18} />
               <span>Your profile has been attached to this company invitation.</span>
             </div>
-            <Link className="btn btn-dark" href={next || "/employee"}>
+            <Link className="btn btn-dark" href={next || `/${locale}/employee`}>
               Open workspace <ArrowRight size={16} />
             </Link>
           </div>
@@ -129,8 +130,8 @@ export default async function InvitePage({
               <span>{getReasonCopy(reason)}</span>
             </div>
             <div className="auth-links" style={{ marginTop: 0 }}>
-              <Link href={`/login?invite=${token}`}>Try logging in again</Link>
-              <Link href={`/signup?invite=${token}`}>Create account</Link>
+              <Link href={`/${locale}/login?invite=${token}`}>Try logging in again</Link>
+              <Link href={`/${locale}/signup?invite=${token}`}>Create account</Link>
             </div>
           </div>
         ) : invitation ? (
@@ -163,10 +164,10 @@ export default async function InvitePage({
               )
             ) : (
               <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
-                <Link className="btn btn-dark" href={`/signup?invite=${token}`}>
+                <Link className="btn btn-dark" href={`/${locale}/signup?invite=${token}`}>
                   Create account <ArrowRight size={16} />
                 </Link>
-                <Link className="btn btn-secondary" href={`/login?invite=${token}`}>
+                <Link className="btn btn-secondary" href={`/${locale}/login?invite=${token}`}>
                   Log in
                 </Link>
               </div>
@@ -178,7 +179,7 @@ export default async function InvitePage({
               <ShieldAlert size={18} />
               <span>This invitation is no longer available.</span>
             </div>
-            <Link className="btn btn-secondary" href="/login">
+            <Link className="btn btn-secondary" href={`/${locale}/login`}>
               Back to login
             </Link>
           </div>

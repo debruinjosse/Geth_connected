@@ -189,7 +189,7 @@ export function CompanyPeopleManagementPanel({
                 >
                   <button className={`btn ${person.status === "disabled" ? "btn-primary" : "btn-secondary"}`} type="submit" disabled={isPending}>
                     {person.status === "disabled" ? <UserCheck size={16} /> : <UserX size={16} />}
-                    {person.status === "disabled" ? "Reactivate" : "Disable"}
+                    {person.status === "disabled" ? "Restore access" : "Remove access"}
                   </button>
                 </form>
                 {typeof person.cards === "number" ? <span className="quality-pill">{person.cards} cards received</span> : null}

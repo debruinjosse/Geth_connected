@@ -3,13 +3,13 @@ import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
 import { BrandLogo } from "@/components/BrandLogo";
 import { GoldenLeaves } from "@/components/GoldenLeaves";
+import { GoogleTranslateWidget } from "@/components/GoogleTranslateWidget";
 import { getRouteForAppRole, normalizeAppRole } from "@/lib/auth/roles";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 const navLinks = [
   { href: "/#how-it-works", labelKey: "howItWorks" },
   { href: "/#for-companies", labelKey: "forCompanies" },
-  { href: "/cards", labelKey: "cards" },
   { href: "/pricing", labelKey: "pricing" },
   { href: "/resources", labelKey: "resources" }
 ];
@@ -95,17 +95,19 @@ export async function PublicSiteChrome({
             {signedInUser ? (
               <>
                 <Link className="site-user-link" href={localizeHref(signedInUser.dashboardHref, locale)}>{nav("hi", { name: signedInUser.name })}</Link>
-                <Link className="btn btn-primary" href={localizeHref(signedInUser.dashboardHref, locale)}>
+                <Link className="btn btn-primary site-primary-cta" href={localizeHref(signedInUser.dashboardHref, locale)}>
                   {nav("openDashboard")}
                 </Link>
+                <GoogleTranslateWidget />
                 <Link href="/auth/signout">{nav("signOut")}</Link>
               </>
             ) : (
               <>
                 <Link href={localizeHref("/login", locale)}>{nav("login")}</Link>
-                <Link className="btn btn-primary" href={localizedCtaHref}>
+                <Link className="btn btn-primary site-primary-cta" href={localizedCtaHref}>
                   {ctaLabel === "Book a demo" ? nav("bookDemo") : ctaLabel}
                 </Link>
+                <GoogleTranslateWidget />
               </>
             )}
           </div>
@@ -129,7 +131,6 @@ export async function PublicSiteChrome({
               <small>hello@geth.com</small>
             </div>
             <div className="footer-links">
-              <Link href={`/${locale}`}>{footer("product")}</Link>
               <Link href={localizeHref("/pricing", locale)}>{nav("pricing")}</Link>
               <Link href={localizeHref("/book-demo", locale)}>{nav("bookDemo")}</Link>
               <Link href={localizeHref("/resources", locale)}>{nav("resources")}</Link>
@@ -138,7 +139,9 @@ export async function PublicSiteChrome({
               <Link href={localizeHref("/privacy", locale)}>{footer("privacy")}</Link>
               <Link href={localizeHref("/terms", locale)}>{footer("terms")}</Link>
               <Link href={localizeHref("/resources", locale)}>{footer("security")}</Link>
-              <small>{footer("copyright")}</small>
+            </div>
+            <div className="footer-meta">
+              <small>Registered 2026</small>
             </div>
           </footer>
         </div>

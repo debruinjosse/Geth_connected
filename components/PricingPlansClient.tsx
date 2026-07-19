@@ -1,17 +1,25 @@
 "use client";
 
 import { useState } from "react";
-import { Check } from "lucide-react";
+import { Building2, Check, UserRoundPlus, UsersRound } from "lucide-react";
 
 export type PricingTier = {
   name: string;
   monthly: string;
   yearly: string;
-  yearlyNote: string;
-  blurb: string;
+  icon: "team" | "growth" | "enterprise";
   features: string[];
   featured?: boolean;
 };
+
+function PricingIcon({ icon }: { icon: PricingTier["icon"] }) {
+  const Icon = icon === "enterprise" ? Building2 : icon === "growth" ? UserRoundPlus : UsersRound;
+  return (
+    <span className="pricing-plan-icon">
+      <Icon size={25} strokeWidth={1.8} />
+    </span>
+  );
+}
 
 export function PricingPlansClient({
   tiers,
@@ -22,11 +30,12 @@ export function PricingPlansClient({
   labels: {
     monthly: string;
     yearly: string;
-    choose: string;
-    custom: string;
-    perMonth: string;
-    perYear: string;
-    invoiceNote: string;
+    yearlySubcopy: string;
+    bestValue: string;
+    contact: string;
+    perEmployee: string;
+    customPricing: string;
+    mostPopular: string;
   };
   locale: string;
 }) {
@@ -34,43 +43,51 @@ export function PricingPlansClient({
 
   return (
     <>
-      <div className="pricing-toggle" role="tablist" aria-label="Billing period">
-        <button className={`quality-pill ${cycle === "monthly" ? "active" : ""}`.trim()} type="button" onClick={() => setCycle("monthly")}>
-          {labels.monthly}
-        </button>
-        <button className={`quality-pill ${cycle === "yearly" ? "active" : ""}`.trim()} type="button" onClick={() => setCycle("yearly")}>
-          {labels.yearly}
-        </button>
+      <div className="pricing-toggle-wrap">
+        <div className="pricing-toggle" role="tablist" aria-label="Billing period">
+          <button className={cycle === "monthly" ? "active" : ""} type="button" onClick={() => setCycle("monthly")}>
+            {labels.monthly}
+          </button>
+          <button className={cycle === "yearly" ? "active" : ""} type="button" onClick={() => setCycle("yearly")}>
+            <span>{labels.yearly}</span>
+            <small>{labels.yearlySubcopy}</small>
+          </button>
+          <span className="pricing-best-value">{labels.bestValue}</span>
+        </div>
       </div>
 
-      <div className="pricing-grid">
+      <div className="pricing-grid pricing-plan-grid">
         {tiers.map((tier) => {
           const price = cycle === "monthly" ? tier.monthly : tier.yearly;
-          const period = price === labels.custom ? "" : cycle === "monthly" ? labels.perMonth : labels.perYear;
+          const custom = price === "Custom";
 
           return (
-            <article className={`panel pricing-card ${tier.featured ? "featured" : ""}`.trim()} key={tier.name}>
-              <div className="eyebrow">{tier.name}</div>
-              <h2>{price}</h2>
-              {period ? <span className="pricing-period">{period}</span> : null}
-              {cycle === "yearly" && tier.yearlyNote ? <span className="quality-pill">{tier.yearlyNote}</span> : null}
-              <p>{tier.blurb}</p>
+            <article className={`pricing-plan-card ${tier.featured ? "featured" : ""}`.trim()} key={tier.name}>
+              {tier.featured ? <div className="pricing-popular-ribbon">{labels.mostPopular}</div> : null}
+              <div className="pricing-plan-top">
+                <div className="eyebrow">{tier.name}</div>
+                <PricingIcon icon={tier.icon} />
+              </div>
+              <div className="pricing-price-block">
+                <h2>{custom ? "Custom" : price}</h2>
+                <p>{custom ? labels.customPricing : labels.perEmployee}</p>
+              </div>
+              <div className="pricing-feature-divider" />
               <div className="pricing-features">
-                {tier.features.map((feature) => (
-                  <span key={feature}>
-                    <Check size={14} />
+                {tier.features.map((feature, index) => (
+                  <span className={tier.featured && index >= 3 ? "highlight" : ""} key={feature}>
+                    <Check size={13} />
                     {feature}
                   </span>
                 ))}
               </div>
-              <a className={`btn ${tier.featured ? "btn-primary" : "btn-secondary"}`} href={`/${locale}/book-demo`}>
-                {labels.choose} {tier.name}
+              <a className="btn btn-dark pricing-contact-button" href={`/${locale}/book-demo`}>
+                {labels.contact}
               </a>
             </article>
           );
         })}
       </div>
-      <p className="pricing-invoice-note">{labels.invoiceNote}</p>
     </>
   );
 }

@@ -16,13 +16,14 @@ const signupRoles: Array<{ value: DemoRole; label: string }> = [
 const roleShortcuts: Array<{ value: DemoRole; label: string }> = [
   { value: "employee", label: "Join as employee" },
   { value: "manager", label: "Join as manager" },
-  { value: "company_admin", label: "Register company" }
+  { value: "company_admin", label: "Join as company" }
 ];
 
-const loginRoles = [...roleShortcuts, { value: "super_admin" as DemoRole, label: "Owner login" }];
-
-function getSelectableAuthRole(role: DemoRole) {
-  return loginRoles.some((option) => option.value === role) ? role : "employee";
+function getRoleTargetPath(role: DemoRole) {
+  if (role === "manager") return "/manager";
+  if (role === "company_admin") return "/company";
+  if (role === "super_admin") return "/admin";
+  return "/employee";
 }
 
 export function AuthExperience({
@@ -30,13 +31,15 @@ export function AuthExperience({
   inviteToken,
   authError,
   initialRole = "employee",
-  targetPath
+  targetPath,
+  roleChoiceOnly = false
 }: {
   mode: "login" | "signup";
   inviteToken?: string;
   authError?: string;
   initialRole?: DemoRole;
   targetPath?: string;
+  roleChoiceOnly?: boolean;
 }) {
   const locale = useLocale();
   const [submitBusy, setSubmitBusy] = useState(false);
@@ -55,6 +58,7 @@ export function AuthExperience({
 
   const supabaseReady = useMemo(() => hasSupabaseBrowserConfig(), []);
   const busy = submitBusy || magicLinkBusy || passwordResetBusy;
+  const ownerLoginOnly = selectedRole === "super_admin";
   const selectedSignupRole = signupRoles.some((role) => role.value === selectedRole) ? selectedRole : "employee";
 
   function getLocalizedPublicPath(path: string) {
@@ -220,6 +224,10 @@ export function AuthExperience({
     try {
       if (supabaseReady && form.email) {
         const supabase = createSupabaseBrowserClient();
+        if (mode === "signup" && ownerLoginOnly) {
+          throw new Error("Owner accounts cannot be created from the website. Log in with an existing super admin account.");
+        }
+
         const authRole = mode === "signup" ? selectedSignupRole : "employee";
 
         if (!form.password || form.password.length < 6) {
@@ -318,6 +326,10 @@ export function AuthExperience({
 
       const supabase = createSupabaseBrowserClient();
       const redirectTo = new URL("/auth/callback", window.location.origin);
+      if (mode === "signup" && ownerLoginOnly) {
+        throw new Error("Owner accounts cannot be created from the website. Log in with an existing super admin account.");
+      }
+
       const authRole = mode === "signup" ? selectedSignupRole : "employee";
       if (inviteToken) {
         redirectTo.searchParams.set("invite", inviteToken);
@@ -373,24 +385,40 @@ export function AuthExperience({
           ? "Create a company admin account for a new company, or create a regular user account for an invited team member."
           : "Use your work email and password to access your workspace."}
       </p>
-      {mode === "login" ? (
-        <Link className={`auth-owner-shortcut ${selectedRole === "super_admin" ? "active" : ""}`} href={getAuthModeHref("login", "super_admin", "/admin")}>
-          <span>Owner / super admin login</span>
-          <ArrowRight size={15} />
-        </Link>
+      {roleChoiceOnly ? (
+        <div className="auth-role-shortcuts auth-role-entry" aria-label="Choose how you want to enter GETH">
+          <p>Choose how you want to enter GETH.</p>
+          <div className="auth-role-shortcut-list">
+            {roleShortcuts.map((role) => (
+              <Link
+                className="auth-role-shortcut"
+                href={getAuthModeHref("login", role.value, getRoleTargetPath(role.value))}
+                key={role.value}
+              >
+                {role.label} <ArrowRight size={15} />
+              </Link>
+            ))}
+          </div>
+        </div>
       ) : null}
-      {mode === "signup" ? (
-        <Link className="btn btn-secondary btn-full auth-switch-cta" href={getAuthModeHref("login")}>
-          Already have an account? Log in <ArrowRight size={16} />
-        </Link>
+      {!roleChoiceOnly && !ownerLoginOnly ? (
+        <div className="auth-mode-tabs" aria-label="Choose login or sign up">
+          <Link className={mode === "login" ? "active" : ""} href={getAuthModeHref("login", selectedRole, getRoleTargetPath(selectedRole))}>
+            Log in
+          </Link>
+          <Link className={mode === "signup" ? "active" : ""} href={getAuthModeHref("signup", selectedRole, getRoleTargetPath(selectedRole))}>
+            Sign up
+          </Link>
+        </div>
       ) : null}
-      <div className="auth-role-shortcuts" aria-label={mode === "signup" ? "Choose signup role" : "Choose login role"}>
-        <p>Choose how you want to enter GETH.</p>
+      {!roleChoiceOnly && !ownerLoginOnly ? (
+        <div className="auth-role-shortcuts" aria-label={mode === "signup" ? "Choose signup role" : "Choose login role"}>
+          <p>Switch entry type.</p>
         <div className="auth-role-shortcut-list">
           {roleShortcuts.map((role) => (
             <Link
               className={`auth-role-shortcut ${selectedRole === role.value ? "active" : ""}`}
-              href={getAuthModeHref(mode, role.value)}
+              href={getAuthModeHref(mode, role.value, getRoleTargetPath(role.value))}
               key={role.value}
               aria-current={selectedRole === role.value ? "page" : undefined}
             >
@@ -399,7 +427,8 @@ export function AuthExperience({
           ))}
         </div>
         {inviteToken ? <span className="auth-role-shortcuts-note">Invitation details decide your final company, team, and role.</span> : null}
-      </div>
+        </div>
+      ) : null}
       {inviteToken ? <p className="auth-status invite-status">This sign-in will apply your invitation after the magic link is opened.</p> : null}
       {getAuthErrorCopy(authError) ? <p className="auth-status auth-error-status">{getAuthErrorCopy(authError)}</p> : null}
       {authError === "missing_profile" ? (
@@ -408,33 +437,33 @@ export function AuthExperience({
         </button>
       ) : null}
 
-      <form onSubmit={handleSubmit}>
-        {mode === "signup" ? (
+      {roleChoiceOnly ? null : <form onSubmit={handleSubmit}>
+        {mode === "signup" && !ownerLoginOnly ? (
           <>
             <div className="form-field">
               <label htmlFor="name">Full name</label>
-              <input id="name" className="input" placeholder="Sarah van den Berg" value={form.name} onChange={(event) => updateField("name", event.target.value)} required />
+              <input id="name" className="input" placeholder="Sarah van den Berg" value={form.name} onChange={(event) => updateField("name", event.target.value)} autoComplete="name" required />
             </div>
             <div className="form-field">
               <label htmlFor="company">Company</label>
-              <input id="company" className="input" placeholder="ABC Company" value={form.company} onChange={(event) => updateField("company", event.target.value)} required />
+              <input id="company" className="input" placeholder="ABC Company" value={form.company} onChange={(event) => updateField("company", event.target.value)} autoComplete="organization" required />
             </div>
           </>
         ) : null}
         <div className="form-field">
           <label htmlFor="auth-email">Work email</label>
-          <input id="auth-email" className="input" type="email" placeholder="sarah@company.com" value={form.email} onChange={(event) => updateField("email", event.target.value)} required />
+          <input id="auth-email" className="input" type="email" placeholder="sarah@company.com" value={form.email} onChange={(event) => updateField("email", event.target.value)} autoComplete="email" required />
         </div>
         <div className="form-field">
           <label htmlFor="auth-password">Password</label>
           <div className="password-input-wrap">
-            <input id="auth-password" className="input" type={showPassword ? "text" : "password"} placeholder="At least 6 characters" value={form.password} onChange={(event) => updateField("password", event.target.value)} required minLength={6} />
+            <input id="auth-password" className="input" type={showPassword ? "text" : "password"} placeholder="At least 6 characters" value={form.password} onChange={(event) => updateField("password", event.target.value)} autoComplete={mode === "signup" ? "new-password" : "current-password"} required minLength={6} />
             <button className="password-toggle" type="button" onClick={() => setShowPassword((current) => !current)} aria-label={showPassword ? "Hide password" : "Show password"}>
               {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
             </button>
           </div>
         </div>
-        {mode === "signup" ? (
+        {mode === "signup" && !ownerLoginOnly ? (
           <div className="form-field">
             <label htmlFor="role">Account type</label>
             <select id="role" className="input" value={selectedSignupRole} onChange={(event) => setSelectedRole(event.target.value as DemoRole)}>
@@ -448,17 +477,17 @@ export function AuthExperience({
         ) : null}
 
         <button className={`btn ${mode === "signup" ? "btn-primary" : "btn-dark"} btn-full`} disabled={busy} type="submit">
-          {submitBusy ? "Working..." : supabaseReady ? (mode === "signup" ? "Create account" : "Log in") : "Continue in demo mode"} <ArrowRight size={16} />
+          {submitBusy ? "Working..." : supabaseReady ? (mode === "signup" && !ownerLoginOnly ? "Create account" : "Log in") : "Continue in demo mode"} <ArrowRight size={16} />
         </button>
-      </form>
+      </form>}
 
-      {supabaseReady ? (
+      {supabaseReady && !roleChoiceOnly ? (
         <button className="btn btn-secondary btn-full auth-demo-cta" type="button" onClick={sendMagicLink} disabled={busy}>
-          {magicLinkBusy ? "Sending magic link..." : mode === "signup" ? "Send magic link instead" : "Email me a magic link instead"}
+          {magicLinkBusy ? "Sending magic link..." : mode === "signup" && !ownerLoginOnly ? "Send magic link instead" : "Email me a magic link instead"}
         </button>
       ) : null}
 
-      {supabaseReady && mode === "login" ? (
+      {supabaseReady && mode === "login" && !roleChoiceOnly ? (
         <button className="btn btn-secondary btn-full auth-demo-cta" type="button" onClick={sendPasswordReset} disabled={busy}>
           {passwordResetBusy ? "Sending reset email..." : "Reset password"}
         </button>
@@ -472,7 +501,7 @@ export function AuthExperience({
       ) : null}
 
       <div className={`auth-links ${mode === "login" ? "auth-links-single" : ""}`}>
-        {mode === "signup" ? <Link href={getAuthModeHref("login")}>Already have an account?</Link> : null}
+        {mode === "signup" && !ownerLoginOnly ? <Link href={getAuthModeHref("login")}>Already have an account?</Link> : null}
         <Link href={getLocalizedPublicPath("/")}>Back to site</Link>
       </div>
     </div>

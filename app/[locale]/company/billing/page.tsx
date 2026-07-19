@@ -1,12 +1,8 @@
-import { FileText } from "lucide-react";
 import { redirect } from "next/navigation";
 import { getLocale } from "next-intl/server";
-import { requestInvoicePaymentAction } from "@/app/actions/billing";
 import { DashboardShell } from "@/components/DashboardShell";
 import { EmptyState } from "@/components/EmptyState";
-import { getMissingInvoiceConfig } from "@/lib/billing/eu-invoice";
 import { companyAdmin } from "@/lib/demo-data";
-import { hasSmtpConfig } from "@/lib/mail/nodemailer";
 import { getUnreadNotificationCount } from "@/lib/notifications";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -62,6 +58,8 @@ function getBillingMessage(code?: string) {
       return "Invoice request could not be saved. Please check the billing details and try again.";
     case "invoice_not_enabled":
       return "Invoice payments are not enabled for this plan.";
+    case "owner_managed":
+      return "Billing is managed by the GETH owner team. Company admins can view billing status and invoices here.";
     default:
       return null;
   }
@@ -154,8 +152,7 @@ export default async function CompanyBillingPage({
     redirect("/company/billing?billing=missing_company");
   }
 
-  const [{ data: plans, error: plansError }, { data: subscription, error: subscriptionError }, { data: invoices, error: invoicesError }, unreadNotifications] = await Promise.all([
-    supabase.from("plans").select("id, plan_key, name, description, price_cents, currency, interval, invoice_enabled").eq("active", true).order("sort_order"),
+  const [{ data: subscription, error: subscriptionError }, { data: invoices, error: invoicesError }, unreadNotifications] = await Promise.all([
     supabase
       .from("subscriptions")
       .select("status, current_period_end, cancel_at_period_end, payment_method, invoice_status, invoice_requested_at, billing_contact_email, plan:plans(name, plan_key)")
@@ -179,7 +176,7 @@ export default async function CompanyBillingPage({
     getUnreadNotificationCount(supabase, user.id)
   ]);
 
-  if (plansError || subscriptionError || invoicesError) {
+  if (subscriptionError || invoicesError) {
     throw new Error("Failed to load billing data.");
   }
 
@@ -189,8 +186,6 @@ export default async function CompanyBillingPage({
   const billingMethod = subscription?.payment_method ?? company.billing_payment_method ?? "invoice";
   const invoiceStatus = subscription?.invoice_status ?? (status === "invoice_requested" ? "requested" : "not_requested");
   const billingEmail = subscription?.billing_contact_email ?? company.billing_email ?? profile.email ?? "";
-  const missingInvoiceConfig = getMissingInvoiceConfig();
-  const smtpReady = hasSmtpConfig();
   const renewalDate = subscription?.current_period_end
     ? new Intl.DateTimeFormat("en", { dateStyle: "medium" }).format(new Date(subscription.current_period_end))
     : "Not scheduled";
@@ -199,7 +194,7 @@ export default async function CompanyBillingPage({
     <DashboardShell
       role="company"
       title="Billing"
-      subtitle="Invoice-based payment requests, plan status, and finance details."
+      subtitle="View your plan status, finance details, and generated invoices. Payments are handled by the GETH owner team."
       user={{
         name: `${profile.first_name ?? ""} ${profile.last_name ?? ""}`.trim() || "Company admin",
         initials: getInitials(profile.first_name, profile.last_name),
@@ -212,27 +207,6 @@ export default async function CompanyBillingPage({
           <strong>{message}</strong>
         </section>
       ) : null}
-
-      <section className="dashboard-grid two">
-        <article className="panel dashboard-panel">
-          <div className="eyebrow">Invoice readiness</div>
-          <h2>{missingInvoiceConfig.length ? "Finance details needed" : "European invoice generation ready"}</h2>
-          <p className="section-copy">
-            {missingInvoiceConfig.length
-              ? `Missing: ${missingInvoiceConfig.join(", ")}. Add these before generating legal invoices.`
-              : "Seller details, VAT settings, payment terms, and bank transfer fields are configured."}
-          </p>
-        </article>
-        <article className="panel dashboard-panel">
-          <div className="eyebrow">Email automation</div>
-          <h2>{smtpReady ? "get.pro SMTP ready" : "SMTP not configured"}</h2>
-          <p className="section-copy">
-            {smtpReady
-              ? "Generated invoices and invitations can be sent through the configured mailbox."
-              : "Add SMTP_HOST, SMTP_USER, SMTP_PASS, SMTP_FROM, and SMTP_REPLY_TO to send automated emails."}
-          </p>
-        </article>
-      </section>
 
       <section className="dashboard-grid three report-summary-grid">
         <article className="panel dashboard-panel report-summary-card">
@@ -266,54 +240,9 @@ export default async function CompanyBillingPage({
         </article>
         <article className="panel dashboard-panel">
           <div className="eyebrow">Billing configuration</div>
-          <h2>Invoice payments enabled</h2>
-          <p className="section-copy">For European customers, GETH supports manual invoice payment with VAT, purchase order, and billing address details. No card checkout is required.</p>
+          <h2>Owner-managed billing</h2>
+          <p className="section-copy">The GETH owner team generates invoices, confirms payment, and activates company access. Company admins can download issued invoices here.</p>
         </article>
-      </section>
-
-      <section className="dashboard-grid three">
-        {(plans ?? []).length ? (
-          (plans ?? []).map((plan) => (
-            <article className="panel dashboard-panel billing-plan-card" key={plan.id}>
-              <div className="eyebrow">{plan.plan_key}</div>
-              <h2>{plan.name}</h2>
-              <strong>{formatMoney(plan.price_cents, plan.currency, plan.interval)}</strong>
-              <p className="section-copy">{plan.description ?? "GETH subscription plan."}</p>
-              <form action={requestInvoicePaymentAction} className="stacked-form">
-                <input type="hidden" name="planId" value={plan.id} />
-                <input type="hidden" name="locale" value={locale} />
-                <label className="form-field">
-                  <span>Billing email</span>
-                  <input className="input" name="billingEmail" type="email" defaultValue={billingEmail} placeholder="finance@company.eu" />
-                </label>
-                <label className="form-field">
-                  <span>VAT number</span>
-                  <input className="input" name="vatNumber" placeholder="EU VAT number, if applicable" />
-                </label>
-                <label className="form-field">
-                  <span>Purchase order</span>
-                  <input className="input" name="purchaseOrderNumber" placeholder="Optional PO number" />
-                </label>
-                <label className="form-field">
-                  <span>Billing address</span>
-                  <textarea className="input" name="billingAddress" rows={3} placeholder="Company legal billing address" />
-                </label>
-                <label className="form-field">
-                  <span>Notes</span>
-                  <textarea className="input" name="notes" rows={2} placeholder="Anything finance should know" />
-                </label>
-                <button className="btn btn-primary" type="submit" disabled={plan.invoice_enabled === false}>
-                  <FileText size={16} /> Generate invoice
-                </button>
-              </form>
-              {plan.invoice_enabled === false ? <p className="section-copy">Invoice payment is not enabled for this plan.</p> : null}
-            </article>
-          ))
-        ) : (
-          <article className="panel dashboard-panel">
-            <EmptyState eyebrow="No plans" title="Plans have not been seeded" copy="Run the billing migration to create Starter, Growth, and Enterprise plan rows." />
-          </article>
-        )}
       </section>
 
       <article className="panel dashboard-panel">

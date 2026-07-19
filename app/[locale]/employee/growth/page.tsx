@@ -3,7 +3,7 @@ import { BarChart } from "@/components/BarChart";
 import { DashboardShell } from "@/components/DashboardShell";
 import { EmptyState } from "@/components/EmptyState";
 import { QualityBars, type QualityBarItem } from "@/components/QualityBars";
-import { categoryMeta, getCategoryDisplayName, type CardCategory } from "@/lib/cards";
+import { categoryMeta, getCategoryDisplayName, getLocalizedCardTitle, type CardCategory } from "@/lib/cards";
 import { currentUser, employeeCategoryBreakdown, employeeGrowthPoints } from "@/lib/demo-data";
 import { getUnreadNotificationCount } from "@/lib/notifications";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -22,7 +22,9 @@ function getMonthKey(date: Date) {
 
 const fourCCategories: CardCategory[] = ["Communicatie", "Creativiteit", "Competentie", "Collegialiteit"];
 
-export default async function EmployeeGrowthPage() {
+export default async function EmployeeGrowthPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+
   if (!hasSupabaseServerConfig()) {
     return (
       <DashboardShell role="employee" title="Growth story" subtitle="Watch your qualities and recognition signals evolve over time." user={currentUser} actions={<span className="quality-pill">Demo fallback</span>}>
@@ -66,7 +68,7 @@ export default async function EmployeeGrowthPage() {
       : Promise.resolve({ data: null }),
     supabase
       .from("recognition_events")
-      .select("id, created_at, card:card_library(title, category)")
+      .select("id, created_at, card:card_library(title, category, qr_slug)")
       .eq("receiver_user_id", user.id)
       .order("created_at", { ascending: true }),
     getUnreadNotificationCount(supabase, user.id)
@@ -77,7 +79,7 @@ export default async function EmployeeGrowthPage() {
   const recognitions = (rows ?? []) as Array<{
     id: string;
     created_at: string;
-    card: { title: string; category: string } | Array<{ title: string; category: string }> | null;
+    card: { title: string; category: string; qr_slug?: string | null } | Array<{ title: string; category: string; qr_slug?: string | null }> | null;
   }>;
 
   const monthWindows = Array.from({ length: 6 }, (_, index) => {
@@ -94,8 +96,9 @@ export default async function EmployeeGrowthPage() {
     const monthKey = getMonthKey(new Date(recognition.created_at));
     if (monthlyCounts.has(monthKey)) monthlyCounts.set(monthKey, (monthlyCounts.get(monthKey) ?? 0) + 1);
     categoryCounts.set(card.category, (categoryCounts.get(card.category) ?? 0) + 1);
-    const existing = qualityCounts.get(card.title);
-    qualityCounts.set(card.title, { value: (existing?.value ?? 0) + 1, category: card.category });
+    const label = getLocalizedCardTitle({ title: card.title, slug: card.qr_slug ?? undefined }, locale);
+    const existing = qualityCounts.get(label);
+    qualityCounts.set(label, { value: (existing?.value ?? 0) + 1, category: card.category });
   }
 
   const categoryRows = Array.from(categoryCounts.entries()).sort((a, b) => b[1] - a[1]);

@@ -20,7 +20,7 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
       <body>
         <main className="app-error-shell">
           <section className="app-error-card">
-            <p className="eyebrow">GETH Connected Cards</p>
+            <p className="eyebrow">GETH</p>
             <h1>The app hit a temporary error.</h1>
             <p>
               This is usually fixed by trying again. If you are developing locally, restart the dev server after clearing

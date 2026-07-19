@@ -1,9 +1,10 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { BarChart3, Building2, CreditCard, QrCode, Sparkles, UsersRound } from "lucide-react";
+import { BarChart3, Building2, CalendarCheck2, CreditCard, UsersRound } from "lucide-react";
 import { BarChart } from "@/components/BarChart";
 import { DashboardShell } from "@/components/DashboardShell";
 import { EmptyState } from "@/components/EmptyState";
+import { LineChart } from "@/components/LineChart";
 import { MetricCard } from "@/components/MetricCard";
 import { superAdminUser } from "@/lib/demo-data";
 import { getUnreadNotificationCount } from "@/lib/notifications";
@@ -17,7 +18,9 @@ function getMonthKey(date: Date) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
 }
 
-export default async function AdminDashboardPage() {
+export default async function AdminDashboardPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
     return (
       <DashboardShell role="admin" title="Platform overview" subtitle="Supabase is not configured yet." user={superAdminUser}>
@@ -33,7 +36,7 @@ export default async function AdminDashboardPage() {
   } = await supabase.auth.getUser();
 
   if (userError || !user) {
-    redirect("/login");
+    redirect(`/${locale}/login`);
   }
 
   const { data: profile, error: profileError } = await supabase
@@ -52,15 +55,21 @@ export default async function AdminDashboardPage() {
     { count: profileCount },
     { count: recognitionCount },
     { count: cardCount },
+    { count: demoBookingCount },
+    { count: pendingDemoBookingCount },
     { data: companies },
-    { data: recognitions }
+    { data: recognitions },
+    { data: userRows }
   ] = await Promise.all([
     supabase.from("companies").select("id", { count: "exact", head: true }),
     supabase.from("profiles").select("id", { count: "exact", head: true }),
     supabase.from("recognition_events").select("id", { count: "exact", head: true }),
     supabase.from("card_library").select("id", { count: "exact", head: true }),
+    supabase.from("demo_bookings").select("id", { count: "exact", head: true }),
+    supabase.from("demo_bookings").select("id", { count: "exact", head: true }).eq("status", "pending"),
     supabase.from("companies").select("id, company_name, subscription_plan, status, created_at").order("created_at", { ascending: false }).limit(6),
-    supabase.from("recognition_events").select("created_at").order("created_at", { ascending: false }).limit(500)
+    supabase.from("recognition_events").select("created_at").order("created_at", { ascending: false }).limit(500),
+    supabase.from("profiles").select("created_at").order("created_at", { ascending: false }).limit(1000)
   ]);
 
   const monthWindows = Array.from({ length: 6 }, (_, index) => {
@@ -77,6 +86,12 @@ export default async function AdminDashboardPage() {
   }
 
   const trendPoints = monthWindows.map((month) => monthlyCounts.get(month.key) ?? 0);
+  const monthlyUserCounts = new Map<string, number>();
+  for (const profileRow of userRows ?? []) {
+    const key = getMonthKey(new Date(profileRow.created_at));
+    monthlyUserCounts.set(key, (monthlyUserCounts.get(key) ?? 0) + 1);
+  }
+  const userTrendPoints = monthWindows.map((month) => monthlyUserCounts.get(month.key) ?? 0);
 
   return (
     <DashboardShell
@@ -96,6 +111,7 @@ export default async function AdminDashboardPage() {
         <MetricCard icon={<UsersRound />} value={profileCount ?? 0} label="Users" helper="All platform profiles" />
         <MetricCard icon={<BarChart3 />} value={recognitionCount ?? 0} label="Recognitions" helper="Claimed events" tone="var(--theme-emerald)" iconBackground="rgba(58, 166, 95, 0.12)" />
         <MetricCard icon={<CreditCard />} value={cardCount ?? 0} label="Cards" helper="Library templates" tone="var(--theme-gold)" iconBackground="rgba(216, 162, 58, 0.12)" />
+        <MetricCard icon={<CalendarCheck2 />} value={demoBookingCount ?? 0} label="Demo requests" helper={`${pendingDemoBookingCount ?? 0} pending owner reviews`} tone="var(--theme-sky)" iconBackground="rgba(47, 119, 184, 0.12)" />
       </section>
 
       <section className="dashboard-grid two admin-overview-graphics">
@@ -105,7 +121,7 @@ export default async function AdminDashboardPage() {
               <h2>Recognition activity</h2>
               <p>Platform recognition volume across recent months.</p>
             </div>
-            <Link className="quality-pill" href="/admin/analytics">Analytics</Link>
+            <Link className="quality-pill" href={`/${locale}/admin/analytics`}>Analytics</Link>
           </div>
           {recognitionCount ? (
             <BarChart items={monthWindows.map((month, index) => ({ label: month.label, value: trendPoints[index] ?? 0, color: "var(--theme-ink)" }))} />
@@ -117,16 +133,15 @@ export default async function AdminDashboardPage() {
         <article className="panel dashboard-panel">
           <div className="panel-top">
             <div>
-              <h2>Quick actions</h2>
-              <p>Jump to the key platform controls.</p>
+              <h2>User growth</h2>
+              <p>New platform users created across recent months.</p>
             </div>
           </div>
-          <div className="admin-action-grid">
-            <Link className="btn btn-secondary" href="/admin/companies"><Building2 size={16} /> Companies</Link>
-            <Link className="btn btn-secondary" href="/admin/cards"><Sparkles size={16} /> Card library</Link>
-            <Link className="btn btn-secondary" href="/admin/qr-routes"><QrCode size={16} /> QR routes</Link>
-            <Link className="btn btn-secondary" href="/admin/subscriptions"><CreditCard size={16} /> Subscriptions</Link>
-          </div>
+          {profileCount ? (
+            <LineChart points={userTrendPoints} labels={monthWindows.map((month) => month.label)} color="var(--theme-gold)" />
+          ) : (
+            <EmptyState title="No user growth yet" copy="New company admins, managers, and employees will appear here once accounts are created." />
+          )}
         </article>
       </section>
 
@@ -136,7 +151,7 @@ export default async function AdminDashboardPage() {
             <h2>Recent companies</h2>
             <p>Latest tenant workspaces in the platform.</p>
           </div>
-          <Link href="/admin/companies" className="panel-link">View all</Link>
+          <Link href={`/${locale}/admin/companies`} className="panel-link">View all</Link>
         </div>
         {companies?.length ? (
           <div className="table-wrap">
