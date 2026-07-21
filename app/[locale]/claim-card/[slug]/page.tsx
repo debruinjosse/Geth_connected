@@ -102,7 +102,7 @@ export default async function ClaimCardPage({ params }: { params: Promise<{ loca
       <header className="claim-header">
         <BrandLogo href={`/${locale}`} />
         <div className="claim-header-right">
-          <a className="claim-help" href="mailto:hello@geth.com?subject=GETH%20claim%20card%20help">
+          <a className="claim-help" href="mailto:info@geth.pro?subject=GETH%20claim%20card%20help">
             <HelpCircle size={16} style={{ verticalAlign: "middle", marginRight: 6 }} />
             Help
           </a>

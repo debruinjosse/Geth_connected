@@ -91,7 +91,7 @@ export async function sendInviteEmail({
   roleLabel: string;
   expiresAt: string;
 }) {
-  const from = process.env.SMTP_FROM || "GETH <hello@geth.com>";
+  const from = process.env.SMTP_FROM || "GETH <info@geth.pro>";
   const replyTo = process.env.SMTP_REPLY_TO || undefined;
 
   try {
@@ -125,7 +125,7 @@ export async function sendInvoiceEmail({
   invoiceUrl: string;
   pdf: Buffer;
 }) {
-  const from = process.env.SMTP_FROM || "GETH <hello@get.pro>";
+  const from = process.env.SMTP_FROM || "GETH <info@geth.pro>";
   const replyTo = process.env.SMTP_REPLY_TO || undefined;
 
   try {
@@ -162,7 +162,7 @@ export async function sendCalendarInviteEmail({
   ics: string;
   filename?: string;
 }) {
-  const from = process.env.SMTP_FROM || "GETH <hello@get.pro>";
+  const from = process.env.SMTP_FROM || "GETH <info@geth.pro>";
   const replyTo = process.env.SMTP_REPLY_TO || undefined;
 
   try {
@@ -211,7 +211,7 @@ export async function sendDemoBookingRequestEmails({
   message: string;
   adminUrl: string;
 }) {
-  const from = process.env.SMTP_FROM || "GETH <hello@get.pro>";
+  const from = process.env.SMTP_FROM || "GETH <info@geth.pro>";
   const replyTo = process.env.SMTP_REPLY_TO || requesterEmail;
   const adminText = [
     "New GETH demo request",
@@ -277,7 +277,7 @@ export async function sendDemoBookingDecisionEmail({
   adminNote: string;
   ics?: string;
 }) {
-  const from = process.env.SMTP_FROM || "GETH <hello@get.pro>";
+  const from = process.env.SMTP_FROM || "GETH <info@geth.pro>";
   const replyTo = process.env.SMTP_REPLY_TO || undefined;
   const approved = status === "approved";
   const text = [

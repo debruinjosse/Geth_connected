@@ -128,7 +128,7 @@ export async function PublicSiteChrome({
           <footer className="site-footer">
             <div>
               <BrandLogo href={`/${locale}`} />
-              <small>hello@geth.com</small>
+              <small>info@geth.pro</small>
             </div>
             <div className="footer-links">
               <Link href={localizeHref("/pricing", locale)}>{nav("pricing")}</Link>

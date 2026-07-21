@@ -98,7 +98,7 @@ export const termsContent: LegalSection[] = [
   },
   {
     title: "19. Contact",
-    body: "GETH\nEmail: info@geth.company\nWebsite: www.geth.company"
+    body: "GETH\nEmail: info@geth.pro\nWebsite: www.geth.pro"
   }
 ];
 
@@ -168,6 +168,6 @@ export const privacyContent: LegalSection[] = [
   {
     title: "14. Contact",
     body:
-      "If you have questions about this Privacy Policy or wish to exercise your privacy rights, please contact:\nGETH\nEmail: info@geth.company\nWebsite: www.geth.company"
+      "If you have questions about this Privacy Policy or wish to exercise your privacy rights, please contact:\nGETH\nEmail: info@geth.pro\nWebsite: www.geth.pro"
   }
 ];
