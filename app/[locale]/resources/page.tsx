@@ -2,9 +2,7 @@ import Link from "next/link";
 import { PublicSiteChrome } from "@/components/PublicSiteChrome";
 
 const resources = [
-  ["Documentation", "Implementation guidance, onboarding notes, and setup walkthroughs."],
   ["API", "How connected-card routes, recognitions, and dashboards can be wired to backend systems."],
-  ["Blog", "Stories, launch notes, and culture design insights from the GETH team."],
   ["Support", "Contact help, submit rollout questions, and review security resources."]
 ];
 
@@ -17,7 +15,7 @@ export default async function ResourcesPage({ params }: { params: Promise<{ loca
         <div className="section-head">
           <div className="eyebrow">Resources</div>
           <h1 className="section-title">Everything your rollout team needs</h1>
-          <p className="section-copy">A polished placeholder resources hub for documentation, API references, thought leadership, and support.</p>
+          <p className="section-copy">A focused resources hub for API references and support.</p>
         </div>
         <div className="audience-grid">
           {resources.map(([title, copy]) => (

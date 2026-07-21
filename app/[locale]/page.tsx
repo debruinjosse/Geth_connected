@@ -41,7 +41,7 @@ export default async function LandingPage({ params }: LandingPageProps) {
     [t("managersLabel"), t("managersTitle"), t("managersCopy"), UsersRound],
     [t("employeesLabel"), t("employeesTitle"), t("employeesCopy"), HeartHandshake]
   ];
-  const bookDemoHref = `/${locale}/book-demo`;
+  const bookDemoHref = "/book-demo";
 
   return (
     <PublicSiteChrome locale={locale}>

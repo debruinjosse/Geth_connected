@@ -167,7 +167,7 @@ const pricingCopy: Record<string, PricingCopy> = {
         monthly: "Custom",
         yearly: "Custom",
         icon: "enterprise",
-        features: ["For stoerre organisationer", "Ubegrænsede medarbejdere", "Personligt anerkendelsesdashboard", "Connected cards oplevelse", "Avanceret analytics", "Managerindsigter", "Organisationsindsigter", "Anerkendelsesrapporter", "SSO & integrationer", "Dedikeret support"]
+        features: ["For stoerre organisationer", "Ubegraensede medarbejdere", "Personligt anerkendelsesdashboard", "Connected cards oplevelse", "Avanceret analytics", "Managerindsigter", "Organisationsindsigter", "Anerkendelsesrapporter", "SSO & integrationer", "Dedikeret support"]
       }
     ]
   }

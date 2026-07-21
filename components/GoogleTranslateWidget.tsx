@@ -113,6 +113,7 @@ export function GoogleTranslateWidget() {
       <button className="google-translate-toggle" type="button" onClick={() => setOpen((value) => !value)} aria-label="Translate website">
         <Languages size={18} />
         <span>Translate</span>
+        <strong className="google-translate-current">{activeLocale.toUpperCase()}</strong>
       </button>
     </div>
   );

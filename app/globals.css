@@ -271,6 +271,10 @@ img {
   padding: 9px 13px;
 }
 
+.google-translate-current {
+  display: none;
+}
+
 .google-translate-panel {
   background: rgba(255, 253, 248, 0.98);
   border: 1px solid rgba(36, 16, 51, 0.12);
@@ -1686,15 +1690,15 @@ img {
   position: absolute;
   width: 180px;
   height: auto;
-  color: rgba(216, 162, 58, 0.52);
-  opacity: 0.85;
+  color: rgba(216, 162, 58, 0.24);
+  opacity: 0.58;
   pointer-events: none;
   z-index: 0;
 }
 
 .golden-leaves path {
   stroke: currentColor;
-  stroke-width: 2;
+  stroke-width: 1.6;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
@@ -5489,7 +5493,7 @@ textarea.input {
 
   .google-translate-toggle {
     min-height: 36px;
-    padding: 9px 11px;
+    padding: 8px 10px;
     white-space: nowrap;
   }
 
@@ -5828,7 +5832,11 @@ textarea.input {
 
   .pricing-plan-card {
     min-height: auto;
-    padding: 30px 22px 24px;
+    padding: 30px 22px 26px;
+  }
+
+  .pricing-contact-button {
+    margin-top: 34px;
   }
 }
 
@@ -5846,9 +5854,34 @@ textarea.input {
   }
 
   .google-translate-toggle {
-    aspect-ratio: 1;
+    border: 1px solid rgba(255, 253, 248, 0.22);
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.14);
+    gap: 5px;
     justify-content: center;
-    padding-inline: 9px;
+    min-width: 58px;
+    padding: 8px 10px;
+  }
+
+  .google-translate-toggle svg {
+    height: 16px;
+    width: 16px;
+  }
+
+  .google-translate-current {
+    display: inline;
+    font-size: 11px;
+    font-weight: 900;
+    letter-spacing: 0.04em;
+    line-height: 1;
+  }
+
+  .google-translate-panel {
+    left: 12px;
+    max-width: none;
+    position: fixed;
+    right: 12px;
+    top: 72px;
+    width: auto;
   }
 
   .hero {
