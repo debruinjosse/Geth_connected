@@ -62,6 +62,9 @@ export default async function LandingPage({ params }: LandingPageProps) {
             <Reveal delay={0.18}>
               <p>{t("description")}</p>
             </Reveal>
+            <div className="mobileHeroPreview" aria-hidden="true">
+              <HeroDashboardMockup />
+            </div>
             <Reveal className="hero-actions" delay={0.26} distance={14}>
               <Link className="btn btn-dark" href="/book-demo">
                 {nav("bookDemo")} <ArrowRight size={16} />
@@ -83,7 +86,9 @@ export default async function LandingPage({ params }: LandingPageProps) {
             </Reveal>
           </div>
 
-          <HeroDashboardMockup />
+          <div className="desktopHeroPreview">
+            <HeroDashboardMockup />
+          </div>
         </div>
         <a className="scrollToExplore" href="#how-it-works">
           <span>{t("scrollExplore")}</span>

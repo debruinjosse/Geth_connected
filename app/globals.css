@@ -630,6 +630,14 @@ img {
   min-width: 0;
 }
 
+.mobileHeroPreview {
+  display: none;
+}
+
+.desktopHeroPreview {
+  min-width: 0;
+}
+
 .hero-device-stage {
   display: flex;
   align-items: center;
@@ -5519,6 +5527,15 @@ textarea.input {
     gap: 24px;
   }
 
+  .desktopHeroPreview {
+    display: none;
+  }
+
+  .mobileHeroPreview {
+    display: block;
+    margin: 18px 0 4px;
+  }
+
   .hero h1 {
     font-size: clamp(42px, 15vw, 58px);
     line-height: 0.94;
@@ -5563,7 +5580,7 @@ textarea.input {
     padding: 2px 0 8px;
   }
 
-  .landingHero .hero-visual {
+  .mobileHeroPreview .hero-visual {
     display: block;
     margin-top: 4px;
   }
@@ -5885,19 +5902,34 @@ textarea.input {
   }
 
   .hero {
-    padding-block: 28px 30px;
+    padding-block: 22px 28px;
   }
 
   .hero h1 {
-    font-size: clamp(40px, 14vw, 52px);
+    font-size: clamp(38px, 13.2vw, 50px);
+    margin: 12px 0 12px;
+  }
+
+  .hero p {
+    font-size: 14px;
+    line-height: 1.48;
+    margin-block: 0;
+  }
+
+  .mobileHeroPreview {
+    margin-top: 14px;
+  }
+
+  .mobileHeroPreview .hero-laptop {
+    max-width: 96%;
   }
 
   .hero-actions {
-    margin-top: 22px;
+    margin-top: 18px;
   }
 
   .trust-row {
-    margin-top: 18px;
+    margin-top: 14px;
   }
 
   .hero-screen-shell {
