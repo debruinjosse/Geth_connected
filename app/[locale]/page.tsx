@@ -59,12 +59,12 @@ export default async function LandingPage({ params }: LandingPageProps) {
                 {t("headlineLine2")}
               </h1>
             </Reveal>
-            <Reveal delay={0.18}>
-              <p>{t("description")}</p>
-            </Reveal>
             <div className="mobileHeroPreview" aria-hidden="true">
               <HeroDashboardMockup />
             </div>
+            <Reveal delay={0.18}>
+              <p>{t("description")}</p>
+            </Reveal>
             <Reveal className="hero-actions" delay={0.26} distance={14}>
               <Link className="btn btn-dark" href="/book-demo">
                 {nav("bookDemo")} <ArrowRight size={16} />

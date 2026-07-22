@@ -5533,7 +5533,7 @@ textarea.input {
 
   .mobileHeroPreview {
     display: block;
-    margin: 18px 0 4px;
+    margin: 14px 0 16px;
   }
 
   .hero h1 {
@@ -5544,6 +5544,7 @@ textarea.input {
   .hero p {
     font-size: 15px;
     line-height: 1.58;
+    margin-top: 0;
   }
 
   .hero-actions,
@@ -5917,11 +5918,11 @@ textarea.input {
   }
 
   .mobileHeroPreview {
-    margin-top: 14px;
+    margin: 10px 0 14px;
   }
 
   .mobileHeroPreview .hero-laptop {
-    max-width: 96%;
+    max-width: 94%;
   }
 
   .hero-actions {
