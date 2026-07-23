@@ -5735,7 +5735,7 @@ textarea.input {
     display: block;
     margin: 0 auto 56px;
     max-width: 420px;
-    width: 100%;
+    width: min(calc(100% - 32px), 420px);
   }
 
   .mobileHeroPreview.reveal-stable {
@@ -5958,7 +5958,7 @@ textarea.input {
     border: 1px solid rgba(36, 16, 51, 0.08);
     border-radius: 999px;
     box-shadow: 0 12px 28px rgba(36, 16, 51, 0.08);
-    display: inline-flex;
+    display: flex;
     justify-self: center;
     font-size: 9px;
     letter-spacing: 0.18em;
@@ -5966,6 +5966,7 @@ textarea.input {
     padding: 8px 12px;
     position: relative;
     white-space: nowrap;
+    width: max-content;
   }
 
   .section-shell-compact {
@@ -6136,7 +6137,7 @@ textarea.input {
   .mobileHeroPreview {
     margin: 0 auto 56px;
     max-width: 420px;
-    width: 100%;
+    width: min(calc(100% - 32px), 420px);
   }
 
   .mobile-hero-product-preview {
