@@ -6069,6 +6069,10 @@ textarea.input {
 }
 
 @media (min-width: 768px) {
+  .desktopHeroPreview {
+    display: block;
+  }
+
   .mobileHeroPreview,
   .mobile-hero-product-preview {
     display: none !important;
