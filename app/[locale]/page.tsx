@@ -15,6 +15,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { GoldenLeaves } from "@/components/GoldenLeaves";
 import { HeroDashboardMockup } from "@/components/HeroDashboardMockup";
+import { MobileHeroProductPreview } from "@/components/MobileHeroProductPreview";
 import { PublicSiteChrome } from "@/components/PublicSiteChrome";
 import { Reveal } from "@/components/Reveal";
 import { CardDeckPreview } from "@/components/sections/card-deck-preview";
@@ -59,9 +60,6 @@ export default async function LandingPage({ params }: LandingPageProps) {
                 {t("headlineLine2")}
               </h1>
             </Reveal>
-            <div className="mobileHeroPreview" aria-hidden="true">
-              <HeroDashboardMockup />
-            </div>
             <Reveal delay={0.18}>
               <p>{t("description")}</p>
             </Reveal>
@@ -94,6 +92,9 @@ export default async function LandingPage({ params }: LandingPageProps) {
           <span>{t("scrollExplore")}</span>
           <ArrowRight size={16} />
         </a>
+        <Reveal className="mobileHeroPreview" delay={0.04} distance={24}>
+          <MobileHeroProductPreview />
+        </Reveal>
       </section>
 
       <section className="section-shell section-shell-compact" id="how-it-works">

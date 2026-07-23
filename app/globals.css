@@ -638,6 +638,10 @@ img {
   min-width: 0;
 }
 
+.mobile-hero-product-preview {
+  display: none;
+}
+
 .hero-device-stage {
   display: flex;
   align-items: center;
@@ -757,6 +761,185 @@ img {
   border-radius: 999px;
   transform: translateX(-50%);
   background: rgba(114, 114, 120, 0.4);
+}
+
+.mobile-hero-product-preview {
+  background:
+    radial-gradient(circle at 90% 0%, rgba(216, 162, 58, 0.14), transparent 34%),
+    linear-gradient(180deg, rgba(255, 253, 248, 0.98), rgba(251, 248, 241, 0.96));
+  border: 1px solid rgba(36, 16, 51, 0.12);
+  border-radius: 22px;
+  box-shadow: 0 22px 54px rgba(31, 18, 42, 0.12);
+  color: var(--theme-ink);
+  overflow: hidden;
+  padding: 16px;
+}
+
+.mobile-preview-header,
+.mobile-preview-panel-head,
+.mobile-preview-insight {
+  align-items: center;
+  display: flex;
+}
+
+.mobile-preview-header {
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.mobile-preview-header div {
+  display: grid;
+  gap: 3px;
+}
+
+.mobile-preview-header strong {
+  font-size: 16px;
+  line-height: 1.15;
+}
+
+.mobile-preview-header span,
+.mobile-preview-panel-head span,
+.mobile-preview-kpi span {
+  color: var(--theme-muted);
+  font-size: 11px;
+  font-weight: 750;
+}
+
+.mobile-preview-header i {
+  background: linear-gradient(135deg, var(--theme-gold), var(--theme-gold-deep));
+  border-radius: 999px;
+  box-shadow: 0 8px 18px rgba(216, 162, 58, 0.22);
+  height: 34px;
+  width: 34px;
+}
+
+.mobile-preview-kpis {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-bottom: 10px;
+}
+
+.mobile-preview-kpi,
+.mobile-preview-panel {
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(36, 16, 51, 0.08);
+  box-shadow: 0 10px 24px rgba(31, 18, 42, 0.05);
+}
+
+.mobile-preview-kpi {
+  border-radius: 16px;
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  padding: 10px;
+}
+
+.mobile-preview-kpi strong {
+  color: var(--theme-ink);
+  font-size: 21px;
+  letter-spacing: -0.04em;
+  line-height: 1;
+}
+
+.mobile-preview-grid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+}
+
+.mobile-preview-panel {
+  border-radius: 18px;
+  min-width: 0;
+  padding: 12px;
+}
+
+.mobile-preview-panel-head {
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.mobile-preview-panel-head strong {
+  font-size: 12px;
+  line-height: 1.15;
+}
+
+.mobile-preview-quality-list {
+  display: grid;
+  gap: 9px;
+}
+
+.mobile-preview-quality {
+  display: grid;
+  gap: 5px;
+}
+
+.mobile-preview-quality span {
+  color: var(--theme-muted);
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.mobile-preview-quality div {
+  background: rgba(36, 16, 51, 0.08);
+  border-radius: 999px;
+  height: 6px;
+  overflow: hidden;
+}
+
+.mobile-preview-quality i {
+  background: linear-gradient(90deg, var(--theme-gold), var(--theme-emerald));
+  border-radius: inherit;
+  display: block;
+  height: 100%;
+}
+
+.mobile-preview-trend svg {
+  display: block;
+  height: auto;
+  width: 100%;
+}
+
+.mobile-preview-trend path:first-child {
+  fill: none;
+  stroke: rgba(36, 16, 51, 0.1);
+  stroke-width: 2;
+}
+
+.mobile-preview-trend path:nth-child(2) {
+  fill: none;
+  stroke: var(--theme-gold-deep);
+  stroke-linecap: round;
+  stroke-width: 5;
+}
+
+.mobile-preview-trend circle {
+  fill: var(--theme-ink);
+}
+
+.mobile-preview-insight {
+  background: rgba(36, 16, 51, 0.94);
+  border-radius: 999px;
+  color: #fffdf8;
+  gap: 8px;
+  justify-content: center;
+  margin-top: 12px;
+  min-height: 38px;
+  padding: 9px 12px;
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.mobile-preview-insight span {
+  align-items: center;
+  background: rgba(216, 162, 58, 0.22);
+  border-radius: 999px;
+  color: var(--theme-gold-soft);
+  display: inline-flex;
+  height: 21px;
+  justify-content: center;
+  width: 21px;
 }
 
 .hero-screen-shell {
@@ -5053,6 +5236,18 @@ textarea.input {
   }
 }
 
+@keyframes mobile-laptop-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 @keyframes hero-dashboard-card-in {
   from {
     opacity: 0;
@@ -5102,7 +5297,8 @@ textarea.input {
   .hero-quality-bar span,
   .hero-chart-trend,
   .hero-chart-point,
-  .scrollToExplore {
+  .scrollToExplore,
+  .mobileHeroPreview {
     animation: none;
     opacity: 1;
     transform: none;
@@ -5448,7 +5644,7 @@ textarea.input {
   }
 }
 
-@media (max-width: 760px) {
+@media (max-width: 768px) {
   :root {
     --page-pad: 16px;
   }
@@ -5461,6 +5657,7 @@ textarea.input {
     gap: 10px;
     min-height: 64px;
     padding-block: 10px;
+    max-width: 100%;
   }
 
   .site-header-inner .brand-logo {
@@ -5483,6 +5680,7 @@ textarea.input {
     gap: 8px;
     justify-content: flex-end;
     margin-left: auto;
+    min-width: 0;
   }
 
   .site-actions > a:not(.btn) {
@@ -5500,6 +5698,7 @@ textarea.input {
   }
 
   .google-translate-toggle {
+    flex: 0 0 auto;
     min-height: 36px;
     padding: 8px 10px;
     white-space: nowrap;
@@ -5510,7 +5709,7 @@ textarea.input {
   }
 
   .hero {
-    padding-block: 34px 34px;
+    padding-block: 34px 42px;
   }
 
   .landingHero {
@@ -5524,6 +5723,7 @@ textarea.input {
   }
 
   .landingHeroInner {
+    grid-template-columns: 1fr;
     gap: 24px;
   }
 
@@ -5533,7 +5733,19 @@ textarea.input {
 
   .mobileHeroPreview {
     display: block;
-    margin: 14px 0 16px;
+    margin: 0 auto 56px;
+    max-width: 420px;
+    width: 100%;
+  }
+
+  .mobileHeroPreview.reveal-stable {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+
+  .mobileHeroPreview.reveal-stable.is-visible {
+    animation: mobile-laptop-reveal 0.72s cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation-delay: var(--reveal-delay, 0s);
   }
 
   .hero h1 {
@@ -5569,6 +5781,8 @@ textarea.input {
 
   .trust-row {
     gap: 9px;
+    justify-content: center;
+    text-align: left;
   }
 
   .trust-row span {
@@ -5576,44 +5790,10 @@ textarea.input {
   }
 
   .hero-device-stage {
+    justify-content: center;
     min-height: 0;
     overflow: visible;
-    padding: 2px 0 8px;
-  }
-
-  .mobileHeroPreview .hero-visual {
-    display: block;
-    margin-top: 4px;
-  }
-
-  .hero-laptop {
-    border-radius: 22px;
-    margin-inline: auto;
-    max-width: min(100%, 520px);
-    padding: 0;
-    width: 100%;
-  }
-
-  .hero-laptop-shell {
-    border-radius: 24px 24px 16px 16px;
-    padding: 9px 9px 0;
-    box-shadow:
-      0 22px 46px rgba(18, 10, 30, 0.16),
-      0 10px 24px rgba(18, 10, 30, 0.12);
-  }
-
-  .hero-laptop-shell::before {
-    border-radius: 23px;
-  }
-
-  .hero-laptop-camera {
-    top: 4px;
-    width: 48px;
-    height: 5px;
-  }
-
-  .hero-laptop-screen {
-    border-radius: 15px 15px 9px 9px;
+    padding: 0 0 8px;
   }
 
   .hero-screen-shell {
@@ -5779,10 +5959,17 @@ textarea.input {
     border-radius: 999px;
     box-shadow: 0 12px 28px rgba(36, 16, 51, 0.08);
     display: inline-flex;
+    justify-self: center;
     font-size: 9px;
     letter-spacing: 0.18em;
-    margin-top: 12px;
+    margin: 24px auto 12px;
     padding: 8px 12px;
+    position: relative;
+    white-space: nowrap;
+  }
+
+  .section-shell-compact {
+    padding-top: 42px;
   }
 
   .audience-card {
@@ -5858,7 +6045,36 @@ textarea.input {
   }
 }
 
-@media (max-width: 460px) {
+@media (max-width: 767px) {
+  .landingHero {
+    overflow: visible;
+  }
+
+  .desktopHeroPreview,
+  .desktopHeroPreview .hero-device-stage,
+  .desktopHeroPreview .hero-laptop,
+  .desktopHeroPreview .hero-laptop-shell,
+  .desktopHeroPreview .hero-laptop-screen {
+    display: none !important;
+  }
+
+  .mobile-hero-product-preview {
+    display: block;
+    height: auto;
+    margin: 32px auto 0;
+    max-width: 420px;
+    width: min(100%, 420px);
+  }
+}
+
+@media (min-width: 768px) {
+  .mobileHeroPreview,
+  .mobile-hero-product-preview {
+    display: none !important;
+  }
+}
+
+@media (max-width: 480px) {
   .site-header-inner .brand-symbol {
     height: 30px;
   }
@@ -5918,11 +6134,14 @@ textarea.input {
   }
 
   .mobileHeroPreview {
-    margin: 10px 0 14px;
+    margin: 0 auto 56px;
+    max-width: 420px;
+    width: 100%;
   }
 
-  .mobileHeroPreview .hero-laptop {
-    max-width: 94%;
+  .mobile-hero-product-preview {
+    padding: 14px;
+    width: min(100%, 420px);
   }
 
   .hero-actions {
