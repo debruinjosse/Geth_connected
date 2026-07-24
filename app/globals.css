@@ -774,7 +774,7 @@ img {
 .hero-physical-card-wrap {
   position: absolute;
   right: calc(var(--hero-laptop-width) - var(--hero-card-contact));
-  bottom: 22%;
+  bottom: 8%;
   z-index: 3;
   width: clamp(128px, 16vw, 172px);
   pointer-events: none;
@@ -1332,9 +1332,7 @@ img {
 }
 
 .hero-chart-axis {
-  fill: none;
-  stroke: #eadfcd;
-  stroke-width: 1.5;
+  display: none;
 }
 
 .hero-chart-trend {
