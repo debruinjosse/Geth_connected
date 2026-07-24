@@ -5,8 +5,9 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { BarChart } from "@/components/BarChart";
 import { DashboardShell } from "@/components/DashboardShell";
 import { EmptyState } from "@/components/EmptyState";
+import { LineChart } from "@/components/LineChart";
 import { QualityBars } from "@/components/QualityBars";
-import { companyAdmin, companyCategoryShare, companyTrendLastQuarter, companyTrendThisQuarter, teamComparison } from "@/lib/demo-data";
+import { companyAdmin, companyCategoryShare, companyTrendThisQuarter, teamComparison } from "@/lib/demo-data";
 import { fetchCompanyDashboardInsights, type ComparisonMetric, type ComparisonState } from "@/lib/data/company-dashboard-insights";
 import { getUnreadNotificationCount } from "@/lib/notifications";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -40,6 +41,14 @@ function getInitials(firstName: string, lastName: string) {
 
 function getComparisonText(metric: ComparisonMetric, suffix: string) {
   return `${metric.label} ${suffix}`;
+}
+
+function getLatestSixMonthLabels() {
+  const now = new Date();
+  return Array.from({ length: 6 }, (_, index) => {
+    const date = new Date(now.getFullYear(), now.getMonth() - (5 - index), 1);
+    return new Intl.DateTimeFormat("en", { month: "short" }).format(date);
+  });
 }
 
 function getStateArrow(state: ComparisonState) {
@@ -122,6 +131,7 @@ function CompanyMetricCard({
 }
 
 function DemoCompanyDashboard({ t }: { t: Translation }) {
+  const demoTrendLabels = getLatestSixMonthLabels();
   const demoTopQualities = [
     { label: "Listener", category: "Communication", value: 26 },
     { label: "Honest", category: "Communication", value: 22 },
@@ -156,10 +166,13 @@ function DemoCompanyDashboard({ t }: { t: Translation }) {
       <section className="dashboard-grid two">
         <article className="panel dashboard-panel">
           <div className="panel-top"><h2>{t("recognitionActivity")}</h2></div>
-          <BarChart items={["Apr", "May", "Jun"].map((label, index) => ({ label: `${label} - ${t("thisQuarter")}`, value: companyTrendThisQuarter[index] ?? 0, color: "var(--theme-ink)" }))} />
-          <div style={{ marginTop: 18 }}>
-            <BarChart compact items={["Apr", "May", "Jun"].map((label, index) => ({ label: `${label} - ${t("lastQuarter")}`, value: companyTrendLastQuarter[index] ?? 0, color: "var(--theme-gold)" }))} />
-          </div>
+          <LineChart
+            points={[0, 0, 112, 148, 186, 214]}
+            labels={demoTrendLabels}
+            color="var(--theme-ink)"
+            ariaLabel={t("recognitionActivityChartLabel")}
+            showValues
+          />
         </article>
         <article className="panel dashboard-panel">
           <div className="panel-top"><h2>{t("teamComparison")}</h2></div>
@@ -300,15 +313,13 @@ export default async function CompanyDashboardPage({ params }: CompanyDashboardP
       <section className="dashboard-grid two">
         <article className="panel dashboard-panel">
           <div className="panel-top"><h2>{t("recognitionActivity")}</h2></div>
-          {insights.totalRecognitions ? (
-            <>
-              <BarChart items={insights.trendLabels.map((label, index) => ({ label, value: insights.trendPoints[index] ?? 0, color: "var(--theme-ink)" }))} />
-              <div style={{ marginTop: 14 }}>
-                <BarChart compact items={insights.comparisonLabels.map((label, index) => ({ label: `${label} ${t("previous")}`, value: insights.comparisonPoints[index] ?? 0, color: "var(--theme-gold)" }))} />
-              </div>
-            </>
+          {insights.trendPoints.some((value) => value > 0) ? (
+            <LineChart points={insights.trendPoints} labels={insights.trendLabels} color="var(--theme-ink)" ariaLabel={t("recognitionActivityChartLabel")} showValues />
           ) : (
-            <EmptyState eyebrow={t("emptyTrendEyebrow")} title={t("emptyTrendTitle")} copy={t("emptyTrendCopy")} />
+            <>
+              <LineChart points={insights.trendPoints} labels={insights.trendLabels} color="var(--theme-ink)" ariaLabel={t("recognitionActivityChartLabel")} showValues />
+              <p className="chart-empty-note">{t("emptyTrendCopy")}</p>
+            </>
           )}
         </article>
         <article className="panel dashboard-panel">

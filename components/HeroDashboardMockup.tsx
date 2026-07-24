@@ -35,17 +35,14 @@ function HeroPhysicalCard() {
   return (
     <div className="hero-physical-card-wrap" aria-hidden="true">
       <div className="hero-physical-card">
-        <div className="hero-physical-card-brand">
-          <Image alt="" src="/assets/geth-crest-mark.png" width={58} height={54} />
-          <span>GETH</span>
-        </div>
-
-        <div className="hero-physical-card-message">
-          <small>RECOGNIZE TO</small>
-          <strong>ENERGIZE.</strong>
-        </div>
-
-        <div className="hero-physical-card-number">01</div>
+        <Image
+          alt=""
+          src="/assets/geth-card-flyer-cover.png"
+          width={560}
+          height={797}
+          sizes="(max-width: 767px) 88px, 176px"
+          priority
+        />
       </div>
     </div>
   );
@@ -163,10 +160,6 @@ export function HeroDashboardMockup() {
                 </section>
               </div>
             </div>
-          </div>
-
-          <div className="hero-laptop-base">
-            <span />
           </div>
         </div>
       </div>

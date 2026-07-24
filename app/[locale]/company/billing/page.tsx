@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { getLocale } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { DashboardShell } from "@/components/DashboardShell";
 import { EmptyState } from "@/components/EmptyState";
 import { companyAdmin } from "@/lib/demo-data";
@@ -10,6 +10,8 @@ type BillingSearchParams = {
   billing?: string;
   invoice?: string;
 };
+
+type BillingTranslation = Awaited<ReturnType<typeof getTranslations>>;
 
 function hasSupabaseServerConfig() {
   return Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
@@ -30,55 +32,67 @@ function formatDate(value: string | null) {
   return new Intl.DateTimeFormat("en", { dateStyle: "medium" }).format(new Date(value));
 }
 
-function getBillingMessage(code?: string) {
+function formatReadableStatus(value: string | null | undefined) {
+  if (!value) return "Not set";
+  return value
+    .split("_")
+    .filter(Boolean)
+    .map((part) => `${part.charAt(0).toUpperCase()}${part.slice(1)}`)
+    .join(" ");
+}
+
+function formatPaymentMethod(value: string | null | undefined) {
+  if (!value) return "Invoice";
+  if (value === "invoice") return "Invoice";
+  return formatReadableStatus(value);
+}
+
+function getBillingMessage(code: string | undefined, t: BillingTranslation) {
   switch (code) {
     case "checkout_success":
-      return "Checkout completed. Stripe will update your subscription status shortly.";
+      return t("messages.checkoutSuccess");
     case "checkout_cancelled":
-      return "Checkout was cancelled. You can restart it anytime.";
+      return t("messages.checkoutCancelled");
     case "stripe_not_configured":
-      return "Stripe billing is not configured yet. Core app access is not blocked.";
+      return t("messages.stripeNotConfigured");
     case "price_not_configured":
-      return "This plan needs a Stripe price ID before checkout can start.";
+      return t("messages.priceNotConfigured");
     case "no_customer":
-      return "No Stripe customer exists yet. Start checkout first, then the billing portal will become available.";
+      return t("messages.noCustomer");
     case "checkout_failed":
-      return "Stripe could not create a checkout session. Check billing configuration.";
+      return t("messages.checkoutFailed");
     case "invoice_requested":
-      return "Invoice payment request received. The GETH team will review it and send payment instructions.";
+      return t("messages.invoiceRequested");
     case "invoice_generated":
-      return "Invoice generated and emailed successfully. You can also download it from the invoice list below.";
+      return t("messages.invoiceGenerated");
     case "invoice_generated_email_failed":
-      return "Invoice generated, but email delivery failed. Download the PDF below and check SMTP/get.pro settings.";
+      return t("messages.invoiceGeneratedEmailFailed");
     case "invoice_generation_failed":
-      return "Invoice request was saved, but the invoice document could not be generated. Please contact platform support.";
+      return t("messages.invoiceGenerationFailed");
     case "invoice_config_missing":
-      return "Invoice generation is blocked until seller and payment account details are configured in environment variables.";
+      return t("messages.invoiceConfigMissing");
     case "invoice_request_failed":
-      return "Invoice request could not be saved. Please check the billing details and try again.";
+      return t("messages.invoiceRequestFailed");
     case "invoice_not_enabled":
-      return "Invoice payments are not enabled for this plan.";
-    case "owner_managed":
-      return "Billing is managed by the GETH owner team. Company admins can view billing status and invoices here.";
+      return t("messages.invoiceNotEnabled");
     default:
       return null;
   }
 }
 
-function renderDemoBilling() {
+function renderDemoBilling(t: BillingTranslation) {
   return (
-    <DashboardShell role="company" title="Billing" subtitle="Plan status, invoices, and workspace subscription controls." user={companyAdmin}>
-      <section className="dashboard-grid two">
+    <DashboardShell role="company" title={t("title")} subtitle={t("subtitle")} user={companyAdmin}>
+      <section className="dashboard-grid two billing-simplified-grid">
         <article className="panel dashboard-panel">
-          <div className="eyebrow">Current plan</div>
-          <h2>Growth</h2>
-          <p className="section-copy">Annual plan with manager dashboards, reports, and company-level culture analytics.</p>
-          <a className="btn btn-primary" href="/pricing">Compare plans</a>
+          <div className="eyebrow">{t("paymentEyebrow")}</div>
+          <h2>{t("invoice")}</h2>
+          <p className="section-copy">info@geth.pro</p>
         </article>
         <article className="panel dashboard-panel">
-          <div className="eyebrow">Billing setup</div>
-          <h2>Invoice billing</h2>
-          <p className="section-copy">European customers can request invoice-based payment without card checkout.</p>
+          <div className="eyebrow">{t("configurationEyebrow")}</div>
+          <h2>{t("configurationTitle")}</h2>
+          <p className="section-copy">{t("configurationCopy")}</p>
         </article>
       </section>
     </DashboardShell>
@@ -86,16 +100,20 @@ function renderDemoBilling() {
 }
 
 export default async function CompanyBillingPage({
+  params,
   searchParams
 }: {
+  params: Promise<{ locale: string }>;
   searchParams: Promise<BillingSearchParams>;
 }) {
-  const locale = await getLocale();
+  const { locale } = await params;
+  setRequestLocale(locale);
+  const t = await getTranslations({ locale, namespace: "companyBilling" });
   if (!hasSupabaseServerConfig()) {
-    return renderDemoBilling();
+    return renderDemoBilling(t);
   }
 
-  const params = await searchParams;
+  const query = await searchParams;
   const supabase = await createSupabaseServerClient();
   const {
     data: { user },
@@ -103,7 +121,7 @@ export default async function CompanyBillingPage({
   } = await supabase.auth.getUser();
 
   if (userError || !user) {
-    return renderDemoBilling();
+    return renderDemoBilling(t);
   }
 
   const { data: profile, error: profileError } = await supabase
@@ -144,12 +162,12 @@ export default async function CompanyBillingPage({
   }
 
   if (profile.role !== "company_admin") {
-    redirect("/company");
+    redirect(`/${locale}/company`);
   }
 
   const company = Array.isArray(profile.company) ? profile.company[0] : profile.company;
   if (!company) {
-    redirect("/company/billing?billing=missing_company");
+    redirect(`/${locale}/company/billing?billing=missing_company`);
   }
 
   const [{ data: subscription, error: subscriptionError }, { data: invoices, error: invoicesError }, unreadNotifications] = await Promise.all([
@@ -180,21 +198,15 @@ export default async function CompanyBillingPage({
     throw new Error("Failed to load billing data.");
   }
 
-  const currentPlan = Array.isArray(subscription?.plan) ? subscription?.plan[0] : subscription?.plan;
-  const status = subscription?.status ?? company.subscription_status ?? "not_configured";
-  const message = getBillingMessage(params.billing);
+  const message = getBillingMessage(query.billing, t);
   const billingMethod = subscription?.payment_method ?? company.billing_payment_method ?? "invoice";
-  const invoiceStatus = subscription?.invoice_status ?? (status === "invoice_requested" ? "requested" : "not_requested");
   const billingEmail = subscription?.billing_contact_email ?? company.billing_email ?? profile.email ?? "";
-  const renewalDate = subscription?.current_period_end
-    ? new Intl.DateTimeFormat("en", { dateStyle: "medium" }).format(new Date(subscription.current_period_end))
-    : "Not scheduled";
 
   return (
     <DashboardShell
       role="company"
-      title="Billing"
-      subtitle="View your plan status, finance details, and generated invoices. Payments are handled by the GETH owner team."
+      title={t("title")}
+      subtitle={t("subtitle")}
       user={{
         name: `${profile.first_name ?? ""} ${profile.last_name ?? ""}`.trim() || "Company admin",
         initials: getInitials(profile.first_name, profile.last_name),
@@ -208,48 +220,24 @@ export default async function CompanyBillingPage({
         </section>
       ) : null}
 
-      <section className="dashboard-grid three report-summary-grid">
-        <article className="panel dashboard-panel report-summary-card">
-          <span className="eyebrow">Plan</span>
-          <strong>{currentPlan?.name ?? company.subscription_plan ?? "Starter"}</strong>
-          <p>Current workspace tier</p>
-        </article>
-        <article className="panel dashboard-panel report-summary-card">
-          <span className="eyebrow">Status</span>
-          <strong>{status}</strong>
-          <p>{invoiceStatus.replaceAll("_", " ")}</p>
-        </article>
-        <article className="panel dashboard-panel report-summary-card">
-          <span className="eyebrow">Payment</span>
-          <strong>{billingMethod}</strong>
-          <p>{billingEmail || "Billing email not set"}</p>
-        </article>
-      </section>
-
-      <section className="dashboard-grid two">
-        <article className="panel dashboard-panel">
-          <div className="eyebrow">Current plan</div>
-          <h2>{currentPlan?.name ?? company.subscription_plan ?? "Starter"}</h2>
-          <p className="section-copy">
-            Status: <strong>{status}</strong>
-            {subscription?.current_period_end ? ` - Renews ${renewalDate}` : ""}
-          </p>
-          <div className="button-row">
-            <a className="btn btn-secondary" href="/pricing">Compare plans</a>
-          </div>
+      <section className="dashboard-grid two billing-simplified-grid">
+        <article className="panel dashboard-panel report-summary-card billing-payment-card">
+          <span className="eyebrow">{t("paymentEyebrow")}</span>
+          <strong>{formatPaymentMethod(billingMethod)}</strong>
+          <p>{billingEmail || t("billingEmailMissing")}</p>
         </article>
         <article className="panel dashboard-panel">
-          <div className="eyebrow">Billing configuration</div>
-          <h2>Owner-managed billing</h2>
-          <p className="section-copy">The GETH owner team generates invoices, confirms payment, and activates company access. Company admins can download issued invoices here.</p>
+          <div className="eyebrow">{t("configurationEyebrow")}</div>
+          <h2>{t("configurationTitle")}</h2>
+          <p className="section-copy">{t("configurationCopy")}</p>
         </article>
       </section>
 
       <article className="panel dashboard-panel">
         <div className="panel-top">
           <div>
-            <h2>Generated invoices</h2>
-            <p className="section-copy">Download official GETH invoice PDFs with invoice number, VAT, due date, and payment reference.</p>
+            <h2>{t("generatedInvoices")}</h2>
+            <p className="section-copy">{t("generatedInvoicesCopy")}</p>
           </div>
         </div>
         {invoices?.length ? (
@@ -257,25 +245,25 @@ export default async function CompanyBillingPage({
             <table className="dashboard-table">
               <thead>
                 <tr>
-                  <th>Invoice</th>
-                  <th>Status</th>
-                  <th>Total</th>
-                  <th>Due date</th>
-                  <th>Email</th>
-                  <th>PDF</th>
+                  <th>{t("invoice")}</th>
+                  <th>{t("status")}</th>
+                  <th>{t("total")}</th>
+                  <th>{t("dueDate")}</th>
+                  <th>{t("email")}</th>
+                  <th>{t("pdf")}</th>
                 </tr>
               </thead>
               <tbody>
                 {invoices.map((invoice) => (
                   <tr key={invoice.id}>
                     <td><strong>{invoice.invoice_number}</strong></td>
-                    <td>{invoice.status}</td>
+                    <td>{formatReadableStatus(invoice.status)}</td>
                     <td>{formatMoney(invoice.total_cents, invoice.currency, "once")}</td>
                     <td>{formatDate(invoice.due_date)}</td>
-                    <td>{invoice.email_sent_at ? "sent" : invoice.email_error ? "failed" : "pending"}</td>
+                    <td>{invoice.email_sent_at ? t("emailSent") : invoice.email_error ? t("emailFailed") : t("emailPending")}</td>
                     <td>
                       <a className="panel-link" href={`/${locale}/company/billing/invoices/${invoice.id}/pdf`}>
-                        Download
+                        {t("download")}
                       </a>
                     </td>
                   </tr>
@@ -284,7 +272,7 @@ export default async function CompanyBillingPage({
             </table>
           </div>
         ) : (
-          <EmptyState eyebrow="No invoices yet" title="Generate your first invoice" copy="Choose a plan above and submit billing details to create a downloadable European invoice." />
+          <EmptyState eyebrow={t("emptyEyebrow")} title={t("emptyTitle")} copy={t("emptyCopy")} />
         )}
       </article>
     </DashboardShell>
