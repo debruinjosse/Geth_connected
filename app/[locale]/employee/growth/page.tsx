@@ -20,7 +20,7 @@ function getMonthKey(date: Date) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
 }
 
-const fourCCategories: CardCategory[] = ["Communicatie", "Creativiteit", "Competentie", "Collegialiteit"];
+const fourCCategories: CardCategory[] = ["Communication", "Creativity", "Competence", "Collegiality"];
 
 export default async function EmployeeGrowthPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;

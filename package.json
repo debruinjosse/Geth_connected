@@ -22,6 +22,7 @@
     "supabase:auto": "node scripts/supabase-auto-push.mjs --continue-on-error",
     "db:push": "node scripts/supabase-push.mjs",
     "db:push:soft": "node scripts/supabase-auto-push.mjs --continue-on-error",
+    "cards:sync:english": "node scripts/sync-english-cards.mjs",
     "translate:messages": "node scripts/translate-messages.mjs --full --locales=da,fr"
   },
   "dependencies": {

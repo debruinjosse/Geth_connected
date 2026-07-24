@@ -125,7 +125,7 @@ export default async function EmployeeDashboardPage({ params }: { params: Promis
   const topCategory = Array.from(categoryCounts.entries()).sort((a, b) => b[1] - a[1])[0];
   const topQualityEntry = Array.from(qualityCounts.entries()).sort((a, b) => b[1].count - a[1].count)[0];
 
-  const fourCCategories: CardCategory[] = ["Communicatie", "Creativiteit", "Competentie", "Collegialiteit"];
+  const fourCCategories: CardCategory[] = ["Communication", "Creativity", "Competence", "Collegiality"];
   const categoryBreakdown = fourCCategories
     .map((category) => ({
       label: getCategoryDisplayName(category),

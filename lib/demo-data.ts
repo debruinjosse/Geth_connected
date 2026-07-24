@@ -27,7 +27,7 @@ export const demoUsers: Record<DemoRole, DemoUser> = {
     cardsGiven: 7,
     trend: 5,
     energy: "HOOG",
-    topQuality: "Verbinder"
+    topQuality: "Uniter"
   },
   manager: {
     id: "u-sarah-manager",
@@ -40,7 +40,7 @@ export const demoUsers: Record<DemoRole, DemoUser> = {
     cardsGiven: 13,
     trend: 5,
     energy: "HOOG",
-    topQuality: "Verbinder"
+    topQuality: "Uniter"
   },
   company_admin: {
     id: "u-ali-admin",
@@ -53,7 +53,7 @@ export const demoUsers: Record<DemoRole, DemoUser> = {
     cardsGiven: 8,
     trend: 3,
     energy: "GEMIDDELD",
-    topQuality: "Empathisch"
+    topQuality: "Empathetic"
   },
   super_admin: {
     id: "u-geth-admin",
@@ -66,7 +66,7 @@ export const demoUsers: Record<DemoRole, DemoUser> = {
     cardsGiven: 21,
     trend: 7,
     energy: "HOOG",
-    topQuality: "Strategisch"
+    topQuality: "Strategic"
   }
 };
 
@@ -123,35 +123,35 @@ export const demoAccounts = [
 ] as const;
 
 export const people: DemoUser[] = [
-  { id: "u-mark", name: "Mark de Vries", initials: "MV", team: "Marketing Team", role: "employee", email: "mark@geth-demo.com", cardsReceived: 18, cardsGiven: 6, trend: 3, energy: "HOOG", topQuality: "Verbinder" },
-  { id: "u-lisa", name: "Lisa Jansen", initials: "LJ", team: "Design Team", role: "employee", email: "lisa@geth-demo.com", cardsReceived: 21, cardsGiven: 3, trend: 6, energy: "HOOG", topQuality: "Ondersteunend" },
-  { id: "u-ali", name: "Ali Ahmed", initials: "AA", team: "Sales Team", role: "company_admin", email: "ali@geth-demo.com", cardsReceived: 15, cardsGiven: 5, trend: 2, energy: "GEMIDDELD", topQuality: "Empathisch" },
-  { id: "u-tom", name: "Tom Bakker", initials: "TB", team: "Product Team", role: "employee", email: "tom@geth-demo.com", cardsReceived: 6, cardsGiven: 2, trend: -2, energy: "LAAG", topQuality: "Oplosser" },
-  { id: "u-john", name: "John Smith", initials: "JS", team: "Engineering Team", role: "employee", email: "john@geth-demo.com", cardsReceived: 9, cardsGiven: 4, trend: 1, energy: "GEMIDDELD", topQuality: "Helder" },
-  { id: "u-peter", name: "Peter Mol", initials: "PM", team: "Support Team", role: "employee", email: "peter@geth-demo.com", cardsReceived: 4, cardsGiven: 1, trend: -1, energy: "LAAG", topQuality: "Geduldig" }
+  { id: "u-mark", name: "Mark de Vries", initials: "MV", team: "Marketing Team", role: "employee", email: "mark@geth-demo.com", cardsReceived: 18, cardsGiven: 6, trend: 3, energy: "HOOG", topQuality: "Uniter" },
+  { id: "u-lisa", name: "Lisa Jansen", initials: "LJ", team: "Design Team", role: "employee", email: "lisa@geth-demo.com", cardsReceived: 21, cardsGiven: 3, trend: 6, energy: "HOOG", topQuality: "Supportive" },
+  { id: "u-ali", name: "Ali Ahmed", initials: "AA", team: "Sales Team", role: "company_admin", email: "ali@geth-demo.com", cardsReceived: 15, cardsGiven: 5, trend: 2, energy: "GEMIDDELD", topQuality: "Empathetic" },
+  { id: "u-tom", name: "Tom Bakker", initials: "TB", team: "Product Team", role: "employee", email: "tom@geth-demo.com", cardsReceived: 6, cardsGiven: 2, trend: -2, energy: "LAAG", topQuality: "Problem Solver" },
+  { id: "u-john", name: "John Smith", initials: "JS", team: "Engineering Team", role: "employee", email: "john@geth-demo.com", cardsReceived: 9, cardsGiven: 4, trend: 1, energy: "GEMIDDELD", topQuality: "Clear Communicator" },
+  { id: "u-peter", name: "Peter Mol", initials: "PM", team: "Support Team", role: "employee", email: "peter@geth-demo.com", cardsReceived: 4, cardsGiven: 1, trend: -1, energy: "LAAG", topQuality: "Patient" }
 ];
 
 export const recognitions = [
-  { id: "r1", from: "Jamie Miller", to: "Sarah van den Berg", card: "Verbinder", category: "Communicatie", note: "You bring people together and spark great ideas.", date: "2h ago" },
-  { id: "r2", from: "Mark Kim", to: "Sarah van den Berg", card: "Luisteraar", category: "Communicatie", note: "You listen with care and make people feel heard.", date: "1d ago" },
-  { id: "r3", from: "Aisha Verma", to: "Sarah van den Berg", card: "Ondersteunend", category: "Collegialiteit", note: "You show up for your team and lift others up.", date: "3d ago" }
+  { id: "r1", from: "Jamie Miller", to: "Sarah van den Berg", card: "Uniter", category: "Communication", note: "You bring people together and spark great ideas.", date: "2h ago" },
+  { id: "r2", from: "Mark Kim", to: "Sarah van den Berg", card: "Listener", category: "Communication", note: "You listen with care and make people feel heard.", date: "1d ago" },
+  { id: "r3", from: "Aisha Verma", to: "Sarah van den Berg", card: "Supportive", category: "Collegiality", note: "You show up for your team and lift others up.", date: "3d ago" }
 ];
 
 export const topQualities = [
-  { label: "Verbinder", value: 32, category: "Communicatie" },
-  { label: "Ondersteunend", value: 24, category: "Collegialiteit" },
-  { label: "Oplosser", value: 20, category: "Competentie" },
-  { label: "Helder", value: 14, category: "Communicatie" },
-  { label: "Empathisch", value: 10, category: "Communicatie" }
+  { label: "Uniter", value: 32, category: "Communication" },
+  { label: "Supportive", value: 24, category: "Collegiality" },
+  { label: "Problem Solver", value: 20, category: "Competence" },
+  { label: "Clear Communicator", value: 14, category: "Communication" },
+  { label: "Empathetic", value: 10, category: "Communication" }
 ];
 
 export const employeeTopQualities = [
-  { label: "Helder", tone: "var(--theme-emerald)" },
-  { label: "Zorgzaam", tone: "var(--theme-sky)" },
-  { label: "Doelgericht", tone: "var(--theme-orange)" },
-  { label: "Empathisch", tone: "var(--theme-emerald)" },
-  { label: "Proactief", tone: "var(--theme-gold)" },
-  { label: "Intuitief", tone: "var(--theme-ink-soft)" }
+  { label: "Clear Communicator", tone: "var(--theme-emerald)" },
+  { label: "Caring", tone: "var(--theme-sky)" },
+  { label: "Goal-Oriented", tone: "var(--theme-orange)" },
+  { label: "Empathetic", tone: "var(--theme-emerald)" },
+  { label: "Proactive", tone: "var(--theme-gold)" },
+  { label: "Intuitive", tone: "var(--theme-ink-soft)" }
 ];
 
 export const employeeCategoryBreakdown = [
@@ -181,7 +181,7 @@ export const employeeMessages = [
 ];
 
 export const employeeNotifications = [
-  { id: "n1", title: "Card claimed", detail: "Your Verbinder recognition was successfully added to your profile.", time: "Just now" },
+  { id: "n1", title: "Card claimed", detail: "Your Uniter recognition was successfully added to your profile.", time: "Just now" },
   { id: "n2", title: "Manager comment", detail: "Sarah Connors highlighted your empathy in team review notes.", time: "3h ago" },
   { id: "n3", title: "New card available", detail: "The Open Card route is active for custom recognitions.", time: "1d ago" }
 ];
