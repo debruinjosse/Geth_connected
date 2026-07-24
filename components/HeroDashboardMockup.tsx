@@ -31,10 +31,47 @@ const chartPoints = [
   { cx: 208, cy: 24 }
 ] as const;
 
+function HeroPhysicalCard() {
+  return (
+    <div className="hero-physical-card-wrap" aria-hidden="true">
+      <div className="hero-physical-card">
+        <div className="hero-physical-card-brand">
+          <Image alt="" src="/assets/geth-crest-mark.png" width={58} height={54} />
+          <span>GETH</span>
+        </div>
+
+        <div className="hero-physical-card-message">
+          <small>RECOGNIZE TO</small>
+          <strong>ENERGIZE.</strong>
+        </div>
+
+        <div className="hero-physical-card-number">01</div>
+
+        <div className="hero-card-leaves hero-card-leaves-top">
+          <i />
+          <i />
+          <i />
+          <i />
+        </div>
+
+        <div className="hero-card-leaves hero-card-leaves-bottom">
+          <i />
+          <i />
+          <i />
+          <i />
+          <i />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function HeroDashboardMockup() {
   return (
     <div className="hero-visual hero-visual-stable">
       <div className="hero-device-stage">
+        <HeroPhysicalCard />
+
         <div className="hero-laptop">
           <div className="hero-laptop-shell">
             <div className="hero-laptop-camera" />
