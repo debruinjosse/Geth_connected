@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
 import { BrandLogo } from "@/components/BrandLogo";
@@ -125,6 +126,15 @@ export async function PublicSiteChrome({
           <p>
             {footer("copy")}
           </p>
+          <div className="footer-recognition-photo">
+            <Image
+              src="/assets/geth-recognition-moment.png"
+              alt="A team celebrating a GETH recognition moment"
+              fill
+              sizes="(max-width: 768px) calc(100vw - 32px), 1120px"
+              priority={false}
+            />
+          </div>
           <footer className="site-footer">
             <div>
               <BrandLogo href={`/${locale}`} />
