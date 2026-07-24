@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 const kpis = [
   { value: "78%", label: "Energy" },
   { value: "24", label: "Cards" },
@@ -14,15 +16,20 @@ export function MobileHeroProductPreview() {
   return (
     <section className="mobile-hero-device-preview" aria-label="GETH dashboard preview">
       <div className="mobile-hero-physical-card" aria-hidden="true">
-        <div className="mobile-hero-physical-card-mark">GETH</div>
-        <strong>CREATIVITY</strong>
-        <span>Recognize to energize</span>
+        <Image
+          alt=""
+          src="/assets/geth-card-flyer-cover.png"
+          width={560}
+          height={797}
+          sizes="92px"
+          priority
+        />
       </div>
 
-      <div className="mobile-hero-laptop-frame">
-        <div className="mobile-hero-laptop-shell">
-          <div className="mobile-hero-laptop-camera" aria-hidden="true" />
-          <div className="mobile-hero-laptop-screen">
+      <div className="mobile-hero-tablet-frame">
+        <div className="mobile-hero-tablet-shell">
+          <div className="mobile-hero-tablet-camera" aria-hidden="true" />
+          <div className="mobile-hero-tablet-screen">
             <div className="mobile-hero-product-preview">
               <div className="mobile-preview-header">
                 <div>
@@ -75,14 +82,11 @@ export function MobileHeroProductPreview() {
               </div>
 
               <div className="mobile-preview-insight">
-                <span aria-hidden="true">↗</span>
+                <span aria-hidden="true">+23</span>
                 Recognition is up 23%
               </div>
             </div>
           </div>
-        </div>
-        <div className="mobile-hero-laptop-base" aria-hidden="true">
-          <span />
         </div>
       </div>
     </section>
