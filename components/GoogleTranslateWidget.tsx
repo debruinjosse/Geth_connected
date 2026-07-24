@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-import { Languages, X } from "lucide-react";
+import { X } from "lucide-react";
 import { locales, type AppLocale } from "@/i18n/routing";
 
 declare global {
@@ -111,7 +111,6 @@ export function GoogleTranslateWidget() {
         </div>
       ) : null}
       <button className="google-translate-toggle" type="button" onClick={() => setOpen((value) => !value)} aria-label="Translate website">
-        <Languages size={18} />
         <span>Translate</span>
         <strong className="google-translate-current">{activeLocale.toUpperCase()}</strong>
       </button>

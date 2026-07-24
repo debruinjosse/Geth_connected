@@ -4828,8 +4828,35 @@ textarea.input {
     justify-items: center;
   }
 
+  .site-header-inner {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 8px 14px;
+  }
+
   .site-nav {
+    grid-column: 1 / -1;
+    display: flex;
+    gap: 8px;
+    max-width: 100%;
+    overflow-x: auto;
+    padding: 0 0 10px;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .site-nav::-webkit-scrollbar {
     display: none;
+  }
+
+  .site-nav a {
+    background: rgba(255, 253, 248, 0.08);
+    border: 1px solid rgba(255, 253, 248, 0.12);
+    border-radius: 999px;
+    color: rgba(255, 255, 255, 0.88);
+    flex: 0 0 auto;
+    font-size: 12px;
+    padding: 7px 10px;
   }
 
   .how-grid,
@@ -6121,7 +6148,7 @@ textarea.input {
   }
 
   .google-translate-toggle span {
-    display: none;
+    display: inline;
   }
 
   .google-translate-toggle {
@@ -6129,13 +6156,8 @@ textarea.input {
     box-shadow: 0 8px 18px rgba(0, 0, 0, 0.14);
     gap: 5px;
     justify-content: center;
-    min-width: 58px;
+    min-width: 0;
     padding: 8px 10px;
-  }
-
-  .google-translate-toggle svg {
-    height: 16px;
-    width: 16px;
   }
 
   .google-translate-current {
