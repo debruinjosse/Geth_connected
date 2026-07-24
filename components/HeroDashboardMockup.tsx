@@ -31,20 +31,6 @@ const chartPoints = [
   { cx: 208, cy: 24 }
 ] as const;
 
-function HeroCardBotanical({ className }: { className?: string }) {
-  return (
-    <svg aria-hidden="true" className={className} viewBox="0 0 120 160" fill="none">
-      <path d="M18 148C34 123 48 99 58 73C67 51 72 31 75 10" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
-      <path d="M38 116C22 111 16 99 18 87C32 88 42 96 38 116Z" stroke="currentColor" strokeWidth="1.2" />
-      <path d="M51 91C35 85 31 73 35 62C48 65 57 75 51 91Z" stroke="currentColor" strokeWidth="1.2" />
-      <path d="M62 64C48 57 46 45 51 35C63 39 70 50 62 64Z" stroke="currentColor" strokeWidth="1.2" />
-      <path d="M56 105C70 99 80 104 85 115C72 120 61 116 56 105Z" stroke="currentColor" strokeWidth="1.2" />
-      <path d="M66 79C80 72 91 77 96 88C84 94 72 91 66 79Z" stroke="currentColor" strokeWidth="1.2" />
-      <path d="M72 49C85 42 96 47 101 57C90 64 78 61 72 49Z" stroke="currentColor" strokeWidth="1.2" />
-    </svg>
-  );
-}
-
 function HeroPhysicalCard() {
   return (
     <div className="hero-physical-card-wrap" aria-hidden="true">
@@ -60,9 +46,6 @@ function HeroPhysicalCard() {
         </div>
 
         <div className="hero-physical-card-number">01</div>
-
-        <HeroCardBotanical className="hero-card-botanical hero-card-botanical-top" />
-        <HeroCardBotanical className="hero-card-botanical hero-card-botanical-bottom" />
       </div>
     </div>
   );
