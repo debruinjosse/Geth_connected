@@ -646,7 +646,6 @@ img {
   display: flex;
   align-items: flex-end;
   justify-content: flex-end;
-  gap: clamp(10px, 1.3vw, 18px);
   width: 100%;
   min-height: 500px;
   min-width: 0;
@@ -657,11 +656,10 @@ img {
 .hero-laptop {
   position: relative;
   z-index: 2;
-  flex: 0 1 min(78%, 820px);
-  width: min(78%, 820px);
+  width: min(88%, 820px);
   aspect-ratio: 16 / 9.85;
   max-width: 820px;
-  margin-left: 0;
+  margin-left: auto;
   transform: none;
   border-radius: 32px 32px 20px 20px;
   padding: 0;
@@ -772,11 +770,11 @@ img {
 }
 
 .hero-physical-card-wrap {
-  position: relative;
+  position: absolute;
+  left: -12%;
+  bottom: 16%;
   z-index: 3;
-  flex: 0 0 min(20%, 178px);
-  width: min(20%, 178px);
-  margin-bottom: 18px;
+  width: clamp(128px, 16vw, 172px);
   pointer-events: none;
   transform: perspective(1000px) rotateZ(4deg);
   transform-origin: right bottom;
@@ -4839,8 +4837,7 @@ textarea.input {
   }
 
   .hero-laptop {
-    flex-basis: min(76%, 690px);
-    width: min(76%, 690px);
+    width: min(88%, 690px);
   }
 
   .dashboard-sidebar {
@@ -4945,8 +4942,7 @@ textarea.input {
 
   .hero-device-stage {
     display: flex;
-    gap: 12px;
-    justify-content: center;
+    justify-content: flex-end;
   }
 
   .site-header-inner {
@@ -5147,6 +5143,10 @@ textarea.input {
   .hero-data-grid {
     grid-template-columns: 1.15fr 0.85fr;
     gap: 10px;
+  }
+
+  .hero-trend-card {
+    display: block;
   }
 
   .hero-kpi,
@@ -6086,11 +6086,11 @@ textarea.input {
 
   .hero-data-grid {
     gap: 6px;
-    grid-template-columns: 1fr;
+    grid-template-columns: 1.05fr 0.95fr;
   }
 
   .hero-trend-card {
-    display: none;
+    display: block;
   }
 
   .hero-panel-head {
