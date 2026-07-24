@@ -292,11 +292,11 @@ export function ClaimCardClient({
                     <div className="claim-summary">
                       <div className="claim-summary-row">
                         <strong>Card</strong>
-                        <p>{card.title}</p>
+                        <p>{displayCard?.title ?? card.title}</p>
                       </div>
                       <div className="claim-summary-row">
                         <strong>Category</strong>
-                        <p>{card.category}</p>
+                        <p>{displayCard?.category ?? card.category}</p>
                       </div>
                       <div className="claim-summary-row">
                         <strong>Receiver</strong>

@@ -6,6 +6,7 @@ import { EmptyState } from "@/components/EmptyState";
 import { LineChart } from "@/components/LineChart";
 import { MetricCard } from "@/components/MetricCard";
 import { SignalList } from "@/components/SignalList";
+import { getCanonicalCardBySlugOrNumber, getCategoryDisplayName } from "@/lib/cards";
 import { platformGrowthPoints, superAdminUser, teamComparison } from "@/lib/demo-data";
 import { getUnreadNotificationCount } from "@/lib/notifications";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -115,8 +116,8 @@ export default async function AdminAnalyticsPage({ params }: { params: Promise<{
   ] = await Promise.all([
     supabase.from("companies").select("id, company_name, status, subscription_plan, subscription_status, created_at"),
     supabase.from("profiles").select("id, role, company_id, status, created_at"),
-    supabase.from("recognition_events").select("id, company_id, giver_user_id, receiver_user_id, card_id, claim_origin, created_at, card:card_library(title, category, card_number)"),
-    supabase.from("card_library").select("id, card_number, title, category, active").order("card_number"),
+    supabase.from("recognition_events").select("id, company_id, giver_user_id, receiver_user_id, card_id, claim_origin, created_at, card:card_library(title, category, card_number, qr_slug)"),
+    supabase.from("card_library").select("id, card_number, title, category, qr_slug, active").order("card_number"),
     supabase.from("subscriptions").select("id, status, payment_method, invoice_status"),
     supabase.from("notifications").select("id, type, read_at, created_at").order("created_at", { ascending: false }).limit(500),
     supabase.from("billing_invoices").select("id, status, total_cents, currency, created_at").order("created_at", { ascending: false }).limit(500),
@@ -151,7 +152,11 @@ export default async function AdminAnalyticsPage({ params }: { params: Promise<{
     companyRecognizedUsers.get(recognition.company_id)!.add(recognition.receiver_user_id);
     cardCounts.set(recognition.card_id, (cardCounts.get(recognition.card_id) ?? 0) + 1);
     const card = Array.isArray(recognition.card) ? recognition.card[0] : recognition.card;
-    if (card) categoryCounts.set(card.category, (categoryCounts.get(card.category) ?? 0) + 1);
+    if (card) {
+      const canonicalCard = getCanonicalCardBySlugOrNumber(card.card_number, card.qr_slug);
+      const category = canonicalCard?.category ?? card.category;
+      categoryCounts.set(category, (categoryCounts.get(category) ?? 0) + 1);
+    }
     claimOriginCounts.set(recognition.claim_origin ?? "direct_link", (claimOriginCounts.get(recognition.claim_origin ?? "direct_link") ?? 0) + 1);
     if (recognition.giver_user_id) giverUserIds.add(recognition.giver_user_id);
     receiverUserIds.add(recognition.receiver_user_id);
@@ -213,12 +218,13 @@ export default async function AdminAnalyticsPage({ params }: { params: Promise<{
   const maxCardUsage = Math.max(...Array.from(cardCounts.values()), 1);
   const cardRatings = (cards ?? [])
     .map((card) => {
+      const canonicalCard = getCanonicalCardBySlugOrNumber(card.card_number, card.qr_slug);
       const count = cardCounts.get(card.id) ?? 0;
       const rating = count ? Math.max(1, Math.round((count / maxCardUsage) * 100)) : 0;
       return {
         id: card.id,
-        label: `${String(card.card_number).padStart(2, "0")} ${card.title}`,
-        category: card.category,
+        label: `${String(card.card_number).padStart(2, "0")} ${canonicalCard?.title ?? card.title}`,
+        category: canonicalCard?.category ?? card.category,
         count,
         rating,
         active: card.active
@@ -371,7 +377,7 @@ export default async function AdminAnalyticsPage({ params }: { params: Promise<{
         <article className="panel dashboard-panel">
           <div className="panel-top"><h2>Category distribution</h2></div>
           {categoryCounts.size ? (
-            <BarChart items={Array.from(categoryCounts.entries()).sort((a, b) => b[1] - a[1]).map(([label, value]) => ({ label, value, color: "var(--theme-emerald)" }))} />
+            <BarChart items={Array.from(categoryCounts.entries()).sort((a, b) => b[1] - a[1]).map(([label, value]) => ({ label: getCategoryDisplayName(label), value, color: "var(--theme-emerald)" }))} />
           ) : (
             <EmptyState title="No category data yet" copy="Recognition categories appear after cards are claimed." />
           )}
@@ -455,7 +461,7 @@ export default async function AdminAnalyticsPage({ params }: { params: Promise<{
                 {cardRatings.map((card) => (
                   <tr key={card.id}>
                     <td><strong>{card.label}</strong></td>
-                    <td>{card.category}</td>
+                    <td>{getCategoryDisplayName(card.category)}</td>
                     <td>{card.count}</td>
                     <td>{card.rating}/100</td>
                     <td>{card.active ? "active" : "inactive"}</td>

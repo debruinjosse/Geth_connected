@@ -5,7 +5,7 @@ import { DashboardShell } from "@/components/DashboardShell";
 import { EmptyState } from "@/components/EmptyState";
 import { MetricCard } from "@/components/MetricCard";
 import { QualityBars, type QualityBarItem } from "@/components/QualityBars";
-import { categoryMeta, type CardCategory } from "@/lib/cards";
+import { categoryMeta, getCanonicalCardBySlugOrNumber, type CardCategory } from "@/lib/cards";
 import {
   companyAdmin,
   companyCategoryShare,
@@ -42,7 +42,7 @@ type RecognitionRow = {
   team_id: string | null;
   receiver_user_id: string;
   created_at: string;
-  card: { title: string; category: string } | Array<{ title: string; category: string }> | null;
+  card: { title: string; category: string; card_number?: number | null; qr_slug?: string | null } | Array<{ title: string; category: string; card_number?: number | null; qr_slug?: string | null }> | null;
 };
 
 function hasSupabaseServerConfig() {
@@ -159,7 +159,7 @@ export default async function CompanyDashboardPage() {
       supabase.from("teams").select("id, name, manager_id").eq("company_id", companyId).order("name"),
       supabase
         .from("recognition_events")
-        .select("id, team_id, receiver_user_id, created_at, card:card_library(title, category)")
+        .select("id, team_id, receiver_user_id, created_at, card:card_library(title, category, card_number, qr_slug)")
         .eq("company_id", companyId)
         .order("created_at", { ascending: false })
     ]);
@@ -186,12 +186,15 @@ export default async function CompanyDashboardPage() {
   for (const recognition of companyRecognitions) {
     const card = Array.isArray(recognition.card) ? recognition.card[0] : recognition.card;
     if (card) {
-      const existingQuality = qualityCounts.get(card.title);
-      qualityCounts.set(card.title, {
+      const canonicalCard = getCanonicalCardBySlugOrNumber(card.card_number, card.qr_slug);
+      const title = canonicalCard?.title ?? card.title;
+      const category = canonicalCard?.category ?? card.category;
+      const existingQuality = qualityCounts.get(title);
+      qualityCounts.set(title, {
         count: (existingQuality?.count ?? 0) + 1,
-        category: card.category
+        category
       });
-      categoryCounts.set(card.category, (categoryCounts.get(card.category) ?? 0) + 1);
+      categoryCounts.set(category, (categoryCounts.get(category) ?? 0) + 1);
     }
 
     if (recognition.team_id) {

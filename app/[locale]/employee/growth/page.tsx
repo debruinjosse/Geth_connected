@@ -3,7 +3,7 @@ import { BarChart } from "@/components/BarChart";
 import { DashboardShell } from "@/components/DashboardShell";
 import { EmptyState } from "@/components/EmptyState";
 import { QualityBars, type QualityBarItem } from "@/components/QualityBars";
-import { categoryMeta, getCategoryDisplayName, getLocalizedCardTitle, type CardCategory } from "@/lib/cards";
+import { categoryMeta, getCanonicalCardBySlugOrNumber, getCategoryDisplayName, getLocalizedCardTitle, type CardCategory } from "@/lib/cards";
 import { currentUser, employeeCategoryBreakdown, employeeGrowthPoints } from "@/lib/demo-data";
 import { getUnreadNotificationCount } from "@/lib/notifications";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -68,7 +68,7 @@ export default async function EmployeeGrowthPage({ params }: { params: Promise<{
       : Promise.resolve({ data: null }),
     supabase
       .from("recognition_events")
-      .select("id, created_at, card:card_library(title, category, qr_slug)")
+      .select("id, created_at, card:card_library(title, category, card_number, qr_slug)")
       .eq("receiver_user_id", user.id)
       .order("created_at", { ascending: true }),
     getUnreadNotificationCount(supabase, user.id)
@@ -79,7 +79,7 @@ export default async function EmployeeGrowthPage({ params }: { params: Promise<{
   const recognitions = (rows ?? []) as Array<{
     id: string;
     created_at: string;
-    card: { title: string; category: string; qr_slug?: string | null } | Array<{ title: string; category: string; qr_slug?: string | null }> | null;
+    card: { title: string; category: string; card_number?: number | null; qr_slug?: string | null } | Array<{ title: string; category: string; card_number?: number | null; qr_slug?: string | null }> | null;
   }>;
 
   const monthWindows = Array.from({ length: 6 }, (_, index) => {
@@ -95,10 +95,12 @@ export default async function EmployeeGrowthPage({ params }: { params: Promise<{
     if (!card) continue;
     const monthKey = getMonthKey(new Date(recognition.created_at));
     if (monthlyCounts.has(monthKey)) monthlyCounts.set(monthKey, (monthlyCounts.get(monthKey) ?? 0) + 1);
-    categoryCounts.set(card.category, (categoryCounts.get(card.category) ?? 0) + 1);
-    const label = getLocalizedCardTitle({ title: card.title, slug: card.qr_slug ?? undefined }, locale);
+    const canonicalCard = getCanonicalCardBySlugOrNumber(card.card_number, card.qr_slug);
+    const category = canonicalCard?.category ?? card.category;
+    categoryCounts.set(category, (categoryCounts.get(category) ?? 0) + 1);
+    const label = getLocalizedCardTitle({ title: canonicalCard?.title ?? card.title, slug: canonicalCard?.slug ?? card.qr_slug ?? undefined }, locale);
     const existing = qualityCounts.get(label);
-    qualityCounts.set(label, { value: (existing?.value ?? 0) + 1, category: card.category });
+    qualityCounts.set(label, { value: (existing?.value ?? 0) + 1, category });
   }
 
   const categoryRows = Array.from(categoryCounts.entries()).sort((a, b) => b[1] - a[1]);

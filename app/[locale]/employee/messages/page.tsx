@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { DashboardShell } from "@/components/DashboardShell";
 import { EmptyState } from "@/components/EmptyState";
+import { getCanonicalCardBySlugOrNumber, getLocalizedCardTitle } from "@/lib/cards";
 import { currentUser, employeeMessages } from "@/lib/demo-data";
 import { getUnreadNotificationCount } from "@/lib/notifications";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -17,7 +18,9 @@ function formatDate(value: string) {
   return new Intl.DateTimeFormat("en", { month: "short", day: "numeric" }).format(new Date(value));
 }
 
-export default async function EmployeeMessagesPage() {
+export default async function EmployeeMessagesPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+
   if (!hasSupabaseServerConfig()) {
     return (
       <DashboardShell role="employee" title="Messages" subtitle="A calm place for recognition notes and appreciation digests." user={currentUser} actions={<span className="quality-pill">Demo fallback</span>}>
@@ -66,7 +69,7 @@ export default async function EmployeeMessagesPage() {
       : Promise.resolve({ data: null }),
     supabase
       .from("recognition_events")
-      .select("id, created_at, personal_note, giver_name, giver_email, giver_user_id, card:card_library(title)")
+      .select("id, created_at, personal_note, giver_name, giver_email, giver_user_id, card:card_library(title, card_number, qr_slug)")
       .eq("receiver_user_id", user.id)
       .not("personal_note", "is", null)
       .order("created_at", { ascending: false }),
@@ -99,6 +102,10 @@ export default async function EmployeeMessagesPage() {
             <div className="signal-list">
               {messages.map((message) => {
                 const card = Array.isArray(message.card) ? message.card[0] : message.card;
+                const canonicalCard = card ? getCanonicalCardBySlugOrNumber(card.card_number, card.qr_slug) : null;
+                const cardTitle = card
+                  ? getLocalizedCardTitle({ title: canonicalCard?.title ?? card.title, slug: canonicalCard?.slug ?? card.qr_slug ?? undefined }, locale)
+                  : "your recognition";
                 const giver =
                   (message.giver_user_id ? giverMap.get(message.giver_user_id) : null) ||
                   message.giver_name ||
@@ -107,7 +114,7 @@ export default async function EmployeeMessagesPage() {
                 return (
                   <div className="signal-card" key={message.id}>
                     <div>
-                      <strong>{giver} on {card?.title ?? "your recognition"}</strong>
+                      <strong>{giver} on {cardTitle}</strong>
                       <p>{message.personal_note}</p>
                     </div>
                     <span className="quality-pill">{formatDate(message.created_at)}</span>

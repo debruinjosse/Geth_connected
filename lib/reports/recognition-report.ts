@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { getCanonicalCardBySlugOrNumber, getCategoryDisplayName } from "@/lib/cards";
 
 export type RecognitionReportRange = {
   from: string;
@@ -31,7 +32,7 @@ type RecognitionEventRow = {
   giver_user_id: string | null;
   receiver_user_id: string;
   team_id: string | null;
-  card: { title: string; category: string } | Array<{ title: string; category: string }> | null;
+  card: { title: string; category: string; card_number?: number | null; qr_slug?: string | null } | Array<{ title: string; category: string; card_number?: number | null; qr_slug?: string | null }> | null;
   team: { name: string } | Array<{ name: string }> | null;
 };
 
@@ -93,7 +94,7 @@ export async function fetchRecognitionReportRows(
   let query = supabase
     .from("recognition_events")
     .select(
-      "id, created_at, personal_note, giver_name, giver_email, giver_user_id, receiver_user_id, team_id, card:card_library(title, category), team:teams(name)"
+      "id, created_at, personal_note, giver_name, giver_email, giver_user_id, receiver_user_id, team_id, card:card_library(title, category, card_number, qr_slug), team:teams(name)"
     )
     .gte("created_at", range.fromIso)
     .lte("created_at", range.toIso)
@@ -139,6 +140,7 @@ export async function fetchRecognitionReportRows(
 
   return events.map((event) => {
     const card = getSingle(event.card);
+    const canonicalCard = card ? getCanonicalCardBySlugOrNumber(card.card_number, card.qr_slug) : null;
     const team = getSingle(event.team);
     const receiver = getProfileDisplayName(profileMap.get(event.receiver_user_id)) || "Unknown receiver";
     const giver =
@@ -152,8 +154,8 @@ export async function fetchRecognitionReportRows(
       recognitionDate: event.created_at,
       receiver,
       giver,
-      cardTitle: card?.title ?? "Unknown card",
-      category: card?.category ?? "Uncategorized",
+      cardTitle: canonicalCard?.title ?? card?.title ?? "Unknown card",
+      category: card ? getCategoryDisplayName(canonicalCard?.category ?? card.category) : "Uncategorized",
       team: team?.name ?? "Unassigned",
       personalNote: event.personal_note ?? ""
     };

@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import { getCanonicalCardBySlugOrNumber, getCategoryDisplayName } from "@/lib/cards";
 import { getRecognitionReportRange } from "@/lib/reports/recognition-report";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -9,7 +10,7 @@ type RecognitionExportRow = {
   receiver_user_id: string;
   card_id: string | number;
   created_at: string;
-  card: { title: string; category: string } | Array<{ title: string; category: string }> | null;
+  card: { title: string; category: string; card_number?: number | null; qr_slug?: string | null } | Array<{ title: string; category: string; card_number?: number | null; qr_slug?: string | null }> | null;
 };
 
 type ExportGroup = {
@@ -95,7 +96,7 @@ export async function GET(request: NextRequest) {
 
   const { data: recognitionRows, error: recognitionError } = await supabase
     .from("recognition_events")
-    .select("id, company_id, giver_user_id, receiver_user_id, card_id, created_at, card:card_library(title, category)")
+    .select("id, company_id, giver_user_id, receiver_user_id, card_id, created_at, card:card_library(title, category, card_number, qr_slug)")
     .gte("created_at", range.fromIso)
     .lte("created_at", range.toIso)
     .order("created_at", { ascending: true });
@@ -119,6 +120,7 @@ export async function GET(request: NextRequest) {
 
   for (const event of events) {
     const card = getSingle(event.card);
+    const canonicalCard = card ? getCanonicalCardBySlugOrNumber(card.card_number, card.qr_slug) : null;
     const giverUserId = event.giver_user_id ?? "external_or_manual_giver";
     const key = [event.company_id, giverUserId, event.receiver_user_id, event.card_id].join("|");
     const existing = grouped.get(key);
@@ -136,8 +138,8 @@ export async function GET(request: NextRequest) {
       giverUserId,
       receiverUserId: event.receiver_user_id,
       cardId: event.card_id,
-      cardTitle: card?.title ?? "Unknown card",
-      category: card?.category ?? "Uncategorized",
+      cardTitle: canonicalCard?.title ?? card?.title ?? "Unknown card",
+      category: card ? getCategoryDisplayName(canonicalCard?.category ?? card.category) : "Uncategorized",
       count: 1,
       firstRecognitionAt: event.created_at,
       lastRecognitionAt: event.created_at

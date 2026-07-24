@@ -64,6 +64,7 @@ function runSupabase(args) {
         ...process.env,
         SUPABASE_TELEMETRY_DISABLED: "1"
       },
+      shell: process.platform === "win32",
       stdio: "inherit"
     });
 

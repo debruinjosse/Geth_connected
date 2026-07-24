@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { updateCardActiveAction } from "@/app/actions/adminControls";
 import { DashboardShell } from "@/components/DashboardShell";
 import { EmptyState } from "@/components/EmptyState";
-import { getCategoryDisplayName } from "@/lib/cards";
+import { getCanonicalCardBySlugOrNumber, getCategoryDisplayName } from "@/lib/cards";
 import { superAdminUser } from "@/lib/demo-data";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -89,25 +89,29 @@ export default async function AdminCardsPage() {
             <table className="dashboard-table">
               <thead><tr><th>Card</th><th>Category</th><th>Number</th><th>Status</th><th>Usage</th><th>Route</th><th>Control</th></tr></thead>
               <tbody>
-                {(cards as AdminCardRow[]).map((card) => (
-                  <tr key={card.id}>
-                    <td><strong>{card.title}</strong><p style={{ margin: "4px 0 0", color: "var(--theme-muted)" }}>{card.recognition_sentence}</p></td>
-                    <td>{getCategoryDisplayName(card.category)}</td>
-                    <td>{card.card_number}</td>
-                    <td><span className="admin-status-pill">{card.active ? "active" : "paused"}</span></td>
-                    <td>{usageCounts.get(card.id) ?? 0}</td>
-                    <td>/claim-card/{card.qr_slug}</td>
-                    <td>
-                      <form action={updateCardActiveAction}>
-                        <input type="hidden" name="cardId" value={card.id} />
-                        <input type="hidden" name="active" value={card.active ? "false" : "true"} />
-                        <button className="btn btn-secondary compact" type="submit">
-                          {card.active ? "Pause" : "Activate"}
-                        </button>
-                      </form>
-                    </td>
-                  </tr>
-                ))}
+                {(cards as AdminCardRow[]).map((card) => {
+                  const canonicalCard = getCanonicalCardBySlugOrNumber(card.card_number, card.qr_slug);
+
+                  return (
+                    <tr key={card.id}>
+                      <td><strong>{canonicalCard?.title ?? card.title}</strong><p style={{ margin: "4px 0 0", color: "var(--theme-muted)" }}>{canonicalCard?.recognitionSentence ?? card.recognition_sentence}</p></td>
+                      <td>{getCategoryDisplayName(canonicalCard?.category ?? card.category)}</td>
+                      <td>{card.card_number}</td>
+                      <td><span className="admin-status-pill">{card.active ? "active" : "paused"}</span></td>
+                      <td>{usageCounts.get(card.id) ?? 0}</td>
+                      <td>/claim-card/{canonicalCard?.slug ?? card.qr_slug}</td>
+                      <td>
+                        <form action={updateCardActiveAction}>
+                          <input type="hidden" name="cardId" value={card.id} />
+                          <input type="hidden" name="active" value={card.active ? "false" : "true"} />
+                          <button className="btn btn-secondary compact" type="submit">
+                            {card.active ? "Pause" : "Activate"}
+                          </button>
+                        </form>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           ) : (

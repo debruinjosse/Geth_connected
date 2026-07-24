@@ -1,7 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { QualityBarItem } from "@/components/QualityBars";
 import type { TeamMemberRow } from "@/components/TeamTable";
-import { categoryColors, getAnalyticCategoryLabel } from "@/lib/cards";
+import { categoryColors, getAnalyticCategoryLabel, getCanonicalCardBySlugOrNumber } from "@/lib/cards";
 
 export type ManagerInsights = {
   profile: {
@@ -46,16 +46,27 @@ function getEnergyBucket(totalReceived: number, recentReceived: number): TeamMem
   return "LAAG";
 }
 
-function countByCard(received: Array<{ card: { title: string; category: string } | Array<{ title: string; category: string }> | null }>) {
+type JoinedCard = { title: string; category: string; card_number?: number | null; qr_slug?: string | null };
+
+function getDisplayCard(card: JoinedCard) {
+  const canonicalCard = getCanonicalCardBySlugOrNumber(card.card_number, card.qr_slug);
+  return {
+    title: canonicalCard?.title ?? card.title,
+    category: canonicalCard?.category ?? card.category
+  };
+}
+
+function countByCard(received: Array<{ card: JoinedCard | Array<JoinedCard> | null }>) {
   const cardCounts = new Map<string, { value: number; category: string }>();
   const categoryCounts = new Map<string, number>();
 
   for (const recognition of received) {
     const card = Array.isArray(recognition.card) ? recognition.card[0] : recognition.card;
     if (!card) continue;
-    const cardEntry = cardCounts.get(card.title);
-    cardCounts.set(card.title, { value: (cardEntry?.value ?? 0) + 1, category: card.category });
-    categoryCounts.set(card.category, (categoryCounts.get(card.category) ?? 0) + 1);
+    const displayCard = getDisplayCard(card);
+    const cardEntry = cardCounts.get(displayCard.title);
+    cardCounts.set(displayCard.title, { value: (cardEntry?.value ?? 0) + 1, category: displayCard.category });
+    categoryCounts.set(displayCard.category, (categoryCounts.get(displayCard.category) ?? 0) + 1);
   }
 
   const topCard = Array.from(cardCounts.entries()).sort((a, b) => b[1].value - a[1].value)[0];
@@ -108,7 +119,7 @@ export async function getManagerInsights(supabase: SupabaseClient, userId: strin
     supabase.from("profiles").select("id, first_name, last_name, team_id").in("team_id", teamIds).eq("role", "employee"),
     supabase
       .from("recognition_events")
-      .select("id, receiver_user_id, giver_user_id, team_id, created_at, card:card_library(title, category)")
+      .select("id, receiver_user_id, giver_user_id, team_id, created_at, card:card_library(title, category, card_number, qr_slug)")
       .in("team_id", teamIds)
       .order("created_at", { ascending: false })
   ]);
@@ -124,7 +135,7 @@ export async function getManagerInsights(supabase: SupabaseClient, userId: strin
     giver_user_id: string | null;
     team_id: string | null;
     created_at: string;
-    card: { title: string; category: string } | Array<{ title: string; category: string }> | null;
+    card: JoinedCard | Array<JoinedCard> | null;
   }>;
 
   const memberIds = new Set(memberRows.map((member) => member.id));
@@ -136,8 +147,9 @@ export async function getManagerInsights(supabase: SupabaseClient, userId: strin
   for (const recognition of recognitions) {
     const card = Array.isArray(recognition.card) ? recognition.card[0] : recognition.card;
     if (card) {
-      const existing = qualityCounts.get(card.title);
-      qualityCounts.set(card.title, { value: (existing?.value ?? 0) + 1, category: card.category });
+      const displayCard = getDisplayCard(card);
+      const existing = qualityCounts.get(displayCard.title);
+      qualityCounts.set(displayCard.title, { value: (existing?.value ?? 0) + 1, category: displayCard.category });
     }
 
     if (!recognitionsByReceiver.has(recognition.receiver_user_id)) recognitionsByReceiver.set(recognition.receiver_user_id, []);
