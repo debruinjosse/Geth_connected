@@ -302,7 +302,7 @@ export default async function AdminAnalyticsPage({ params }: { params: Promise<{
         <MetricCard icon={<Bell />} value={unreadOperationalNotifications} label="Unread updates" helper={`${recentNotifications} updates this week`} tone="var(--theme-sky)" iconBackground="rgba(47, 119, 184, 0.12)" />
       </section>
 
-      <section className="dashboard-grid three report-summary-grid">
+      <section className="dashboard-grid three report-summary-grid admin-report-summary-grid">
         <article className="panel dashboard-panel report-summary-card">
           <span className="eyebrow">Most used card</span>
           <strong>{topCard?.label ?? "No cards yet"}</strong>
@@ -320,9 +320,9 @@ export default async function AdminAnalyticsPage({ params }: { params: Promise<{
         </article>
       </section>
 
-      <section className="dashboard-grid two">
-        <article className="panel dashboard-panel">
-          <div className="panel-top"><h2>Monthly recognitions</h2></div>
+      <section className="dashboard-grid two admin-analytics-grid">
+        <article className="panel dashboard-panel admin-chart-panel">
+          <div className="panel-top"><div><h2>Monthly recognitions</h2><p>Latest six months, oldest to newest.</p></div></div>
           {recognitions?.length ? (
             <LineChart
               points={monthWindows.map((month) => monthlyCounts.get(month.key) ?? 0)}
@@ -335,7 +335,7 @@ export default async function AdminAnalyticsPage({ params }: { params: Promise<{
             <EmptyState title="No recognitions yet" copy="Platform recognition trend will appear once companies start claiming cards." />
           )}
         </article>
-        <article className="panel dashboard-panel">
+        <article className="panel dashboard-panel admin-ranking-panel">
           <div className="panel-top"><h2>Top company volume</h2></div>
           {topCompanies.length ? (
             <BarChart items={topCompanies.map((company) => ({ ...company, color: "var(--theme-ink)" }))} />
@@ -345,16 +345,16 @@ export default async function AdminAnalyticsPage({ params }: { params: Promise<{
         </article>
       </section>
 
-      <section className="dashboard-grid two">
-        <article className="panel dashboard-panel">
-          <div className="panel-top"><h2>User growth</h2></div>
+      <section className="dashboard-grid two admin-analytics-grid">
+        <article className="panel dashboard-panel admin-chart-panel">
+          <div className="panel-top"><div><h2>User growth</h2><p>New profiles created in the latest six months.</p></div></div>
           {profiles?.length ? (
             <LineChart points={monthWindows.map((month) => monthlyUserCounts.get(month.key) ?? 0)} labels={monthWindows.map((month) => month.label)} color="var(--theme-gold)" />
           ) : (
             <EmptyState title="No users yet" copy="User growth will appear after accounts are created." />
           )}
         </article>
-        <article className="panel dashboard-panel">
+        <article className="panel dashboard-panel admin-ranking-panel">
           <div className="panel-top"><h2>Page views</h2></div>
           {safeAnalyticsEvents.length ? (
             <BarChart items={monthWindows.map((month) => ({ label: month.label, value: monthlyPageViews.get(month.key) ?? 0, color: "var(--theme-sky)" }))} />
@@ -364,7 +364,7 @@ export default async function AdminAnalyticsPage({ params }: { params: Promise<{
         </article>
       </section>
 
-      <section className="dashboard-grid two">
+      <section className="dashboard-grid two admin-analytics-grid">
         <article className="panel dashboard-panel">
           <div className="panel-top"><h2>Company health</h2></div>
           {companyHealthRows.length ? (
@@ -379,7 +379,7 @@ export default async function AdminAnalyticsPage({ params }: { params: Promise<{
         </article>
       </section>
 
-      <section className="dashboard-grid two">
+      <section className="dashboard-grid two admin-analytics-grid">
         <article className="panel dashboard-panel">
           <div className="panel-top"><h2>Category distribution</h2></div>
           {categoryCounts.size ? (
@@ -398,7 +398,7 @@ export default async function AdminAnalyticsPage({ params }: { params: Promise<{
         </article>
       </section>
 
-      <section className="dashboard-grid two">
+      <section className="dashboard-grid two admin-analytics-grid">
         <article className="panel dashboard-panel">
           <div className="panel-top"><h2>Top pages by live usage</h2></div>
           {topPages.length ? (
@@ -420,7 +420,7 @@ export default async function AdminAnalyticsPage({ params }: { params: Promise<{
         </article>
       </section>
 
-      <article className="panel dashboard-panel">
+      <article className="panel dashboard-panel admin-export-panel">
         <div className="panel-top">
           <div>
             <h2>Privacy-safe recognition export</h2>
@@ -442,7 +442,7 @@ export default async function AdminAnalyticsPage({ params }: { params: Promise<{
         </form>
       </article>
 
-      <section className="dashboard-grid two">
+      <section className="dashboard-grid two admin-analytics-grid">
       <article className="panel dashboard-panel">
         <div className="panel-top"><h2>Role distribution</h2></div>
         {roleRows.length ? (

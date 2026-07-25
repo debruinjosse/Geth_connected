@@ -114,7 +114,7 @@ export default async function AdminDashboardPage({ params }: { params: Promise<{
       </section>
 
       <section className="dashboard-grid two admin-overview-graphics">
-        <article className="panel dashboard-panel">
+        <article className="panel dashboard-panel admin-chart-panel">
           <div className="panel-top">
             <div>
               <h2>Recognition activity</h2>
@@ -135,7 +135,7 @@ export default async function AdminDashboardPage({ params }: { params: Promise<{
           )}
         </article>
 
-        <article className="panel dashboard-panel">
+        <article className="panel dashboard-panel admin-chart-panel">
           <div className="panel-top">
             <div>
               <h2>User growth</h2>
