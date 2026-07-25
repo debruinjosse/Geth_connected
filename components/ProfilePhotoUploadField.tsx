@@ -14,7 +14,7 @@ export function ProfilePhotoUploadField() {
         <input
           type="file"
           name="profilePhoto"
-          accept="image/jpeg,image/png,image/webp,image/gif"
+          accept="image/jpeg,image/png,image/webp,image/gif,image/heic,image/heif,image/*"
           required
           onChange={(event) => setFileName(event.currentTarget.files?.[0]?.name ?? "")}
         />

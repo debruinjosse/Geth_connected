@@ -2,7 +2,7 @@
 
 import { useDeferredValue, useState } from "react";
 import { useLocale } from "next-intl";
-import { ArrowRight, Search } from "lucide-react";
+import { ArrowRight, Gift, Search } from "lucide-react";
 import { GethCardVisual } from "@/components/GethCardVisual";
 import { getCategoryDisplayName, getLocalizedCardTitle, getLocalizedCategoryDisplayName, type CardCategory, type GethCard } from "@/lib/cards";
 
@@ -99,25 +99,15 @@ export function CardsLibraryClient({ cards }: { cards: GethCard[] }) {
       {visibleCards.length ? (
         <section className="cards-grid">
           {visibleCards.map((card) => (
-          <a className="card-library-card" href={`/${locale}/claim-card/${card.slug}`} key={card.slug}>
-            <div className="card-library-copy">
-              <div className="card-library-meta">
-                <span>{getLocalizedCategoryDisplayName(card.category, locale)}</span>
-                <span>{String(card.cardNumber).padStart(2, "0")}</span>
+            <a className="card-library-card" href={`/${locale}/claim-card/${card.slug}`} key={card.slug}>
+              <div className="card-library-copy">
+                <GethCardVisual card={{ ...card, title: getLocalizedCardTitle(card, locale), category: getLocalizedCategoryDisplayName(card.category, locale) }} variant="library" />
+                <span className="card-library-action">
+                  <Gift size={15} />
+                  Give this card <ArrowRight size={14} />
+                </span>
               </div>
-              <GethCardVisual card={{ ...card, title: getLocalizedCardTitle(card, locale), category: getLocalizedCategoryDisplayName(card.category, locale) }} variant="library" />
-              <div>
-                <h3 className="panel-title" style={{ marginTop: 0 }}>
-                  {getLocalizedCardTitle(card, locale)}
-                </h3>
-                <p>{card.description}</p>
-                <p style={{ color: "var(--theme-ink)", fontWeight: 600 }}>{card.recognitionSentence}</p>
-              </div>
-              <span className="eyebrow" style={{ letterSpacing: "0.16em" }}>
-                Claim this card <ArrowRight size={14} style={{ verticalAlign: "middle" }} />
-              </span>
-            </div>
-          </a>
+            </a>
           ))}
         </section>
       ) : (

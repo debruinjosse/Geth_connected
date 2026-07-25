@@ -14,7 +14,6 @@ import {
   FileBarChart2,
   Home,
   Menu,
-  MessageSquare,
   QrCode,
   Settings,
   Shield,
@@ -36,9 +35,7 @@ const navByRole = {
     ["Home", "/employee", Home],
     ["Scan Card", "/employee/scan", QrCode],
     ["My Cards", "/employee/cards", VerticalCardIcon],
-    ["Growth", "/employee/growth", BarChart3],
-    ["Messages", "/employee/messages", MessageSquare],
-    ["Profile", "/employee/profile", UserRound]
+    ["GETH", "/employee/messages", GethBirdIcon]
   ],
   manager: [
     ["Overview", "/manager", Home],
@@ -98,6 +95,20 @@ function VerticalCardIcon({ size = 19 }: { size?: number }) {
   );
 }
 
+function GethBirdIcon({ size = 19 }: { size?: number }) {
+  return (
+    <Image
+      alt=""
+      aria-hidden="true"
+      className="side-link-brand-icon"
+      height={size}
+      src="/assets/geth-crest-mark.png"
+      width={size}
+      unoptimized
+    />
+  );
+}
+
 const eyebrowCopy = {
   employee: "GETH employee dashboard",
   manager: "GETH manager workspace",
@@ -144,6 +155,9 @@ export function DashboardShell({
   const [mobileOpen, setMobileOpen] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
   const nav = navByRole[role];
+  const notificationHref = localizeDashboardHref(notificationHrefByRole[role], locale);
+  const settingsHref = localizeDashboardHref(`/${role === "company" ? "company" : role}/settings`, locale);
+  const profileHref = role === "employee" ? localizeDashboardHref("/employee/profile", locale) : settingsHref;
 
   async function handleLogout() {
     setLoggingOut(true);
@@ -160,7 +174,7 @@ export function DashboardShell({
       }
     } finally {
       setMobileOpen(false);
-      router.replace(localizeDashboardHref("/login", locale));
+      router.replace(`/${locale}`);
       router.refresh();
       setLoggingOut(false);
     }
@@ -215,18 +229,18 @@ export function DashboardShell({
           <div className="dashboard-header-actions">
             {actions}
             <GoogleTranslateWidget />
-            <Link className="dashboard-icon-button notification-icon-button" href={localizeDashboardHref(notificationHrefByRole[role], locale)} aria-label={`${unreadNotifications} unread notifications`}>
+            <Link className="dashboard-icon-button notification-icon-button" href={notificationHref} aria-label={`${unreadNotifications} unread notifications`}>
               <Bell size={17} />
               {unreadNotifications > 0 ? <span className="notification-count">{unreadNotifications > 9 ? "9+" : unreadNotifications}</span> : null}
             </Link>
-            <Link className="dashboard-icon-button" href={localizeDashboardHref(`/${role === "company" ? "company" : role}/settings`, locale)} aria-label="Settings">
+            <Link className="dashboard-icon-button" href={settingsHref} aria-label="Settings">
               <Settings size={17} />
             </Link>
-            <div className="dashboard-avatar-chip" title={`${user.name} - ${user.team}`}>
+            <Link className="dashboard-avatar-chip" href={profileHref} title={`${user.name} - ${user.team}`} aria-label={`Open ${user.name}'s profile`}>
               <div className="avatar">
                 {user.imageUrl ? <Image src={user.imageUrl} alt={`${user.name} profile`} width={32} height={32} unoptimized /> : user.initials || <CircleUserRound size={18} />}
               </div>
-            </div>
+            </Link>
             <button className="btn btn-secondary dashboard-logout dashboard-top-signout" type="button" onClick={handleLogout} disabled={loggingOut}>
               <LogOut size={16} />
               {loggingOut ? "Signing out..." : "Sign out"}

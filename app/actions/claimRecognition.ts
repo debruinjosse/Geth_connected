@@ -58,7 +58,8 @@ export async function claimRecognition(input: {
     }
 
     const claimOrigin = input.claimOrigin ?? "direct_link";
-    const { data: insertedRecognition, error: insertError } = await supabase.from("recognition_events").insert({
+    const needsGiverVerification = Boolean(input.giverUserId);
+    const recognitionPayload = {
       company_id: receiverProfile.company_id,
       team_id: receiverProfile.team_id,
       card_id: cardRecord.id,
@@ -69,9 +70,32 @@ export async function claimRecognition(input: {
       personal_note: input.personalNote?.trim() || null,
       claim_origin: claimOrigin,
       originated_digitally: ["qr_scan", "direct_link", "card_library", "manual_entry"].includes(claimOrigin),
-      status: "claimed",
       claimed_at: new Date().toISOString()
-    }).select("id").single<{ id: string }>();
+    };
+
+    let verificationPending = needsGiverVerification;
+    let { data: insertedRecognition, error: insertError } = await supabase
+      .from("recognition_events")
+      .insert({
+        ...recognitionPayload,
+        status: needsGiverVerification ? "pending_verification" : "claimed"
+      })
+      .select("id")
+      .single<{ id: string }>();
+
+    if (insertError && needsGiverVerification && /pending_verification|recognition_status|invalid input value/i.test(insertError.message)) {
+      verificationPending = false;
+      const retry = await supabase
+        .from("recognition_events")
+        .insert({
+          ...recognitionPayload,
+          status: "claimed"
+        })
+        .select("id")
+        .single<{ id: string }>();
+      insertedRecognition = retry.data;
+      insertError = retry.error;
+    }
 
     if (insertError) {
       return { ok: false as const, error: "We couldn't save this recognition yet. Please try again.", code: "INSERT_FAILED" as const };
@@ -84,9 +108,22 @@ export async function claimRecognition(input: {
         companyId: receiverProfile.company_id,
         type: "recognition_received",
         title: "Recognition claimed",
-        body: `Your ${cardRecord.title} recognition was added to your dashboard.`,
+        body: verificationPending
+          ? `Your ${cardRecord.title} recognition was sent to ${input.giverName?.trim() || "the giver"} for verification.`
+          : `Your ${cardRecord.title} recognition was added to your dashboard.`,
         href: "/employee"
       });
+
+      if (verificationPending && input.giverUserId) {
+        await createNotification(admin, {
+          userId: input.giverUserId,
+          companyId: receiverProfile.company_id,
+          type: "recognition_verification_requested",
+          title: "Approve a recognition",
+          body: `${input.giverName?.trim() ? "You were selected as the giver" : "A teammate selected you as the giver"} for a ${cardRecord.title} card. Please approve it to verify the recognition.`,
+          href: "/employee"
+        });
+      }
     }
 
     return { ok: true as const, cardTitle: cardRecord.title, mode: "supabase" as const };

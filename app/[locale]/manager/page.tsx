@@ -52,7 +52,10 @@ function getEnergyBucket(totalReceived: number, recentReceived: number): TeamMem
   return "LAAG";
 }
 
-export default async function ManagerDashboardPage() {
+export default async function ManagerDashboardPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+  const signalsHref = `/${locale}/manager/signals`;
+
   if (!hasSupabaseServerConfig()) {
     return (
       <DashboardShell
@@ -79,7 +82,7 @@ export default async function ManagerDashboardPage() {
           <aside className="panel dashboard-panel">
             <div className="panel-top">
               <h2>Team signals</h2>
-              <a href="/manager/signals" style={{ color: "var(--theme-ink)", fontWeight: 700 }}>
+              <a href={signalsHref} style={{ color: "var(--theme-ink)", fontWeight: 700 }}>
                 View all
               </a>
             </div>
@@ -152,7 +155,7 @@ export default async function ManagerDashboardPage() {
           <aside className="panel dashboard-panel">
             <div className="panel-top">
               <h2>Team signals</h2>
-              <a href="/manager/signals" style={{ color: "var(--theme-ink)", fontWeight: 700 }}>
+              <a href={signalsHref} style={{ color: "var(--theme-ink)", fontWeight: 700 }}>
                 View all
               </a>
             </div>
@@ -450,7 +453,7 @@ export default async function ManagerDashboardPage() {
         <aside className="panel dashboard-panel">
           <div className="panel-top">
             <h2>Team signals</h2>
-            <a href="/manager/signals" style={{ color: "var(--theme-ink)", fontWeight: 700 }}>
+            <a href={signalsHref} style={{ color: "var(--theme-ink)", fontWeight: 700 }}>
               View all
             </a>
           </div>

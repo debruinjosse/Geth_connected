@@ -17,6 +17,9 @@
     "cards": "Kaarten",
     "pricing": "Prijzen",
     "resources": "Resources",
+    "support": "Support",
+    "aboutUs": "Over ons",
+    "visionMission": "Visie & Missie",
     "login": "Inloggen",
     "bookDemo": "Demo boeken",
     "openDashboard": "Dashboard openen",
@@ -51,16 +54,18 @@
     "previewGoalOrientedCopy": "Jij stelt duidelijke doelen, maakt plannen en brengt ze stap voor stap tot leven.",
     "previewCaringCopy": "Jij hebt aandacht voor collega’s en draagt bij aan een positieve, veilige en betrokken werkomgeving.",
     "howEyebrow": "Hoe het werkt",
-    "howTitle": "Waardering die beweging brengt",
-    "howCopy": "Echte waardering wordt digitale zichtbaarheid in vier doordachte stappen.",
-    "step1Title": "Geef een kaart",
-    "step1Copy": "Kies een kaart die past bij het moment en de impact.",
-    "step2Title": "Scan de QR-code",
-    "step2Copy": "De ontvanger scant de QR-code om de digitale ervaring te openen.",
-    "step3Title": "Claim de waardering",
-    "step3Copy": "De ontvanger ziet je boodschap, claimt het compliment en voelt zich gezien.",
-    "step4Title": "Bekijk groei & inzichten",
-    "step4Copy": "Waardering wordt inzicht dat je team helpt groeien.",
+    "howTitle": "Hoe het werkt",
+    "howCopy": "Waardering wordt zichtbaar in vijf eenvoudige stappen.",
+    "step1Title": "Kies een kaart",
+    "step1Copy": "Kies een kaart die past bij wat je wilt uitspreken.",
+    "step2Title": "Geef & spreek",
+    "step2Copy": "Geef de kaart aan iemand en vertel waarom dit voor jou belangrijk is.",
+    "step3Title": "De ontvanger scant de QR-code",
+    "step3Copy": "De ontvanger scant de QR-code om het compliment digitaal vast te leggen en het profiel te laten groeien.",
+    "step4Title": "Zichtbare groei",
+    "step4Copy": "Waardering wordt zichtbaar in het persoonlijke profiel en in het teamoverzicht.",
+    "step5Title": "Meer impact",
+    "step5Copy": "Meer waardering zorgt voor meer verbinding, energie en groei.",
     "companiesLabel": "Voor bedrijven",
     "companiesTitle": "Cultuurinzichten op schaal.",
     "companiesCopy": "Bouw aan een waarderingscultuur die betrokkenheid, behoud en meetbare impact versterkt.",
@@ -149,6 +154,33 @@
     "lockedDemo": "Demo boeken",
     "lockedRegister": "Registreer je bedrijf"
   },
+  "landing": {
+    "howItWorks": {
+      "title": "HOE HET WERKT",
+      "steps": {
+        "pickCard": {
+          "title": "KIES EEN KAART",
+          "description": "Kies een kaart die past bij wat je wilt uitspreken."
+        },
+        "giveSpeak": {
+          "title": "GEEF & SPREEK",
+          "description": "Geef de kaart aan iemand en vertel waarom dit voor jou belangrijk is."
+        },
+        "scanQr": {
+          "title": "DE ONTVANGER SCANT DE QR-CODE",
+          "description": "De ontvanger scant de QR-code om het compliment digitaal vast te leggen en het profiel te laten groeien."
+        },
+        "visibleGrowth": {
+          "title": "ZICHTBARE GROEI",
+          "description": "Waardering wordt zichtbaar in het persoonlijke profiel en in het teamoverzicht."
+        },
+        "moreImpact": {
+          "title": "MEER IMPACT",
+          "description": "Meer waardering zorgt voor meer verbinding, energie en groei."
+        }
+      }
+    }
+  },
   "companyDashboard": {
     "title": "Bedrijfsdashboard",
     "subtitle": "Je cultuur in een oogopslag.",
@@ -191,14 +223,49 @@
     "emptyTeamsCopy": "Zodra je bedrijf teams heeft, vergelijkt dit paneel de erkenningsactiviteit per team."
   },
   "resourcesPage": {
-    "eyebrow": "Resources",
-    "title": "Alles wat je rollout-team nodig heeft",
-    "copy": "Een gerichte resourcehub voor API-referenties en support.",
-    "apiCopy": "Hoe connected-card routes, erkenningen en dashboards gekoppeld kunnen worden aan backend-systemen.",
-    "apiAction": "Open API",
+    "eyebrow": "Support",
+    "title": "Waarmee kunnen we helpen?",
+    "copy": "Neem contact op met GETH support voor rollout-vragen, accounthelp, kaarten claimen, QR-scans of dashboardbegeleiding.",
     "supportTitle": "Support",
-    "supportCopy": "Neem contact op, stel rollout-vragen en bekijk security resources.",
-    "supportAction": "Open support"
+    "supportCardTitle": "Praat met GETH support",
+    "supportCopy": "Stuur ons je vraag en we helpen je met de juiste volgende stap.",
+    "supportAction": "Open supportformulier",
+    "formEyebrow": "Supportaanvraag",
+    "formTitle": "Supportaanvraag",
+    "formCopy": "Gebruik het formulier om je bericht voor te bereiden en kies daarna e-mail of live WhatsApp-chat.",
+    "nameLabel": "Naam",
+    "emailLabel": "E-mail",
+    "companyLabel": "Bedrijf",
+    "requestTypeLabel": "Type aanvraag",
+    "messageLabel": "Bericht",
+    "emailAction": "E-mail support",
+    "sending": "Versturen...",
+    "replyTime": "We reageren meestal binnen een werkdag.",
+    "successTitle": "Je supportaanvraag staat klaar.",
+    "successCopy": "Je e-mailapp opent met het voorbereide bericht.",
+    "failureTitle": "We konden het supportkanaal niet openen.",
+    "failureCopy": "Gebruik in plaats daarvan de directe e-maillink:",
+    "sendAnother": "Nog een aanvraag sturen",
+    "whatsappAction": "Live WhatsApp-chat",
+    "whatsappHint": "Voor urgente support start je een live WhatsApp-chat met het GETH-team via +31 6 1379 5467.",
+    "emailFallback": "mail info@geth.pro",
+    "whatsappUnavailable": "Voeg NEXT_PUBLIC_SUPPORT_WHATSAPP_NUMBER toe om WhatsApp support te activeren.",
+    "required": "Verplicht",
+    "errors": {
+      "name": "Vul je naam in.",
+      "email": "Vul een geldig e-mailadres in.",
+      "message": "Vul je bericht in.",
+      "messageLength": "Gebruik minimaal 10 tekens."
+    },
+    "requestTypes": {
+      "account": "Account hulp",
+      "claiming": "Kaart claimen",
+      "qr": "QR scannen",
+      "dashboard": "Dashboard support",
+      "team": "Team- of medewerkerbeheer",
+      "technical": "Technisch probleem",
+      "other": "Anders"
+    }
   },
   "companyBilling": {
     "title": "Billing",

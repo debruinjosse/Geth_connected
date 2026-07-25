@@ -68,13 +68,14 @@ export default async function EmployeeCardsPage({ params }: { params: Promise<{ 
 
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
-    .select("id, first_name, last_name, team_id")
+    .select("id, first_name, last_name, team_id, profile_image")
     .eq("id", user.id)
     .maybeSingle<{
       id: string;
       first_name: string | null;
       last_name: string | null;
       team_id: string | null;
+      profile_image: string | null;
     }>();
 
   if (profileError || !profile) redirect("/auth/repair-profile");
@@ -141,7 +142,8 @@ export default async function EmployeeCardsPage({ params }: { params: Promise<{ 
       user={{
         name: `${profile.first_name ?? ""} ${profile.last_name ?? ""}`.trim() || "GETH user",
         initials: getInitials(profile.first_name, profile.last_name),
-        team: team?.name ?? "No team assigned"
+        team: team?.name ?? "No team assigned",
+        imageUrl: profile.profile_image
       }}
       actions={
         <>
@@ -154,14 +156,14 @@ export default async function EmployeeCardsPage({ params }: { params: Promise<{ 
       <section className="dashboard-grid two">
         <article className="panel dashboard-panel">
           <div className="panel-top">
-            <h2>Cards received</h2>
+            <h2>Recognitions received</h2>
             <span className="quality-pill">{received.length} received</span>
           </div>
           {received.length ? <RecognitionList items={received} /> : <EmptyState title="No cards received yet" copy="Once a colleague recognizes you, your cards will appear here." />}
         </article>
         <article className="panel dashboard-panel">
           <div className="panel-top">
-            <h2>Cards given</h2>
+            <h2>Recognitions given</h2>
             <span className="quality-pill">{given.length} sent</span>
           </div>
           {given.length ? <RecognitionList items={given} compact /> : <EmptyState title="No cards given yet" copy="Browse the card library to recognize a teammate and start your giving history." actionLabel="Open card library" actionHref={`/${locale}/cards`} />}

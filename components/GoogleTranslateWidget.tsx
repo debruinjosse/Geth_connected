@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type MouseEvent } from "react";
 import { usePathname } from "next/navigation";
 import { X } from "lucide-react";
 import { locales, type AppLocale } from "@/i18n/routing";
@@ -25,6 +25,8 @@ declare global {
 }
 
 const GOOGLE_TRANSLATE_SCRIPT_ID = "google-translate-script";
+const GOOGLE_TRANSLATE_ELEMENT_ID = "google_translate_element";
+const GOOGLE_TRANSLATE_SOURCE_LOCALE = "en";
 const languageLabels: Record<AppLocale, string> = {
   en: "English",
   nl: "Dutch",
@@ -44,6 +46,113 @@ function getLocalizedPath(pathname: string, nextLocale: AppLocale) {
   return `/${nextLocale}${pathname === "/" ? "" : pathname}`;
 }
 
+function getTranslateCookieValue(locale: AppLocale) {
+  return `/${GOOGLE_TRANSLATE_SOURCE_LOCALE}/${locale}`;
+}
+
+function getCookieDomainCandidates() {
+  if (typeof window === "undefined") return [];
+
+  const { hostname } = window.location;
+  if (hostname === "localhost" || hostname.endsWith(".local") || /^[\d.]+$/.test(hostname)) {
+    return [];
+  }
+
+  const parts = hostname.split(".");
+  if (parts.length < 2) return [];
+
+  return [`.${parts.slice(-2).join(".")}`];
+}
+
+function readCookie(name: string) {
+  if (typeof document === "undefined") return "";
+
+  return (
+    document.cookie
+      .split(";")
+      .map((cookie) => cookie.trim())
+      .find((cookie) => cookie.startsWith(`${name}=`))
+      ?.slice(name.length + 1) ?? ""
+  );
+}
+
+function clearGoogleTranslateCookie() {
+  document.cookie = "googtrans=;path=/;max-age=0;SameSite=Lax";
+  for (const domain of getCookieDomainCandidates()) {
+    document.cookie = `googtrans=;path=/;max-age=0;SameSite=Lax;domain=${domain}`;
+  }
+}
+
+function writeGoogleTranslateCookie(locale: AppLocale) {
+  if (locale === GOOGLE_TRANSLATE_SOURCE_LOCALE) {
+    clearGoogleTranslateCookie();
+    return;
+  }
+
+  const value = getTranslateCookieValue(locale);
+  const maxAge = 60 * 60 * 24 * 365;
+  const baseCookie = `googtrans=${value};path=/;max-age=${maxAge};SameSite=Lax`;
+
+  document.cookie = baseCookie;
+  for (const domain of getCookieDomainCandidates()) {
+    document.cookie = `${baseCookie};domain=${domain}`;
+  }
+}
+
+function applyGoogleTranslate(locale: AppLocale) {
+  const select = document.querySelector<HTMLSelectElement>(".goog-te-combo");
+  if (!select) return false;
+
+  select.value = locale;
+  select.dispatchEvent(new Event("change", { bubbles: true }));
+
+  if (locale === GOOGLE_TRANSLATE_SOURCE_LOCALE) {
+    select.value = "";
+    select.dispatchEvent(new Event("change", { bubbles: true }));
+  }
+
+  return true;
+}
+
+function ensureGoogleTranslateHost() {
+  let host = document.getElementById(GOOGLE_TRANSLATE_ELEMENT_ID);
+  if (host) return host;
+
+  host = document.createElement("div");
+  host.id = GOOGLE_TRANSLATE_ELEMENT_ID;
+  host.setAttribute("aria-hidden", "true");
+  host.style.position = "absolute";
+  host.style.left = "-9999px";
+  host.style.width = "1px";
+  host.style.height = "1px";
+  host.style.overflow = "hidden";
+  document.body.appendChild(host);
+  return host;
+}
+
+function restoreOriginalLanguageIfNeeded(locale: AppLocale, pathname: string) {
+  if (locale !== GOOGLE_TRANSLATE_SOURCE_LOCALE || typeof window === "undefined") return;
+
+  const translateCookie = readCookie("googtrans");
+  const translatedClass = document.documentElement.className.includes("translated");
+  const googleBannerVisible = Boolean(document.querySelector("iframe.goog-te-banner-frame, iframe.skiptranslate"));
+  if (!translateCookie && !translatedClass && !googleBannerVisible) {
+    window.sessionStorage.removeItem("geth-google-translate-reset-path");
+    return;
+  }
+
+  if (translateCookie) {
+    clearGoogleTranslateCookie();
+  }
+
+  const resetToken = `${pathname}:${translateCookie || "translated"}`;
+  const resetPath = window.sessionStorage.getItem("geth-google-translate-reset-path");
+  if (resetPath === resetToken) return;
+
+  window.sessionStorage.setItem("geth-google-translate-reset-path", resetToken);
+  window.location.reload();
+}
+
 export function GoogleTranslateWidget() {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -57,17 +166,18 @@ export function GoogleTranslateWidget() {
 
   useEffect(() => {
     window.googleTranslateElementInit = () => {
-      if (!window.google?.translate?.TranslateElement || document.getElementById("google_translate_element")?.children.length) {
+      const host = ensureGoogleTranslateHost();
+      if (!window.google?.translate?.TranslateElement || host.children.length) {
         return;
       }
 
       new window.google.translate.TranslateElement(
         {
-          pageLanguage: "en",
+          pageLanguage: GOOGLE_TRANSLATE_SOURCE_LOCALE,
           includedLanguages: "en,nl,fr,da",
           autoDisplay: false
         },
-        "google_translate_element"
+        GOOGLE_TRANSLATE_ELEMENT_ID
       );
     };
 
@@ -83,6 +193,30 @@ export function GoogleTranslateWidget() {
     document.body.appendChild(script);
   }, []);
 
+  useEffect(() => {
+    writeGoogleTranslateCookie(activeLocale);
+
+    const timers = [150, 600, 1200].map((delay) =>
+      window.setTimeout(() => {
+        applyGoogleTranslate(activeLocale);
+        restoreOriginalLanguageIfNeeded(activeLocale, pathname);
+      }, delay)
+    );
+
+    return () => {
+      timers.forEach((timer) => window.clearTimeout(timer));
+    };
+  }, [activeLocale, pathname]);
+
+  function handleLanguageSelect(event: MouseEvent<HTMLAnchorElement>, locale: AppLocale, href: string) {
+    event.preventDefault();
+    writeGoogleTranslateCookie(locale);
+    applyGoogleTranslate(locale);
+    setOpen(false);
+
+    window.location.assign(href);
+  }
+
   return (
     <div className={`google-translate-widget ${open ? "open" : ""}`.trim()}>
       {open ? (
@@ -95,19 +229,24 @@ export function GoogleTranslateWidget() {
           </div>
           <p>Select a language. The page will switch to the matching GETH route, and Google Translate remains available below if needed.</p>
           <div className="google-language-options" aria-label="Language choices">
-            {(locales as readonly AppLocale[]).map((locale) => (
-              <a
-                className={locale === activeLocale ? "active" : ""}
-                href={`${getLocalizedPath(pathname, locale)}${search}`}
-                hrefLang={locale}
-                key={locale}
-              >
-                <span>{locale.toUpperCase()}</span>
-                {languageLabels[locale]}
-              </a>
-            ))}
+            {(locales as readonly AppLocale[]).map((locale) => {
+              const href = `${getLocalizedPath(pathname, locale)}${search}`;
+
+              return (
+                <a
+                  className={locale === activeLocale ? "active" : ""}
+                  href={href}
+                  hrefLang={locale}
+                  key={locale}
+                  onClick={(event) => handleLanguageSelect(event, locale, href)}
+                >
+                  <span>{locale.toUpperCase()}</span>
+                  {languageLabels[locale]}
+                </a>
+              );
+            })}
           </div>
-          <div id="google_translate_element" />
+          <p className="google-translate-helper">If text does not change immediately, choose the language once more after the page reloads.</p>
         </div>
       ) : null}
       <button className="google-translate-toggle" type="button" onClick={() => setOpen((value) => !value)} aria-label="Translate website">

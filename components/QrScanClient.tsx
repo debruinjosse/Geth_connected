@@ -5,6 +5,7 @@ import type { ChangeEvent } from "react";
 import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Camera, ImageUp, Keyboard, QrCode, XCircle } from "lucide-react";
+import { gethCards, resolveCardSlug } from "@/lib/cards";
 
 type BarcodeResult = {
   rawValue: string;
@@ -57,6 +58,59 @@ function getSlugCandidate(value: string | null | undefined) {
 
   const candidate = decoded.trim().replace(/[?#].*$/, "").replace(/^\/+|\/+$/g, "");
   return SLUG_PATTERN.test(candidate) ? candidate : "";
+}
+
+function normalizeSearchValue(value: string) {
+  return value
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "");
+}
+
+function resolveCardSearch(value: string) {
+  const candidate = getSlugCandidate(value);
+  const normalizedInput = normalizeSearchValue(value);
+  const normalizedCardNumber = normalizedInput.replace(/^card/, "");
+
+  if (!normalizedInput) return "";
+
+  if (candidate) {
+    const resolvedCandidate = resolveCardSlug(candidate);
+    const exactSlug = gethCards.find((card) => card.active && card.slug === resolvedCandidate);
+    if (exactSlug) return exactSlug.slug;
+  }
+
+  const activeCards = gethCards.filter((card) => card.active);
+  const exactMatch = activeCards.find((card) => {
+    const slug = normalizeSearchValue(card.slug);
+    const title = normalizeSearchValue(card.title);
+    const number = String(card.cardNumber).padStart(2, "0");
+    return (
+      slug === normalizedInput ||
+      title === normalizedInput ||
+      String(card.cardNumber) === normalizedInput ||
+      String(card.cardNumber) === normalizedCardNumber ||
+      number === normalizedInput ||
+      number === normalizedCardNumber
+    );
+  });
+
+  if (exactMatch) return exactMatch.slug;
+
+  const startsWithMatch = activeCards.find((card) => {
+    const slug = normalizeSearchValue(card.slug);
+    const title = normalizeSearchValue(card.title);
+    return slug.startsWith(normalizedInput) || title.startsWith(normalizedInput);
+  });
+
+  if (startsWithMatch) return startsWithMatch.slug;
+
+  return activeCards.find((card) => {
+    const slug = normalizeSearchValue(card.slug);
+    const title = normalizeSearchValue(card.title);
+    return slug.includes(normalizedInput) || title.includes(normalizedInput);
+  })?.slug ?? "";
 }
 
 function resolveClaimSlug(value: string) {
@@ -118,7 +172,7 @@ function resolveClaimSlug(value: string) {
 
   if (parts.length === 1) {
     const queryStyleMatch = firstPart.match(/^(?:slug|card|cardSlug|card_slug|qr|qrSlug|qr_slug)=(.+)$/i);
-    return getSlugCandidate(queryStyleMatch?.[1] ?? firstPart);
+    return resolveCardSearch(queryStyleMatch?.[1] ?? firstPart);
   }
 
   return "";
@@ -274,7 +328,7 @@ export function QrScanClient() {
   function goToClaim(rawValue: string) {
     const slug = resolveClaimSlug(rawValue);
     if (!slug) {
-      setStatus("Invalid QR. This does not look like a GETH card link or card slug.");
+      setStatus("Card not found. Try a QR link, card name, card number, or a shorter search like team.");
       return;
     }
 
@@ -418,7 +472,7 @@ export function QrScanClient() {
 
   return (
     <div className="qr-scan-grid">
-      <section className="panel dashboard-panel qr-scan-panel">
+      <section className="panel dashboard-panel qr-scan-panel qr-camera-panel">
         <div className="panel-top">
           <div>
             <h2>Scan a physical GETH card</h2>
@@ -452,11 +506,11 @@ export function QrScanClient() {
         <p className="section-copy" aria-live="polite">{status}</p>
       </section>
 
-      <section className="panel dashboard-panel">
+      <section className="panel dashboard-panel qr-manual-claim-panel">
         <div className="panel-top">
           <div>
-            <h2>Saved QR or manual entry</h2>
-            <p className="section-copy">Scan a QR screenshot from your camera roll, paste the QR link, or enter a card slug such as verbinder.</p>
+            <h2>Explore your GETH recognition cards</h2>
+            <p className="section-copy">Scan a QR screenshot from your camera roll, paste a QR link, or search a card by name, number, or short word.</p>
           </div>
           <ImageUp size={24} />
         </div>
@@ -477,13 +531,13 @@ export function QrScanClient() {
         </div>
 
         <div className="form-field">
-          <label htmlFor="manual-qr-value">QR link or card slug</label>
+          <label htmlFor="manual-qr-value">Search card</label>
           <input
             id="manual-qr-value"
             className="input"
             value={manualValue}
             onChange={(event) => setManualValue(event.target.value)}
-            placeholder="https://.../claim-card/verbinder or verbinder"
+            placeholder="Team, Team Player, card 42, or a QR link"
           />
         </div>
         <button className="btn btn-dark" type="button" onClick={() => goToClaim(manualValue)}>

@@ -1,8 +1,6 @@
 import { redirect } from "next/navigation";
-import { CheckCircle2 } from "lucide-react";
-import { markAllNotificationsReadAction } from "@/app/actions/notifications";
 import { DashboardShell } from "@/components/DashboardShell";
-import { NotificationInbox, type NotificationInboxRow } from "@/components/NotificationInbox";
+import { MarkAllNotificationsReadButton, NotificationInbox, type NotificationInboxRow } from "@/components/NotificationInbox";
 import { currentUser, employeeNotifications } from "@/lib/demo-data";
 import { getUnreadNotificationCount } from "@/lib/notifications";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -56,9 +54,9 @@ export default async function EmployeeNotificationsPage({ params }: { params: Pr
 
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
-    .select("first_name, last_name, team_id")
+    .select("first_name, last_name, team_id, profile_image")
     .eq("id", user.id)
-    .maybeSingle<{ first_name: string | null; last_name: string | null; team_id: string | null }>();
+    .maybeSingle<{ first_name: string | null; last_name: string | null; team_id: string | null; profile_image: string | null }>();
 
   if (profileError || !profile) {
     redirect("/auth/repair-profile?next=/employee/notifications");
@@ -91,16 +89,13 @@ export default async function EmployeeNotificationsPage({ params }: { params: Pr
       user={{
         name: `${profile.first_name ?? ""} ${profile.last_name ?? ""}`.trim() || "GETH user",
         initials: getInitials(profile.first_name, profile.last_name),
-        team: team?.name ?? "Employee"
+        team: team?.name ?? "Employee",
+        imageUrl: profile.profile_image
       }}
       unreadNotifications={unreadCount}
       actions={
         unreadCount > 0 ? (
-          <form action={markAllNotificationsReadAction}>
-            <button className="btn btn-secondary" type="submit">
-              <CheckCircle2 size={16} /> Mark all read
-            </button>
-          </form>
+          <MarkAllNotificationsReadButton />
         ) : null
       }
     >

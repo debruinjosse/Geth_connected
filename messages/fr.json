@@ -17,6 +17,9 @@
     "cards": "Cartes",
     "pricing": "Tarifs",
     "resources": "Ressources",
+    "support": "Support",
+    "aboutUs": "A propos",
+    "visionMission": "Vision & Mission",
     "login": "Se connecter",
     "bookDemo": "Réserver une démo",
     "openDashboard": "Ouvrir le tableau de bord",
@@ -51,16 +54,18 @@
     "previewGoalOrientedCopy": "Vous fixez des objectifs clairs, vous faites des plans et vous les mettez en œuvre étape par étape.",
     "previewCaringCopy": "Vous vous souciez de vos collègues et vous contribuez à une atmosphère positive, sûre et engagée au travail.",
     "howEyebrow": "Comment ça marche",
-    "howTitle": "La reconnaissance qui bouge",
-    "howCopy": "La reconnaissance du monde réel devient une visibilité numérique en quatre étapes réfléchies.",
-    "step1Title": "Donnez une carte",
-    "step1Copy": "Choisissez une carte qui correspond au moment et à l'impact.",
-    "step2Title": "Scannez le code QR",
-    "step2Copy": "Ils scannent le code QR pour accéder à leur expérience numérique.",
-    "step3Title": "Revendiquez la reconnaissance",
-    "step3Copy": "Ils voient votre message, revendiquent le compliment et se sentent vus.",
-    "step4Title": "Voyez la croissance et les insights",
-    "step4Copy": "La reconnaissance se transforme en insights qui aident votre équipe à grandir.",
+    "howTitle": "Comment ca marche",
+    "howCopy": "La reconnaissance devient visible en cinq etapes simples.",
+    "step1Title": "Choisir une carte",
+    "step1Copy": "Choisissez une carte qui exprime ce que vous voulez reconnaitre.",
+    "step2Title": "Donner & expliquer",
+    "step2Copy": "Donnez la carte a quelqu'un et partagez pourquoi cela compte pour vous.",
+    "step3Title": "Le receveur scanne le code QR",
+    "step3Copy": "Le receveur scanne le code QR pour enregistrer le compliment numeriquement et faire grandir son profil.",
+    "step4Title": "Croissance visible",
+    "step4Copy": "L'appreciation devient visible dans le profil personnel et dans la vue d'equipe.",
+    "step5Title": "Plus d'impact",
+    "step5Copy": "Plus d'appreciation cree plus de connexion, d'energie et de croissance.",
     "companiesLabel": "Pour les entreprises",
     "companiesTitle": "L'intelligence culturelle à l'échelle.",
     "companiesCopy": "Construirez une culture de reconnaissance qui pousse l'engagement, la rétention et l'impact mesurable.",
@@ -149,6 +154,33 @@
     "lockedDemo": "Réserver une démo",
     "lockedRegister": "Inscrire votre entreprise"
   },
+  "landing": {
+    "howItWorks": {
+      "title": "COMMENT CA MARCHE",
+      "steps": {
+        "pickCard": {
+          "title": "CHOISIR UNE CARTE",
+          "description": "Choisissez une carte qui exprime ce que vous voulez reconnaitre."
+        },
+        "giveSpeak": {
+          "title": "DONNER & EXPLIQUER",
+          "description": "Donnez la carte a quelqu'un et partagez pourquoi cela compte pour vous."
+        },
+        "scanQr": {
+          "title": "LE RECEVEUR SCANNE LE CODE QR",
+          "description": "Le receveur scanne le code QR pour enregistrer le compliment numeriquement et faire grandir son profil."
+        },
+        "visibleGrowth": {
+          "title": "CROISSANCE VISIBLE",
+          "description": "L'appreciation devient visible dans le profil personnel et dans la vue d'equipe."
+        },
+        "moreImpact": {
+          "title": "PLUS D'IMPACT",
+          "description": "Plus d'appreciation cree plus de connexion, d'energie et de croissance."
+        }
+      }
+    }
+  },
   "companyDashboard": {
     "title": "Tableau de bord entreprise",
     "subtitle": "Votre culture en un coup d'oeil.",
@@ -191,14 +223,49 @@
     "emptyTeamsCopy": "Lorsque votre entreprise aura des equipes, ce panneau comparera l'activite de reconnaissance entre elles."
   },
   "resourcesPage": {
-    "eyebrow": "Ressources",
-    "title": "Tout ce dont votre equipe de deploiement a besoin",
-    "copy": "Un hub de ressources concentre sur les references API et le support.",
-    "apiCopy": "Comment les routes de cartes connectees, les reconnaissances et les tableaux de bord peuvent etre relies aux systemes backend.",
-    "apiAction": "Ouvrir API",
+    "eyebrow": "Support",
+    "title": "Comment pouvons-nous aider ?",
+    "copy": "Contactez le support GETH pour les questions de deploiement, l'aide compte, la reclamation de cartes, le scan QR ou les tableaux de bord.",
     "supportTitle": "Support",
-    "supportCopy": "Contactez l'aide, envoyez vos questions de deploiement et consultez les ressources de securite.",
-    "supportAction": "Ouvrir le support"
+    "supportCardTitle": "Parler au support GETH",
+    "supportCopy": "Envoyez-nous votre question et nous vous aiderons avec la bonne prochaine etape.",
+    "supportAction": "Ouvrir le formulaire support",
+    "formEyebrow": "Demande de support",
+    "formTitle": "Demande de support",
+    "formCopy": "Utilisez le formulaire pour preparer votre message, puis choisissez l'e-mail ou le chat WhatsApp en direct.",
+    "nameLabel": "Nom",
+    "emailLabel": "E-mail",
+    "companyLabel": "Entreprise",
+    "requestTypeLabel": "Type de demande",
+    "messageLabel": "Message",
+    "emailAction": "Envoyer un e-mail",
+    "sending": "Envoi...",
+    "replyTime": "Nous repondons generalement sous un jour ouvrable.",
+    "successTitle": "Votre demande de support est prete.",
+    "successCopy": "Votre application e-mail devrait s'ouvrir avec le message prepare.",
+    "failureTitle": "Nous n'avons pas pu ouvrir le canal de support.",
+    "failureCopy": "Veuillez utiliser le lien e-mail direct a la place :",
+    "sendAnother": "Envoyer une autre demande",
+    "whatsappAction": "Chat WhatsApp en direct",
+    "whatsappHint": "Pour une assistance urgente, lancez un chat WhatsApp en direct avec l'equipe GETH au +31 6 1379 5467.",
+    "emailFallback": "envoyer un e-mail a info@geth.pro",
+    "whatsappUnavailable": "Ajoutez NEXT_PUBLIC_SUPPORT_WHATSAPP_NUMBER pour activer le support WhatsApp.",
+    "required": "Obligatoire",
+    "errors": {
+      "name": "Veuillez saisir votre nom.",
+      "email": "Veuillez saisir une adresse e-mail valide.",
+      "message": "Veuillez saisir votre message.",
+      "messageLength": "Veuillez ajouter au moins 10 caracteres."
+    },
+    "requestTypes": {
+      "account": "Aide compte",
+      "claiming": "Reclamation de carte",
+      "qr": "Scan QR",
+      "dashboard": "Support tableau de bord",
+      "team": "Gestion equipe ou employes",
+      "technical": "Probleme technique",
+      "other": "Autre"
+    }
   },
   "companyBilling": {
     "title": "Billing",

@@ -1,11 +1,4 @@
-"use client";
-
 import Image from "next/image";
-
-function getVisionMissionHref(homeHref: string) {
-  const match = homeHref.match(/^\/(en|nl|fr|da)(?:\/|$)/);
-  return match?.[1] ? `/${match[1]}/vision-mission` : "/en/vision-mission";
-}
 
 export function BrandLogo({
   dark = false,
@@ -56,7 +49,7 @@ export function BrandLogo({
       <a className="brand-symbol-link" href={href} aria-label="Back to home">
         {image}
       </a>
-      <a className="brand-wordmark-link" href={getVisionMissionHref(href)} aria-label="GETH vision, mission, and meaning">
+      <a className="brand-wordmark-link" href={href} aria-label="Back to home">
         {wordmark}
       </a>
     </span>

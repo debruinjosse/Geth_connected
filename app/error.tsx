@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { Mail, MessageCircle } from "lucide-react";
 import { useEffect } from "react";
 
 type AppErrorProps = {
@@ -21,7 +22,8 @@ export default function AppError({ error, reset }: AppErrorProps) {
         <p className="eyebrow">GETH</p>
         <h1>Something interrupted this page.</h1>
         <p>
-          The app is still running. Try reloading this view, or return to the homepage and open the page again.
+          The app is still running. Try reloading this view, or return to the homepage and open the page again. If it
+          keeps happening, contact GETH support with the error reference below.
         </p>
         {error.digest ? <small>Error reference: {error.digest}</small> : null}
         <div className="hero-actions">
@@ -31,6 +33,12 @@ export default function AppError({ error, reset }: AppErrorProps) {
           <Link className="btn btn-secondary" href="/">
             Go home
           </Link>
+          <a className="btn btn-secondary" href="mailto:info@geth.pro?subject=GETH%20website%20error">
+            <Mail size={16} /> Email support
+          </a>
+          <a className="btn btn-whatsapp" href="https://wa.me/31613795467?text=Hi%20GETH%20Support%2C%20I%20need%20help%20with%20a%20website%20error." target="_blank" rel="noreferrer">
+            <MessageCircle size={16} /> Live WhatsApp chat
+          </a>
         </div>
       </section>
     </main>

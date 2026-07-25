@@ -17,6 +17,9 @@
     "cards": "Kort",
     "pricing": "Priser",
     "resources": "Ressourcer",
+    "support": "Support",
+    "aboutUs": "Om os",
+    "visionMission": "Vision & Mission",
     "login": "Log ind",
     "bookDemo": "Bog en demo",
     "openDashboard": "Åbn dashboard",
@@ -51,16 +54,18 @@
     "previewGoalOrientedCopy": "Du står for klare mål, laver planer og bringer dem skridt for skridt til live.",
     "previewCaringCopy": "Du har opmærksomhed for dine kolleger og bidrager til en positiv, tryg og engageret arbejdsmiljø.",
     "howEyebrow": "Sådan fungerer det",
-    "howTitle": "Genkendelse, der bevæger sig",
-    "howCopy": "Verdensomspændende anerkendelse bliver digital synlighed i fire overvejende trin.",
-    "step1Title": "Giv en kort",
-    "step1Copy": "Vælg en kort, der passer til øjeblikket og indtrykket.",
-    "step2Title": "Scann QR-kode",
-    "step2Copy": "De scannere QR-koden for at få adgang til deres digitale oplevelse.",
-    "step3Title": "Kræv anerkendelse",
-    "step3Copy": "De ser din besked, kræver anerkendelsen og føler sig set.",
-    "step4Title": "Se vækst og indsigt",
-    "step4Copy": "Anerkendelsen bliver til indsigt, der hjælper din team at vokse.",
+    "howTitle": "Sadan fungerer det",
+    "howCopy": "Anerkendelse bliver synlig i fem enkle trin.",
+    "step1Title": "Vaelg et kort",
+    "step1Copy": "Vaelg et kort, der passer til det, du vil udtrykke.",
+    "step2Title": "Giv & fortael",
+    "step2Copy": "Giv kortet til en person og fortael, hvorfor det betyder noget for dig.",
+    "step3Title": "Modtageren scanner QR-koden",
+    "step3Copy": "Modtageren scanner QR-koden for at registrere komplimentet digitalt og styrke sin profil.",
+    "step4Title": "Synlig vaekst",
+    "step4Copy": "Anerkendelse bliver synlig i den personlige profil og i teamoversigten.",
+    "step5Title": "Mere effekt",
+    "step5Copy": "Mere anerkendelse skaber mere forbindelse, energi og vaekst.",
     "companiesLabel": "For virksomheder",
     "companiesTitle": "Kulturintelliens på skala.",
     "companiesCopy": "Byg en kultur af anerkendelse, der driver engagement, fastholdelse og målbare indvirkninger.",
@@ -149,6 +154,33 @@
     "lockedDemo": "Book en demo",
     "lockedRegister": "Registrer din virksomhed"
   },
+  "landing": {
+    "howItWorks": {
+      "title": "SADAN FUNGERER DET",
+      "steps": {
+        "pickCard": {
+          "title": "VAELG ET KORT",
+          "description": "Vaelg et kort, der passer til det, du vil udtrykke."
+        },
+        "giveSpeak": {
+          "title": "GIV & FORTAEL",
+          "description": "Giv kortet til en person og fortael, hvorfor det betyder noget for dig."
+        },
+        "scanQr": {
+          "title": "MODTAGEREN SCANNER QR-KODEN",
+          "description": "Modtageren scanner QR-koden for at registrere komplimentet digitalt og styrke sin profil."
+        },
+        "visibleGrowth": {
+          "title": "SYNLIG VAEKST",
+          "description": "Anerkendelse bliver synlig i den personlige profil og i teamoversigten."
+        },
+        "moreImpact": {
+          "title": "MERE EFFEKT",
+          "description": "Mere anerkendelse skaber mere forbindelse, energi og vaekst."
+        }
+      }
+    }
+  },
   "companyDashboard": {
     "title": "Virksomhedsdashboard",
     "subtitle": "Din kultur med et hurtigt overblik.",
@@ -191,14 +223,49 @@
     "emptyTeamsCopy": "Nar virksomheden har teams, sammenligner dette panel anerkendelsesaktivitet mellem dem."
   },
   "resourcesPage": {
-    "eyebrow": "Ressourcer",
-    "title": "Alt dit rollout-team har brug for",
-    "copy": "En fokuseret ressourcehub til API-referencer og support.",
-    "apiCopy": "Hvordan connected-card ruter, anerkendelser og dashboards kan forbindes med backend-systemer.",
-    "apiAction": "Abn API",
+    "eyebrow": "Support",
+    "title": "Hvordan kan vi hjaelpe?",
+    "copy": "Kontakt GETH support for rollout-sporgsmal, kontohjaelp, kort-claiming, QR-scanning eller dashboardvejledning.",
     "supportTitle": "Support",
-    "supportCopy": "Kontakt hjaelp, send rollout-sporgsmal og gennemga sikkerhedsressourcer.",
-    "supportAction": "Abn support"
+    "supportCardTitle": "Tal med GETH support",
+    "supportCopy": "Send os dit sporgsmal, sa hjaelper vi dig med det rigtige naeste skridt.",
+    "supportAction": "Abn supportformular",
+    "formEyebrow": "Supportanmodning",
+    "formTitle": "Supportanmodning",
+    "formCopy": "Brug formularen til at forberede din besked, og vaelg derefter e-mail eller live WhatsApp-chat.",
+    "nameLabel": "Navn",
+    "emailLabel": "E-mail",
+    "companyLabel": "Virksomhed",
+    "requestTypeLabel": "Anmodningstype",
+    "messageLabel": "Besked",
+    "emailAction": "E-mail support",
+    "sending": "Sender...",
+    "replyTime": "Vi svarer normalt inden for en arbejdsdag.",
+    "successTitle": "Din supportanmodning er klar.",
+    "successCopy": "Din e-mailapp bor abne med den forberedte besked.",
+    "failureTitle": "Vi kunne ikke abne supportkanalen.",
+    "failureCopy": "Brug venligst det direkte e-maillink i stedet:",
+    "sendAnother": "Send en ny anmodning",
+    "whatsappAction": "Live WhatsApp-chat",
+    "whatsappHint": "For akut support kan du starte en live WhatsApp-chat med GETH-teamet pa +31 6 1379 5467.",
+    "emailFallback": "send mail til info@geth.pro",
+    "whatsappUnavailable": "Tilfoj NEXT_PUBLIC_SUPPORT_WHATSAPP_NUMBER for at aktivere WhatsApp support.",
+    "required": "Pakraevet",
+    "errors": {
+      "name": "Indtast dit navn.",
+      "email": "Indtast en gyldig e-mailadresse.",
+      "message": "Indtast din besked.",
+      "messageLength": "Tilfoj mindst 10 tegn."
+    },
+    "requestTypes": {
+      "account": "Kontohjaelp",
+      "claiming": "Kort-claiming",
+      "qr": "QR-scanning",
+      "dashboard": "Dashboard support",
+      "team": "Team- eller medarbejderstyring",
+      "technical": "Teknisk problem",
+      "other": "Andet"
+    }
   },
   "companyBilling": {
     "title": "Billing",

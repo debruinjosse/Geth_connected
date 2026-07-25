@@ -2,26 +2,27 @@ import Image from "next/image";
 import { BarChart3, CreditCard, House, Settings, Sparkles, TrendingUp, UsersRound } from "lucide-react";
 import type { CSSProperties } from "react";
 import { CountUp } from "@/components/CountUp";
+import { getHeroPreviewCopy } from "@/lib/hero-card-copy";
 
-const heroSidebarLinks = [
-  { label: "Home", icon: House },
-  { label: "Cards", icon: CreditCard },
-  { label: "Team", icon: UsersRound },
-  { label: "Signals", icon: Sparkles },
-  { label: "Insights", icon: BarChart3 }
+const heroSidebarIcons = [
+  House,
+  CreditCard,
+  UsersRound,
+  Sparkles,
+  BarChart3
 ] as const;
 
 const heroQualities = [
-  { label: "Empathy", value: 82, color: "var(--theme-emerald)" },
-  { label: "Proactive", value: 68, color: "var(--theme-gold-deep)" },
-  { label: "Collaboration", value: 74, color: "var(--theme-sky)" },
-  { label: "Care", value: 61, color: "#92b984" }
+  { value: 82, color: "var(--theme-emerald)" },
+  { value: 68, color: "var(--theme-gold-deep)" },
+  { value: 74, color: "var(--theme-sky)" },
+  { value: 61, color: "#92b984" }
 ] as const;
 
 const kpis = [
-  { value: 78, suffix: "%", label: "Energy", tone: "var(--theme-emerald)" },
-  { value: 24, suffix: "", label: "Cards shared", tone: "var(--theme-ink)" },
-  { value: 11, suffix: "", label: "Qualities recognized", tone: "var(--theme-gold-deep)" }
+  { value: 78, suffix: "%", tone: "var(--theme-emerald)" },
+  { value: 24, suffix: "", tone: "var(--theme-ink)" },
+  { value: 11, suffix: "", tone: "var(--theme-gold-deep)" }
 ] as const;
 
 const chartPoints = [
@@ -49,7 +50,9 @@ function HeroPhysicalCard() {
   );
 }
 
-export function HeroDashboardMockup() {
+export function HeroDashboardMockup({ locale = "en" }: { locale?: string }) {
+  const copy = getHeroPreviewCopy(locale);
+
   return (
     <div className="hero-visual hero-visual-stable">
       <div className="hero-device-stage">
@@ -69,35 +72,39 @@ export function HeroDashboardMockup() {
                     <span className="hero-app-name">GETH</span>
                   </div>
                   <nav>
-                    {heroSidebarLinks.map(({ label, icon: Icon }) => (
+                    {copy.sidebar.map((label, index) => {
+                      const Icon = heroSidebarIcons[index] ?? House;
+
+                      return (
                       <span key={label}>
                         <Icon size={14} />
                         {label}
                       </span>
-                    ))}
+                      );
+                    })}
                   </nav>
                   <div className="hero-sidebar-foot">
                     <Settings size={14} />
-                    Settings
+                    {copy.settings}
                   </div>
                 </aside>
 
                 <section className="hero-screen-main">
                   <div className="hero-screen-header">
                     <div>
-                      <strong>Good morning, Sarah</strong>
-                      <p>Team recognition is trending upward this quarter.</p>
+                      <strong>{copy.greeting}</strong>
+                      <p>{copy.description}</p>
                     </div>
-                    <span className="quality-pill">This quarter</span>
+                    <span className="quality-pill">{copy.period}</span>
                   </div>
 
                   <div className="hero-kpis">
                     {kpis.map((kpi, index) => (
-                      <article className="hero-kpi" key={kpi.label} style={{ "--kpi-delay": `${0.5 + index * 0.14}s` } as CSSProperties}>
+                      <article className="hero-kpi" key={copy.kpis[index]} style={{ "--kpi-delay": `${0.5 + index * 0.14}s` } as CSSProperties}>
                         <strong style={{ color: kpi.tone }}>
                           <CountUp value={kpi.value} suffix={kpi.suffix} delay={460 + index * 140} />
                         </strong>
-                        <span>{kpi.label}</span>
+                        <span>{copy.kpis[index]}</span>
                         <i className="hero-kpi-indicator" />
                       </article>
                     ))}
@@ -106,14 +113,14 @@ export function HeroDashboardMockup() {
                   <div className="hero-data-grid">
                     <article className="hero-data-card hero-quality-card">
                       <div className="hero-panel-head">
-                        <strong>Top qualities</strong>
+                        <strong>{copy.qualitiesTitle}</strong>
                       </div>
                       <div className="hero-quality-list">
                         {heroQualities.map((quality, index) => (
-                          <div className="hero-quality-row" key={quality.label}>
+                          <div className="hero-quality-row" key={copy.qualities[index]}>
                             <div className="hero-quality-meta">
                               <i style={{ background: quality.color }} />
-                              <span>{quality.label}</span>
+                              <span>{copy.qualities[index]}</span>
                             </div>
                             <div className="hero-quality-bar">
                               <span
@@ -133,7 +140,7 @@ export function HeroDashboardMockup() {
 
                     <article className="hero-data-card hero-trend-card">
                       <div className="hero-panel-head">
-                        <strong>Recognition trend</strong>
+                        <strong>{copy.trendTitle}</strong>
                       </div>
                       <div className="hero-chart-shell">
                         <svg aria-hidden="true" className="hero-chart" viewBox="0 0 230 128">
@@ -155,7 +162,7 @@ export function HeroDashboardMockup() {
                   <div className="hero-screen-footer">
                     <div className="hero-impact-pill">
                       <TrendingUp size={14} />
-                      <span>Recognition is up 23% this quarter</span>
+                      <span>{copy.insight}</span>
                     </div>
                   </div>
                 </section>

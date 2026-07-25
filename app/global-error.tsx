@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { Mail, MessageCircle } from "lucide-react";
 import { useEffect } from "react";
 
 type GlobalErrorProps = {
@@ -23,8 +24,8 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
             <p className="eyebrow">GETH</p>
             <h1>The app hit a temporary error.</h1>
             <p>
-              This is usually fixed by trying again. If you are developing locally, restart the dev server after clearing
-              the Next cache.
+              This is usually fixed by trying again. If it keeps happening, contact GETH support and include the error
+              reference below.
             </p>
             {error.digest ? <small>Error reference: {error.digest}</small> : null}
             <div className="hero-actions">
@@ -34,6 +35,12 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
               <Link className="btn btn-secondary" href="/">
                 Go home
               </Link>
+              <a className="btn btn-secondary" href="mailto:info@geth.pro?subject=GETH%20website%20error">
+                <Mail size={16} /> Email support
+              </a>
+              <a className="btn btn-whatsapp" href="https://wa.me/31613795467?text=Hi%20GETH%20Support%2C%20I%20need%20help%20with%20a%20website%20error." target="_blank" rel="noreferrer">
+                <MessageCircle size={16} /> Live WhatsApp chat
+              </a>
             </div>
           </section>
         </main>

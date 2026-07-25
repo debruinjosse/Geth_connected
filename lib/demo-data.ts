@@ -146,19 +146,19 @@ export const topQualities = [
 ];
 
 export const employeeTopQualities = [
-  { label: "Clear Communicator", tone: "var(--theme-emerald)" },
-  { label: "Caring", tone: "var(--theme-sky)" },
-  { label: "Goal-Oriented", tone: "var(--theme-orange)" },
-  { label: "Empathetic", tone: "var(--theme-emerald)" },
-  { label: "Proactive", tone: "var(--theme-gold)" },
-  { label: "Intuitive", tone: "var(--theme-ink-soft)" }
+  { label: "Clear Communicator", tone: "var(--theme-sky)", count: 6 },
+  { label: "Caring", tone: "var(--theme-purple-soft)", count: 4 },
+  { label: "Goal-Oriented", tone: "var(--theme-gold)", count: 3 },
+  { label: "Empathetic", tone: "var(--theme-sky)", count: 2 },
+  { label: "Proactive", tone: "var(--theme-emerald)", count: 2 },
+  { label: "Intuitive", tone: "var(--theme-ink-soft)", count: 1 }
 ];
 
 export const employeeCategoryBreakdown = [
-  { label: "Communication", value: 6, color: "var(--theme-emerald)" },
-  { label: "Creativity", value: 1, color: "var(--theme-gold)" },
-  { label: "Competence", value: 5, color: "var(--theme-orange)" },
-  { label: "Collegiality", value: 3, color: "var(--theme-sky)" }
+  { label: "Communication", value: 6, color: "var(--theme-sky)" },
+  { label: "Creativity", value: 1, color: "var(--theme-emerald)" },
+  { label: "Competence", value: 5, color: "var(--theme-gold)" },
+  { label: "Collegiality", value: 3, color: "var(--theme-purple-soft)" }
 ];
 
 export const employeeGrowthPoints = [26, 46, 36, 64, 56, 91];
@@ -175,9 +175,8 @@ export const teamSignals = [
 ];
 
 export const employeeMessages = [
-  { id: "m1", title: "Recognition digest", excerpt: "Your weekly recognition highlights are ready to review.", time: "Today" },
-  { id: "m2", title: "Jamie replied", excerpt: "Thanks for claiming the Connector card. You deserved it.", time: "Yesterday" },
-  { id: "m3", title: "Quarterly growth snapshot", excerpt: "Your energy score climbed 8 points this month.", time: "2 days ago" }
+  { id: "m1", title: "Clear Communicator from Sarah Manager", excerpt: "Seed recognition for Jamie Miller.", time: "Today" },
+  { id: "m2", title: "Uniter from Ali Ahmed", excerpt: "Thank you for keeping recognition visible.", time: "Yesterday" }
 ];
 
 export const employeeNotifications = [

@@ -3,14 +3,12 @@ import {
   BarChart3,
   Building2,
   CirclePlay,
-  Gift,
   HeartHandshake,
-  QrCode,
   ShieldCheck,
   Sparkles,
-  UserCheck,
   UsersRound
 } from "lucide-react";
+import Image from "next/image";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { GoldenLeaves } from "@/components/GoldenLeaves";
@@ -19,6 +17,7 @@ import { MobileHeroProductPreview } from "@/components/MobileHeroProductPreview"
 import { PublicSiteChrome } from "@/components/PublicSiteChrome";
 import { Reveal } from "@/components/Reveal";
 import { CardDeckPreview } from "@/components/sections/card-deck-preview";
+import { HowItWorksDeckSection } from "@/components/sections/HowItWorksDeckSection";
 
 type LandingPageProps = {
   params: Promise<{ locale: string }>;
@@ -29,13 +28,6 @@ export default async function LandingPage({ params }: LandingPageProps) {
   setRequestLocale(locale);
   const t = await getTranslations({ locale, namespace: "home" });
   const nav = await getTranslations({ locale, namespace: "nav" });
-
-  const howSteps = [
-    ["01", t("step1Title"), t("step1Copy"), Gift],
-    ["02", t("step2Title"), t("step2Copy"), QrCode],
-    ["03", t("step3Title"), t("step3Copy"), UserCheck],
-    ["04", t("step4Title"), t("step4Copy"), BarChart3]
-  ];
 
   const audiences = [
     [t("companiesLabel"), t("companiesTitle"), t("companiesCopy"), Building2],
@@ -85,7 +77,7 @@ export default async function LandingPage({ params }: LandingPageProps) {
           </div>
 
           <div className="desktopHeroPreview">
-            <HeroDashboardMockup />
+            <HeroDashboardMockup locale={locale} />
           </div>
         </div>
         <a className="scrollToExplore" href="#how-it-works">
@@ -93,30 +85,14 @@ export default async function LandingPage({ params }: LandingPageProps) {
           <ArrowRight size={16} />
         </a>
         <Reveal className="mobileHeroPreview" delay={0.04} distance={24}>
-          <MobileHeroProductPreview />
+          <MobileHeroProductPreview locale={locale} />
         </Reveal>
       </section>
 
-      <section className="section-shell section-shell-compact" id="how-it-works">
-        <div className="pageContainer">
-          <div className="section-head landingSectionHead">
-            <div className="eyebrow">{t("howEyebrow")}</div>
-            <h2 className="section-title">{t("howTitle")}</h2>
-            <p className="section-copy">{t("howCopy")}</p>
-          </div>
-          <div className="how-grid processGrid">
-            {howSteps.map(([number, title, text, Icon], index) => (
-              <Reveal className="how-step processCard" key={title as string} delay={index * 0.08}>
-                <div className="processCardTop">
-                  <span className="how-number">{number as string}</span>
-                  <Icon size={23} strokeWidth={1.8} />
-                </div>
-                <h3>{title as string}</h3>
-                <p>{text as string}</p>
-              </Reveal>
-            ))}
-          </div>
+      <HowItWorksDeckSection />
 
+      <section className="section-shell section-shell-compact howPosterSection">
+        <div className="pageContainer">
           <Reveal delay={0.12} distance={18}>
             <CardDeckPreview locale={locale} />
           </Reveal>
@@ -146,20 +122,31 @@ export default async function LandingPage({ params }: LandingPageProps) {
         <GoldenLeaves className="landingCtaLeaf landingCtaLeafLeft" />
         <GoldenLeaves className="landingCtaLeaf landingCtaLeafRight" mirrored />
         <div className="pageContainer landingCtaInner">
-          <Reveal className="cta-copy" distance={18}>
-            <div className="eyebrow">{t("ctaEyebrow")}</div>
-            <h2 className="section-title">{t("ctaTitle")}</h2>
-          </Reveal>
-          <Reveal className="hero-actions landingCtaActions" delay={0.1} distance={14}>
-            <Link className="btn btn-primary" href="/book-demo">
-              {nav("bookDemo")} <Sparkles size={16} />
-            </Link>
-            <Link className="btn btn-dark" href="/signup?role=company_admin">
-              {t("registerCompany")} <ArrowRight size={16} />
-            </Link>
-            <Link className="btn btn-secondary" href="/pricing">
-              {t("viewPricing")}
-            </Link>
+          <div className="landingCtaContent">
+            <Reveal className="cta-copy" distance={18}>
+              <div className="eyebrow">{t("ctaEyebrow")}</div>
+              <h2 className="section-title">{t("ctaTitle")}</h2>
+            </Reveal>
+            <Reveal className="hero-actions landingCtaActions" delay={0.1} distance={14}>
+              <Link className="btn btn-primary" href="/book-demo">
+                {nav("bookDemo")} <Sparkles size={16} />
+              </Link>
+              <Link className="btn btn-dark" href="/signup?role=company_admin">
+                {t("registerCompany")} <ArrowRight size={16} />
+              </Link>
+              <Link className="btn btn-secondary" href="/pricing">
+                {t("viewPricing")}
+              </Link>
+            </Reveal>
+          </div>
+          <Reveal className="landingCtaMedia" delay={0.16} distance={16}>
+            <Image
+              src="/assets/geth-recognition-moment.png"
+              alt="A team celebrating a GETH recognition moment"
+              fill
+              sizes="(max-width: 920px) calc(100vw - 40px), 480px"
+              priority={false}
+            />
           </Reveal>
         </div>
       </section>

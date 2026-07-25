@@ -1,7 +1,5 @@
-import { CheckCircle2 } from "lucide-react";
-import { markAllNotificationsReadAction } from "@/app/actions/notifications";
 import { DashboardShell } from "@/components/DashboardShell";
-import { NotificationInbox } from "@/components/NotificationInbox";
+import { MarkAllNotificationsReadButton, NotificationInbox } from "@/components/NotificationInbox";
 import { employeeNotifications, superAdminUser } from "@/lib/demo-data";
 import { getNotificationInboxPageData } from "@/lib/notification-inbox-page";
 
@@ -53,11 +51,7 @@ export default async function AdminNotificationsPage({ params }: { params: Promi
       unreadNotifications={data.unreadCount}
       actions={
         data.unreadCount > 0 ? (
-          <form action={markAllNotificationsReadAction}>
-            <button className="btn btn-secondary" type="submit">
-              <CheckCircle2 size={16} /> Mark all read
-            </button>
-          </form>
+          <MarkAllNotificationsReadButton />
         ) : null
       }
     >

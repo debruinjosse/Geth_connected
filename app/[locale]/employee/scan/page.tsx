@@ -25,9 +25,9 @@ export default async function EmployeeScanPage({ params }: EmployeeScanPageProps
 
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
-    .select("first_name, last_name, team_id")
+    .select("first_name, last_name, team_id, profile_image")
     .eq("id", user.id)
-    .maybeSingle<{ first_name: string | null; last_name: string | null; team_id: string | null }>();
+    .maybeSingle<{ first_name: string | null; last_name: string | null; team_id: string | null; profile_image: string | null }>();
 
   if (profileError || !profile) redirect("/auth/repair-profile");
 
@@ -46,7 +46,8 @@ export default async function EmployeeScanPage({ params }: EmployeeScanPageProps
       user={{
         name: `${profile.first_name ?? ""} ${profile.last_name ?? ""}`.trim() || "GETH user",
         initials: getInitials(profile.first_name, profile.last_name),
-        team: team?.name ?? "No team assigned"
+        team: team?.name ?? "No team assigned",
+        imageUrl: profile.profile_image
       }}
       unreadNotifications={unreadNotifications}
     >

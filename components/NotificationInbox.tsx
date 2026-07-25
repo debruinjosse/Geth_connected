@@ -1,6 +1,10 @@
+"use client";
+
 import Link from "next/link";
-import { Bell } from "lucide-react";
-import { markNotificationReadAction } from "@/app/actions/notifications";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { CheckCircle2, Bell } from "lucide-react";
+import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { EmptyState } from "@/components/EmptyState";
 
 export type NotificationInboxRow = {
@@ -57,9 +61,43 @@ export function NotificationInbox({
   emptyActionLabel?: string;
   locale?: string;
 }) {
+  const router = useRouter();
   const localizedEmptyActionHref = getLocalizedHref(emptyActionHref, locale);
+  const [localNotifications, setLocalNotifications] = useState(notifications);
+  const [pendingId, setPendingId] = useState<string | null>(null);
 
-  if (!notifications.length) {
+  async function markRead(notificationId: string) {
+    const readAt = new Date().toISOString();
+    setPendingId(notificationId);
+    setLocalNotifications((current) =>
+      current.map((notification) =>
+        notification.id === notificationId ? { ...notification, read_at: readAt } : notification
+      )
+    );
+
+    try {
+      const supabase = createSupabaseBrowserClient();
+      const { error } = await supabase
+        .from("notifications")
+        .update({ read_at: readAt })
+        .eq("id", notificationId);
+
+      if (error) {
+        console.error("Failed to mark notification read", error);
+        setLocalNotifications((current) =>
+          current.map((notification) =>
+            notification.id === notificationId ? { ...notification, read_at: null } : notification
+          )
+        );
+      } else {
+        router.refresh();
+      }
+    } finally {
+      setPendingId(null);
+    }
+  }
+
+  if (!localNotifications.length) {
     return (
       <EmptyState
         eyebrow="No notifications"
@@ -73,7 +111,7 @@ export function NotificationInbox({
 
   return (
     <div className="signal-list">
-      {notifications.map((notification) => (
+      {localNotifications.map((notification) => (
         <div className={`signal-card notification-card ${notification.read_at ? "" : "unread"}`.trim()} key={notification.id}>
           <div className="signal-icon" style={{ color: notification.read_at ? "var(--theme-muted)" : "var(--theme-gold)" }}>
             <Bell size={18} />
@@ -93,16 +131,51 @@ export function NotificationInbox({
           <div style={{ display: "grid", gap: 10, justifyItems: "end" }}>
             <span className="quality-pill">{formatNotificationTime(notification.created_at)}</span>
             {!notification.read_at ? (
-              <form action={markNotificationReadAction}>
-                <input type="hidden" name="notification_id" value={notification.id} />
-                <button className="btn btn-secondary" type="submit">
-                  Mark read
-                </button>
-              </form>
+              <button className="btn btn-secondary" type="button" disabled={pendingId === notification.id} onClick={() => markRead(notification.id)}>
+                {pendingId === notification.id ? "Marking..." : "Mark read"}
+              </button>
             ) : null}
           </div>
         </div>
       ))}
     </div>
+  );
+}
+
+export function MarkAllNotificationsReadButton({ label = "Mark all read" }: { label?: string }) {
+  const router = useRouter();
+  const [pending, setPending] = useState(false);
+  const [done, setDone] = useState(false);
+
+  async function markAllRead() {
+    setPending(true);
+
+    try {
+      const supabase = createSupabaseBrowserClient();
+      const { error } = await supabase
+        .from("notifications")
+        .update({ read_at: new Date().toISOString() })
+        .is("read_at", null);
+
+      if (error) {
+        console.error("Failed to mark all notifications read", error);
+        return;
+      }
+
+      setDone(true);
+      router.refresh();
+    } finally {
+      setPending(false);
+    }
+  }
+
+  if (done) {
+    return null;
+  }
+
+  return (
+    <button className="btn btn-secondary" type="button" onClick={markAllRead} disabled={pending}>
+      <CheckCircle2 size={16} /> {pending ? "Marking..." : label}
+    </button>
   );
 }

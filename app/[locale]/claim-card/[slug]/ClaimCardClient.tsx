@@ -93,9 +93,12 @@ export function ClaimCardClient({
     const haystack = `${person.name} ${person.team}`.toLowerCase();
     return haystack.includes(deferredQuery.trim().toLowerCase());
   });
-  const previewPeople = availablePeople.slice(0, 6);
-
   const selectedPerson = availablePeople.find((person) => person.id === selectedGiver);
+
+  function chooseGiver(giverId: string) {
+    setSelectedGiver(giverId);
+    setStep(3);
+  }
 
   function submit() {
     if (!selectedGiver || !card) return;
@@ -161,11 +164,11 @@ export function ClaimCardClient({
       <div className="claim-right">
         <section className="claim-form">
           {done ? (
-            <div style={{ textAlign: "center", padding: "42px 10px" }}>
+            <div className="claim-success-state">
               <CheckCircle2 size={70} color="var(--theme-emerald)" />
-              <h2 style={{ marginTop: 22 }}>Recognition claimed</h2>
+              <h2>Recognition claimed</h2>
               <p>This card has been added to your dashboard, the giver&apos;s dashboard, and company insights.</p>
-              <div style={{ display: "flex", justifyContent: "center", gap: 14, marginTop: 24, flexWrap: "wrap" }}>
+              <div className="claim-success-actions">
                 <Link className="btn btn-dark" href={`${localePrefix}/employee`}>
                   Open my dashboard
                 </Link>
@@ -186,33 +189,6 @@ export function ClaimCardClient({
                 {step === 1 ? (
                   <>
                     <h2>This is your recognition card.</h2>
-                    <p>
-                      Review the card details, then continue to tell us who gave it to you.
-                      {claimOrigin === "qr_scan" ? " This claim started from a scanned physical card." : ""}
-                    </p>
-                    <div className="claim-company-preview">
-                      <div className="panel-top">
-                        <div>
-                          <h3>People in your company</h3>
-                          <p>These colleagues can be selected as the giver in the next step.</p>
-                        </div>
-                      </div>
-                      {previewPeople.length ? (
-                        <div className="claim-people-preview-grid">
-                          {previewPeople.map((person) => (
-                            <div className="claim-person-mini" key={person.id}>
-                              <ProfileAvatar person={person} />
-                              <div>
-                                <strong>{person.name}</strong>
-                                <p>{person.team}</p>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <p className="section-copy">Log in with a company-linked profile to load your colleague list.</p>
-                      )}
-                    </div>
                   </>
                 ) : null}
 
@@ -245,7 +221,7 @@ export function ClaimCardClient({
                                 <p style={{ margin: "4px 0 0" }}>{person.team}</p>
                               </div>
                             </div>
-                            <input type="radio" name="giver" value={person.id} checked={selectedGiver === person.id} onChange={(event) => setSelectedGiver(event.target.value)} />
+                            <input type="radio" name="giver" value={person.id} checked={selectedGiver === person.id} onChange={(event) => chooseGiver(event.target.value)} />
                           </label>
                         ))
                       ) : (
@@ -270,6 +246,18 @@ export function ClaimCardClient({
                   <>
                     <h2>Add a personal note</h2>
                     <p>This is optional, but a thank-you message makes the recognition feel even more personal.</p>
+                    {selectedPerson ? (
+                      <div className="selected-giver-card">
+                        <span className="approval-eyebrow">Selected giver</span>
+                        <div className="person-details">
+                          <ProfileAvatar person={selectedPerson} />
+                          <div>
+                            <strong>{selectedPerson.name}</strong>
+                            <p>{selectedPerson.team}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ) : null}
                     <div className="form-field">
                       <label htmlFor="note">Your note</label>
                       <textarea
@@ -288,7 +276,7 @@ export function ClaimCardClient({
                 {step === 4 ? (
                   <>
                     <h2>Confirm your recognition</h2>
-                    <p>Review the card, giver, and note before you create the recognition event.</p>
+                    <p className="claim-step-copy">Review the card, giver, and note before you create the recognition event.</p>
                     <div className="claim-summary">
                       <div className="claim-summary-row">
                         <strong>Card</strong>

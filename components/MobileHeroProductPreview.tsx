@@ -1,18 +1,21 @@
 import Image from "next/image";
+import { getHeroPreviewCopy } from "@/lib/hero-card-copy";
 
 const kpis = [
-  { value: "78%", label: "Energy" },
-  { value: "24", label: "Cards" },
-  { value: "11", label: "Qualities" }
+  "78%",
+  "24",
+  "11"
 ] as const;
 
 const qualities = [
-  { label: "Empathy", value: 82 },
-  { label: "Collaboration", value: 74 },
-  { label: "Creativity", value: 68 }
+  82,
+  74,
+  68
 ] as const;
 
-export function MobileHeroProductPreview() {
+export function MobileHeroProductPreview({ locale = "en" }: { locale?: string }) {
+  const copy = getHeroPreviewCopy(locale);
+
   return (
     <section className="mobile-hero-device-preview" aria-label="GETH dashboard preview">
       <div className="mobile-hero-physical-card" aria-hidden="true">
@@ -34,17 +37,17 @@ export function MobileHeroProductPreview() {
             <div className="mobile-hero-product-preview">
               <div className="mobile-preview-header">
                 <div>
-                  <strong>Good morning, Sarah</strong>
-                  <span>Recognition dashboard</span>
+                  <strong>{copy.greeting}</strong>
+                  <span>{copy.mobileDashboard}</span>
                 </div>
                 <i aria-hidden="true" />
               </div>
 
               <div className="mobile-preview-kpis">
-                {kpis.map((kpi) => (
-                  <div className="mobile-preview-kpi" key={kpi.label}>
-                    <strong>{kpi.value}</strong>
-                    <span>{kpi.label}</span>
+                {kpis.map((value, index) => (
+                  <div className="mobile-preview-kpi" key={copy.mobileKpis[index]}>
+                    <strong>{value}</strong>
+                    <span>{copy.mobileKpis[index]}</span>
                   </div>
                 ))}
               </div>
@@ -52,15 +55,15 @@ export function MobileHeroProductPreview() {
               <div className="mobile-preview-grid">
                 <article className="mobile-preview-panel">
                   <div className="mobile-preview-panel-head">
-                    <strong>Top qualities</strong>
-                    <span>This month</span>
+                    <strong>{copy.qualitiesTitle}</strong>
+                    <span>{copy.mobileMonth}</span>
                   </div>
                   <div className="mobile-preview-quality-list">
-                    {qualities.map((quality) => (
-                      <div className="mobile-preview-quality" key={quality.label}>
-                        <span>{quality.label}</span>
+                    {qualities.map((value, index) => (
+                      <div className="mobile-preview-quality" key={copy.mobileQualities[index]}>
+                        <span>{copy.mobileQualities[index]}</span>
                         <div>
-                          <i style={{ width: `${quality.value}%` }} />
+                          <i style={{ width: `${value}%` }} />
                         </div>
                       </div>
                     ))}
@@ -69,7 +72,7 @@ export function MobileHeroProductPreview() {
 
                 <article className="mobile-preview-panel mobile-preview-trend">
                   <div className="mobile-preview-panel-head">
-                    <strong>Trend</strong>
+                    <strong>{copy.mobileTrend}</strong>
                     <span>+23%</span>
                   </div>
                   <svg aria-hidden="true" viewBox="0 0 180 72">
@@ -84,7 +87,7 @@ export function MobileHeroProductPreview() {
 
               <div className="mobile-preview-insight">
                 <span aria-hidden="true">+23</span>
-                Recognition is up 23%
+                {copy.mobileInsight}
               </div>
             </div>
           </div>

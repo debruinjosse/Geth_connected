@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { BarChart3, Building2, CalendarCheck2, CreditCard, UsersRound } from "lucide-react";
-import { BarChart } from "@/components/BarChart";
 import { DashboardShell } from "@/components/DashboardShell";
 import { EmptyState } from "@/components/EmptyState";
 import { LineChart } from "@/components/LineChart";
@@ -124,7 +123,13 @@ export default async function AdminDashboardPage({ params }: { params: Promise<{
             <Link className="quality-pill" href={`/${locale}/admin/analytics`}>Analytics</Link>
           </div>
           {recognitionCount ? (
-            <BarChart items={monthWindows.map((month, index) => ({ label: month.label, value: trendPoints[index] ?? 0, color: "var(--theme-ink)" }))} />
+            <LineChart
+              points={trendPoints}
+              labels={monthWindows.map((month) => month.label)}
+              color="var(--theme-ink)"
+              ariaLabel="Platform recognition activity over the latest six months"
+              showValues
+            />
           ) : (
             <EmptyState title="No platform recognitions yet" copy="Recognition activity will appear here as companies start claiming cards." />
           )}

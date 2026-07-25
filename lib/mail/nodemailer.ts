@@ -27,6 +27,52 @@ export class InviteEmailError extends Error {
   }
 }
 
+type SmtpConfig = {
+  host: string;
+  port: number;
+  user: string;
+  pass: string;
+  from: string;
+  replyTo: string;
+  secure: boolean;
+};
+
+const requiredSmtpVariables = ["SMTP_HOST", "SMTP_PORT", "SMTP_USER", "SMTP_PASS", "SMTP_FROM", "SMTP_REPLY_TO"] as const;
+
+export function getSmtpConfigStatus() {
+  const missing = requiredSmtpVariables.filter((key) => !process.env[key]?.trim());
+  const port = Number(process.env.SMTP_PORT || 465);
+
+  return {
+    configured: missing.length === 0,
+    missing,
+    host: process.env.SMTP_HOST || "",
+    port,
+    user: process.env.SMTP_USER || "",
+    from: process.env.SMTP_FROM || "",
+    replyTo: process.env.SMTP_REPLY_TO || "",
+    secure: port === 465
+  };
+}
+
+function getSmtpConfig(): SmtpConfig {
+  const status = getSmtpConfigStatus();
+
+  if (!status.configured) {
+    throw new InviteEmailError("SMTP_MISSING", `SMTP is not configured. Missing: ${status.missing.join(", ")}`);
+  }
+
+  return {
+    host: status.host,
+    port: status.port,
+    user: status.user,
+    pass: process.env.SMTP_PASS!,
+    from: status.from,
+    replyTo: status.replyTo,
+    secure: status.secure
+  };
+}
+
 function classifySmtpError(error: unknown): InviteEmailErrorCode {
   if (error instanceof InviteEmailError) {
     return error.code;
@@ -53,29 +99,21 @@ function classifySmtpError(error: unknown): InviteEmailErrorCode {
   return "UNKNOWN";
 }
 
-function getTransport() {
-  const host = process.env.SMTP_HOST;
-  const port = Number(process.env.SMTP_PORT || 587);
-  const user = process.env.SMTP_USER;
-  const pass = process.env.SMTP_PASS;
-
-  if (!host || !user || !pass) {
-    throw new InviteEmailError("SMTP_MISSING", "SMTP is not configured.");
-  }
-
+export function createSmtpTransport() {
+  const config = getSmtpConfig();
   return nodemailer.createTransport({
-    host,
-    port,
-    secure: port === 465,
+    host: config.host,
+    port: config.port,
+    secure: config.secure,
     auth: {
-      user,
-      pass
+      user: config.user,
+      pass: config.pass
     }
   });
 }
 
 export function hasSmtpConfig() {
-  return Boolean(process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS);
+  return getSmtpConfigStatus().configured;
 }
 
 export async function sendInviteEmail({
@@ -91,13 +129,11 @@ export async function sendInviteEmail({
   roleLabel: string;
   expiresAt: string;
 }) {
-  const from = process.env.SMTP_FROM || "GETH <info@geth.pro>";
-  const replyTo = process.env.SMTP_REPLY_TO || undefined;
-
   try {
-    await getTransport().sendMail({
-      from,
-      replyTo,
+    const config = getSmtpConfig();
+    await createSmtpTransport().sendMail({
+      from: config.from,
+      replyTo: config.replyTo,
       to,
       subject: getInviteEmailSubject(companyName),
       text: getInviteEmailText({ recipientEmail: to, inviteLink, companyName, roleLabel, expiresAt }),
@@ -125,13 +161,11 @@ export async function sendInvoiceEmail({
   invoiceUrl: string;
   pdf: Buffer;
 }) {
-  const from = process.env.SMTP_FROM || "GETH <info@geth.pro>";
-  const replyTo = process.env.SMTP_REPLY_TO || undefined;
-
   try {
-    await getTransport().sendMail({
-      from,
-      replyTo,
+    const config = getSmtpConfig();
+    await createSmtpTransport().sendMail({
+      from: config.from,
+      replyTo: config.replyTo,
       to,
       subject: getInvoiceEmailSubject(invoiceNumber),
       text: getInvoiceEmailText({ companyName, invoiceNumber, totalLabel, dueDate, invoiceUrl }),
@@ -162,13 +196,11 @@ export async function sendCalendarInviteEmail({
   ics: string;
   filename?: string;
 }) {
-  const from = process.env.SMTP_FROM || "GETH <info@geth.pro>";
-  const replyTo = process.env.SMTP_REPLY_TO || undefined;
-
   try {
-    await getTransport().sendMail({
-      from,
-      replyTo,
+    const config = getSmtpConfig();
+    await createSmtpTransport().sendMail({
+      from: config.from,
+      replyTo: config.replyTo,
       to,
       subject,
       text,
@@ -211,8 +243,6 @@ export async function sendDemoBookingRequestEmails({
   message: string;
   adminUrl: string;
 }) {
-  const from = process.env.SMTP_FROM || "GETH <info@geth.pro>";
-  const replyTo = process.env.SMTP_REPLY_TO || requesterEmail;
   const adminText = [
     "New GETH demo request",
     "",
@@ -240,17 +270,18 @@ export async function sendDemoBookingRequestEmails({
   ].join("\n");
 
   try {
-    const transport = getTransport();
+    const config = getSmtpConfig();
+    const transport = createSmtpTransport();
     await transport.sendMail({
-      from,
-      replyTo,
+      from: config.from,
+      replyTo: requesterEmail || config.replyTo,
       to: adminEmails.join(","),
       subject: `New GETH demo request - ${company}`,
       text: adminText
     });
     await transport.sendMail({
-      from,
-      replyTo,
+      from: config.from,
+      replyTo: config.replyTo,
       to: requesterEmail,
       subject: "GETH demo request received",
       text: requesterText
@@ -277,8 +308,6 @@ export async function sendDemoBookingDecisionEmail({
   adminNote: string;
   ics?: string;
 }) {
-  const from = process.env.SMTP_FROM || "GETH <info@geth.pro>";
-  const replyTo = process.env.SMTP_REPLY_TO || undefined;
   const approved = status === "approved";
   const text = [
     `Hi ${requesterName},`,
@@ -293,9 +322,10 @@ export async function sendDemoBookingDecisionEmail({
   ].filter(Boolean).join("\n");
 
   try {
-    await getTransport().sendMail({
-      from,
-      replyTo,
+    const config = getSmtpConfig();
+    await createSmtpTransport().sendMail({
+      from: config.from,
+      replyTo: config.replyTo,
       to,
       subject: approved ? "Your GETH demo is confirmed" : "GETH demo request update",
       text,

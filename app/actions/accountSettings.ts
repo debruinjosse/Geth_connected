@@ -7,8 +7,8 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 const PROFILE_PHOTOS_BUCKET = "profile-photos";
-const MAX_PROFILE_PHOTO_BYTES = 50 * 1024 * 1024;
-const ALLOWED_PROFILE_PHOTO_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]);
+const MAX_PROFILE_PHOTO_BYTES = 100 * 1024 * 1024;
+const ALLOWED_PROFILE_PHOTO_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/gif", "image/heic", "image/heif"]);
 
 function getSafeReturnPath(value: FormDataEntryValue | null) {
   const path = String(value ?? "").trim();
@@ -25,7 +25,7 @@ function getAppUrl() {
 
 function getProfilePhotoExtension(file: File) {
   const extension = file.name.split(".").pop()?.toLowerCase().replace(/[^a-z0-9]/g, "");
-  if (extension && ["jpg", "jpeg", "png", "webp", "gif"].includes(extension)) {
+  if (extension && ["jpg", "jpeg", "png", "webp", "gif", "heic", "heif"].includes(extension)) {
     return extension === "jpeg" ? "jpg" : extension;
   }
 
@@ -36,6 +36,10 @@ function getProfilePhotoExtension(file: File) {
       return "webp";
     case "image/gif":
       return "gif";
+    case "image/heic":
+      return "heic";
+    case "image/heif":
+      return "heif";
     default:
       return "jpg";
   }
@@ -54,15 +58,6 @@ async function ensureProfilePhotosBucket() {
   }
 
   return admin;
-}
-
-async function tryEnsureProfilePhotosBucket() {
-  try {
-    await ensureProfilePhotosBucket();
-  } catch {
-    // The normal upload path uses authenticated storage policies. Bucket creation
-    // is best-effort for local/dev environments that still have a service role key.
-  }
 }
 
 export async function updateOwnProfileNameAction(formData: FormData) {
@@ -128,32 +123,44 @@ export async function updateOwnProfilePhotoAction(formData: FormData) {
     const objectPath = `profiles/${user.id}/${Date.now()}-${randomUUID()}.${extension}`;
     const buffer = Buffer.from(await photo.arrayBuffer());
 
+    let publicUrl = "";
     let uploadResult = await supabase.storage.from(PROFILE_PHOTOS_BUCKET).upload(objectPath, buffer, {
       contentType: photo.type,
       cacheControl: "3600",
       upsert: false
     });
 
-    if (uploadResult.error && /bucket|not found|does not exist/i.test(uploadResult.error.message)) {
-      await tryEnsureProfilePhotosBucket();
-      uploadResult = await supabase.storage.from(PROFILE_PHOTOS_BUCKET).upload(objectPath, buffer, {
+    if (uploadResult.error) {
+      const admin = await ensureProfilePhotosBucket();
+      const adminUploadResult = await admin.storage.from(PROFILE_PHOTOS_BUCKET).upload(objectPath, buffer, {
         contentType: photo.type,
         cacheControl: "3600",
-        upsert: false
+        upsert: true
       });
+
+      if (adminUploadResult.error) {
+        throw adminUploadResult.error;
+      }
+
+      publicUrl = admin.storage.from(PROFILE_PHOTOS_BUCKET).getPublicUrl(objectPath).data.publicUrl;
+    } else {
+      publicUrl = supabase.storage.from(PROFILE_PHOTOS_BUCKET).getPublicUrl(objectPath).data.publicUrl;
     }
 
-    if (uploadResult.error) {
-      throw uploadResult.error;
-    }
-
-    const { data: publicUrlData } = supabase.storage.from(PROFILE_PHOTOS_BUCKET).getPublicUrl(objectPath);
     const { error: updateError } = await supabase.rpc("update_own_profile_photo", {
-      profile_image_input: publicUrlData.publicUrl
+      profile_image_input: publicUrl
     });
 
     if (updateError) {
-      throw updateError;
+      const admin = createSupabaseAdminClient();
+      const { error: adminUpdateError } = await admin
+        .from("profiles")
+        .update({ profile_image: publicUrl })
+        .eq("id", user.id);
+
+      if (adminUpdateError) {
+        throw adminUpdateError;
+      }
     }
   } catch {
     redirect(`${returnTo}?settings=profile-photo-failed`);

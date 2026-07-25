@@ -18,6 +18,67 @@ function getMonthKey(date: Date) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
 }
 
+function getEmployeeCategoryColor(category: string) {
+  switch (category) {
+    case "Communication":
+    case "Communicatie":
+      return "var(--theme-sky)";
+    case "Creativity":
+    case "Creativiteit":
+      return "var(--theme-emerald)";
+    case "Competence":
+    case "Competentie":
+      return "var(--theme-gold)";
+    case "Collegiality":
+    case "Collegialiteit":
+      return "var(--theme-purple-soft)";
+    default:
+      return categoryMeta[category as CardCategory]?.color ?? "var(--theme-ink)";
+  }
+}
+
+function getEmployeeCategoryPersona(category: string) {
+  switch (category) {
+    case "Communication":
+    case "Communicatie":
+      return {
+        title: "You are a great communicator, seen by your colleagues daily",
+        story: "Your colleagues repeatedly recognize the way you make ideas clear, listen with care, and help people feel understood in everyday work."
+      };
+    case "Creativity":
+    case "Creativiteit":
+      return {
+        title: "You bring creative energy, seen by your colleagues daily",
+        story: "Your colleagues see you as someone who opens up new possibilities, brings fresh thinking, and helps the team move forward with imagination."
+      };
+    case "Competence":
+    case "Competentie":
+      return {
+        title: "You are a trusted expert, seen by your colleagues daily",
+        story: "Your colleagues recognize your reliability, skill, and calm ownership. You help people feel confident that the work is in good hands."
+      };
+    case "Collegiality":
+    case "Collegialiteit":
+      return {
+        title: "You strengthen the team around you, seen by your colleagues daily",
+        story: "Your colleagues notice how you support others, build trust, and make everyday collaboration feel more human and connected."
+      };
+    default:
+      return {
+        title: "Your recognition story is taking shape",
+        story: "Your colleagues are starting to show which strengths they experience most clearly in your daily work."
+      };
+  }
+}
+
+function formatCardEvidence(cards: Array<{ label: string; count: number; category: string }>) {
+  if (!cards.length) {
+    return "";
+  }
+
+  return cards.map((card) => `${card.label} (${card.category}, ${card.count} ${card.count === 1 ? "card" : "cards"})`).join(", ");
+}
+
 export default async function EmployeeDashboardPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
 
@@ -37,15 +98,21 @@ export default async function EmployeeDashboardPage({ params }: { params: Promis
 
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
-    .select("id, first_name, last_name, email, team_id, company_id")
+    .select("id, first_name, last_name, email, team_id, company_id, profile_image")
     .eq("id", user.id)
-    .maybeSingle<{ id: string; first_name: string; last_name: string; email: string; team_id: string | null; company_id: string | null }>();
+    .maybeSingle<{ id: string; first_name: string; last_name: string; email: string; team_id: string | null; company_id: string | null; profile_image: string | null }>();
 
   if (profileError || !profile) {
     redirect("/auth/repair-profile");
   }
 
-  const [{ data: team }, { data: receivedRows, error: receivedError }, { count: givenCount }] = await Promise.all([
+  const [
+    { data: team },
+    { data: receivedRows, error: receivedError },
+    { data: givenRows, count: givenCount, error: givenError },
+    { data: pendingApprovalRows, error: pendingApprovalError },
+    unreadNotifications
+  ] = await Promise.all([
     profile.team_id
       ? supabase.from("teams").select("name").eq("id", profile.team_id).maybeSingle<{ name: string }>()
       : Promise.resolve({ data: null }),
@@ -54,11 +121,26 @@ export default async function EmployeeDashboardPage({ params }: { params: Promis
       .select("id, created_at, personal_note, giver_name, giver_email, giver_user_id, card:card_library(title, category, qr_slug)")
       .eq("receiver_user_id", user.id)
       .order("created_at", { ascending: false }),
-    supabase.from("recognition_events").select("id", { count: "exact", head: true }).eq("giver_user_id", user.id)
+    supabase.from("recognition_events").select("id, created_at", { count: "exact" }).eq("giver_user_id", user.id).order("created_at", { ascending: false }),
+    supabase
+      .from("recognition_events")
+      .select("id, created_at, personal_note, receiver_user_id, status, card:card_library(title, category, qr_slug)")
+      .eq("giver_user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(20),
+    getUnreadNotificationCount(supabase, user.id)
   ]);
 
   if (receivedError) {
     throw new Error("Failed to load employee recognitions.");
+  }
+
+  if (givenError) {
+    throw new Error("Failed to load employee given recognitions.");
+  }
+
+  if (pendingApprovalError) {
+    console.warn("Pending recognition approvals skipped.", pendingApprovalError.message);
   }
 
   const received = (receivedRows ?? []) as Array<{
@@ -77,6 +159,23 @@ export default async function EmployeeDashboardPage({ params }: { params: Promis
     : { data: [] as Array<{ id: string; first_name: string; last_name: string }> };
 
   const giverMap = new Map((giverProfiles ?? []).map((giver) => [giver.id, `${giver.first_name} ${giver.last_name}`.trim()]));
+
+  const pendingRows = (pendingApprovalRows ?? []) as Array<{
+    id: string;
+    created_at: string;
+    personal_note: string | null;
+    receiver_user_id: string;
+    status?: string | null;
+    card: { title: string; category: string; qr_slug?: string | null } | Array<{ title: string; category: string; qr_slug?: string | null }> | null;
+  }>;
+  const pendingVerificationRows = pendingRows.filter((row) => row.status === "pending_verification").slice(0, 5);
+  const pendingReceiverIds = Array.from(new Set(pendingVerificationRows.map((row) => row.receiver_user_id)));
+  const { data: pendingReceivers } = pendingReceiverIds.length
+    ? await supabase.from("profiles").select("id, first_name, last_name").in("id", pendingReceiverIds)
+    : { data: [] as Array<{ id: string; first_name: string | null; last_name: string | null }> };
+  const pendingReceiverMap = new Map(
+    (pendingReceivers ?? []).map((receiver) => [receiver.id, `${receiver.first_name ?? ""} ${receiver.last_name ?? ""}`.trim() || "A teammate"])
+  );
 
   const normalizedRecognitions: RecognitionItem[] = received.flatMap((item) => {
       const card = Array.isArray(item.card) ? item.card[0] : item.card;
@@ -114,23 +213,26 @@ export default async function EmployeeDashboardPage({ params }: { params: Promis
     });
   }
 
-  const topQualities = Array.from(qualityCounts.entries())
+  const topQualityDetails = Array.from(qualityCounts.entries())
     .sort((a, b) => b[1].count - a[1].count)
     .slice(0, 6)
     .map(([label, info]) => ({
       label,
-      tone: categoryMeta[info.category as keyof typeof categoryMeta]?.color ?? "var(--theme-ink)"
+      count: info.count,
+      category: getCategoryDisplayName(info.category),
+      rawCategory: info.category,
+      tone: getEmployeeCategoryColor(info.category)
     }));
+  const topQualities = topQualityDetails.map(({ label, count, tone }) => ({ label, count, tone }));
 
   const topCategory = Array.from(categoryCounts.entries()).sort((a, b) => b[1] - a[1])[0];
-  const topQualityEntry = Array.from(qualityCounts.entries()).sort((a, b) => b[1].count - a[1].count)[0];
 
   const fourCCategories: CardCategory[] = ["Communication", "Creativity", "Competence", "Collegiality"];
   const categoryBreakdown = fourCCategories
     .map((category) => ({
       label: getCategoryDisplayName(category),
       value: categoryCounts.get(category) ?? 0,
-      color: categoryMeta[category].color
+      color: getEmployeeCategoryColor(category)
     }))
     .sort((a, b) => b.value - a.value);
 
@@ -144,6 +246,7 @@ export default async function EmployeeDashboardPage({ params }: { params: Promis
   });
 
   const growthCounts = new Map(growthMonths.map((month) => [month.key, 0]));
+  const givenGrowthCounts = new Map(growthMonths.map((month) => [month.key, 0]));
   for (const recognition of normalizedRecognitions) {
     const createdDate = new Date(recognition.createdAt ?? "");
     const key = getMonthKey(createdDate);
@@ -151,8 +254,16 @@ export default async function EmployeeDashboardPage({ params }: { params: Promis
       growthCounts.set(key, (growthCounts.get(key) ?? 0) + 1);
     }
   }
+  for (const recognition of givenRows ?? []) {
+    const createdDate = new Date(recognition.created_at ?? "");
+    const key = getMonthKey(createdDate);
+    if (givenGrowthCounts.has(key)) {
+      givenGrowthCounts.set(key, (givenGrowthCounts.get(key) ?? 0) + 1);
+    }
+  }
 
   const growthPoints = growthMonths.map((month) => growthCounts.get(month.key) ?? 0);
+  const givenGrowthPoints = growthMonths.map((month) => givenGrowthCounts.get(month.key) ?? 0);
   const growthLabels = growthMonths.map((month) => month.label);
   const quarterKeys = new Set(
     normalizedRecognitions.map((recognition) => {
@@ -169,54 +280,46 @@ export default async function EmployeeDashboardPage({ params }: { params: Promis
   const energyScore = normalizedRecognitions.length
     ? Math.min(96, Math.max(42, normalizedRecognitions.length * 12 + recent30DaysCount * 8))
     : 0;
-  const unreadNotifications = await getUnreadNotificationCount(supabase, user.id);
   const recognitionSignals = [];
+  const topThreeCards = topQualityDetails.slice(0, 3);
+  const aiCategory = topCategory?.[0] ?? topThreeCards[0]?.rawCategory;
+  const aiPersona = getEmployeeCategoryPersona(aiCategory ?? "");
 
   if (!normalizedRecognitions.length) {
     recognitionSignals.push({
       id: "employee-signal-empty",
       tone: "var(--theme-gold)",
-      title: "No recognition cards yet",
-      detail: "Claim your first card to start building your visible growth story."
+      title: "Your AI recognition story will appear here",
+      detail: "Once you receive your first cards, GETH will turn them into a personal strengths story based on the qualities your colleagues recognize in you."
     });
-  }
-
-  if (topCategory && topCategory[1] >= 5) {
+  } else {
     recognitionSignals.push({
-      id: `employee-signal-category-${topCategory[0]}`,
-      tone: categoryMeta[topCategory[0] as CardCategory]?.color ?? "var(--theme-gold)",
-      title: getAnalyticCategoryLabel(topCategory[0]),
-      detail: `${topCategory[1]} recognitions show this as one of your strongest patterns.`
+      id: "employee-ai-recognition-story",
+      tone: getEmployeeCategoryColor(aiCategory ?? ""),
+      title: aiPersona.title,
+      detail: `${aiPersona.story} Your top signals are ${formatCardEvidence(topThreeCards)}. ${recent30DaysCount >= 5 ? "The recent pace also shows this is not a one-off moment; colleagues are seeing this strength consistently." : "As more cards come in, this story will become even sharper."}`,
+      highlights: topThreeCards.map((card) => ({
+        label: card.label,
+        category: card.category,
+        count: card.count,
+        tone: card.tone
+      }))
     });
   }
+  const topStrengthLabel = topCategory ? getAnalyticCategoryLabel(topCategory[0]) : "No signal yet";
+  const pendingApprovals = pendingVerificationRows.flatMap((row) => {
+    const card = Array.isArray(row.card) ? row.card[0] : row.card;
+    if (!card) return [];
 
-  if (topQualityEntry && topQualityEntry[1].count >= 5) {
-    recognitionSignals.push({
-      id: `employee-signal-card-${topQualityEntry[0]}`,
-      tone: categoryMeta[topQualityEntry[1].category as CardCategory]?.color ?? "var(--theme-emerald)",
-      title: `${topQualityEntry[0]} x${topQualityEntry[1].count}`,
-      detail: "This repeated card is now a clear personal strength signal."
-    });
-  }
-
-  if (recent30DaysCount >= 5) {
-    recognitionSignals.push({
-      id: "employee-signal-streak",
-      tone: "var(--theme-emerald)",
-      title: "5-card recognition streak",
-      detail: "You are receiving strong recent peer validation. Keep that momentum visible."
-    });
-  }
-
-  if (!recognitionSignals.length && topQualityEntry) {
-    recognitionSignals.push({
-      id: "employee-signal-growing",
-      tone: categoryMeta[topQualityEntry[1].category as CardCategory]?.color ?? "var(--theme-emerald)",
-      title: "Growth pattern forming",
-      detail: `${topQualityEntry[0]} is currently your most recognized card.`
-    });
-  }
-  const topStrengthLabel = topCategory && topCategory[1] >= 5 ? getAnalyticCategoryLabel(topCategory[0]) : topQualities[0]?.label ?? "No signal yet";
+    return [{
+      id: row.id,
+      receiverName: pendingReceiverMap.get(row.receiver_user_id) ?? "A teammate",
+      cardTitle: getLocalizedCardTitle({ title: card.title, slug: card.qr_slug ?? undefined }, locale),
+      category: getCategoryDisplayName(card.category),
+      note: row.personal_note,
+      createdAt: row.created_at
+    }];
+  });
 
   return (
     <EmployeeDashboardClient
@@ -225,7 +328,8 @@ export default async function EmployeeDashboardPage({ params }: { params: Promis
         user: {
           name: `${profile.first_name} ${profile.last_name}`.trim(),
           initials: getInitials(profile.first_name, profile.last_name),
-          team: team?.name ?? "No team assigned"
+          team: team?.name ?? "No team assigned",
+          imageUrl: profile.profile_image
         },
         title: `Welcome back, ${profile.first_name}!`,
         subtitle: normalizedRecognitions.length ? "Great to see your impact grow." : "Your first recognition will unlock your personal growth story.",
@@ -237,10 +341,12 @@ export default async function EmployeeDashboardPage({ params }: { params: Promis
         topQualitiesCount: qualityCounts.size,
         topStrengthLabel,
         recognitionSignals,
+        pendingApprovals,
         topQualities,
         categoryBreakdown,
         recentRecognitions: normalizedRecognitions.slice(0, 6),
         growthPoints,
+        givenGrowthPoints,
         growthLabels,
         unreadNotifications
       }}

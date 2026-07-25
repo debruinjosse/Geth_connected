@@ -23,7 +23,7 @@ export default async function EmployeeMessagesPage({ params }: { params: Promise
 
   if (!hasSupabaseServerConfig()) {
     return (
-      <DashboardShell role="employee" title="Messages" subtitle="A calm place for recognition notes and appreciation digests." user={currentUser} actions={<span className="quality-pill">Demo fallback</span>}>
+      <DashboardShell role="employee" title="Messages" subtitle="" user={currentUser} actions={<span className="quality-pill">Demo fallback</span>}>
         <section className="dashboard-grid">
           <article className="panel dashboard-panel">
             <div className="signal-list">
@@ -53,12 +53,13 @@ export default async function EmployeeMessagesPage({ params }: { params: Promise
 
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
-    .select("first_name, last_name, team_id")
+    .select("first_name, last_name, team_id, profile_image")
     .eq("id", user.id)
     .maybeSingle<{
       first_name: string | null;
       last_name: string | null;
       team_id: string | null;
+      profile_image: string | null;
     }>();
 
   if (profileError || !profile) redirect("/auth/repair-profile");
@@ -88,11 +89,12 @@ export default async function EmployeeMessagesPage({ params }: { params: Promise
     <DashboardShell
       role="employee"
       title="Messages"
-      subtitle="A calm place for recognition notes and appreciation digests."
+      subtitle=""
       user={{
         name: `${profile.first_name ?? ""} ${profile.last_name ?? ""}`.trim() || "GETH user",
         initials: getInitials(profile.first_name, profile.last_name),
-        team: team?.name ?? "No team assigned"
+        team: team?.name ?? "No team assigned",
+        imageUrl: profile.profile_image
       }}
       unreadNotifications={unreadNotifications}
     >
@@ -114,7 +116,7 @@ export default async function EmployeeMessagesPage({ params }: { params: Promise
                 return (
                   <div className="signal-card" key={message.id}>
                     <div>
-                      <strong>{giver} on {cardTitle}</strong>
+                      <strong>{cardTitle} from {giver}</strong>
                       <p>{message.personal_note}</p>
                     </div>
                     <span className="quality-pill">{formatDate(message.created_at)}</span>

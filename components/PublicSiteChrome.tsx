@@ -1,5 +1,4 @@
 import type { ReactNode } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
 import { BrandLogo } from "@/components/BrandLogo";
@@ -10,9 +9,8 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 const navLinks = [
   { href: "/#how-it-works", labelKey: "howItWorks" },
-  { href: "/#for-companies", labelKey: "forCompanies" },
   { href: "/pricing", labelKey: "pricing" },
-  { href: "/resources", labelKey: "resources" }
+  { href: "/resources", labelKey: "support" }
 ];
 
 function localizeHref(href: string, locale: string) {
@@ -91,6 +89,12 @@ export async function PublicSiteChrome({
                 {nav(link.labelKey)}
               </Link>
             ))}
+            <details className="site-nav-menu">
+              <summary className="site-nav-menu-trigger">{nav("aboutUs")}</summary>
+              <div className="site-nav-submenu">
+                <Link href={localizeHref("/vision-mission", locale)}>{nav("visionMission")}</Link>
+              </div>
+            </details>
           </nav>
           <div className="site-actions">
             {signedInUser ? (
@@ -126,15 +130,6 @@ export async function PublicSiteChrome({
           <p>
             {footer("copy")}
           </p>
-          <div className="footer-recognition-photo">
-            <Image
-              src="/assets/geth-recognition-moment.png"
-              alt="A team celebrating a GETH recognition moment"
-              fill
-              sizes="(max-width: 768px) calc(100vw - 32px), 1120px"
-              priority={false}
-            />
-          </div>
           <footer className="site-footer">
             <div>
               <BrandLogo href={`/${locale}`} />
@@ -143,7 +138,8 @@ export async function PublicSiteChrome({
             <div className="footer-links">
               <Link href={localizeHref("/pricing", locale)}>{nav("pricing")}</Link>
               <Link href={localizeHref("/book-demo", locale)}>{nav("bookDemo")}</Link>
-              <Link href={localizeHref("/resources", locale)}>{nav("resources")}</Link>
+              <Link href={localizeHref("/resources", locale)}>{nav("support")}</Link>
+              <Link href={localizeHref("/vision-mission", locale)}>{nav("visionMission")}</Link>
             </div>
             <div className="footer-meta">
               <Link href={localizeHref("/privacy", locale)}>{footer("privacy")}</Link>

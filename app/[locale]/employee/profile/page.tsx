@@ -1,4 +1,6 @@
 import { redirect } from "next/navigation";
+import { getLocale } from "next-intl/server";
+import { AccountSettingsPanel } from "@/components/AccountSettingsPanel";
 import { DashboardShell } from "@/components/DashboardShell";
 import { currentUser, employeeTopQualities } from "@/lib/demo-data";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -11,11 +13,20 @@ function getInitials(firstName: string | null, lastName: string | null) {
   return `${firstName?.[0] ?? ""}${lastName?.[0] ?? ""}`.toUpperCase() || "EM";
 }
 
-export default async function EmployeeProfilePage() {
+export default async function EmployeeProfilePage({
+  searchParams
+}: {
+  searchParams: Promise<{ settings?: string }>;
+}) {
+  const [{ settings }, locale] = await Promise.all([searchParams, getLocale()]);
+  const returnTo = `/${locale}/employee/profile`;
+
   if (!hasSupabaseServerConfig()) {
     return (
       <DashboardShell role="employee" title="Profile" subtitle="Personal details, visible strengths, and the identity behind your recognition." user={currentUser}>
-        <ProfilePanels name={currentUser.name} email={currentUser.email} team={currentUser.team} company="ABC Company" role="Employee" status="Demo" />
+        <section className="dashboard-grid two">
+          <ProfilePanels name={currentUser.name} email={currentUser.email} team={currentUser.team} company="ABC Company" role="Employee" status="Demo" />
+        </section>
       </DashboardShell>
     );
   }
@@ -29,14 +40,16 @@ export default async function EmployeeProfilePage() {
   if (userError || !user) {
     return (
       <DashboardShell role="employee" title="Profile" subtitle="Personal details, visible strengths, and the identity behind your recognition." user={currentUser}>
-        <ProfilePanels name={currentUser.name} email={currentUser.email} team={currentUser.team} company="ABC Company" role="Employee" status="Demo" />
+        <section className="dashboard-grid two">
+          <ProfilePanels name={currentUser.name} email={currentUser.email} team={currentUser.team} company="ABC Company" role="Employee" status="Demo" />
+        </section>
       </DashboardShell>
     );
   }
 
   const { data: profile, error } = await supabase
     .from("profiles")
-    .select("first_name, last_name, email, role, status, company_id, team_id")
+    .select("first_name, last_name, email, role, status, company_id, team_id, profile_image")
     .eq("id", user.id)
     .maybeSingle<{
       first_name: string | null;
@@ -46,6 +59,7 @@ export default async function EmployeeProfilePage() {
       status: string | null;
       company_id: string | null;
       team_id: string | null;
+      profile_image: string | null;
     }>();
 
   if (error || !profile) redirect("/auth/repair-profile");
@@ -65,9 +79,19 @@ export default async function EmployeeProfilePage() {
       role="employee"
       title="Profile"
       subtitle="Personal details, visible strengths, and the identity behind your recognition."
-      user={{ name, initials: getInitials(profile.first_name, profile.last_name), team: team?.name ?? company?.company_name ?? "GETH" }}
+      user={{ name, initials: getInitials(profile.first_name, profile.last_name), team: team?.name ?? company?.company_name ?? "GETH", imageUrl: profile.profile_image }}
     >
-      <ProfilePanels name={name} email={profile.email ?? user.email ?? "No email"} team={team?.name ?? "Unassigned"} company={company?.company_name ?? "No company"} role={(profile.role ?? "employee").replace("_", " ")} status={profile.status ?? "active"} />
+      <section className="dashboard-grid two">
+        <AccountSettingsPanel
+          email={profile.email ?? user.email ?? "No email"}
+          firstName={profile.first_name ?? ""}
+          lastName={profile.last_name ?? ""}
+          profileImageUrl={profile.profile_image}
+          returnTo={returnTo}
+          statusCode={settings}
+        />
+        <ProfilePanels name={name} email={profile.email ?? user.email ?? "No email"} team={team?.name ?? "Unassigned"} company={company?.company_name ?? "No company"} role={(profile.role ?? "employee").replace("_", " ")} status={profile.status ?? "active"} />
+      </section>
     </DashboardShell>
   );
 }
@@ -88,7 +112,7 @@ function ProfilePanels({
   status: string;
 }) {
   return (
-    <section className="dashboard-grid two">
+    <>
       <article className="panel dashboard-panel">
         <div className="panel-top">
           <h2>Profile details</h2>
@@ -114,6 +138,6 @@ function ProfilePanels({
           ))}
         </div>
       </article>
-    </section>
+    </>
   );
 }

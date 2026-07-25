@@ -17,6 +17,9 @@
     "cards": "Cards",
     "pricing": "Pricing",
     "resources": "Resources",
+    "support": "Support",
+    "aboutUs": "About us",
+    "visionMission": "Vision & Mission",
     "login": "Log in",
     "bookDemo": "Book a demo",
     "openDashboard": "Open dashboard",
@@ -78,7 +81,7 @@
     "cta": "Claim a card",
     "eyebrow": "Team card library",
     "title": "Explore your GETH recognition cards",
-    "copy": "Browse the live deck by category, search for card themes, and open the claim route for every active GETH Connected Card.",
+    "copy": "Browse the live deck by category, search for card themes, and open the claim route for every GETH Connected Card.",
     "lockedEyebrow": "Card deck preview",
     "lockedTitle": "The full GETH deck unlocks after onboarding.",
     "lockedCopy": "Customers receive access to the complete 53-card recognition deck after company registration or a guided demo. Until then, the homepage shows a small preview without revealing the full product.",
@@ -156,16 +159,18 @@
     "previewGoalOrientedCopy": "You set clear goals, make plans, and bring them to life step by step.",
     "previewCaringCopy": "You pay attention to colleagues and contribute to a positive, safe, and engaged work environment.",
     "howEyebrow": "How it works",
-    "howTitle": "Recognition that moves",
-    "howCopy": "Real-world appreciation becomes digital visibility in four thoughtful steps.",
-    "step1Title": "Give a card",
-    "step1Copy": "Choose a card that matches the moment and the impact.",
-    "step2Title": "Scan QR code",
-    "step2Copy": "They scan the QR code to access their digital experience.",
-    "step3Title": "Claim recognition",
-    "step3Copy": "They see your message, claim the compliment, and feel seen.",
-    "step4Title": "View growth & insights",
-    "step4Copy": "Recognition turns into insights that help your team grow.",
+    "howTitle": "How it works",
+    "howCopy": "Recognition becomes visible in five simple steps.",
+    "step1Title": "Pick a card",
+    "step1Copy": "Choose a card that fits what you want to express.",
+    "step2Title": "Give & speak",
+    "step2Copy": "Give the card to someone and share why this matters to you.",
+    "step3Title": "The receiver scans the QR code",
+    "step3Copy": "The receiver scans the QR code to record the compliment digitally and grow their profile.",
+    "step4Title": "Visible growth",
+    "step4Copy": "Appreciation becomes visible in the personal profile and in the team overview.",
+    "step5Title": "More impact",
+    "step5Copy": "More appreciation creates more connection, energy and growth.",
     "companiesLabel": "For companies",
     "companiesTitle": "Culture intelligence at scale.",
     "companiesCopy": "Build a culture of recognition that drives engagement, retention, and measurable impact.",
@@ -180,15 +185,77 @@
     "viewPricing": "View pricing",
     "registerCompany": "Register your company"
   },
+  "landing": {
+    "howItWorks": {
+      "title": "HOW IT WORKS",
+      "steps": {
+        "pickCard": {
+          "title": "PICK A CARD",
+          "description": "Choose a card that fits what you want to express."
+        },
+        "giveSpeak": {
+          "title": "GIVE & SPEAK",
+          "description": "Give the card to someone and share why this matters to you."
+        },
+        "scanQr": {
+          "title": "THE RECEIVER SCANS THE QR CODE",
+          "description": "The receiver scans the QR code to record the compliment digitally and grow their profile."
+        },
+        "visibleGrowth": {
+          "title": "VISIBLE GROWTH",
+          "description": "Appreciation becomes visible in the personal profile and in the team overview."
+        },
+        "moreImpact": {
+          "title": "MORE IMPACT",
+          "description": "More appreciation creates more connection, energy and growth."
+        }
+      }
+    }
+  },
   "resourcesPage": {
-    "eyebrow": "Resources",
-    "title": "Everything your rollout team needs",
-    "copy": "A focused resources hub for API references and support.",
-    "apiCopy": "How connected-card routes, recognitions, and dashboards can be wired to backend systems.",
-    "apiAction": "Open API",
+    "eyebrow": "Support",
+    "title": "How can we help?",
+    "copy": "Contact the GETH support team for rollout questions, account help, card claiming, QR scanning, or dashboard guidance.",
     "supportTitle": "Support",
-    "supportCopy": "Contact help, submit rollout questions, and review security resources.",
-    "supportAction": "Open support"
+    "supportCardTitle": "Talk to GETH support",
+    "supportCopy": "Send us your question and we will help you get the right next step.",
+    "supportAction": "Open support form",
+    "formEyebrow": "Support request",
+    "formTitle": "Support request",
+    "formCopy": "Use the form to prepare your message, then choose email or live WhatsApp chat.",
+    "nameLabel": "Name",
+    "emailLabel": "Email",
+    "companyLabel": "Company",
+    "requestTypeLabel": "Request type",
+    "messageLabel": "Message",
+    "emailAction": "Email support",
+    "sending": "Sending...",
+    "replyTime": "We usually reply within one business day.",
+    "successTitle": "Your support request is ready.",
+    "successCopy": "Your email app should open with the prepared message.",
+    "failureTitle": "We could not open the support channel.",
+    "failureCopy": "Please use the direct email link instead:",
+    "sendAnother": "Send another request",
+    "whatsappAction": "Live WhatsApp chat",
+    "whatsappHint": "For urgent support, start a live WhatsApp chat with the GETH team at +31 6 1379 5467.",
+    "emailFallback": "email info@geth.pro",
+    "whatsappUnavailable": "Add NEXT_PUBLIC_SUPPORT_WHATSAPP_NUMBER to enable WhatsApp support.",
+    "required": "Required",
+    "errors": {
+      "name": "Please enter your name.",
+      "email": "Please enter a valid email address.",
+      "message": "Please enter your message.",
+      "messageLength": "Please add at least 10 characters."
+    },
+    "requestTypes": {
+      "account": "Account help",
+      "claiming": "Card claiming",
+      "qr": "QR scanning",
+      "dashboard": "Dashboard support",
+      "team": "Team or employee management",
+      "technical": "Technical issue",
+      "other": "Other"
+    }
   },
   "companyBilling": {
     "title": "Billing",

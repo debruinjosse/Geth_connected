@@ -324,7 +324,13 @@ export default async function AdminAnalyticsPage({ params }: { params: Promise<{
         <article className="panel dashboard-panel">
           <div className="panel-top"><h2>Monthly recognitions</h2></div>
           {recognitions?.length ? (
-            <BarChart items={monthWindows.map((month) => ({ label: month.label, value: monthlyCounts.get(month.key) ?? 0, color: "var(--theme-ink)" }))} />
+            <LineChart
+              points={monthWindows.map((month) => monthlyCounts.get(month.key) ?? 0)}
+              labels={monthWindows.map((month) => month.label)}
+              color="var(--theme-ink)"
+              ariaLabel="Monthly recognition volume over the latest six months"
+              showValues
+            />
           ) : (
             <EmptyState title="No recognitions yet" copy="Platform recognition trend will appear once companies start claiming cards." />
           )}

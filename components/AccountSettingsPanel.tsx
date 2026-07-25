@@ -16,9 +16,9 @@ function getSettingsMessage(code?: string) {
     case "profile-photo-required":
       return { tone: "error", copy: "Choose a profile photo before uploading." };
     case "profile-photo-invalid":
-      return { tone: "error", copy: "Use a JPG, PNG, WEBP, or GIF image." };
+      return { tone: "error", copy: "Use a JPG, PNG, WEBP, GIF, HEIC, or HEIF image." };
     case "profile-photo-too-large":
-      return { tone: "error", copy: "That image is larger than 50 MB. Use an HD photo under 50 MB." };
+      return { tone: "error", copy: "That image is larger than 100 MB. Use an HD photo under 100 MB." };
     case "profile-photo-failed":
       return { tone: "error", copy: "We could not upload that photo. Check the Supabase profile-photos bucket and service role key." };
     case "profile-update-failed":
@@ -67,7 +67,7 @@ export function AccountSettingsPanel({
           </div>
           <div>
             <strong>Profile photo</strong>
-            <p>Upload an HD JPG, PNG, WEBP, or GIF up to 50 MB. This photo appears in your dashboard and claim-card people picker.</p>
+            <p>Upload an HD JPG, PNG, WEBP, GIF, HEIC, or HEIF up to 100 MB. This photo appears in your dashboard and claim-card people picker.</p>
           </div>
         </div>
         <ProfilePhotoUploadField />

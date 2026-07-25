@@ -99,7 +99,7 @@ export function RecognitionCardCarousel({ cards, labels }: RecognitionCardCarous
       >
         <ChevronLeft size={18} />
       </button>
-      <div className="cardCarouselTrack" ref={trackRef} tabIndex={0}>
+      <div className="cardCarouselTrack" ref={trackRef}>
         {cards.map((card) => (
           <RecognitionCard card={card} key={`${card.number}-${card.title}`} />
         ))}
@@ -113,17 +113,6 @@ export function RecognitionCardCarousel({ cards, labels }: RecognitionCardCarous
       >
         <ChevronRight size={18} />
       </button>
-      <div className="cardCarouselDots" aria-hidden="true">
-        {cards.map((card, index) => (
-          <button
-            className={index === activeIndex ? "active" : ""}
-            key={card.number}
-            onClick={() => scrollToIndex(index)}
-            tabIndex={-1}
-            type="button"
-          />
-        ))}
-      </div>
     </div>
   );
 }
