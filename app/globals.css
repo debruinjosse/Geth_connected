@@ -648,7 +648,7 @@ img {
 
 .hero-device-stage {
   --hero-laptop-width: min(78%, 720px);
-  --hero-card-contact: 8px;
+  --hero-card-contact: 2px;
   display: flex;
   align-items: flex-end;
   justify-content: flex-end;
@@ -776,7 +776,7 @@ img {
   z-index: 3;
   width: clamp(138px, 15.8vw, 186px);
   pointer-events: none;
-  transform: perspective(1000px) rotateZ(-7deg);
+  transform: perspective(1000px) rotateZ(-12deg);
   transform-origin: right bottom;
   filter: drop-shadow(-8px 20px 20px rgba(28, 10, 38, 0.2));
   animation: hero-card-enter 900ms cubic-bezier(0.22, 1, 0.36, 1) 300ms both;
@@ -6437,7 +6437,7 @@ textarea.input {
     border-radius: 8px;
     background: #2a1036;
     box-shadow: -8px 18px 22px rgba(28, 10, 38, 0.18);
-    transform: rotate(-7deg);
+    transform: rotate(-12deg);
     transform-origin: right bottom;
   }
 

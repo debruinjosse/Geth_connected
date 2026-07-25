@@ -42,6 +42,7 @@ function HeroPhysicalCard() {
           height={797}
           sizes="(max-width: 767px) 88px, 176px"
           priority
+          unoptimized
         />
       </div>
     </div>

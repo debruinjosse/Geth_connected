@@ -23,6 +23,7 @@ export function MobileHeroProductPreview() {
           height={797}
           sizes="92px"
           priority
+          unoptimized
         />
       </div>
 
