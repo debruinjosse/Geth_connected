@@ -42,6 +42,7 @@ html {
 
 body {
   margin: 0;
+  top: 0 !important;
   background:
     radial-gradient(circle at top left, rgba(216, 162, 58, 0.08), transparent 22%),
     linear-gradient(180deg, #fffdf8 0%, var(--theme-cream) 100%);
@@ -415,7 +416,12 @@ img {
 }
 
 #google_translate_element {
-  max-width: 100%;
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  max-width: 1px;
+  overflow: hidden;
 }
 
 #google_translate_element select {
@@ -427,6 +433,22 @@ img {
   font-family: var(--font-body);
   font-size: 13px;
   padding: 8px 10px;
+}
+
+iframe.goog-te-banner-frame,
+iframe.skiptranslate,
+.goog-te-banner-frame,
+.goog-te-balloon-frame,
+.goog-tooltip,
+.goog-tooltip:hover,
+.VIpgJd-ZVi9od-ORHb-OEVmcd {
+  display: none !important;
+  visibility: hidden !important;
+}
+
+.goog-text-highlight {
+  background: transparent !important;
+  box-shadow: none !important;
 }
 
 .brand-logo {

@@ -35,7 +35,7 @@ const navByRole = {
     ["Home", "/employee", Home],
     ["Scan Card", "/employee/scan", QrCode],
     ["My Cards", "/employee/cards", VerticalCardIcon],
-    ["GETH", "/employee/messages", GethBirdIcon]
+    ["Messages", "/employee/messages", GethBirdIcon]
   ],
   manager: [
     ["Overview", "/manager", Home],
