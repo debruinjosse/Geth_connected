@@ -1,12 +1,11 @@
 "use client";
 
-import { AlertCircle, CheckCircle2, Mail } from "lucide-react";
+import { CheckCircle2, Mail } from "lucide-react";
 import type { FormEvent } from "react";
 import { useMemo, useState } from "react";
 
 const supportEmail = "info@geth.pro";
 const supportWhatsAppNumber = (process.env.NEXT_PUBLIC_SUPPORT_WHATSAPP_NUMBER || "31613795467").replace(/[^\d]/g, "");
-const supportWhatsAppDisplay = "+31 6 1379 5467";
 
 type SupportContactFormProps = {
   labels: {
@@ -23,12 +22,8 @@ type SupportContactFormProps = {
     replyTime: string;
     successTitle: string;
     successCopy: string;
-    failureTitle: string;
-    failureCopy: string;
     sendAnother: string;
     whatsappAction: string;
-    whatsappHint: string;
-    emailFallback: string;
     required: string;
     errors: {
       name: string;
@@ -42,7 +37,7 @@ type SupportContactFormProps = {
 
 type SupportFormField = "name" | "email" | "message";
 type SupportFormErrors = Partial<Record<SupportFormField, string>>;
-type SupportStatus = "idle" | "ready" | "error";
+type SupportStatus = "idle" | "ready";
 
 function WhatsAppIcon() {
   return (
@@ -124,7 +119,8 @@ export function SupportContactForm({ labels }: SupportContactFormProps) {
       const opened = window.open(href, target, "noopener,noreferrer");
 
       if (target === "_blank" && !opened) {
-        setStatus("error");
+        window.location.href = href;
+        setStatus("ready");
         return false;
       }
 
@@ -132,7 +128,8 @@ export function SupportContactForm({ labels }: SupportContactFormProps) {
       return true;
     } catch (error) {
       console.error("Support handoff failed", error);
-      setStatus("error");
+      window.location.href = href;
+      setStatus("ready");
       return false;
     }
   }
@@ -177,14 +174,6 @@ export function SupportContactForm({ labels }: SupportContactFormProps) {
         <p>{labels.copy}</p>
       </div>
 
-      <div className="support-process-card" aria-label={labels.whatsappHint}>
-        <div>
-          <strong>{labels.whatsappAction}</strong>
-          <span>{supportWhatsAppDisplay}</span>
-        </div>
-        <p>{labels.whatsappHint}</p>
-      </div>
-
       {status === "ready" ? (
         <div className="support-success-panel" role="status" aria-live="polite">
           <CheckCircle2 aria-hidden="true" size={22} />
@@ -195,18 +184,6 @@ export function SupportContactForm({ labels }: SupportContactFormProps) {
           <button type="button" className="support-reset-button" onClick={resetForm}>
             {labels.sendAnother}
           </button>
-        </div>
-      ) : null}
-
-      {status === "error" ? (
-        <div className="support-error-panel" role="alert">
-          <AlertCircle aria-hidden="true" size={22} />
-          <div>
-            <strong>{labels.failureTitle}</strong>
-            <span>
-              {labels.failureCopy} <a href={`mailto:${supportEmail}`}>{labels.emailFallback}</a>
-            </span>
-          </div>
         </div>
       ) : null}
 

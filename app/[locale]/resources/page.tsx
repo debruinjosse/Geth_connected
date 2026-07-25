@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { PublicSiteChrome } from "@/components/PublicSiteChrome";
 import { SupportContactForm } from "@/components/SupportContactForm";
@@ -21,9 +20,6 @@ export default async function ResourcesPage({ params }: { params: Promise<{ loca
             <div className="eyebrow">{t("supportTitle")}</div>
             <h3>{t("supportCardTitle")}</h3>
             <p>{t("supportCopy")}</p>
-            <Link href="#support-form" className="btn btn-primary">
-              {t("supportAction")}
-            </Link>
           </article>
           <SupportContactForm
             labels={{
@@ -40,12 +36,8 @@ export default async function ResourcesPage({ params }: { params: Promise<{ loca
               replyTime: t("replyTime"),
               successTitle: t("successTitle"),
               successCopy: t("successCopy"),
-              failureTitle: t("failureTitle"),
-              failureCopy: t("failureCopy"),
               sendAnother: t("sendAnother"),
               whatsappAction: t("whatsappAction"),
-              whatsappHint: t("whatsappHint"),
-              emailFallback: t("emailFallback"),
               required: t("required"),
               errors: {
                 name: t("errors.name"),

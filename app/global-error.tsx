@@ -39,7 +39,7 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
                 <Mail size={16} /> Email support
               </a>
               <a className="btn btn-whatsapp" href="https://wa.me/31613795467?text=Hi%20GETH%20Support%2C%20I%20need%20help%20with%20a%20website%20error." target="_blank" rel="noreferrer">
-                <MessageCircle size={16} /> Live WhatsApp chat
+                <MessageCircle size={16} /> WhatsApp
               </a>
             </div>
           </section>
