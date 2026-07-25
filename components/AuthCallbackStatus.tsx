@@ -14,7 +14,7 @@ function getHashParams() {
   return new URLSearchParams(window.location.hash.replace(/^#/, ""));
 }
 
-async function finalizeAuth(inviteToken?: string | null, targetPath?: string | null) {
+async function finalizeAuth(inviteToken?: string | null, targetPath?: string | null, expectedRole?: string | null) {
   const response = await fetch("/auth/callback/finalize", {
     method: "POST",
     headers: {
@@ -23,7 +23,8 @@ async function finalizeAuth(inviteToken?: string | null, targetPath?: string | n
     credentials: "include",
     body: JSON.stringify({
       inviteToken: inviteToken ?? null,
-      targetPath: targetPath ?? null
+      targetPath: targetPath ?? null,
+      expectedRole: expectedRole ?? null
     })
   });
 
@@ -31,7 +32,7 @@ async function finalizeAuth(inviteToken?: string | null, targetPath?: string | n
   return payload?.redirectTo || "/login?error=profile_bootstrap_failed";
 }
 
-export function AuthCallbackStatus({ inviteToken, targetPath }: { inviteToken?: string; targetPath?: string }) {
+export function AuthCallbackStatus({ inviteToken, targetPath, expectedRole }: { inviteToken?: string; targetPath?: string; expectedRole?: string }) {
   const searchParams = useSearchParams();
   const [status, setStatus] = useState("Completing your secure sign-in...");
 
@@ -91,7 +92,7 @@ export function AuthCallbackStatus({ inviteToken, targetPath }: { inviteToken?: 
           return;
         }
 
-        const redirectTo = await finalizeAuth(inviteToken, targetPath);
+        const redirectTo = await finalizeAuth(inviteToken, targetPath, expectedRole);
 
         if (!cancelled) {
           setStatus("Redirecting you to your workspace...");
@@ -109,7 +110,7 @@ export function AuthCallbackStatus({ inviteToken, targetPath }: { inviteToken?: 
     return () => {
       cancelled = true;
     };
-  }, [inviteToken, searchParams, targetPath]);
+  }, [expectedRole, inviteToken, searchParams, targetPath]);
 
   return (
     <div className="auth-card">

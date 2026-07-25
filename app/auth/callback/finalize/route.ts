@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextRequest, NextResponse } from "next/server";
 import { bootstrapProfile, InvitationBootstrapError } from "@/lib/auth/bootstrap-profile";
+import { normalizeAppRole, type AppRole } from "@/lib/auth/roles";
 
 function buildSupabaseResponse(request: NextRequest) {
   const response = NextResponse.json({ ok: true });
@@ -32,10 +33,19 @@ function jsonWithCookies(base: NextResponse, body: Record<string, string>, statu
   return response;
 }
 
+function getExpectedRole(value: unknown): AppRole | null {
+  if (value === "employee" || value === "manager" || value === "company_admin" || value === "platform_admin" || value === "super_admin") {
+    return value;
+  }
+
+  return null;
+}
+
 export async function POST(request: NextRequest) {
-  const { inviteToken, targetPath } = (await request.json().catch(() => ({}))) as {
+  const { inviteToken, targetPath, expectedRole } = (await request.json().catch(() => ({}))) as {
     inviteToken?: string | null;
     targetPath?: string | null;
+    expectedRole?: string | null;
   };
   const { response, supabase } = buildSupabaseResponse(request);
 
@@ -49,7 +59,24 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const { redirectTo, invitationApplied } = await bootstrapProfile(user, inviteToken);
+    const { redirectTo, invitationApplied, role } = await bootstrapProfile(user, inviteToken);
+    const requestedRole = getExpectedRole(expectedRole);
+    const actualRole = normalizeAppRole(role);
+
+    if (!inviteToken && requestedRole && requestedRole !== actualRole) {
+      await supabase.auth.signOut();
+      return jsonWithCookies(
+        response,
+        {
+          redirectTo: `/login?error=role_mismatch&role=${requestedRole}`,
+          error: "role_mismatch",
+          actualRole,
+          expectedRole: requestedRole
+        },
+        403
+      );
+    }
+
     const safeTargetPath =
       targetPath && targetPath.startsWith("/") && !targetPath.startsWith("//") && !targetPath.startsWith("/api") && !targetPath.startsWith("/auth")
         ? targetPath

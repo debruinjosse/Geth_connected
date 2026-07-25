@@ -141,15 +141,36 @@ export function AuthExperience({
       headers: {
         "Content-Type": "application/json"
       },
-      body: JSON.stringify({ inviteToken: inviteToken ?? null, targetPath: getSafeTargetPath(targetPath) || null })
+      body: JSON.stringify({
+        inviteToken: inviteToken ?? null,
+        targetPath: getSafeTargetPath(targetPath) || null,
+        expectedRole: mode === "login" ? selectedRole : selectedSignupRole
+      })
     });
-    const payload = (await response.json().catch(() => ({}))) as { redirectTo?: string };
+    const payload = (await response.json().catch(() => ({}))) as { redirectTo?: string; error?: string; actualRole?: string; expectedRole?: string };
+
+    if (response.status === 403 && payload.error === "role_mismatch") {
+      const supabase = createSupabaseBrowserClient();
+      await supabase.auth.signOut();
+      throw new Error(getRoleMismatchCopy(payload.expectedRole, payload.actualRole));
+    }
 
     if (!response.ok || !payload.redirectTo) {
       throw new Error("Your account was authenticated, but profile setup failed.");
     }
 
     window.location.assign(resolvePostAuthRedirect(payload.redirectTo));
+  }
+
+  function getRoleLabel(role?: string) {
+    if (role === "manager") return "manager";
+    if (role === "company_admin") return "company admin";
+    if (role === "platform_admin" || role === "super_admin") return "owner";
+    return "employee";
+  }
+
+  function getRoleMismatchCopy(expectedRole?: string, actualRole?: string) {
+    return `This email belongs to a ${getRoleLabel(actualRole)} account, not a ${getRoleLabel(expectedRole)} account. Please choose the correct login option or use the right work email.`;
   }
 
   function repairProfileAndOpenDashboard() {
@@ -166,6 +187,8 @@ export function AuthExperience({
         return "You are signed in, but your GETH profile is missing. Use the repair button below, or ask a company admin to invite you.";
       case "admin_required":
         return "Admin access requires a super admin account. You have been signed out of the previous role; log in with the super admin credentials.";
+      case "role_mismatch":
+        return `That email is not a ${getRoleLabel(selectedRole)} account. Please choose the correct login option or use the right work email.`;
       case "password_updated":
         return "Your password was updated. Log in with your new password.";
       default:
@@ -334,6 +357,7 @@ export function AuthExperience({
       if (inviteToken) {
         redirectTo.searchParams.set("invite", inviteToken);
       }
+      redirectTo.searchParams.set("role", mode === "login" ? selectedRole : selectedSignupRole);
       const safeTargetPath = getSafeTargetPath(targetPath);
       if (safeTargetPath) {
         redirectTo.searchParams.set("next", safeTargetPath);
