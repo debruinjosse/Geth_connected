@@ -59,7 +59,7 @@ export function AccountSettingsPanel({
 
       {message ? <p className={`settings-feedback ${message.tone}`}>{message.copy}</p> : null}
 
-      <form action={updateOwnProfilePhotoAction} className="settings-photo-form" encType="multipart/form-data">
+      <form action={updateOwnProfilePhotoAction} className="settings-photo-form">
         <input type="hidden" name="returnTo" value={returnTo} />
         <div className="settings-photo-preview">
           <div className="profile-photo-large">

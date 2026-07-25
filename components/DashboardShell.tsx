@@ -15,7 +15,6 @@ import {
   Home,
   Menu,
   QrCode,
-  Settings,
   Shield,
   LogOut,
   CircleUserRound,
@@ -156,8 +155,7 @@ export function DashboardShell({
   const [loggingOut, setLoggingOut] = useState(false);
   const nav = navByRole[role];
   const notificationHref = localizeDashboardHref(notificationHrefByRole[role], locale);
-  const settingsHref = localizeDashboardHref(`/${role === "company" ? "company" : role}/settings`, locale);
-  const profileHref = role === "employee" ? localizeDashboardHref("/employee/profile", locale) : settingsHref;
+  const profileHref = localizeDashboardHref(role === "employee" ? "/employee/profile" : `/${role === "company" ? "company" : role}/settings`, locale);
 
   async function handleLogout() {
     setLoggingOut(true);
@@ -232,9 +230,6 @@ export function DashboardShell({
             <Link className="dashboard-icon-button notification-icon-button" href={notificationHref} aria-label={`${unreadNotifications} unread notifications`}>
               <Bell size={17} />
               {unreadNotifications > 0 ? <span className="notification-count">{unreadNotifications > 9 ? "9+" : unreadNotifications}</span> : null}
-            </Link>
-            <Link className="dashboard-icon-button" href={settingsHref} aria-label="Settings">
-              <Settings size={17} />
             </Link>
             <Link className="dashboard-avatar-chip" href={profileHref} title={`${user.name} - ${user.team}`} aria-label={`Open ${user.name}'s profile`}>
               <div className="avatar">
