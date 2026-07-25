@@ -647,13 +647,13 @@ img {
 }
 
 .hero-device-stage {
-  --hero-laptop-width: min(80%, 760px);
-  --hero-card-contact: 2px;
+  --hero-laptop-width: min(78%, 720px);
+  --hero-card-contact: 8px;
   display: flex;
   align-items: flex-end;
   justify-content: flex-end;
   width: 100%;
-  min-height: 500px;
+  min-height: 482px;
   min-width: 0;
   position: relative;
   isolation: isolate;
@@ -663,11 +663,11 @@ img {
   position: relative;
   z-index: 2;
   width: var(--hero-laptop-width);
-  aspect-ratio: 16 / 10.6;
-  max-width: 760px;
+  aspect-ratio: 16 / 10;
+  max-width: 720px;
   margin-left: auto;
   transform: none;
-  border-radius: 34px;
+  border-radius: 36px;
   padding: 0;
   background: transparent;
   perspective: 900px;
@@ -708,13 +708,13 @@ img {
   position: relative;
   width: 100%;
   height: 100%;
-  border-radius: 34px;
-  padding: 16px;
+  border-radius: 36px;
+  padding: 14px;
   background: linear-gradient(180deg, #202022 0%, #111113 100%);
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow:
-    0 58px 120px rgba(18, 10, 30, 0.19),
-    0 24px 52px rgba(18, 10, 30, 0.16);
+    0 46px 92px rgba(18, 10, 30, 0.18),
+    0 18px 38px rgba(18, 10, 30, 0.14);
   transform-origin: center bottom;
   overflow: hidden;
 }
@@ -723,7 +723,7 @@ img {
   content: "";
   position: absolute;
   inset: 0;
-  border-radius: 31px;
+  border-radius: 33px;
   background: linear-gradient(120deg, rgba(255, 255, 255, 0.07), transparent 18%, transparent 56%, rgba(255, 255, 255, 0.08));
   pointer-events: none;
 }
@@ -732,10 +732,10 @@ img {
   position: relative;
   width: 100%;
   height: 100%;
-  aspect-ratio: 16 / 10;
+  aspect-ratio: 16 / 9.8;
   min-height: 0;
   max-height: 100%;
-  border-radius: 22px;
+  border-radius: 24px;
   overflow: hidden;
   background: linear-gradient(180deg, #fefcf7 0%, #faf5ed 100%);
   border: 1px solid rgba(16, 10, 26, 0.16);
@@ -743,11 +743,11 @@ img {
 
 .hero-laptop-camera {
   position: absolute;
-  top: 8px;
+  top: 7px;
   left: 50%;
   z-index: 3;
-  width: 82px;
-  height: 8px;
+  width: 64px;
+  height: 6px;
   border-radius: 999px;
   transform: translateX(-50%);
   background: rgba(255, 255, 255, 0.16);
@@ -772,11 +772,11 @@ img {
 .hero-physical-card-wrap {
   position: absolute;
   right: calc(var(--hero-laptop-width) + var(--hero-card-contact));
-  bottom: 7%;
+  bottom: 3.5%;
   z-index: 3;
-  width: clamp(132px, 15vw, 178px);
+  width: clamp(138px, 15.8vw, 186px);
   pointer-events: none;
-  transform: perspective(1000px) rotateZ(4.5deg);
+  transform: perspective(1000px) rotateZ(-7deg);
   transform-origin: right bottom;
   filter: drop-shadow(-8px 20px 20px rgba(28, 10, 38, 0.2));
   animation: hero-card-enter 900ms cubic-bezier(0.22, 1, 0.36, 1) 300ms both;
@@ -4953,8 +4953,9 @@ textarea.input {
   }
 
   .hero-device-stage {
-    --hero-laptop-width: min(82%, 690px);
-    min-height: 500px;
+    --hero-laptop-width: min(79%, 660px);
+    --hero-card-contact: 8px;
+    min-height: 472px;
     padding: 0;
   }
 
@@ -6385,7 +6386,7 @@ textarea.input {
     position: relative;
     z-index: 2;
     min-width: 0;
-    width: calc(100% - 46px);
+    width: calc(100% - 56px);
     margin-left: auto;
   }
 
@@ -6393,7 +6394,7 @@ textarea.input {
     display: block;
     position: relative;
     overflow: hidden;
-    padding: 11px;
+    padding: 10px;
     border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 24px;
     background: linear-gradient(180deg, #202022 0%, #111113 100%);
@@ -6408,7 +6409,7 @@ textarea.input {
     top: 5px;
     left: 50%;
     z-index: 3;
-    width: 38px;
+    width: 34px;
     height: 4px;
     border-radius: 999px;
     background: rgba(255, 255, 255, 0.14);
@@ -6426,17 +6427,17 @@ textarea.input {
   .mobile-hero-physical-card {
     display: block;
     position: absolute;
-    left: 0;
-    top: 22px;
+    left: 2px;
+    top: 42px;
     z-index: 1;
-    width: 88px;
+    width: 92px;
     aspect-ratio: 560 / 797;
     overflow: hidden;
     border: 1px solid rgba(232, 184, 75, 0.35);
     border-radius: 8px;
     background: #2a1036;
     box-shadow: -8px 18px 22px rgba(28, 10, 38, 0.18);
-    transform: rotate(-4.5deg);
+    transform: rotate(-7deg);
     transform-origin: right bottom;
   }
 
@@ -6538,12 +6539,12 @@ textarea.input {
   }
 
   .mobile-hero-tablet-frame {
-    width: calc(100% - 42px);
+    width: calc(100% - 52px);
   }
 
   .mobile-hero-physical-card {
-    top: 20px;
-    width: 80px;
+    top: 38px;
+    width: 84px;
   }
 
   .mobile-hero-device-preview .mobile-hero-product-preview {
