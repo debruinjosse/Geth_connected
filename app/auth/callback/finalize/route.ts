@@ -41,6 +41,22 @@ function getExpectedRole(value: unknown): AppRole | null {
   return null;
 }
 
+function rolesAreCompatible(expectedRole: AppRole, actualRole: AppRole) {
+  if (expectedRole === "super_admin") {
+    return actualRole === "super_admin" || actualRole === "platform_admin";
+  }
+
+  return expectedRole === actualRole;
+}
+
+function getRoleMismatchRedirect(expectedRole: AppRole) {
+  if (expectedRole === "super_admin" || expectedRole === "platform_admin") {
+    return `/owner?error=role_mismatch`;
+  }
+
+  return `/login?error=role_mismatch&role=${expectedRole}`;
+}
+
 export async function POST(request: NextRequest) {
   const { inviteToken, targetPath, expectedRole } = (await request.json().catch(() => ({}))) as {
     inviteToken?: string | null;
@@ -63,12 +79,12 @@ export async function POST(request: NextRequest) {
     const requestedRole = getExpectedRole(expectedRole);
     const actualRole = normalizeAppRole(role);
 
-    if (!inviteToken && requestedRole && requestedRole !== actualRole) {
+    if (!inviteToken && requestedRole && !rolesAreCompatible(requestedRole, actualRole)) {
       await supabase.auth.signOut();
       return jsonWithCookies(
         response,
         {
-          redirectTo: `/login?error=role_mismatch&role=${requestedRole}`,
+          redirectTo: getRoleMismatchRedirect(requestedRole),
           error: "role_mismatch",
           actualRole,
           expectedRole: requestedRole

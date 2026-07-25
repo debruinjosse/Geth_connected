@@ -43,7 +43,7 @@ export default async function LoginPage({
   const { invite, error, next, role } = await searchParams;
 
   if (role === "super_admin" || next?.startsWith("/admin")) {
-    redirect(`/${locale}/owner`);
+    redirect(`/${locale}/owner${error ? `?error=${encodeURIComponent(error)}` : ""}`);
   }
 
   const initialRole = getLoginRole(role, next);
