@@ -11,7 +11,6 @@ import {
 import Image from "next/image";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
-import { GoldenLeaves } from "@/components/GoldenLeaves";
 import { HeroDashboardMockup } from "@/components/HeroDashboardMockup";
 import { MobileHeroProductPreview } from "@/components/MobileHeroProductPreview";
 import { PublicSiteChrome } from "@/components/PublicSiteChrome";
@@ -39,7 +38,6 @@ export default async function LandingPage({ params }: LandingPageProps) {
   return (
     <PublicSiteChrome locale={locale}>
       <section className="hero landingHero">
-        <GoldenLeaves className="golden-leaves" style={{ left: "-20px", bottom: "40px" }} />
         <div className="pageContainer landingHeroInner">
           <div className="hero-copy landingHeroCopy">
             <Reveal delay={0.02}>
@@ -111,7 +109,6 @@ export default async function LandingPage({ params }: LandingPageProps) {
                 <Link href={bookDemoHref} className="audience-demo-cta">
                   {nav("bookDemo")} <ArrowRight size={14} />
                 </Link>
-                <GoldenLeaves className="golden-leaves" />
               </Reveal>
             ))}
           </div>
@@ -119,8 +116,6 @@ export default async function LandingPage({ params }: LandingPageProps) {
       </section>
 
       <section className="section-shell cta-band landingCta">
-        <GoldenLeaves className="landingCtaLeaf landingCtaLeafLeft" />
-        <GoldenLeaves className="landingCtaLeaf landingCtaLeafRight" mirrored />
         <div className="pageContainer landingCtaInner">
           <div className="landingCtaContent">
             <Reveal className="cta-copy" distance={18}>

@@ -2,7 +2,6 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
 import { BrandLogo } from "@/components/BrandLogo";
-import { GoldenLeaves } from "@/components/GoldenLeaves";
 import { GoogleTranslateWidget } from "@/components/GoogleTranslateWidget";
 import { getRouteForAppRole, normalizeAppRole } from "@/lib/auth/roles";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -122,8 +121,6 @@ export async function PublicSiteChrome({
       {children}
 
       <section className="footer-banner landingFooter">
-        <GoldenLeaves className="golden-leaves" style={{ left: "16px", bottom: "20px" }} />
-        <GoldenLeaves className="golden-leaves mirrored" style={{ right: "16px", top: "20px" }} />
         <div className="pageContainer landingFooterInner">
           <div className="eyebrow">{footer("banner")}</div>
           <h2>{footer("title")}</h2>

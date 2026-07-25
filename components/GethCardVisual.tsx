@@ -1,5 +1,4 @@
 import { BrandLogo } from "@/components/BrandLogo";
-import { GoldenLeaves } from "@/components/GoldenLeaves";
 import { getCategoryDisplayName, type GethCard } from "@/lib/cards";
 
 type GethCardVisualProps = {
@@ -14,8 +13,6 @@ export function GethCardVisual({ card, variant = "hero" }: GethCardVisualProps) 
   if (variant === "hero") {
     return (
       <article className="geth-card geth-card-hero">
-        <GoldenLeaves className="card-leaves-top" />
-        <GoldenLeaves className="card-leaves-bottom" mirrored />
         <div className="geth-card-hero-brand">
           <BrandLogo interactive={false} />
         </div>
@@ -33,8 +30,6 @@ export function GethCardVisual({ card, variant = "hero" }: GethCardVisualProps) 
 
   return (
     <article className={`geth-card geth-card-${variant}`}>
-      <GoldenLeaves className="card-leaves-top" />
-      <GoldenLeaves className="card-leaves-bottom" mirrored />
       <div className="geth-card-header">
         <BrandLogo compact interactive={false} />
         <div className="geth-card-index">Card {String(card.cardNumber).padStart(2, "0")}</div>

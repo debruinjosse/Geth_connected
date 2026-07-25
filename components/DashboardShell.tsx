@@ -23,7 +23,6 @@ import {
   X
 } from "lucide-react";
 import { BrandLogo } from "@/components/BrandLogo";
-import { GoldenLeaves } from "@/components/GoldenLeaves";
 import { GoogleTranslateWidget } from "@/components/GoogleTranslateWidget";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { clearDemoSession, getDemoSession, hasSupabaseBrowserConfig } from "@/lib/demo-session";
@@ -209,7 +208,6 @@ export function DashboardShell({
         </div>
 
         <div className="dashboard-sidebar-bottom">
-          <GoldenLeaves className="sidebar-leaves" />
           <button className="sidebar-logout" type="button" onClick={handleLogout} disabled={loggingOut}>
             <LogOut size={16} />
             <span>{loggingOut ? "Logging out..." : "Sign out"}</span>

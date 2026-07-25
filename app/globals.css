@@ -641,12 +641,6 @@ iframe.skiptranslate,
   overflow: hidden;
 }
 
-.landingHero .golden-leaves {
-  z-index: 0;
-  opacity: 0.45;
-  pointer-events: none;
-}
-
 .landingHeroInner {
   position: relative;
   z-index: 1;
@@ -1988,16 +1982,6 @@ iframe.skiptranslate,
   letter-spacing: 0.12em;
 }
 
-.recognitionCardLeaves {
-  position: absolute;
-  right: -28px;
-  bottom: -28px;
-  z-index: -1;
-  width: 138px;
-  opacity: 0.5;
-  stroke-width: 1.35;
-}
-
 .recognitionCardBody {
   position: relative;
   z-index: 1;
@@ -2294,15 +2278,7 @@ iframe.skiptranslate,
   box-shadow: 0 18px 34px rgba(216, 162, 58, 0.28);
 }
 
-.audience-card .golden-leaves {
-  right: -30px;
-  bottom: -40px;
-  width: 160px;
-  z-index: 0;
-  opacity: 0.42;
-}
-
-.audience-card > *:not(.golden-leaves):not(.audienceCardIcon) {
+.audience-card > *:not(.audienceCardIcon) {
   position: relative;
   z-index: 1;
 }
@@ -2354,22 +2330,6 @@ iframe.skiptranslate,
 
 .landingCtaActions {
   justify-content: flex-start;
-}
-
-.landingCtaLeaf {
-  z-index: 0;
-  width: 190px;
-  opacity: 0.28;
-}
-
-.landingCtaLeafLeft {
-  left: max(18px, calc((100vw - var(--page-max)) / 2));
-  bottom: 24px;
-}
-
-.landingCtaLeafRight {
-  right: max(18px, calc((100vw - var(--page-max)) / 2));
-  top: 18px;
 }
 
 .footer-banner {
@@ -2453,49 +2413,6 @@ iframe.skiptranslate,
 
 .footer-meta {
   justify-content: flex-end;
-}
-
-.footer-banner .golden-leaves:first-of-type {
-  left: -58px !important;
-  bottom: -22px !important;
-  width: 150px;
-  opacity: 0.34;
-}
-
-.footer-banner .golden-leaves.mirrored {
-  right: -48px !important;
-  top: 10px !important;
-  width: 170px;
-  opacity: 0.26;
-}
-
-.golden-leaves {
-  position: absolute;
-  width: 180px;
-  height: auto;
-  color: rgba(216, 162, 58, 0.28);
-  opacity: 0.44;
-  pointer-events: none;
-  z-index: 0;
-}
-
-.golden-leaves path {
-  stroke: currentColor;
-  stroke-width: 1.45;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-.golden-leaf {
-  fill: rgba(216, 162, 58, 0.035);
-}
-
-.golden-leaf-stem {
-  opacity: 0.72;
-}
-
-.golden-leaves.mirrored {
-  transform: scaleX(-1);
 }
 
 .app-error-shell {
@@ -2636,14 +2553,6 @@ iframe.skiptranslate,
   display: flex;
   align-items: flex-end;
   overflow: visible;
-}
-
-.sidebar-leaves {
-  left: auto;
-  right: -54px;
-  bottom: 58px;
-  width: 118px;
-  opacity: 0.24;
 }
 
 .sidebar-logout {
@@ -4729,18 +4638,6 @@ textarea.input {
   padding: 18px;
 }
 
-.card-leaves-top {
-  top: -44px;
-  right: -32px;
-  width: 170px;
-}
-
-.card-leaves-bottom {
-  left: -34px;
-  bottom: -40px;
-  width: 150px;
-}
-
 .geth-card-header {
   position: relative;
   z-index: 1;
@@ -4954,16 +4851,6 @@ textarea.input {
   }
 }
 
-.loading-leaves.left {
-  left: 2vw;
-  bottom: 2vw;
-}
-
-.loading-leaves.right {
-  right: 2vw;
-  top: 2vw;
-}
-
 .auth-page {
   display: grid;
   grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
@@ -5007,12 +4894,6 @@ textarea.input {
   content: "•";
   margin-right: 10px;
   color: var(--theme-gold);
-}
-
-.auth-leaves {
-  right: -20px;
-  bottom: -20px;
-  width: 220px;
 }
 
 .auth-panel {
@@ -7260,10 +7141,6 @@ textarea.input {
       linear-gradient(180deg, #fffdf8 0%, #fbf8f1 100%);
   }
 
-  .landingHero > .golden-leaves {
-    display: none;
-  }
-
   .landingHeroInner {
     grid-template-columns: 1fr;
     gap: 24px;
@@ -7322,12 +7199,6 @@ textarea.input {
   .landingCtaActions .btn {
     justify-content: center;
     width: 100%;
-  }
-
-  .landingCtaLeaf,
-  .audience-card .golden-leaves,
-  .footer-banner .golden-leaves {
-    display: none;
   }
 
   .trust-row {

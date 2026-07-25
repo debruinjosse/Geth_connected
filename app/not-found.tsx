@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { BrandLogo } from "@/components/BrandLogo";
-import { GoldenLeaves } from "@/components/GoldenLeaves";
 
 export default function NotFound() {
   return (
@@ -21,7 +20,6 @@ export default function NotFound() {
             Browse cards
           </Link>
         </div>
-        <GoldenLeaves className="card-leaves-bottom" />
       </section>
     </main>
   );

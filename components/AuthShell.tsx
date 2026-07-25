@@ -1,7 +1,6 @@
 import type { ReactNode } from "react";
 import { getTranslations } from "next-intl/server";
 import { BrandLogo } from "@/components/BrandLogo";
-import { GoldenLeaves } from "@/components/GoldenLeaves";
 import { defaultLocale } from "@/i18n/routing";
 
 export async function AuthShell({
@@ -31,7 +30,6 @@ export async function AuthShell({
           <span>{t("private")}</span>
           <span>{t("teams")}</span>
         </div>
-        <GoldenLeaves className="auth-leaves" />
       </section>
 
       <section className="auth-panel">{children}</section>

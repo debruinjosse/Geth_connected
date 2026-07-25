@@ -3,7 +3,6 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
-import { GoldenLeaves } from "@/components/GoldenLeaves";
 
 export interface RecognitionCardData {
   number: string;
@@ -30,7 +29,6 @@ function RecognitionCard({ card }: { card: RecognitionCardData }) {
         </span>
         <span className="recognitionCardNumber">CARD {card.number}</span>
       </div>
-      <GoldenLeaves className="recognitionCardLeaves" />
       <div className="recognitionCardBody">
         <span className="recognitionCardCategory">{card.category}</span>
         <h3>{card.title}</h3>
