@@ -6,13 +6,14 @@ import { useDeferredValue, useState, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { ArrowLeft, ArrowRight, CheckCircle2, Search } from "lucide-react";
-import { claimRecognition } from "@/app/actions/claimRecognition";
+import { claimRecognition, giveRecognition } from "@/app/actions/claimRecognition";
 import { GethCardVisual } from "@/components/GethCardVisual";
 import { getLocalizedCardTitle, getLocalizedCategoryDisplayName, type GethCard } from "@/lib/cards";
 import { people } from "@/lib/demo-data";
 import { hasSupabaseBrowserConfig, saveStoredRecognition } from "@/lib/demo-session";
 
-const stages = ["Card", "Giver", "Note", "Confirm"] as const;
+const claimStages = ["Card", "Giver", "Note", "Confirm"] as const;
+const giveStages = ["Card", "Receiver", "Note", "Confirm"] as const;
 const transitionEase = [0.22, 1, 0.36, 1] as const;
 
 type ClaimGiverOption = {
@@ -49,7 +50,9 @@ export function ClaimCardClient({
   const router = useRouter();
   const searchParams = useSearchParams();
   const source = searchParams.get("source");
-  const claimOrigin = source === "qr_scan" ? "qr_scan" : source === "manual_entry" ? "manual_entry" : "direct_link";
+  const flowMode = searchParams.get("mode") === "give" ? "give" : "claim";
+  const stages = flowMode === "give" ? giveStages : claimStages;
+  const claimOrigin = flowMode === "give" ? "card_library" : source === "qr_scan" ? "qr_scan" : source === "manual_entry" ? "manual_entry" : "direct_link";
   const localePrefix = `/${locale}`;
   const [selectedGiver, setSelectedGiver] = useState("");
   const [note, setNote] = useState("");
@@ -105,19 +108,30 @@ export function ClaimCardClient({
 
     startTransition(async () => {
       setSubmitError("");
-      const result = await claimRecognition({
-        cardSlug: card.slug,
-        giverUserId: selectedGiver || undefined,
-        giverName: selectedPerson?.name,
-        giverEmail: selectedPerson?.email,
-        personalNote: note,
-        claimOrigin
-      });
+      const result =
+        flowMode === "give"
+          ? await giveRecognition({
+              cardSlug: card.slug,
+              receiverUserId: selectedGiver,
+              personalNote: note,
+              claimOrigin: "card_library"
+            })
+          : await claimRecognition({
+              cardSlug: card.slug,
+              giverUserId: selectedGiver || undefined,
+              giverName: selectedPerson?.name,
+              giverEmail: selectedPerson?.email,
+              personalNote: note,
+              claimOrigin
+            });
 
       if (!result.ok) {
         setSubmitError(result.error);
         if (result.code === "AUTH_REQUIRED") {
-          const nextUrl = `${localePrefix}/claim-card/${requestedSlug}${claimOrigin === "qr_scan" ? "?source=qr_scan" : ""}`;
+          const nextUrl =
+            flowMode === "give"
+              ? `${localePrefix}/claim-card/${requestedSlug}?mode=give`
+              : `${localePrefix}/claim-card/${requestedSlug}${claimOrigin === "qr_scan" ? "?source=qr_scan" : ""}`;
           router.push(`${localePrefix}/login?next=${encodeURIComponent(nextUrl)}`);
         }
         return;
@@ -130,8 +144,8 @@ export function ClaimCardClient({
           cardTitle: displayCard?.title ?? card.title,
           category: displayCard?.category ?? card.category,
           giverId: selectedGiver,
-          giverName: selectedPerson?.name ?? "Unknown giver",
-          receiverName: resolvedReceiverName,
+          giverName: flowMode === "give" ? resolvedReceiverName : selectedPerson?.name ?? "Unknown giver",
+          receiverName: flowMode === "give" ? selectedPerson?.name ?? "A teammate" : resolvedReceiverName,
           note,
           createdAt: new Date().toISOString()
         });
@@ -166,14 +180,18 @@ export function ClaimCardClient({
           {done ? (
             <div className="claim-success-state">
               <CheckCircle2 size={70} color="var(--theme-emerald)" />
-              <h2>Recognition claimed</h2>
-              <p>This card has been added to your dashboard, the giver&apos;s dashboard, and company insights.</p>
+              <h2>{flowMode === "give" ? "Recognition sent" : "Recognition claimed"}</h2>
+              <p>
+                {flowMode === "give"
+                  ? `${selectedPerson?.name ?? "Your teammate"} will receive a notification to acknowledge this card.`
+                  : "This card has been added to your dashboard, the giver's dashboard, and company insights."}
+              </p>
               <div className="claim-success-actions">
                 <Link className="btn btn-dark" href={`${localePrefix}/employee`}>
                   Open my dashboard
                 </Link>
                 <Link className="btn btn-secondary" href={`${localePrefix}/cards`}>
-                  Claim another card
+                  {flowMode === "give" ? "Give another card" : "Claim another card"}
                 </Link>
               </div>
             </div>
@@ -188,14 +206,19 @@ export function ClaimCardClient({
               >
                 {step === 1 ? (
                   <>
-                    <h2>This is your recognition card.</h2>
+                    <h2>{flowMode === "give" ? "Give this recognition card." : "This is your recognition card."}</h2>
+                    {flowMode === "give" ? <p>Start by choosing the teammate who should receive this GETH card.</p> : null}
                   </>
                 ) : null}
 
                 {step === 2 ? (
                   <>
-                    <h2>Who gave you this card?</h2>
-                    <p>Search by name or team and choose the colleague who handed you this GETH card.</p>
+                    <h2>{flowMode === "give" ? "Who do you want to give this card to?" : "Who gave you this card?"}</h2>
+                    <p>
+                      {flowMode === "give"
+                        ? "Search by name or team and choose the teammate who should receive this recognition."
+                        : "Search by name or team and choose the colleague who handed you this GETH card."}
+                    </p>
                     <div className="form-field">
                       <label htmlFor="giver-search">Search by name or team</label>
                       <div className="input-wrap">
@@ -231,8 +254,8 @@ export function ClaimCardClient({
                               <strong>No colleagues found</strong>
                               <p style={{ margin: "4px 0 0" }}>
                                 {hasSupabaseBrowserConfig()
-                                  ? "Log in with a company-linked profile to load giver options."
-                                  : "Try another search or ask your admin to add the giver."}
+                                  ? `Log in with a company-linked profile to load ${flowMode === "give" ? "recipient" : "giver"} options.`
+                                  : `Try another search or ask your admin to add the ${flowMode === "give" ? "recipient" : "giver"}.`}
                               </p>
                             </div>
                           </div>
@@ -244,11 +267,15 @@ export function ClaimCardClient({
 
                 {step === 3 ? (
                   <>
-                    <h2>Add a personal note</h2>
-                    <p>This is optional, but a thank-you message makes the recognition feel even more personal.</p>
+                    <h2>{flowMode === "give" && selectedPerson ? `You are giving this card to ${selectedPerson.name}.` : "Add a personal note"}</h2>
+                    <p>
+                      {flowMode === "give"
+                        ? "Add a short message so they know exactly what you appreciated."
+                        : "This is optional, but a thank-you message makes the recognition feel even more personal."}
+                    </p>
                     {selectedPerson ? (
                       <div className="selected-giver-card">
-                        <span className="approval-eyebrow">Selected giver</span>
+                        <span className="approval-eyebrow">{flowMode === "give" ? "Selected receiver" : "Selected giver"}</span>
                         <div className="person-details">
                           <ProfileAvatar person={selectedPerson} />
                           <div>
@@ -266,7 +293,11 @@ export function ClaimCardClient({
                         maxLength={280}
                         value={note}
                         onChange={(event) => setNote(event.target.value)}
-                        placeholder="Thank you for recognising this today. It really meant a lot."
+                        placeholder={
+                          flowMode === "give"
+                            ? "I am giving you this card because I noticed the way you..."
+                            : "Thank you for recognising this today. It really meant a lot."
+                        }
                       />
                       <span className="field-help">{note.length}/280 characters</span>
                     </div>
@@ -275,8 +306,12 @@ export function ClaimCardClient({
 
                 {step === 4 ? (
                   <>
-                    <h2>Confirm your recognition</h2>
-                    <p className="claim-step-copy">Review the card, giver, and note before you create the recognition event.</p>
+                    <h2>{flowMode === "give" ? "Confirm this card gift" : "Confirm your recognition"}</h2>
+                    <p className="claim-step-copy">
+                      {flowMode === "give"
+                        ? "Review the card, receiver, and note before you send it for acknowledgement."
+                        : "Review the card, giver, and note before you create the recognition event."}
+                    </p>
                     <div className="claim-summary">
                       <div className="claim-summary-row">
                         <strong>Card</strong>
@@ -288,11 +323,11 @@ export function ClaimCardClient({
                       </div>
                       <div className="claim-summary-row">
                         <strong>Receiver</strong>
-                        <p>{resolvedReceiverName}</p>
+                        <p>{flowMode === "give" ? selectedPerson?.name ?? "No receiver selected" : resolvedReceiverName}</p>
                       </div>
                       <div className="claim-summary-row">
                         <strong>Given by</strong>
-                        <p>{selectedPerson ? `${selectedPerson.name} · ${selectedPerson.team}` : "No giver selected"}</p>
+                        <p>{flowMode === "give" ? resolvedReceiverName : selectedPerson ? `${selectedPerson.name} - ${selectedPerson.team}` : "No giver selected"}</p>
                       </div>
                       <div className="claim-summary-row">
                         <strong>Note</strong>
@@ -300,7 +335,15 @@ export function ClaimCardClient({
                       </div>
                       <div className="claim-summary-row">
                         <strong>Claim source</strong>
-                        <p>{claimOrigin === "qr_scan" ? "Physical QR scan" : claimOrigin === "manual_entry" ? "Manual QR entry" : "Direct digital link"}</p>
+                        <p>
+                          {flowMode === "give"
+                            ? "Given from card library"
+                            : claimOrigin === "qr_scan"
+                              ? "Physical QR scan"
+                              : claimOrigin === "manual_entry"
+                                ? "Manual QR entry"
+                                : "Direct digital link"}
+                        </p>
                       </div>
                     </div>
                   </>
@@ -322,7 +365,7 @@ export function ClaimCardClient({
                     </button>
                   ) : (
                     <button className="btn btn-primary" disabled={!selectedGiver || isPending} onClick={submit}>
-                      {isPending ? "Saving..." : "Claim recognition"} <ArrowRight size={16} />
+                      {isPending ? "Saving..." : flowMode === "give" ? "Send card" : "Claim recognition"} <ArrowRight size={16} />
                     </button>
                   )}
                 </div>

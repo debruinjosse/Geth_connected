@@ -99,7 +99,7 @@ export function CardsLibraryClient({ cards }: { cards: GethCard[] }) {
       {visibleCards.length ? (
         <section className="cards-grid">
           {visibleCards.map((card) => (
-            <a className="card-library-card" href={`/${locale}/claim-card/${card.slug}`} key={card.slug}>
+            <a className="card-library-card" href={`/${locale}/claim-card/${card.slug}?mode=give`} key={card.slug}>
               <div className="card-library-copy">
                 <GethCardVisual card={{ ...card, title: getLocalizedCardTitle(card, locale), category: getLocalizedCategoryDisplayName(card.category, locale) }} variant="library" />
                 <span className="card-library-action">

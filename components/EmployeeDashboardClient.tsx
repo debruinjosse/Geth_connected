@@ -5,7 +5,7 @@ import type { CSSProperties } from "react";
 import { useEffect, useState, useTransition } from "react";
 import { useLocale } from "next-intl";
 import { ArrowRight, CheckCircle2, Gift, Heart, Megaphone, QrCode, Scale, Send, Sparkles } from "lucide-react";
-import { approveRecognitionVerification } from "@/app/actions/recognitionVerification";
+import { acknowledgeReceivedRecognition, approveRecognitionVerification } from "@/app/actions/recognitionVerification";
 import { BarChart } from "@/components/BarChart";
 import { DashboardShell } from "@/components/DashboardShell";
 import { EmptyState } from "@/components/EmptyState";
@@ -44,7 +44,9 @@ type RecognitionSignal = {
 
 type PendingApproval = {
   id: string;
+  kind: "giver_verification" | "receiver_acknowledgement";
   receiverName: string;
+  giverName?: string;
   cardTitle: string;
   category: string;
   note: string | null;
@@ -161,7 +163,11 @@ export function EmployeeDashboardClient({ data }: { data?: EmployeeDashboardData
     setApprovalMessage("");
 
     startApprovalTransition(async () => {
-      const result = await approveRecognitionVerification(recognitionId);
+      const approval = pendingApprovals.find((item) => item.id === recognitionId);
+      const result =
+        approval?.kind === "receiver_acknowledgement"
+          ? await acknowledgeReceivedRecognition(recognitionId)
+          : await approveRecognitionVerification(recognitionId);
       setApprovalMessage(result.message);
 
       if (result.ok) {
@@ -237,7 +243,7 @@ export function EmployeeDashboardClient({ data }: { data?: EmployeeDashboardData
             <div className="panel-top">
               <div>
                 <h2>Verify recognitions</h2>
-                <p>Approve cards where a teammate selected you as the giver.</p>
+                <p>Approve cards where you were selected as giver, or acknowledge cards you received from a teammate.</p>
               </div>
               <span className="quality-pill">{pendingApprovals.length} waiting</span>
             </div>
@@ -245,14 +251,18 @@ export function EmployeeDashboardClient({ data }: { data?: EmployeeDashboardData
               {pendingApprovals.map((approval) => (
                 <div className="approval-card" key={approval.id}>
                   <div>
-                    <span className="approval-eyebrow">Giver verification</span>
-                    <strong>{approval.receiverName} says you gave them {approval.cardTitle}</strong>
+                    <span className="approval-eyebrow">{approval.kind === "receiver_acknowledgement" ? "Receiver acknowledgement" : "Giver verification"}</span>
+                    <strong>
+                      {approval.kind === "receiver_acknowledgement"
+                        ? `${approval.giverName ?? "A teammate"} gave you ${approval.cardTitle}`
+                        : `${approval.receiverName} says you gave them ${approval.cardTitle}`}
+                    </strong>
                     <p>{approval.note || "No personal note was added."}</p>
                     <span className="quality-pill">{approval.category}</span>
                   </div>
                   <button className="btn btn-primary compact" type="button" disabled={isApproving && approvingId === approval.id} onClick={() => approveRecognition(approval.id)}>
                     <CheckCircle2 size={16} />
-                    {isApproving && approvingId === approval.id ? "Approving..." : "Approve"}
+                    {isApproving && approvingId === approval.id ? "Saving..." : approval.kind === "receiver_acknowledgement" ? "Acknowledge" : "Approve"}
                   </button>
                 </div>
               ))}

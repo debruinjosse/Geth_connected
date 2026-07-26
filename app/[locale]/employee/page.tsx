@@ -111,6 +111,7 @@ export default async function EmployeeDashboardPage({ params }: { params: Promis
     { data: receivedRows, error: receivedError },
     { data: givenRows, count: givenCount, error: givenError },
     { data: pendingApprovalRows, error: pendingApprovalError },
+    { data: pendingAcknowledgementRows, error: pendingAcknowledgementError },
     unreadNotifications
   ] = await Promise.all([
     profile.team_id
@@ -128,6 +129,13 @@ export default async function EmployeeDashboardPage({ params }: { params: Promis
       .eq("giver_user_id", user.id)
       .order("created_at", { ascending: false })
       .limit(20),
+    supabase
+      .from("recognition_events")
+      .select("id, created_at, personal_note, giver_user_id, status, card:card_library(title, category, qr_slug)")
+      .eq("receiver_user_id", user.id)
+      .eq("status", "pending_acknowledgement")
+      .order("created_at", { ascending: false })
+      .limit(20),
     getUnreadNotificationCount(supabase, user.id)
   ]);
 
@@ -141,6 +149,10 @@ export default async function EmployeeDashboardPage({ params }: { params: Promis
 
   if (pendingApprovalError) {
     console.warn("Pending recognition approvals skipped.", pendingApprovalError.message);
+  }
+
+  if (pendingAcknowledgementError) {
+    console.warn("Pending recognition acknowledgements skipped.", pendingAcknowledgementError.message);
   }
 
   const received = (receivedRows ?? []) as Array<{
@@ -169,13 +181,26 @@ export default async function EmployeeDashboardPage({ params }: { params: Promis
     card: { title: string; category: string; qr_slug?: string | null } | Array<{ title: string; category: string; qr_slug?: string | null }> | null;
   }>;
   const pendingVerificationRows = pendingRows.filter((row) => row.status === "pending_verification").slice(0, 5);
+  const acknowledgementRows = (pendingAcknowledgementRows ?? []) as Array<{
+    id: string;
+    created_at: string;
+    personal_note: string | null;
+    giver_user_id: string | null;
+    status?: string | null;
+    card: { title: string; category: string; qr_slug?: string | null } | Array<{ title: string; category: string; qr_slug?: string | null }> | null;
+  }>;
   const pendingReceiverIds = Array.from(new Set(pendingVerificationRows.map((row) => row.receiver_user_id)));
+  const pendingGiverIds = Array.from(new Set(acknowledgementRows.map((row) => row.giver_user_id).filter((value): value is string => Boolean(value))));
   const { data: pendingReceivers } = pendingReceiverIds.length
     ? await supabase.from("profiles").select("id, first_name, last_name").in("id", pendingReceiverIds)
+    : { data: [] as Array<{ id: string; first_name: string | null; last_name: string | null }> };
+  const { data: pendingGivers } = pendingGiverIds.length
+    ? await supabase.from("profiles").select("id, first_name, last_name").in("id", pendingGiverIds)
     : { data: [] as Array<{ id: string; first_name: string | null; last_name: string | null }> };
   const pendingReceiverMap = new Map(
     (pendingReceivers ?? []).map((receiver) => [receiver.id, `${receiver.first_name ?? ""} ${receiver.last_name ?? ""}`.trim() || "A teammate"])
   );
+  const pendingGiverMap = new Map((pendingGivers ?? []).map((giver) => [giver.id, `${giver.first_name ?? ""} ${giver.last_name ?? ""}`.trim() || "A teammate"]));
 
   const normalizedRecognitions: RecognitionItem[] = received.flatMap((item) => {
       const card = Array.isArray(item.card) ? item.card[0] : item.card;
@@ -313,7 +338,23 @@ export default async function EmployeeDashboardPage({ params }: { params: Promis
 
     return [{
       id: row.id,
+      kind: "giver_verification" as const,
       receiverName: pendingReceiverMap.get(row.receiver_user_id) ?? "A teammate",
+      cardTitle: getLocalizedCardTitle({ title: card.title, slug: card.qr_slug ?? undefined }, locale),
+      category: getCategoryDisplayName(card.category),
+      note: row.personal_note,
+      createdAt: row.created_at
+    }];
+  });
+  const pendingAcknowledgements = acknowledgementRows.flatMap((row) => {
+    const card = Array.isArray(row.card) ? row.card[0] : row.card;
+    if (!card) return [];
+
+    return [{
+      id: row.id,
+      kind: "receiver_acknowledgement" as const,
+      receiverName: `${profile.first_name} ${profile.last_name}`.trim() || "You",
+      giverName: row.giver_user_id ? pendingGiverMap.get(row.giver_user_id) ?? "A teammate" : "A teammate",
       cardTitle: getLocalizedCardTitle({ title: card.title, slug: card.qr_slug ?? undefined }, locale),
       category: getCategoryDisplayName(card.category),
       note: row.personal_note,
@@ -341,7 +382,7 @@ export default async function EmployeeDashboardPage({ params }: { params: Promis
         topQualitiesCount: qualityCounts.size,
         topStrengthLabel,
         recognitionSignals,
-        pendingApprovals,
+        pendingApprovals: [...pendingAcknowledgements, ...pendingApprovals],
         topQualities,
         categoryBreakdown,
         recentRecognitions: normalizedRecognitions.slice(0, 6),

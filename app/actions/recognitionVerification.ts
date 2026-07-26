@@ -79,3 +79,76 @@ export async function approveRecognitionVerification(recognitionId: string): Pro
 
   return { ok: true, message: "Recognition approved. Thank you for verifying it." };
 }
+
+export async function acknowledgeReceivedRecognition(recognitionId: string): Promise<VerificationResult> {
+  const cleanRecognitionId = recognitionId.trim();
+
+  if (!cleanRecognitionId) {
+    return { ok: false, message: "Missing recognition to acknowledge." };
+  }
+
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+    error: userError
+  } = await supabase.auth.getUser();
+
+  if (userError || !user) {
+    return { ok: false, message: "Please log in before acknowledging this recognition." };
+  }
+
+  const admin = createSupabaseAdminClient();
+  const { data: recognition, error: recognitionError } = await admin
+    .from("recognition_events")
+    .select("id, company_id, receiver_user_id, giver_user_id, status, card:card_library(title)")
+    .eq("id", cleanRecognitionId)
+    .maybeSingle<{
+      id: string;
+      company_id: string | null;
+      receiver_user_id: string;
+      giver_user_id: string | null;
+      status: string;
+      card: { title: string } | Array<{ title: string }> | null;
+    }>();
+
+  if (recognitionError || !recognition) {
+    return { ok: false, message: "Recognition not found." };
+  }
+
+  if (recognition.receiver_user_id !== user.id) {
+    return { ok: false, message: "Only the receiver can acknowledge this recognition." };
+  }
+
+  if (recognition.status === "approved") {
+    return { ok: true, message: "This recognition is already acknowledged." };
+  }
+
+  const { error: updateError } = await admin
+    .from("recognition_events")
+    .update({ status: "approved" })
+    .eq("id", cleanRecognitionId)
+    .eq("receiver_user_id", user.id);
+
+  if (updateError) {
+    return { ok: false, message: "Could not acknowledge this recognition yet. Please try again." };
+  }
+
+  const card = Array.isArray(recognition.card) ? recognition.card[0] : recognition.card;
+
+  if (recognition.giver_user_id) {
+    await createNotification(admin, {
+      userId: recognition.giver_user_id,
+      companyId: recognition.company_id,
+      type: "recognition_acknowledged",
+      title: "Recognition acknowledged",
+      body: `Your ${card?.title ?? "GETH"} card was acknowledged by the receiver.`,
+      href: "/employee/cards"
+    });
+  }
+
+  revalidatePath("/employee");
+  revalidatePath("/employee/cards");
+  revalidatePath("/employee/notifications");
+
+  return { ok: true, message: "Recognition acknowledged. It is now verified on both dashboards." };
+}
