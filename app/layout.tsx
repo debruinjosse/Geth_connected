@@ -8,12 +8,15 @@ export const metadata: Metadata = {
     icon: "/icon.png",
     shortcut: "/icon.png",
     apple: "/icon.png"
+  },
+  other: {
+    google: "notranslate"
   }
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" data-scroll-behavior="smooth">
+    <html lang="nl" translate="no" className="notranslate" data-scroll-behavior="smooth">
       <body>{children}</body>
     </html>
   );

@@ -3,7 +3,7 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 const validEvents = new Set(["page_view", "time_spent"]);
-const validLocales = new Set(["en", "nl", "fr", "da"]);
+const validLocales = new Set(["nl", "en"]);
 let hasLoggedAnalyticsWarning = false;
 
 function warnAnalyticsOnce(message: string, error: unknown) {
@@ -31,8 +31,8 @@ function sanitizePath(value: unknown) {
 }
 
 function sanitizeLocale(value: unknown) {
-  const locale = String(value ?? "en").trim();
-  return validLocales.has(locale) ? locale : "en";
+  const locale = String(value ?? "nl").trim();
+  return validLocales.has(locale) ? locale : "nl";
 }
 
 export async function POST(request: NextRequest) {

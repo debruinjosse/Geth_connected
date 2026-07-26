@@ -103,8 +103,8 @@ function getRoleLabel(role: string) {
 }
 
 function getActionLocale(formData: FormData) {
-  const locale = String(formData.get("locale") ?? "en").trim();
-  return ["en", "nl", "fr", "da"].includes(locale) ? locale : "en";
+  const locale = String(formData.get("locale") ?? "nl").trim();
+  return ["nl", "en"].includes(locale) ? locale : "nl";
 }
 
 export async function createCompanyWorkspaceAction(formData: FormData) {

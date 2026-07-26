@@ -22,7 +22,7 @@ declare global {
 }
 
 const MAX_DECODE_SIZE = 960;
-const VALID_LOCALES = new Set(["en", "nl", "fr", "da"]);
+const VALID_LOCALES = new Set(["nl", "en"]);
 const SLUG_PATTERN = /^[a-z0-9][a-z0-9-]{1,80}$/i;
 const CAMERA_CONSTRAINTS: MediaStreamConstraints[] = [
   {

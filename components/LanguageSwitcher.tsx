@@ -5,10 +5,8 @@ import { usePathname } from "next/navigation";
 import { locales, type AppLocale } from "@/i18n/routing";
 
 const languageLabels: Record<AppLocale, string> = {
-  en: "EN",
   nl: "NL",
-  fr: "FR",
-  da: "DA"
+  en: "EN"
 };
 
 function getLocalizedPath(pathname: string, nextLocale: AppLocale) {
@@ -24,10 +22,10 @@ function getLocalizedPath(pathname: string, nextLocale: AppLocale) {
 }
 
 export function LanguageSwitcher({ floating = false }: { floating?: boolean }) {
-  const pathname = usePathname() || "/en";
+  const pathname = usePathname() || "/nl";
   const [search, setSearch] = useState("");
   const pathLocale = pathname.split("/")[1];
-  const activeLocale = ((locales as readonly string[]).includes(pathLocale) ? pathLocale : "en") as AppLocale;
+  const activeLocale = ((locales as readonly string[]).includes(pathLocale) ? pathLocale : "nl") as AppLocale;
 
   useEffect(() => {
     setSearch(window.location.search || "");
