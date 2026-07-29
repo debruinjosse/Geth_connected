@@ -1,6 +1,6 @@
 import { PublicSiteChrome } from "@/components/PublicSiteChrome";
 import { LegalDocumentPage } from "@/components/LegalDocumentPage";
-import { termsContent } from "@/lib/legal-content";
+import { getTermsContent } from "@/lib/legal-content";
 
 const copy = {
   en: {
@@ -28,7 +28,7 @@ export default async function TermsPage({ params }: { params: Promise<{ locale: 
         title={labels.title}
         subtitle={labels.subtitle}
         effectiveDate={labels.effective}
-        sections={termsContent}
+        sections={getTermsContent(locale)}
       />
     </PublicSiteChrome>
   );

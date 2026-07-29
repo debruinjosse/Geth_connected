@@ -1,6 +1,6 @@
 import { PublicSiteChrome } from "@/components/PublicSiteChrome";
 import { LegalDocumentPage } from "@/components/LegalDocumentPage";
-import { privacyContent } from "@/lib/legal-content";
+import { getPrivacyContent } from "@/lib/legal-content";
 
 const copy = {
   en: {
@@ -28,7 +28,7 @@ export default async function PrivacyPage({ params }: { params: Promise<{ locale
         title={labels.title}
         subtitle={labels.subtitle}
         effectiveDate={labels.effective}
-        sections={privacyContent}
+        sections={getPrivacyContent(locale)}
       />
     </PublicSiteChrome>
   );
