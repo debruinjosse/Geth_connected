@@ -3,7 +3,7 @@
 import Link from "next/link";
 import type { CSSProperties } from "react";
 import { useEffect, useState, useTransition } from "react";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { ArrowRight, CheckCircle2, Gift, Heart, Megaphone, QrCode, Scale, Send, Sparkles } from "lucide-react";
 import { acknowledgeReceivedRecognition, approveRecognitionVerification } from "@/app/actions/recognitionVerification";
 import { BarChart } from "@/components/BarChart";
@@ -98,24 +98,25 @@ export function EmployeeDashboardClient({ data }: { data?: EmployeeDashboardData
   const [approvalMessage, setApprovalMessage] = useState("");
   const [approvingId, setApprovingId] = useState<string | null>(null);
   const [isApproving, startApprovalTransition] = useTransition();
+  const t = useTranslations("employeeHome");
   const resolvedData = data ?? {
     mode: "demo" as const,
     user: currentUser,
-    title: "Welcome back, Sarah!",
-    subtitle: "Great to see your impact grow.",
-    actionsLabel: "This quarter",
+    title: t("demoTitle"),
+    subtitle: t("demoSubtitle"),
+    actionsLabel: t("demoQuarter"),
     cardsReceived: 15,
     cardsGiven: 7,
     energyScore: 78,
     quartersActive: 3,
     topQualitiesCount: 11,
-    topStrengthLabel: "Great communicator",
+    topStrengthLabel: t("demoStrength"),
     recognitionSignals: [
       {
         id: "demo-signal-communication",
         tone: "var(--theme-sky)",
-        title: "Great communicator",
-        detail: "Communication cards are appearing most often in your recognition story."
+        title: t("demoStrength"),
+        detail: t("demoSignalDetail")
       }
     ],
     pendingApprovals: [],
@@ -181,13 +182,13 @@ export function EmployeeDashboardClient({ data }: { data?: EmployeeDashboardData
   return (
     <DashboardShell
       role="employee"
-      title={`Hi, welcome back, ${firstName}`}
-      subtitle="Every recognition creates a stronger, more connected team."
+      title={t("headerTitle", { name: firstName })}
+      subtitle={t("headerSubtitle")}
       user={resolvedData.user}
       actions={
         <>
-          <Link className="btn btn-primary compact" href={`/${locale}/employee/scan`}><QrCode size={16} /> Scan card</Link>
-          <Link className="btn btn-dark compact" href={`/${locale}/cards`}><Gift size={16} /> Give a card</Link>
+          <Link className="btn btn-primary compact" href={`/${locale}/employee/scan`}><QrCode size={16} /> {t("scanCard")}</Link>
+          <Link className="btn btn-dark compact" href={`/${locale}/cards`}><Gift size={16} /> {t("giveCard")}</Link>
         </>
       }
       unreadNotifications={resolvedData.unreadNotifications ?? 0}
@@ -199,25 +200,25 @@ export function EmployeeDashboardClient({ data }: { data?: EmployeeDashboardData
               <div className="announcement-icon">
                 <Megaphone size={18} />
               </div>
-              <p>Team update: recognition momentum is building. Scan a card to keep the momentum going!</p>
-              <Link href={`/${locale}/employee/scan`}>Scan card <ArrowRight size={14} /></Link>
-              <button className="announcement-close" type="button" onClick={() => setAnnouncementVisible(false)} aria-label="Dismiss announcement">x</button>
+              <p>{t("announcement")}</p>
+              <Link href={`/${locale}/employee/scan`}>{t("scanCard")} <ArrowRight size={14} /></Link>
+              <button className="announcement-close" type="button" onClick={() => setAnnouncementVisible(false)} aria-label={t("dismissAnnouncement")}>x</button>
             </div>
           </section>
         ) : null}
 
         <section className="compact-metrics-grid">
-          <MetricCard icon={<Heart />} value={resolvedData.cardsReceived} label="Recognitions received" helper="Total received" />
-          <MetricCard icon={<Send />} value={resolvedData.cardsGiven} label="Recognitions given" helper="Shared impact" />
-          <MetricCard icon={<Scale />} value={recognitionBalanceValue} label="Recognition balance" helper="Received / given" tone="var(--theme-gold)" iconBackground="rgba(216, 162, 58, 0.12)" />
+          <MetricCard icon={<Heart />} value={resolvedData.cardsReceived} label={t("received")} helper={t("receivedHelper")} />
+          <MetricCard icon={<Send />} value={resolvedData.cardsGiven} label={t("given")} helper={t("givenHelper")} />
+          <MetricCard icon={<Scale />} value={recognitionBalanceValue} label={t("balance")} helper={t("balanceHelper")} tone="var(--theme-gold)" iconBackground="rgba(216, 162, 58, 0.12)" />
           <article className="metric-card top-qualities-card">
             <div>
-              <span className="top-qualities-card-label">Top 3 qualities</span>
-              <div className="top-quality-buttons" aria-label="Top three qualities by recognition count">
+              <span className="top-qualities-card-label">{t("topThreeQualities")}</span>
+              <div className="top-quality-buttons" aria-label={t("topThreeAria")}>
                 {qualityRows.map((quality) => (
                   <span className="top-quality-button" key={quality.label} style={{ "--quality-tone": quality.tone } as CSSProperties}>
                     <strong>{quality.label}</strong>
-                    <small>{quality.count} cards</small>
+                    <small>{t("cardsCount", { count: quality.count })}</small>
                   </span>
                 ))}
               </div>
@@ -229,10 +230,10 @@ export function EmployeeDashboardClient({ data }: { data?: EmployeeDashboardData
           <article className="panel dashboard-panel">
             <div className="panel-top">
               <div>
-                <h2>AI recognition signals</h2>
-                <p>A personal story generated from your strongest received cards, categories, and recognition momentum.</p>
+                <h2>{t("signalsTitle")}</h2>
+                <p>{t("signalsCopy")}</p>
               </div>
-              <span className="quality-pill">{resolvedData.recognitionSignals.length} active</span>
+              <span className="quality-pill">{t("signalsActive", { count: resolvedData.recognitionSignals.length })}</span>
             </div>
             <SignalList items={resolvedData.recognitionSignals} />
           </article>
@@ -242,27 +243,27 @@ export function EmployeeDashboardClient({ data }: { data?: EmployeeDashboardData
           <article className="panel dashboard-panel approval-panel">
             <div className="panel-top">
               <div>
-                <h2>Verify recognitions</h2>
-                <p>Approve cards where you were selected as giver, or acknowledge cards you received from a teammate.</p>
+                <h2>{t("verifyTitle")}</h2>
+                <p>{t("verifyCopy")}</p>
               </div>
-              <span className="quality-pill">{pendingApprovals.length} waiting</span>
+              <span className="quality-pill">{t("verifyWaiting", { count: pendingApprovals.length })}</span>
             </div>
             <div className="approval-list">
               {pendingApprovals.map((approval) => (
                 <div className="approval-card" key={approval.id}>
                   <div>
-                    <span className="approval-eyebrow">{approval.kind === "receiver_acknowledgement" ? "Receiver acknowledgement" : "Giver verification"}</span>
+                    <span className="approval-eyebrow">{approval.kind === "receiver_acknowledgement" ? t("receiverAcknowledgement") : t("giverVerification")}</span>
                     <strong>
                       {approval.kind === "receiver_acknowledgement"
-                        ? `${approval.giverName ?? "A teammate"} gave you ${approval.cardTitle}`
-                        : `${approval.receiverName} says you gave them ${approval.cardTitle}`}
+                        ? t("gaveYou", { giver: approval.giverName ?? t("aTeammate"), card: approval.cardTitle })
+                        : t("saysYouGave", { receiver: approval.receiverName, card: approval.cardTitle })}
                     </strong>
-                    <p>{approval.note || "No personal note was added."}</p>
+                    <p>{approval.note || t("noNote")}</p>
                     <span className="quality-pill">{approval.category}</span>
                   </div>
                   <button className="btn btn-primary compact" type="button" disabled={isApproving && approvingId === approval.id} onClick={() => approveRecognition(approval.id)}>
                     <CheckCircle2 size={16} />
-                    {isApproving && approvingId === approval.id ? "Saving..." : approval.kind === "receiver_acknowledgement" ? "Acknowledge" : "Approve"}
+                    {isApproving && approvingId === approval.id ? t("saving") : approval.kind === "receiver_acknowledgement" ? t("acknowledge") : t("approve")}
                   </button>
                 </div>
               ))}
@@ -275,16 +276,16 @@ export function EmployeeDashboardClient({ data }: { data?: EmployeeDashboardData
           <article className="panel dashboard-panel trend-panel">
             <div className="panel-top">
               <div>
-                <h2>Recognition activity</h2>
-                <p>Monthly recognition volume at a glance.</p>
+                <h2>{t("activityTitle")}</h2>
+                <p>{t("activityCopy")}</p>
               </div>
-              <span className="quality-pill">Last 6 months</span>
+              <span className="quality-pill">{t("lastSixMonths")}</span>
             </div>
-            <div className="recognition-activity-summary" aria-label="Recognition activity totals">
-              <span className="activity-total-chip received">Received <strong>{receivedActivityTotal}</strong></span>
-              <span className="activity-total-chip given">Given <strong>{givenActivityTotal}</strong></span>
+            <div className="recognition-activity-summary" aria-label={t("activityTotalsAria")}>
+              <span className="activity-total-chip received">{t("receivedLabel")} <strong>{receivedActivityTotal}</strong></span>
+              <span className="activity-total-chip given">{t("givenLabel")} <strong>{givenActivityTotal}</strong></span>
             </div>
-            <div className="recognition-activity-compare" aria-label="Cards received and given by month">
+            <div className="recognition-activity-compare" aria-label={t("activityByMonthAria")}>
               {resolvedData.growthLabels.map((label, index) => {
                 const receivedValue = receivedTrendPoints[index] ?? 0;
                 const givenValue = givenTrendPoints[index] ?? 0;
@@ -296,14 +297,14 @@ export function EmployeeDashboardClient({ data }: { data?: EmployeeDashboardData
                     <span className="activity-month">{label}</span>
                     <div className="activity-lines">
                       <div className="activity-line received">
-                        <span>Received</span>
+                        <span>{t("receivedLabel")}</span>
                         <div className="activity-track">
                           <i style={{ width: `${receivedWidth}%` }} />
                         </div>
                         <strong>{receivedValue}</strong>
                       </div>
                       <div className="activity-line given">
-                        <span>Given</span>
+                        <span>{t("givenLabel")}</span>
                         <div className="activity-track">
                           <i style={{ width: `${givenWidth}%` }} />
                         </div>
@@ -314,14 +315,14 @@ export function EmployeeDashboardClient({ data }: { data?: EmployeeDashboardData
                 );
               })}
             </div>
-            {!hasActivityItems ? <p className="section-copy">No recognitions yet, so this trend is currently at 0.</p> : null}
+            {!hasActivityItems ? <p className="section-copy">{t("activityEmpty")}</p> : null}
           </article>
 
           <article className="panel dashboard-panel category-panel">
             <div className="panel-top">
               <div>
-                <h2>Four C category distribution</h2>
-                <p>Communication, Creativity, Competence, and Collegiality made easy to compare.</p>
+                <h2>{t("categoryTitle")}</h2>
+                <p>{t("categoryCopy")}</p>
               </div>
             </div>
             <BarChart
@@ -329,30 +330,30 @@ export function EmployeeDashboardClient({ data }: { data?: EmployeeDashboardData
               items={displayCategories.map((item) => ({
                 label: item.label,
                 value: item.value,
-                valueLabel: `${item.value} ${item.value === 1 ? "card" : "cards"}`,
+                valueLabel: t("cardsCount", { count: item.value }),
                 color: item.color
               }))}
             />
-            {!hasAnyRecognitionItems ? <p className="section-copy">Category totals are ready and currently at 0.</p> : null}
+            {!hasAnyRecognitionItems ? <p className="section-copy">{t("categoryEmpty")}</p> : null}
           </article>
 
           <article className="panel dashboard-panel qualities-panel">
             <div className="panel-top">
               <div>
-                <h2>Your top qualities</h2>
-                <p>Strengths reflected by your colleagues.</p>
+                <h2>{t("qualitiesTitle")}</h2>
+                <p>{t("qualitiesCopy")}</p>
               </div>
             </div>
             <div className="quality-count-list">
               {qualityRows.map((quality) => (
                 <div className="quality-count-row" key={quality.label}>
                   <span>{quality.label}</span>
-                  <strong>{quality.count} cards</strong>
+                  <strong>{t("cardsCount", { count: quality.count })}</strong>
                 </div>
               ))}
             </div>
-            <Link className="panel-link" href={`/${locale}/employee/growth`}>Growth insights <ArrowRight size={14} /></Link>
-            {!hasAnyRecognitionItems ? <p className="section-copy">Top qualities are ready and currently at 0.</p> : null}
+            <Link className="panel-link" href={`/${locale}/employee/growth`}>{t("growthInsights")} <ArrowRight size={14} /></Link>
+            {!hasAnyRecognitionItems ? <p className="section-copy">{t("qualitiesEmpty")}</p> : null}
           </article>
         </section>
 
@@ -360,19 +361,19 @@ export function EmployeeDashboardClient({ data }: { data?: EmployeeDashboardData
           <article className="panel dashboard-panel recent-recognition-panel">
             <div className="panel-top">
               <div>
-                <h2>Recent recognitions</h2>
-                <p>Your latest claimed cards and messages.</p>
+                <h2>{t("recentTitle")}</h2>
+                <p>{t("recentCopy")}</p>
               </div>
-              <Link href={`/${locale}/employee/cards`}>View all</Link>
+              <Link href={`/${locale}/employee/cards`}>{t("viewAll")}</Link>
             </div>
             {hasAnyRecognitionItems ? (
               <RecognitionList items={recognitionItems} compact />
             ) : (
               <EmptyState
-                eyebrow="No recognitions yet"
-                title="Your recognition feed is still getting started"
-                copy="Claim your first GETH card to start building a visible history of appreciation and growth."
-                actionLabel="Browse cards"
+                eyebrow={t("emptyEyebrow")}
+                title={t("emptyTitle")}
+                copy={t("emptyCopy")}
+                actionLabel={t("browseCards")}
                 actionHref={`/${locale}/cards`}
               />
             )}
@@ -383,14 +384,14 @@ export function EmployeeDashboardClient({ data }: { data?: EmployeeDashboardData
               <Sparkles size={22} />
             </div>
             <div>
-              <h2>Scan a physical card</h2>
-              <p>Use your camera to claim a GETH card from its QR code.</p>
+              <h2>{t("ctaTitle")}</h2>
+              <p>{t("ctaCopy")}</p>
             </div>
             <Link className="btn btn-dark" href={`/${locale}/employee/scan`}>
-              Scan card <QrCode size={16} />
+              {t("scanCard")} <QrCode size={16} />
             </Link>
             <Link className="btn btn-secondary" href={`/${locale}/cards`}>
-              Give a card <Gift size={16} />
+              {t("giveCard")} <Gift size={16} />
             </Link>
           </article>
         </section>

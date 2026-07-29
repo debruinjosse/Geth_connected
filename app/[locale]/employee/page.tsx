@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import { EmployeeDashboardClient } from "@/components/EmployeeDashboardClient";
 import type { RecognitionItem } from "@/components/RecognitionList";
 import { categoryMeta, getAnalyticCategoryLabel, getCategoryDisplayName, getLocalizedCardTitle, type CardCategory } from "@/lib/cards";
@@ -37,50 +38,41 @@ function getEmployeeCategoryColor(category: string) {
   }
 }
 
-function getEmployeeCategoryPersona(category: string) {
+function getEmployeeCategoryPersonaKeys(category: string) {
   switch (category) {
     case "Communication":
     case "Communicatie":
-      return {
-        title: "You are a great communicator, seen by your colleagues daily",
-        story: "Your colleagues repeatedly recognize the way you make ideas clear, listen with care, and help people feel understood in everyday work."
-      };
+      return { title: "personaCommunicationTitle", story: "personaCommunicationStory" };
     case "Creativity":
     case "Creativiteit":
-      return {
-        title: "You bring creative energy, seen by your colleagues daily",
-        story: "Your colleagues see you as someone who opens up new possibilities, brings fresh thinking, and helps the team move forward with imagination."
-      };
+      return { title: "personaCreativityTitle", story: "personaCreativityStory" };
     case "Competence":
     case "Competentie":
-      return {
-        title: "You are a trusted expert, seen by your colleagues daily",
-        story: "Your colleagues recognize your reliability, skill, and calm ownership. You help people feel confident that the work is in good hands."
-      };
+      return { title: "personaCompetenceTitle", story: "personaCompetenceStory" };
     case "Collegiality":
     case "Collegialiteit":
-      return {
-        title: "You strengthen the team around you, seen by your colleagues daily",
-        story: "Your colleagues notice how you support others, build trust, and make everyday collaboration feel more human and connected."
-      };
+      return { title: "personaCollegialityTitle", story: "personaCollegialityStory" };
     default:
-      return {
-        title: "Your recognition story is taking shape",
-        story: "Your colleagues are starting to show which strengths they experience most clearly in your daily work."
-      };
+      return { title: "personaDefaultTitle", story: "personaDefaultStory" };
   }
 }
 
-function formatCardEvidence(cards: Array<{ label: string; count: number; category: string }>) {
+function formatCardEvidence(
+  cards: Array<{ label: string; count: number; category: string }>,
+  cardWord: (count: number) => string
+) {
   if (!cards.length) {
     return "";
   }
 
-  return cards.map((card) => `${card.label} (${card.category}, ${card.count} ${card.count === 1 ? "card" : "cards"})`).join(", ");
+  return cards.map((card) => `${card.label} (${card.category}, ${card.count} ${cardWord(card.count)})`).join(", ");
 }
 
 export default async function EmployeeDashboardPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "employeeDashboard" });
+  const tc = await getTranslations({ locale, namespace: "common" });
+  const cardWord = (count: number) => (count === 1 ? tc("card") : tc("cards"));
 
   if (!hasSupabaseServerConfig()) {
     return <EmployeeDashboardClient />;
@@ -140,11 +132,11 @@ export default async function EmployeeDashboardPage({ params }: { params: Promis
   ]);
 
   if (receivedError) {
-    throw new Error("Failed to load employee recognitions.");
+    throw new Error(t("errLoadReceived"));
   }
 
   if (givenError) {
-    throw new Error("Failed to load employee given recognitions.");
+    throw new Error(t("errLoadGiven"));
   }
 
   if (pendingApprovalError) {
@@ -198,9 +190,9 @@ export default async function EmployeeDashboardPage({ params }: { params: Promis
     ? await supabase.from("profiles").select("id, first_name, last_name").in("id", pendingGiverIds)
     : { data: [] as Array<{ id: string; first_name: string | null; last_name: string | null }> };
   const pendingReceiverMap = new Map(
-    (pendingReceivers ?? []).map((receiver) => [receiver.id, `${receiver.first_name ?? ""} ${receiver.last_name ?? ""}`.trim() || "A teammate"])
+    (pendingReceivers ?? []).map((receiver) => [receiver.id, `${receiver.first_name ?? ""} ${receiver.last_name ?? ""}`.trim() || t("aTeammate")])
   );
-  const pendingGiverMap = new Map((pendingGivers ?? []).map((giver) => [giver.id, `${giver.first_name ?? ""} ${giver.last_name ?? ""}`.trim() || "A teammate"]));
+  const pendingGiverMap = new Map((pendingGivers ?? []).map((giver) => [giver.id, `${giver.first_name ?? ""} ${giver.last_name ?? ""}`.trim() || t("aTeammate")]));
 
   const normalizedRecognitions: RecognitionItem[] = received.flatMap((item) => {
       const card = Array.isArray(item.card) ? item.card[0] : item.card;
@@ -212,7 +204,7 @@ export default async function EmployeeDashboardPage({ params }: { params: Promis
         (item.giver_user_id ? giverMap.get(item.giver_user_id) : null) ||
         item.giver_name ||
         item.giver_email ||
-        "Recognition";
+        t("recognitionFallback");
 
       return [
         {
@@ -220,7 +212,7 @@ export default async function EmployeeDashboardPage({ params }: { params: Promis
           from,
           card: getLocalizedCardTitle({ title: card.title, slug: card.qr_slug ?? undefined }, locale),
           category: card.category,
-          note: item.personal_note ?? "Recognition recorded without a personal note.",
+          note: item.personal_note ?? t("noPersonalNote"),
           createdAt: item.created_at
         } satisfies RecognitionItem
       ];
@@ -266,7 +258,7 @@ export default async function EmployeeDashboardPage({ params }: { params: Promis
     const date = new Date(growthReference.getFullYear(), growthReference.getMonth() - (5 - index), 1);
     return {
       key: getMonthKey(date),
-      label: new Intl.DateTimeFormat("en", { month: "short" }).format(date)
+      label: new Intl.DateTimeFormat(locale, { month: "short" }).format(date)
     };
   });
 
@@ -308,21 +300,25 @@ export default async function EmployeeDashboardPage({ params }: { params: Promis
   const recognitionSignals = [];
   const topThreeCards = topQualityDetails.slice(0, 3);
   const aiCategory = topCategory?.[0] ?? topThreeCards[0]?.rawCategory;
-  const aiPersona = getEmployeeCategoryPersona(aiCategory ?? "");
+  const aiPersonaKeys = getEmployeeCategoryPersonaKeys(aiCategory ?? "");
 
   if (!normalizedRecognitions.length) {
     recognitionSignals.push({
       id: "employee-signal-empty",
       tone: "var(--theme-gold)",
-      title: "Your AI recognition story will appear here",
-      detail: "Once you receive your first cards, GETH will turn them into a personal strengths story based on the qualities your colleagues recognize in you."
+      title: t("emptySignalTitle"),
+      detail: t("emptySignalDetail")
     });
   } else {
     recognitionSignals.push({
       id: "employee-ai-recognition-story",
       tone: getEmployeeCategoryColor(aiCategory ?? ""),
-      title: aiPersona.title,
-      detail: `${aiPersona.story} Your top signals are ${formatCardEvidence(topThreeCards)}. ${recent30DaysCount >= 5 ? "The recent pace also shows this is not a one-off moment; colleagues are seeing this strength consistently." : "As more cards come in, this story will become even sharper."}`,
+      title: t(aiPersonaKeys.title),
+      detail: t("storyEvidence", {
+        story: t(aiPersonaKeys.story),
+        evidence: formatCardEvidence(topThreeCards, cardWord),
+        pace: recent30DaysCount >= 5 ? t("paceConsistent") : t("paceGrowing")
+      }),
       highlights: topThreeCards.map((card) => ({
         label: card.label,
         category: card.category,
@@ -331,7 +327,7 @@ export default async function EmployeeDashboardPage({ params }: { params: Promis
       }))
     });
   }
-  const topStrengthLabel = topCategory ? getAnalyticCategoryLabel(topCategory[0]) : "No signal yet";
+  const topStrengthLabel = topCategory ? getAnalyticCategoryLabel(topCategory[0]) : t("noSignalYet");
   const pendingApprovals = pendingVerificationRows.flatMap((row) => {
     const card = Array.isArray(row.card) ? row.card[0] : row.card;
     if (!card) return [];
@@ -339,7 +335,7 @@ export default async function EmployeeDashboardPage({ params }: { params: Promis
     return [{
       id: row.id,
       kind: "giver_verification" as const,
-      receiverName: pendingReceiverMap.get(row.receiver_user_id) ?? "A teammate",
+      receiverName: pendingReceiverMap.get(row.receiver_user_id) ?? t("aTeammate"),
       cardTitle: getLocalizedCardTitle({ title: card.title, slug: card.qr_slug ?? undefined }, locale),
       category: getCategoryDisplayName(card.category),
       note: row.personal_note,
@@ -353,8 +349,8 @@ export default async function EmployeeDashboardPage({ params }: { params: Promis
     return [{
       id: row.id,
       kind: "receiver_acknowledgement" as const,
-      receiverName: `${profile.first_name} ${profile.last_name}`.trim() || "You",
-      giverName: row.giver_user_id ? pendingGiverMap.get(row.giver_user_id) ?? "A teammate" : "A teammate",
+      receiverName: `${profile.first_name} ${profile.last_name}`.trim() || t("you"),
+      giverName: row.giver_user_id ? pendingGiverMap.get(row.giver_user_id) ?? t("aTeammate") : t("aTeammate"),
       cardTitle: getLocalizedCardTitle({ title: card.title, slug: card.qr_slug ?? undefined }, locale),
       category: getCategoryDisplayName(card.category),
       note: row.personal_note,
@@ -369,12 +365,12 @@ export default async function EmployeeDashboardPage({ params }: { params: Promis
         user: {
           name: `${profile.first_name} ${profile.last_name}`.trim(),
           initials: getInitials(profile.first_name, profile.last_name),
-          team: team?.name ?? "No team assigned",
+          team: team?.name ?? t("noTeam"),
           imageUrl: profile.profile_image
         },
-        title: `Welcome back, ${profile.first_name}!`,
-        subtitle: normalizedRecognitions.length ? "Great to see your impact grow." : "Your first recognition will unlock your personal growth story.",
-        actionsLabel: "Live data",
+        title: t("welcomeBack", { name: profile.first_name }),
+        subtitle: normalizedRecognitions.length ? t("subtitleActive") : t("subtitleEmpty"),
+        actionsLabel: t("liveData"),
         cardsReceived: normalizedRecognitions.length,
         cardsGiven: givenCount ?? 0,
         energyScore,
