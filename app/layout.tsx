@@ -4,11 +4,7 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "GETH",
   description: "Physical recognition. Digital culture insight.",
-  icons: {
-    icon: "/icon.svg",
-    shortcut: "/icon.svg",
-    apple: "/icon.svg"
-  },
+  // Tab and home-screen icons come from app/icon.png and app/apple-icon.png.
   other: {
     google: "notranslate"
   }

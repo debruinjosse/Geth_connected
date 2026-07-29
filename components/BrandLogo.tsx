@@ -3,13 +3,11 @@ import Image from "next/image";
 export function BrandLogo({
   dark = false,
   compact = false,
-  tagline = false,
   href = "/",
   interactive = true
 }: {
   dark?: boolean;
   compact?: boolean;
-  tagline?: boolean;
   href?: string;
   interactive?: boolean;
 }) {
@@ -26,7 +24,6 @@ export function BrandLogo({
   const wordmark = (
       <span className="brand-copy">
         <span className="brand-wordmark">GETH</span>
-        {tagline ? <span className="brand-tagline">Recognize to energize.</span> : null}
       </span>
   );
 

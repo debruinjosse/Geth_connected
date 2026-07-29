@@ -1,6 +1,11 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { BrandLogo } from "@/components/BrandLogo";
+import messages from "@/messages/nl.json";
+
+// This is the root not-found, so it renders outside `app/[locale]` and has no
+// request locale to read. It uses the default-locale copy directly.
+const copy = messages.notFound;
 
 export default function NotFound() {
   return (
@@ -8,16 +13,16 @@ export default function NotFound() {
       <section className="panel claim-empty-card">
         <BrandLogo dark />
         <div className="eyebrow" style={{ marginTop: 24 }}>
-          Not found
+          {copy.eyebrow}
         </div>
-        <h1 style={{ margin: "10px 0 14px", fontSize: 48 }}>That page doesn&apos;t exist.</h1>
-        <p className="section-copy">Let&apos;s get you back to the GETH experience that does.</p>
+        <h1 style={{ margin: "10px 0 14px", fontSize: 48 }}>{copy.title}</h1>
+        <p className="section-copy">{copy.copy}</p>
         <div style={{ display: "flex", justifyContent: "center", gap: 14, marginTop: 26, flexWrap: "wrap" }}>
           <Link className="btn btn-dark" href="/">
-            Back home <ArrowRight size={16} />
+            {copy.backHome} <ArrowRight size={16} />
           </Link>
           <Link className="btn btn-secondary" href="/cards">
-            Browse cards
+            {copy.browseCards}
           </Link>
         </div>
       </section>

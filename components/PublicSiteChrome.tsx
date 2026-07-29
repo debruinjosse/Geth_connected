@@ -89,7 +89,7 @@ export async function PublicSiteChrome({
     <main>
       <header className="site-header">
         <div className="pageContainer site-header-inner">
-          <BrandLogo href={`/${locale}`} tagline />
+          <BrandLogo href={`/${locale}`} />
           <nav className="site-nav" aria-label="Main navigation">
             {localizedNavLinks.map((link) => (
               <Link key={link.href} href={link.href}>

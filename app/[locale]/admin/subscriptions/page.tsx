@@ -142,7 +142,7 @@ export default async function AdminSubscriptionsPage({
     >
       <section className="panel dashboard-panel admin-invoice-hero">
         <div>
-          <BrandLogo compact tagline interactive={false} />
+          <BrandLogo compact interactive={false} />
           <span className="eyebrow">Owner invoice console</span>
           <h2>Generate polished GETH invoices</h2>
           <p>

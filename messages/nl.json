@@ -7,16 +7,14 @@
     "label": "Taal",
     "aria": "Kies de taal van de website",
     "en": "English",
-    "nl": "Nederlands",
-    "fr": "Français",
-    "da": "Deens"
+    "nl": "Nederlands"
   },
   "nav": {
     "howItWorks": "Hoe het werkt",
     "forCompanies": "Voor bedrijven",
     "cards": "Kaarten",
     "pricing": "Prijzen",
-    "resources": "Resources",
+    "resources": "Hulpbronnen",
     "support": "Support",
     "aboutUs": "Over ons",
     "visionMission": "Visie & Missie",
@@ -24,15 +22,15 @@
     "bookDemo": "Demo boeken",
     "openDashboard": "Dashboard openen",
     "signOut": "Uitloggen",
-    "hi": "Hi, {name}",
+    "hi": "Hoi, {name}",
     "menu": "Menu",
     "closeMenu": "Menu sluiten"
   },
   "home": {
-    "eyebrow": "Herkennen om energie te geven",
+    "eyebrow": "Waarderen geeft energie",
     "headlineLine1": "Kleine momenten.",
     "headlineLine2": "Grote impact.",
-    "description": "Zet dagelijkse waardering om in zichtbare werknemerssterktes en bruikbare cultuurinzichten. GETH combineert fysieke erkenningskaarten met persoonlijke dashboards en organisatie-inzichten, zodat medewerkers zich gewaardeerd voelen en bedrijven begrijpen wat hun mensen laat floreren.",
+    "description": "Zet dagelijkse waardering om in zichtbare sterke punten van medewerkers en bruikbare cultuurinzichten. GETH combineert fysieke waarderingskaarten met persoonlijke dashboards en organisatie-inzichten, zodat medewerkers zich gewaardeerd voelen en bedrijven begrijpen wat hun mensen laat floreren.",
     "seeHow": "Bekijk hoe het werkt",
     "scrollExplore": "Scroll om te ontdekken",
     "trustSecure": "Veilig & privé",
@@ -76,7 +74,7 @@
     "managersCopy": "Zie wat ertoe doet, vier vaker successen en leid met data die je team vooruithelpt.",
     "employeesLabel": "Voor medewerkers",
     "employeesTitle": "Maak je groei zichtbaar.",
-    "employeesCopy": "Voel je gewaardeerd, energiek en verbonden door dagelijkse erkenning.",
+    "employeesCopy": "Voel je gewaardeerd, energiek en verbonden door dagelijkse waardering.",
     "ctaEyebrow": "Klaar om een waarderingscultuur te bouwen?",
     "ctaTitle": "Maak waardering zichtbaar, meetbaar en menselijk.",
     "viewPricing": "Bekijk prijzen",
@@ -89,7 +87,7 @@
     "product": "Product",
     "privacy": "Privacy",
     "terms": "Voorwaarden",
-    "security": "Security",
+    "security": "Beveiliging",
     "copyright": "© 2026 GETH Connected Cards."
   },
   "auth": {
@@ -189,7 +187,7 @@
     "kpiSection": "Belangrijkste bedrijfsstatistieken",
     "thisQuarter": "Dit kwartaal",
     "lastQuarter": "vorig kwartaal",
-    "liveData": "Live data",
+    "liveData": "Live gegevens",
     "totalRecognitions": "Totale erkenningen",
     "totalEmployees": "Totale medewerkers",
     "totalTeams": "Totale teams",
@@ -257,17 +255,17 @@
       "account": "Account hulp",
       "claiming": "Kaart claimen",
       "qr": "QR scannen",
-      "dashboard": "Dashboard support",
+      "dashboard": "Ondersteuning bij het dashboard",
       "team": "Team- of medewerkerbeheer",
       "technical": "Technisch probleem",
       "other": "Anders"
     }
   },
   "companyBilling": {
-    "title": "Billing",
+    "title": "Facturatie",
     "subtitle": "Bekijk financiele gegevens en gegenereerde facturen.",
-    "paymentEyebrow": "Payment",
-    "invoice": "Invoice",
+    "paymentEyebrow": "Betaling",
+    "invoice": "Factuur",
     "billingEmailMissing": "Billing email niet ingesteld",
     "configurationEyebrow": "Billing configuratie",
     "configurationTitle": "Factuurtoegang",
@@ -279,12 +277,12 @@
     "billingPeriod": "Factuurperiode",
     "users": "Gebruikers",
     "dueDate": "Vervaldatum",
-    "email": "Email",
+    "email": "E-mail",
     "pdf": "PDF",
     "emailSent": "Verzonden",
     "emailFailed": "Mislukt",
     "emailPending": "In behandeling",
-    "download": "Download",
+    "download": "Downloaden",
     "emptyEyebrow": "Nog geen facturen",
     "emptyTitle": "Geen gegenereerde facturen",
     "emptyCopy": "Uitgegeven facturen verschijnen hier zodra ze beschikbaar zijn om te downloaden.",
@@ -303,5 +301,35 @@
       "invoiceRequestFailed": "Factuuraanvraag kon niet worden opgeslagen. Controleer de billinggegevens en probeer opnieuw.",
       "invoiceNotEnabled": "Factuurbetalingen zijn niet ingeschakeld voor dit plan."
     }
+  },
+  "visionPage": {
+    "metaTitle": "GETH visie, missie & betekenis",
+    "metaDescription": "De visie, missie en betekenis achter GETH.",
+    "title": "GETH visie, missie & betekenis",
+    "visionHeading": "Visie",
+    "visionCopy": "GETH ziet een werkwereld voor zich waarin waardering zichtbaar en meetbaar is en verankerd zit in alledaagse interacties. Een wereld waarin collega’s elkaar op het moment zelf waarderen, persoonlijk en tastbaar, zodat mensen, teams en cultuur samen sterker worden.",
+    "missionHeading": "Missie",
+    "missionCopyBefore": "GETH helpt organisaties waardering zichtbaar en meetbaar te maken. Met ",
+    "missionCards": "53 verbonden kaarten",
+    "missionCopyAfter": " verdeeld over vier pijlers waarderen collega’s elkaar persoonlijk en op het moment zelf. Zo versterkt GETH verbinding, betrokkenheid en prestaties in het dagelijkse werk.",
+    "meaningHeading": "De betekenis van GETH",
+    "meaningCopyBefore": "GETH staat voor ",
+    "meaningEmployee": "Great Employee To Have",
+    "meaningJoin": " en ",
+    "meaningEnvironment": "Great Environment To Have",
+    "meaningCopyAfter": ".",
+    "meaningBelief": "Wij geloven dat organisaties floreren wanneer mensen zich gezien, gewaardeerd en erkend voelen voor wat zij elke dag bijdragen."
+  },
+  "bookDemoPage": {
+    "eyebrow": "Demo boeken",
+    "title": "Bekijk GETH in een echt bedrijfsscenario",
+    "copy": "Loop samen met ons door de verbonden kaarten, het claimen van waardering, de dashboards en de signalen waar je cultuurteam echt mee aan de slag kan."
+  },
+  "notFound": {
+    "eyebrow": "Niet gevonden",
+    "title": "Deze pagina bestaat niet.",
+    "copy": "We brengen je terug naar een deel van GETH dat er wél is.",
+    "backHome": "Terug naar home",
+    "browseCards": "Bekijk de kaarten"
   }
 }

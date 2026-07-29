@@ -59,13 +59,13 @@ const pricingCopy: Record<string, PricingCopy> = {
   },
   nl: {
     eyebrow: "Prijzen",
-    title: "Kies het pakket dat bij je team past en maak erkenning zichtbaar.",
+    title: "Kies het pakket dat bij je team past en maak waardering zichtbaar.",
     labels: {
       monthly: "Maandelijks",
       yearly: "Jaarlijks",
       yearlySubcopy: "Bespaar tot 20%",
-      bestValue: "Beste waarde",
-      contact: "Contact",
+      bestValue: "Beste prijs",
+      contact: "Neem contact op",
       perEmployee: "/maand per medewerker",
       customPricing: "Prijs op maat",
       mostPopular: "Meest gekozen"
@@ -76,7 +76,7 @@ const pricingCopy: Record<string, PricingCopy> = {
         monthly: "€19",
         yearly: "€15",
         icon: "team",
-        features: ["Tot 50 medewerkers", "Persoonlijk erkenningsdashboard", "Connected cards ervaring", "Basisanalytics", "E-mailsupport"]
+        features: ["Tot 50 medewerkers", "Persoonlijk waarderingsdashboard", "Connected cards-ervaring", "Basisanalytics", "E-mailsupport"]
       },
       {
         name: "Growth",
@@ -84,90 +84,14 @@ const pricingCopy: Record<string, PricingCopy> = {
         yearly: "€23",
         icon: "growth",
         featured: true,
-        features: ["Tot 50 medewerkers", "Persoonlijk erkenningsdashboard", "Connected cards ervaring", "Geavanceerde analytics", "E-mail/WhatsApp-support", "Managerinzichten", "Organisatie-inzichten", "Erkenningsrapporten"]
+        features: ["Tot 50 medewerkers", "Persoonlijk waarderingsdashboard", "Connected cards-ervaring", "Geavanceerde analytics", "E-mail/WhatsApp-support", "Managerinzichten", "Organisatie-inzichten", "Waarderingsrapporten"]
       },
       {
         name: "Enterprise",
-        monthly: "Custom",
-        yearly: "Custom",
+        monthly: "Op maat",
+        yearly: "Op maat",
         icon: "enterprise",
-        features: ["Voor grotere organisaties", "Onbeperkt medewerkers", "Persoonlijk erkenningsdashboard", "Connected cards ervaring", "Geavanceerde analytics", "Managerinzichten", "Organisatie-inzichten", "Erkenningsrapporten", "SSO & integraties", "Dedicated support"]
-      }
-    ]
-  },
-  fr: {
-    eyebrow: "Tarifs",
-    title: "Choisissez le plan qui convient a votre equipe et rendez la reconnaissance visible.",
-    labels: {
-      monthly: "Mensuel",
-      yearly: "Annuel",
-      yearlySubcopy: "Economisez jusqu'a 20%",
-      bestValue: "Meilleure valeur",
-      contact: "Contactez-nous",
-      perEmployee: "/mois par employe",
-      customPricing: "Tarif sur mesure",
-      mostPopular: "Le plus populaire"
-    },
-    tiers: [
-      {
-        name: "Starter",
-        monthly: "€19",
-        yearly: "€15",
-        icon: "team",
-        features: ["Jusqu'a 50 employes", "Tableau de bord personnel de reconnaissance", "Experience connected cards", "Analytics de base", "Support email"]
-      },
-      {
-        name: "Growth",
-        monthly: "€29",
-        yearly: "€23",
-        icon: "growth",
-        featured: true,
-        features: ["Jusqu'a 50 employes", "Tableau de bord personnel de reconnaissance", "Experience connected cards", "Analytics avancees", "Support email/WhatsApp", "Insights managers", "Insights organisation", "Rapports de reconnaissance"]
-      },
-      {
-        name: "Enterprise",
-        monthly: "Custom",
-        yearly: "Custom",
-        icon: "enterprise",
-        features: ["Pour les grandes organisations", "Employes illimites", "Tableau de bord personnel de reconnaissance", "Experience connected cards", "Analytics avancees", "Insights managers", "Insights organisation", "Rapports de reconnaissance", "SSO & integrations", "Support dedie"]
-      }
-    ]
-  },
-  da: {
-    eyebrow: "Priser",
-    title: "Vaelg planen der passer til dit team, og goer anerkendelse synlig.",
-    labels: {
-      monthly: "Maanedlig",
-      yearly: "Aarlig",
-      yearlySubcopy: "Spar op til 20%",
-      bestValue: "Bedste vaerdi",
-      contact: "Kontakt os",
-      perEmployee: "/maaned pr. medarbejder",
-      customPricing: "Tilpasset pris",
-      mostPopular: "Mest populaer"
-    },
-    tiers: [
-      {
-        name: "Starter",
-        monthly: "€19",
-        yearly: "€15",
-        icon: "team",
-        features: ["Op til 50 medarbejdere", "Personligt anerkendelsesdashboard", "Connected cards oplevelse", "Basisanalytics", "E-mailsupport"]
-      },
-      {
-        name: "Growth",
-        monthly: "€29",
-        yearly: "€23",
-        icon: "growth",
-        featured: true,
-        features: ["Op til 50 medarbejdere", "Personligt anerkendelsesdashboard", "Connected cards oplevelse", "Avanceret analytics", "Email/WhatsApp-support", "Managerindsigter", "Organisationsindsigter", "Anerkendelsesrapporter"]
-      },
-      {
-        name: "Enterprise",
-        monthly: "Custom",
-        yearly: "Custom",
-        icon: "enterprise",
-        features: ["For stoerre organisationer", "Ubegraensede medarbejdere", "Personligt anerkendelsesdashboard", "Connected cards oplevelse", "Avanceret analytics", "Managerindsigter", "Organisationsindsigter", "Anerkendelsesrapporter", "SSO & integrationer", "Dedikeret support"]
+        features: ["Voor grotere organisaties", "Onbeperkt aantal medewerkers", "Persoonlijk waarderingsdashboard", "Connected cards-ervaring", "Geavanceerde analytics", "Managerinzichten", "Organisatie-inzichten", "Waarderingsrapporten", "SSO & integraties", "Dedicated support"]
       }
     ]
   }

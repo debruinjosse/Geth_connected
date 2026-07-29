@@ -49,3 +49,6 @@ LANDING_PAGE_MERGED_CODE.txt
 design specs/geth-qr-codes.pdf
 
 design specs/
+
+# TypeScript incremental build cache
+*.tsbuildinfo

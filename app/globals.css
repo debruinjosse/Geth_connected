@@ -388,17 +388,8 @@ img {
   letter-spacing: 0.07em;
 }
 
-.brand-logo.dark .brand-wordmark,
-.brand-logo.dark .brand-tagline {
+.brand-logo.dark .brand-wordmark {
   color: var(--theme-ink);
-}
-
-.brand-tagline {
-  color: rgba(255, 255, 255, 0.62);
-  font-size: 9px;
-  font-weight: 600;
-  letter-spacing: 0.24em;
-  text-transform: uppercase;
 }
 
 .vision-page {
@@ -7615,11 +7606,6 @@ textarea.input {
     letter-spacing: 0.02em;
   }
 
-  .site-header-inner .brand-tagline {
-    font-size: 6px;
-    letter-spacing: 0.16em;
-  }
-
   .site-actions {
     flex-wrap: nowrap;
     gap: 8px;
@@ -8600,10 +8586,6 @@ textarea.input {
     letter-spacing: 0.04em;
   }
 
-  .site-header .brand-tagline {
-    display: none;
-  }
-
   .site-nav,
   .site-actions {
     display: none;
@@ -9414,7 +9396,7 @@ textarea.input {
 .hero-device-stage {
   --hero-laptop-width: min(86%, 600px);
   --hero-card-width: clamp(124px, 11.4vw, 156px);
-  --hero-card-overlap: clamp(14px, 1.7vw, 24px);
+  --hero-card-overlap: clamp(5px, 0.7vw, 10px);
   align-items: center;
   justify-content: flex-end;
   min-height: 0;
@@ -9478,7 +9460,7 @@ textarea.input {
 
   .hero-device-stage {
     --hero-laptop-width: min(80%, 540px);
-    --hero-card-overlap: clamp(26px, 3.6vw, 40px);
+    --hero-card-overlap: clamp(5px, 0.9vw, 10px);
     width: min(100%, 660px);
     margin-inline: auto;
   }
@@ -9490,7 +9472,7 @@ textarea.input {
      the stage and clipped. It now sits inside the stage and
      in front of the tablet. */
   .mobile-hero-tablet-frame {
-    width: calc(100% - 62px);
+    width: calc(100% - 96px);
   }
 
   .mobile-hero-physical-card {
@@ -9507,7 +9489,7 @@ textarea.input {
 
 @media (max-width: 479px) {
   .mobile-hero-tablet-frame {
-    width: calc(100% - 54px);
+    width: calc(100% - 88px);
   }
 
   .mobile-hero-physical-card {

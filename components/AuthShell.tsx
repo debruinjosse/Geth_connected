@@ -21,7 +21,7 @@ export async function AuthShell({
   return (
     <main className="auth-page">
       <section className="auth-story">
-        <BrandLogo tagline />
+        <BrandLogo />
         <div className="eyebrow">{eyebrow}</div>
         <h1>{title}</h1>
         <p>{subtitle}</p>

@@ -6,5 +6,5 @@ export default async function OwnerEntryPage({
   searchParams: Promise<{ error?: string }>;
 }) {
   const { error } = await searchParams;
-  redirect(`/en/owner${error ? `?error=${encodeURIComponent(error)}` : ""}`);
+  redirect(`/nl/owner${error ? `?error=${encodeURIComponent(error)}` : ""}`);
 }

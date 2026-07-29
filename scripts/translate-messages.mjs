@@ -8,11 +8,9 @@ const envPath = path.join(projectRoot, ".env.local");
 const brandTerms = ["GETH Connected Cards", "GETH", "Supabase", "QR", "CSV"];
 const preservedSymbols = ["©"];
 const localeRegistry = {
-  da: { label: "Danish", file: "da.json" },
-  nl: { label: "Dutch", file: "nl.json" },
-  fr: { label: "French", file: "fr.json" }
+  nl: { label: "Dutch", file: "nl.json" }
 };
-const defaultLocales = ["da", "fr"];
+const defaultLocales = ["nl"];
 
 function parseArgs() {
   const args = process.argv.slice(2);

@@ -187,7 +187,7 @@ export function DashboardShell({
       <aside className={`dashboard-sidebar ${mobileOpen ? "open" : ""}`.trim()}>
         <div className="dashboard-sidebar-top">
           <div className="dashboard-sidebar-head">
-            <BrandLogo tagline href={`/${locale}`} />
+            <BrandLogo href={`/${locale}`} />
             <button className="mobile-nav-close" type="button" onClick={() => setMobileOpen(false)} aria-label="Close navigation">
               <X size={18} />
             </button>

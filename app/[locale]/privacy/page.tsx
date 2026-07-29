@@ -14,18 +14,6 @@ const copy = {
     title: "GETH Privacybeleid",
     subtitle: "Hoe GETH persoonsgegevens verzamelt, gebruikt, bewaart, deelt en beschermt.",
     effective: "Ingangsdatum: nog te bevestigen"
-  },
-  fr: {
-    eyebrow: "Politique de confidentialite",
-    title: "Politique de confidentialite GETH",
-    subtitle: "Comment GETH collecte, utilise, stocke, partage et protege les donnees personnelles.",
-    effective: "Date d'entree en vigueur : a confirmer"
-  },
-  da: {
-    eyebrow: "Privatlivspolitik",
-    title: "GETH Privatlivspolitik",
-    subtitle: "Hvordan GETH indsamler, bruger, opbevarer, deler og beskytter persondata.",
-    effective: "Ikrafttraedelsesdato: bekraeftes senere"
   }
 } as const;
 

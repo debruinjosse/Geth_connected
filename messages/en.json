@@ -7,9 +7,7 @@
     "label": "Language",
     "aria": "Choose site language",
     "en": "English",
-    "nl": "Nederlands",
-    "fr": "Français",
-    "da": "Danish"
+    "nl": "Nederlands"
   },
   "nav": {
     "howItWorks": "How it works",
@@ -303,5 +301,35 @@
     "terms": "Terms",
     "security": "Security",
     "copyright": "© 2026 GETH Connected Cards."
+  },
+  "visionPage": {
+    "metaTitle": "GETH Vision, Mission & Meaning",
+    "metaDescription": "The vision, mission, and meaning behind GETH.",
+    "title": "GETH Vision, Mission & Meaning",
+    "visionHeading": "Vision",
+    "visionCopy": "GETH envisions a world of work where recognition is visible, measurable, and embedded in everyday interactions. A world where colleagues recognise each other in the moment, personally and tangibly, enabling people, teams, and culture to grow stronger together.",
+    "missionHeading": "Mission",
+    "missionCopyBefore": "GETH helps organisations make recognition visible and measurable. Through ",
+    "missionCards": "53 connected cards",
+    "missionCopyAfter": " across four pillars, colleagues recognise each other personally and in the moment. In doing so, GETH strengthens connection, engagement, and performance in everyday work.",
+    "meaningHeading": "The Meaning of GETH",
+    "meaningCopyBefore": "GETH stands for ",
+    "meaningEmployee": "Great Employee To Have",
+    "meaningJoin": " and ",
+    "meaningEnvironment": "Great Environment To Have",
+    "meaningCopyAfter": ".",
+    "meaningBelief": "We believe organisations thrive when people feel seen, valued, and recognised for the contributions they make every day."
+  },
+  "bookDemoPage": {
+    "eyebrow": "Book a demo",
+    "title": "See GETH in a live company scenario",
+    "copy": "Walk through connected cards, claim flows, dashboards, and the signals your culture team can actually act on."
+  },
+  "notFound": {
+    "eyebrow": "Not found",
+    "title": "That page doesn't exist.",
+    "copy": "Let's get you back to the GETH experience that does.",
+    "backHome": "Back home",
+    "browseCards": "Browse cards"
   }
 }
