@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 import { redirect } from "next/navigation";
 import { QrScanClient } from "@/components/QrScanClient";
 import { DashboardShell } from "@/components/DashboardShell";
@@ -15,6 +16,8 @@ type EmployeeScanPageProps = {
 
 export default async function EmployeeScanPage({ params }: EmployeeScanPageProps) {
   const { locale = "en" } = await params;
+  const t = await getTranslations({ locale, namespace: "employeePages" });
+  const tc = await getTranslations({ locale, namespace: "common" });
   const supabase = await createSupabaseServerClient();
   const {
     data: { user },
@@ -41,19 +44,19 @@ export default async function EmployeeScanPage({ params }: EmployeeScanPageProps
   return (
     <DashboardShell
       role="employee"
-      title="Scan a GETH card"
-      subtitle="Scan a physical QR card, upload a QR image, or choose a card to give digitally."
+      title={t("scanTitle")}
+      subtitle={t("scanSubtitle")}
       user={{
-        name: `${profile.first_name ?? ""} ${profile.last_name ?? ""}`.trim() || "GETH user",
+        name: `${profile.first_name ?? ""} ${profile.last_name ?? ""}`.trim() || tc("gethUser"),
         initials: getInitials(profile.first_name, profile.last_name),
-        team: team?.name ?? "No team assigned",
+        team: team?.name ?? tc("noTeam"),
         imageUrl: profile.profile_image
       }}
       unreadNotifications={unreadNotifications}
     >
       <div className="button-row dashboard-action-row">
         <Link className="btn btn-secondary" href={`/${locale}/cards`}>
-          Open card library
+          {tc("openCardLibrary")}
         </Link>
       </div>
       <QrScanClient />

@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import { DashboardShell } from "@/components/DashboardShell";
 import { MarkAllNotificationsReadButton, NotificationInbox, type NotificationInboxRow } from "@/components/NotificationInbox";
 import { currentUser, employeeNotifications } from "@/lib/demo-data";
@@ -37,6 +38,8 @@ function DemoNotificationsPage() {
 
 export default async function EmployeeNotificationsPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "employeePages" });
+  const tc = await getTranslations({ locale, namespace: "common" });
 
   if (!hasSupabaseServerConfig()) {
     return <DemoNotificationsPage />;
@@ -75,7 +78,7 @@ export default async function EmployeeNotificationsPage({ params }: { params: Pr
   ]);
 
   if (notificationsError) {
-    throw new Error("Failed to load notifications.");
+    throw new Error(tc("errLoadNotifications"));
   }
 
   const unreadCount = await getUnreadNotificationCount(supabase, user.id);
@@ -84,12 +87,12 @@ export default async function EmployeeNotificationsPage({ params }: { params: Pr
   return (
     <DashboardShell
       role="employee"
-      title="Notifications"
-      subtitle="Important recognition updates in one place."
+      title={t("notificationsTitle")}
+      subtitle={t("notificationsSubtitle")}
       user={{
-        name: `${profile.first_name ?? ""} ${profile.last_name ?? ""}`.trim() || "GETH user",
+        name: `${profile.first_name ?? ""} ${profile.last_name ?? ""}`.trim() || tc("gethUser"),
         initials: getInitials(profile.first_name, profile.last_name),
-        team: team?.name ?? "Employee",
+        team: team?.name ?? t("employeeRole"),
         imageUrl: profile.profile_image
       }}
       unreadNotifications={unreadCount}
@@ -103,9 +106,9 @@ export default async function EmployeeNotificationsPage({ params }: { params: Pr
         <article className="panel dashboard-panel">
           <NotificationInbox
             notifications={rows}
-            emptyTitle="You are all caught up"
-            emptyCopy="Recognition updates, invite activity, and important workspace events will appear here."
-            emptyActionLabel="Browse cards"
+            emptyTitle={t("notificationsEmptyTitle")}
+            emptyCopy={t("notificationsEmptyCopy")}
+            emptyActionLabel={tc("browseCards")}
             emptyActionHref="/cards"
             locale={locale}
           />

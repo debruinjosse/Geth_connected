@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 import { redirect } from "next/navigation";
 import { QrCode } from "lucide-react";
 import { DashboardShell } from "@/components/DashboardShell";
@@ -38,20 +39,22 @@ function cardFromRow(row: RecognitionRow) {
 
 export default async function EmployeeCardsPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "employeePages" });
+  const tc = await getTranslations({ locale, namespace: "common" });
 
   if (!hasSupabaseServerConfig()) {
     return (
-      <DashboardShell role="employee" title="My cards" subtitle="Every recognition you've received or shared lives here." user={currentUser} actions={<span className="quality-pill">Demo fallback</span>}>
+      <DashboardShell role="employee" title={t("cardsTitle")} subtitle={t("cardsSubtitle")} user={currentUser} actions={<span className="quality-pill">{tc("demoFallback")}</span>}>
         <section className="dashboard-grid two">
           <article className="panel dashboard-panel">
             <div className="panel-top">
-              <h2>Recognition history</h2>
-              <span className="quality-pill">{demoRecognitions.length} received</span>
+              <h2>{t("historyTitle")}</h2>
+              <span className="quality-pill">{t("countReceived", { count: demoRecognitions.length })}</span>
             </div>
             <RecognitionList items={demoRecognitions} />
           </article>
           <article className="panel dashboard-panel">
-            <EmptyState title="Connect Supabase for live cards" copy="Your real received and given cards will appear here once Supabase is configured." />
+            <EmptyState title={t("supabaseEmptyTitle")} copy={t("supabaseEmptyCopy")} />
           </article>
         </section>
       </DashboardShell>
@@ -97,24 +100,24 @@ export default async function EmployeeCardsPage({ params }: { params: Promise<{ 
     getUnreadNotificationCount(supabase, user.id)
   ]);
 
-  if (receivedError || givenError) throw new Error("Failed to load employee card history.");
+  if (receivedError || givenError) throw new Error(t("errLoadCards"));
 
   const allRows = [...((receivedRows ?? []) as RecognitionRow[]), ...((givenRows ?? []) as RecognitionRow[])];
   const userIds = Array.from(new Set(allRows.flatMap((row) => [row.giver_user_id, row.receiver_user_id]).filter((value): value is string => Boolean(value))));
   const { data: people } = userIds.length
     ? await supabase.from("profiles").select("id, first_name, last_name").in("id", userIds)
     : { data: [] as Array<{ id: string; first_name: string | null; last_name: string | null }> };
-  const peopleMap = new Map((people ?? []).map((person) => [person.id, `${person.first_name ?? ""} ${person.last_name ?? ""}`.trim() || "GETH user"]));
+  const peopleMap = new Map((people ?? []).map((person) => [person.id, `${person.first_name ?? ""} ${person.last_name ?? ""}`.trim() || tc("gethUser")]));
 
   const received: RecognitionItem[] = ((receivedRows ?? []) as RecognitionRow[]).flatMap((row) => {
     const card = cardFromRow(row);
     if (!card) return [];
     return [{
       id: row.id,
-      from: row.giver_user_id ? peopleMap.get(row.giver_user_id) ?? "Colleague" : row.giver_name ?? row.giver_email ?? "Colleague",
+      from: row.giver_user_id ? peopleMap.get(row.giver_user_id) ?? tc("colleague") : row.giver_name ?? row.giver_email ?? tc("colleague"),
       card: getLocalizedCardTitle({ title: card.title, slug: card.qr_slug ?? undefined }, locale),
       category: card.category,
-      note: row.personal_note ?? "Recognition recorded without a personal note.",
+      note: row.personal_note ?? tc("noPersonalNote"),
       date: displayDate(row.created_at),
       createdAt: row.created_at
     }];
@@ -125,10 +128,10 @@ export default async function EmployeeCardsPage({ params }: { params: Promise<{ 
     if (!card) return [];
     return [{
       id: row.id,
-      from: `To ${peopleMap.get(row.receiver_user_id) ?? "teammate"}`,
+      from: t("toName", { name: peopleMap.get(row.receiver_user_id) ?? tc("teammate") }),
       card: getLocalizedCardTitle({ title: card.title, slug: card.qr_slug ?? undefined }, locale),
       category: card.category,
-      note: row.personal_note ?? "Recognition recorded without a personal note.",
+      note: row.personal_note ?? tc("noPersonalNote"),
       date: displayDate(row.created_at),
       createdAt: row.created_at
     }];
@@ -137,18 +140,18 @@ export default async function EmployeeCardsPage({ params }: { params: Promise<{ 
   return (
     <DashboardShell
       role="employee"
-      title="My cards"
-      subtitle="Every recognition you've received or shared lives here."
+      title={t("cardsTitle")}
+      subtitle={t("cardsSubtitle")}
       user={{
-        name: `${profile.first_name ?? ""} ${profile.last_name ?? ""}`.trim() || "GETH user",
+        name: `${profile.first_name ?? ""} ${profile.last_name ?? ""}`.trim() || tc("gethUser"),
         initials: getInitials(profile.first_name, profile.last_name),
-        team: team?.name ?? "No team assigned",
+        team: team?.name ?? tc("noTeam"),
         imageUrl: profile.profile_image
       }}
       actions={
         <>
-          <Link className="btn btn-primary" href={`/${locale}/employee/scan`}><QrCode size={16} /> Scan card</Link>
-          <Link className="btn btn-dark" href={`/${locale}/cards`}>Browse cards</Link>
+          <Link className="btn btn-primary" href={`/${locale}/employee/scan`}><QrCode size={16} /> {t("scanCard")}</Link>
+          <Link className="btn btn-dark" href={`/${locale}/cards`}>{tc("browseCards")}</Link>
         </>
       }
       unreadNotifications={unreadNotifications}
@@ -156,17 +159,17 @@ export default async function EmployeeCardsPage({ params }: { params: Promise<{ 
       <section className="dashboard-grid two">
         <article className="panel dashboard-panel">
           <div className="panel-top">
-            <h2>Recognitions received</h2>
-            <span className="quality-pill">{received.length} received</span>
+            <h2>{t("receivedTitle")}</h2>
+            <span className="quality-pill">{t("countReceived", { count: received.length })}</span>
           </div>
-          {received.length ? <RecognitionList items={received} /> : <EmptyState title="No cards received yet" copy="Once a colleague recognizes you, your cards will appear here." />}
+          {received.length ? <RecognitionList items={received} /> : <EmptyState title={t("receivedEmptyTitle")} copy={t("receivedEmptyCopy")} />}
         </article>
         <article className="panel dashboard-panel">
           <div className="panel-top">
-            <h2>Recognitions given</h2>
-            <span className="quality-pill">{given.length} sent</span>
+            <h2>{t("givenTitle")}</h2>
+            <span className="quality-pill">{t("countSent", { count: given.length })}</span>
           </div>
-          {given.length ? <RecognitionList items={given} compact /> : <EmptyState title="No cards given yet" copy="Browse the card library to recognize a teammate and start your giving history." actionLabel="Open card library" actionHref={`/${locale}/cards`} />}
+          {given.length ? <RecognitionList items={given} compact /> : <EmptyState title={t("givenEmptyTitle")} copy={t("givenEmptyCopy")} actionLabel={tc("openCardLibrary")} actionHref={`/${locale}/cards`} />}
         </article>
       </section>
     </DashboardShell>

@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import { BarChart } from "@/components/BarChart";
 import { DashboardShell } from "@/components/DashboardShell";
 import { EmptyState } from "@/components/EmptyState";
@@ -24,17 +25,19 @@ const fourCCategories: CardCategory[] = ["Communication", "Creativity", "Compete
 
 export default async function EmployeeGrowthPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "employeePages" });
+  const tc = await getTranslations({ locale, namespace: "common" });
 
   if (!hasSupabaseServerConfig()) {
     return (
-      <DashboardShell role="employee" title="Growth story" subtitle="Watch your qualities and recognition signals evolve over time." user={currentUser} actions={<span className="quality-pill">Demo fallback</span>}>
+      <DashboardShell role="employee" title={t("growthTitle")} subtitle={t("growthSubtitle")} user={currentUser} actions={<span className="quality-pill">{tc("demoFallback")}</span>}>
         <section className="dashboard-grid two">
           <article className="panel dashboard-panel">
-            <div className="panel-top"><h2>Recognition activity</h2></div>
+            <div className="panel-top"><h2>{t("activityTitle")}</h2></div>
             <BarChart items={["Jul", "Aug", "Sep"].map((label, index) => ({ label, value: employeeGrowthPoints[index] ?? 0, color: "var(--theme-emerald)" }))} />
           </article>
           <article className="panel dashboard-panel">
-            <div className="panel-top"><h2>Four C category distribution</h2></div>
+            <div className="panel-top"><h2>{t("categoryTitle")}</h2></div>
             <BarChart items={employeeCategoryBreakdown.map((item) => ({ label: item.label, value: item.value, color: item.color }))} />
           </article>
         </section>
@@ -74,7 +77,7 @@ export default async function EmployeeGrowthPage({ params }: { params: Promise<{
     getUnreadNotificationCount(supabase, user.id)
   ]);
 
-  if (rowsError) throw new Error("Failed to load employee growth data.");
+  if (rowsError) throw new Error(t("errLoadGrowth"));
 
   const recognitions = (rows ?? []) as Array<{
     id: string;
@@ -115,27 +118,27 @@ export default async function EmployeeGrowthPage({ params }: { params: Promise<{
   return (
     <DashboardShell
       role="employee"
-      title="Growth story"
-      subtitle="Watch your qualities and recognition signals evolve over time."
+      title={t("growthTitle")}
+      subtitle={t("growthSubtitle")}
       user={{
-        name: `${profile.first_name ?? ""} ${profile.last_name ?? ""}`.trim() || "GETH user",
+        name: `${profile.first_name ?? ""} ${profile.last_name ?? ""}`.trim() || tc("gethUser"),
         initials: getInitials(profile.first_name, profile.last_name),
-        team: team?.name ?? "No team assigned"
+        team: team?.name ?? tc("noTeam")
       }}
-      actions={<span className="quality-pill">Live growth</span>}
+      actions={<span className="quality-pill">{t("liveGrowth")}</span>}
       unreadNotifications={unreadNotifications}
     >
       <section className="dashboard-grid two">
         <article className="panel dashboard-panel">
-          <div className="panel-top"><h2>Recognition activity</h2></div>
+          <div className="panel-top"><h2>{t("activityTitle")}</h2></div>
           {recognitions.length ? (
             <BarChart items={monthWindows.map((month) => ({ label: month.label, value: monthlyCounts.get(month.key) ?? 0, color: "var(--theme-emerald)" }))} />
           ) : (
-            <EmptyState title="No growth trend yet" copy="Recognition history will create your growth chart over time." actionLabel="Browse cards" actionHref="/cards" />
+            <EmptyState title={t("growthEmptyTitle")} copy={t("growthEmptyCopy")} actionLabel={tc("browseCards")} actionHref="/cards" />
           )}
         </article>
         <article className="panel dashboard-panel">
-          <div className="panel-top"><h2>Four C category distribution</h2></div>
+          <div className="panel-top"><h2>{t("categoryTitle")}</h2></div>
           {categoryRows.length ? (
             <BarChart
               items={fourCCategories.map((category) => ({
@@ -145,13 +148,13 @@ export default async function EmployeeGrowthPage({ params }: { params: Promise<{
               }))}
             />
           ) : (
-            <EmptyState title="No categories yet" copy="Claimed recognition cards will show your category spread here." />
+            <EmptyState title={t("categoriesEmptyTitle")} copy={t("categoriesEmptyCopy")} />
           )}
         </article>
       </section>
       <article className="panel dashboard-panel">
-        <div className="panel-top"><h2>Top qualities</h2></div>
-        {qualityRows.length ? <QualityBars items={qualityRows} /> : <EmptyState title="No qualities yet" copy="Your most recognized strengths will appear here as you receive cards." />}
+        <div className="panel-top"><h2>{t("topQualitiesTitle")}</h2></div>
+        {qualityRows.length ? <QualityBars items={qualityRows} /> : <EmptyState title={t("qualitiesEmptyTitle")} copy={t("qualitiesEmptyCopy")} />}
       </article>
     </DashboardShell>
   );

@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import { DashboardShell } from "@/components/DashboardShell";
 import { EmptyState } from "@/components/EmptyState";
 import { getLocalizedCardTitle } from "@/lib/cards";
@@ -14,16 +15,18 @@ function getInitials(firstName: string | null, lastName: string | null) {
   return `${firstName?.[0] ?? ""}${lastName?.[0] ?? ""}`.toUpperCase() || "GU";
 }
 
-function formatDate(value: string) {
-  return new Intl.DateTimeFormat("en", { month: "short", day: "numeric" }).format(new Date(value));
+function formatDate(value: string, locale: string) {
+  return new Intl.DateTimeFormat(locale, { month: "short", day: "numeric" }).format(new Date(value));
 }
 
 export default async function EmployeeMessagesPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "employeePages" });
+  const tc = await getTranslations({ locale, namespace: "common" });
 
   if (!hasSupabaseServerConfig()) {
     return (
-      <DashboardShell role="employee" title="Messages" subtitle="" user={currentUser} actions={<span className="quality-pill">Demo fallback</span>}>
+      <DashboardShell role="employee" title={t("messagesTitle")} subtitle="" user={currentUser} actions={<span className="quality-pill">{tc("demoFallback")}</span>}>
         <section className="dashboard-grid">
           <article className="panel dashboard-panel">
             <div className="signal-list">
@@ -77,23 +80,23 @@ export default async function EmployeeMessagesPage({ params }: { params: Promise
     getUnreadNotificationCount(supabase, user.id)
   ]);
 
-  if (messagesError) throw new Error("Failed to load appreciation messages.");
+  if (messagesError) throw new Error(t("errLoadMessages"));
 
   const giverIds = Array.from(new Set((messages ?? []).map((message) => message.giver_user_id).filter((value): value is string => Boolean(value))));
   const { data: givers } = giverIds.length
     ? await supabase.from("profiles").select("id, first_name, last_name").in("id", giverIds)
     : { data: [] as Array<{ id: string; first_name: string | null; last_name: string | null }> };
-  const giverMap = new Map((givers ?? []).map((giver) => [giver.id, `${giver.first_name ?? ""} ${giver.last_name ?? ""}`.trim() || "Colleague"]));
+  const giverMap = new Map((givers ?? []).map((giver) => [giver.id, `${giver.first_name ?? ""} ${giver.last_name ?? ""}`.trim() || tc("colleague")]));
 
   return (
     <DashboardShell
       role="employee"
-      title="Messages"
+      title={t("messagesTitle")}
       subtitle=""
       user={{
-        name: `${profile.first_name ?? ""} ${profile.last_name ?? ""}`.trim() || "GETH user",
+        name: `${profile.first_name ?? ""} ${profile.last_name ?? ""}`.trim() || tc("gethUser"),
         initials: getInitials(profile.first_name, profile.last_name),
-        team: team?.name ?? "No team assigned",
+        team: team?.name ?? tc("noTeam"),
         imageUrl: profile.profile_image
       }}
       unreadNotifications={unreadNotifications}
@@ -106,25 +109,25 @@ export default async function EmployeeMessagesPage({ params }: { params: Promise
                 const card = Array.isArray(message.card) ? message.card[0] : message.card;
                 const cardTitle = card
                   ? getLocalizedCardTitle({ title: card.title, slug: card.qr_slug ?? undefined }, locale)
-                  : "your recognition";
+                  : t("yourRecognition");
                 const giver =
                   (message.giver_user_id ? giverMap.get(message.giver_user_id) : null) ||
                   message.giver_name ||
                   message.giver_email ||
-                  "Colleague";
+                  tc("colleague");
                 return (
                   <div className="signal-card" key={message.id}>
                     <div>
-                      <strong>{cardTitle} from {giver}</strong>
+                      <strong>{t("messageHeading", { card: cardTitle, giver })}</strong>
                       <p>{message.personal_note}</p>
                     </div>
-                    <span className="quality-pill">{formatDate(message.created_at)}</span>
+                    <span className="quality-pill">{formatDate(message.created_at, locale)}</span>
                   </div>
                 );
               })}
             </div>
           ) : (
-            <EmptyState title="No appreciation messages yet" copy="When recognitions include a personal note, those messages will collect here." actionLabel="Open card library" actionHref="/cards" />
+            <EmptyState title={t("messagesEmptyTitle")} copy={t("messagesEmptyCopy")} actionLabel={tc("openCardLibrary")} actionHref="/cards" />
           )}
         </article>
       </section>

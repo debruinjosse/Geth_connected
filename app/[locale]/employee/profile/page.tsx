@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { getLocale } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import { AccountSettingsPanel } from "@/components/AccountSettingsPanel";
 import { DashboardShell } from "@/components/DashboardShell";
 import { currentUser, employeeTopQualities } from "@/lib/demo-data";
@@ -20,12 +20,24 @@ export default async function EmployeeProfilePage({
 }) {
   const [{ settings }, locale] = await Promise.all([searchParams, getLocale()]);
   const returnTo = `/${locale}/employee/profile`;
+  const t = await getTranslations({ locale, namespace: "employeePages" });
+  const tc = await getTranslations({ locale, namespace: "common" });
+  const panelLabels = {
+    details: t("profileDetails"),
+    name: t("name"),
+    email: t("email"),
+    company: t("company"),
+    team: t("team"),
+    role: t("role"),
+    status: t("status"),
+    strengths: t("recognizedStrengths")
+  };
 
   if (!hasSupabaseServerConfig()) {
     return (
-      <DashboardShell role="employee" title="Profile" subtitle="Personal details, visible strengths, and the identity behind your recognition." user={currentUser}>
+      <DashboardShell role="employee" title={t("profileTitle")} subtitle={t("profileSubtitle")} user={currentUser}>
         <section className="dashboard-grid two">
-          <ProfilePanels name={currentUser.name} email={currentUser.email} team={currentUser.team} company="ABC Company" role="Employee" status="Demo" />
+          <ProfilePanels labels={panelLabels} name={currentUser.name} email={currentUser.email} team={currentUser.team} company={t("demoCompany")} role={t("demoRole")} status={t("demoStatus")} />
         </section>
       </DashboardShell>
     );
@@ -39,9 +51,9 @@ export default async function EmployeeProfilePage({
 
   if (userError || !user) {
     return (
-      <DashboardShell role="employee" title="Profile" subtitle="Personal details, visible strengths, and the identity behind your recognition." user={currentUser}>
+      <DashboardShell role="employee" title={t("profileTitle")} subtitle={t("profileSubtitle")} user={currentUser}>
         <section className="dashboard-grid two">
-          <ProfilePanels name={currentUser.name} email={currentUser.email} team={currentUser.team} company="ABC Company" role="Employee" status="Demo" />
+          <ProfilePanels labels={panelLabels} name={currentUser.name} email={currentUser.email} team={currentUser.team} company={t("demoCompany")} role={t("demoRole")} status={t("demoStatus")} />
         </section>
       </DashboardShell>
     );
@@ -72,31 +84,43 @@ export default async function EmployeeProfilePage({
       ? supabase.from("teams").select("name").eq("id", profile.team_id).maybeSingle<{ name: string }>()
       : Promise.resolve({ data: null })
   ]);
-  const name = `${profile.first_name ?? ""} ${profile.last_name ?? ""}`.trim() || "GETH user";
+  const name = `${profile.first_name ?? ""} ${profile.last_name ?? ""}`.trim() || tc("gethUser");
 
   return (
     <DashboardShell
       role="employee"
-      title="Profile"
-      subtitle="Personal details, visible strengths, and the identity behind your recognition."
+      title={t("profileTitle")}
+      subtitle={t("profileSubtitle")}
       user={{ name, initials: getInitials(profile.first_name, profile.last_name), team: team?.name ?? company?.company_name ?? "GETH", imageUrl: profile.profile_image }}
     >
       <section className="dashboard-grid two">
         <AccountSettingsPanel
-          email={profile.email ?? user.email ?? "No email"}
+          email={profile.email ?? user.email ?? tc("noEmail")}
           firstName={profile.first_name ?? ""}
           lastName={profile.last_name ?? ""}
           profileImageUrl={profile.profile_image}
           returnTo={returnTo}
           statusCode={settings}
         />
-        <ProfilePanels name={name} email={profile.email ?? user.email ?? "No email"} team={team?.name ?? "Unassigned"} company={company?.company_name ?? "No company"} role={(profile.role ?? "employee").replace("_", " ")} status={profile.status ?? "active"} />
+        <ProfilePanels labels={panelLabels} name={name} email={profile.email ?? user.email ?? tc("noEmail")} team={team?.name ?? tc("unassigned")} company={company?.company_name ?? tc("noCompany")} role={(profile.role ?? "employee").replace("_", " ")} status={profile.status ?? "active"} />
       </section>
     </DashboardShell>
   );
 }
 
+type ProfilePanelLabels = {
+  details: string;
+  name: string;
+  email: string;
+  company: string;
+  team: string;
+  role: string;
+  status: string;
+  strengths: string;
+};
+
 function ProfilePanels({
+  labels,
   name,
   email,
   team,
@@ -104,6 +128,7 @@ function ProfilePanels({
   role,
   status
 }: {
+  labels: ProfilePanelLabels;
   name: string;
   email: string;
   team: string;
@@ -115,20 +140,20 @@ function ProfilePanels({
     <>
       <article className="panel dashboard-panel">
         <div className="panel-top">
-          <h2>Profile details</h2>
+          <h2>{labels.details}</h2>
         </div>
         <div className="profile-stack">
-          <div><strong>Name</strong><p>{name}</p></div>
-          <div><strong>Email</strong><p>{email}</p></div>
-          <div><strong>Company</strong><p>{company}</p></div>
-          <div><strong>Team</strong><p>{team}</p></div>
-          <div><strong>Role</strong><p>{role}</p></div>
-          <div><strong>Status</strong><p>{status}</p></div>
+          <div><strong>{labels.name}</strong><p>{name}</p></div>
+          <div><strong>{labels.email}</strong><p>{email}</p></div>
+          <div><strong>{labels.company}</strong><p>{company}</p></div>
+          <div><strong>{labels.team}</strong><p>{team}</p></div>
+          <div><strong>{labels.role}</strong><p>{role}</p></div>
+          <div><strong>{labels.status}</strong><p>{status}</p></div>
         </div>
       </article>
       <article className="panel dashboard-panel">
         <div className="panel-top">
-          <h2>Recognized strengths</h2>
+          <h2>{labels.strengths}</h2>
         </div>
         <div className="quality-pills">
           {employeeTopQualities.map((quality) => (
