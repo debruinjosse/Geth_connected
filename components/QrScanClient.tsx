@@ -4,6 +4,7 @@ import jsQR from "jsqr";
 import type { ChangeEvent } from "react";
 import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Camera, CheckCircle2, ImageUp, Keyboard, QrCode, Send, XCircle } from "lucide-react";
 import { gethCards, resolveCardSlug } from "@/lib/cards";
 
@@ -181,6 +182,7 @@ function resolveClaimSlug(value: string) {
 export function QrScanClient() {
   const router = useRouter();
   const params = useParams<{ locale?: string }>();
+  const t = useTranslations("qrScan");
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -188,7 +190,7 @@ export function QrScanClient() {
   const animationFrameRef = useRef<number | null>(null);
   const scanSessionRef = useRef(0);
   const [manualValue, setManualValue] = useState("");
-  const [status, setStatus] = useState("Camera scanner is ready.");
+  const [status, setStatus] = useState(t("ready"));
   const [scanning, setScanning] = useState(false);
   const [imageScanning, setImageScanning] = useState(false);
   const [detectedSlug, setDetectedSlug] = useState("");
@@ -332,20 +334,20 @@ export function QrScanClient() {
   function resolveDetectedCard(rawValue: string, source: "qr_scan" | "manual_entry" = "manual_entry") {
     const slug = resolveClaimSlug(rawValue);
     if (!slug) {
-      setStatus("Card not found. Try a QR link, card name, card number, or a shorter search like team.");
+      setStatus(t("notFound"));
       return;
     }
 
     setDetectedSlug(slug);
     setDetectedSource(source);
     setManualValue(slug);
-    setStatus("Valid card found. Choose whether you want to claim it or give it digitally.");
+    setStatus(t("found"));
     stopScanner();
   }
 
   function goToClaim(slug = detectedSlug) {
     if (!slug) {
-      setStatus("Search or scan a card first.");
+      setStatus(t("searchFirst"));
       return;
     }
 
@@ -354,7 +356,7 @@ export function QrScanClient() {
 
   function goToGiveDigitally(slug = detectedSlug) {
     if (!slug) {
-      setStatus("Search or scan a card first.");
+      setStatus(t("searchFirst"));
       return;
     }
 
@@ -376,11 +378,11 @@ export function QrScanClient() {
       stopScanner();
 
       if (!window.isSecureContext && window.location.hostname !== "localhost") {
-        setStatus("Camera scanning needs HTTPS. Open the live secure domain, or scan from a photo below.");
+        setStatus(t("needsHttps"));
         return;
       }
 
-      setStatus("Requesting camera access...");
+      setStatus(t("requesting"));
       const stream = await requestCameraStream();
       streamRef.current = stream;
       setScanning(true);
@@ -393,7 +395,7 @@ export function QrScanClient() {
         await waitForVideoReady(videoRef.current);
       }
 
-      setStatus("Camera ready. Hold the QR code flat, bright, and inside the gold square.");
+      setStatus(t("cameraReady"));
       const session = scanSessionRef.current;
       let lastScanAt = 0;
       let decoding = false;
@@ -412,7 +414,7 @@ export function QrScanClient() {
               return;
             }
           } catch {
-            setStatus("Scanning paused. Keep the QR code steady inside the frame.");
+            setStatus(t("paused"));
           } finally {
             decoding = false;
           }
@@ -425,8 +427,8 @@ export function QrScanClient() {
     } catch (error) {
       const message = error instanceof Error ? error.message : "";
       const permissionText = /denied|permission|notallowed/i.test(message)
-        ? "Camera permission was blocked. Allow camera access in the browser settings, or scan from a photo below."
-        : "Camera unavailable on this browser. Scan from a photo, paste the QR link, or enter the card slug below.";
+        ? t("blocked")
+        : t("unavailable");
 
       setStatus(permissionText);
       setScanning(false);
@@ -456,7 +458,7 @@ export function QrScanClient() {
 
     stopScanner();
     setImageScanning(true);
-    setStatus("Reading QR code from selected image...");
+    setStatus(t("readingImage"));
 
     let image: HTMLImageElement | null = null;
 
@@ -471,9 +473,9 @@ export function QrScanClient() {
         return;
       }
 
-      setStatus("No QR code was found in that image. Try a clearer screenshot or use the camera scanner.");
+      setStatus(t("noQrInImage"));
     } catch {
-      setStatus("Could not read that image. Try a screenshot/photo with the QR code fully visible.");
+      setStatus(t("imageUnreadable"));
     } finally {
       if (image?.dataset.objectUrl) URL.revokeObjectURL(image.dataset.objectUrl);
       setImageScanning(false);
@@ -499,8 +501,8 @@ export function QrScanClient() {
       <section className="panel dashboard-panel qr-scan-panel qr-camera-panel">
         <div className="panel-top">
           <div>
-            <h2>Scan a physical GETH card</h2>
-            <p className="section-copy">Use your camera to scan the QR code on a card and start the claim flow.</p>
+            <h2>{t("cameraTitle")}</h2>
+            <p className="section-copy">{t("cameraCopy")}</p>
           </div>
           <QrCode size={28} />
         </div>
@@ -510,8 +512,8 @@ export function QrScanClient() {
           {!scanning ? (
             <div className="qr-camera-placeholder">
               <Camera size={44} />
-              <strong>Camera scanner</strong>
-              <p>Start the scanner and hold the QR code inside the frame.</p>
+              <strong>{t("cameraScanner")}</strong>
+              <p>{t("cameraHint")}</p>
             </div>
           ) : null}
         </div>
@@ -519,11 +521,11 @@ export function QrScanClient() {
         <div className="button-row">
           <button className="btn btn-primary" type="button" onClick={startScanner} disabled={scanning}>
             <Camera size={16} />
-            {scanning ? "Scanning..." : "Start QR scan"}
+            {scanning ? t("scanning") : t("startScan")}
           </button>
           <button className="btn btn-secondary" type="button" onClick={stopScanner} disabled={!scanning}>
             <XCircle size={16} />
-            Stop camera
+            {t("stopCamera")}
           </button>
         </div>
 
@@ -533,8 +535,8 @@ export function QrScanClient() {
       <section className="panel dashboard-panel qr-manual-claim-panel">
         <div className="panel-top">
           <div>
-            <h2>Explore your GETH recognition cards</h2>
-            <p className="section-copy">Scan a QR screenshot from your camera roll, paste a QR link, or search a card by name, number, or short word.</p>
+            <h2>{t("exploreTitle")}</h2>
+            <p className="section-copy">{t("exploreCopy")}</p>
           </div>
           <ImageUp size={24} />
         </div>
@@ -549,13 +551,13 @@ export function QrScanClient() {
           />
           <label className="btn btn-secondary" htmlFor="qr-image-upload">
             <ImageUp size={16} />
-            {imageScanning ? "Reading image..." : "Scan from photo"}
+            {imageScanning ? t("readingImageBtn") : t("scanFromPhoto")}
           </label>
-          <p>Works with screenshots, downloaded QR images, and photos from the camera roll.</p>
+          <p>{t("uploadHint")}</p>
         </div>
 
         <div className="form-field">
-          <label htmlFor="manual-qr-value">Search card</label>
+          <label htmlFor="manual-qr-value">{t("searchCard")}</label>
           <input
             id="manual-qr-value"
             className="input"
@@ -564,30 +566,30 @@ export function QrScanClient() {
               setManualValue(event.target.value);
               setDetectedSlug("");
             }}
-            placeholder="Team, Team Player, card 42, or a QR link"
+            placeholder={t("searchPlaceholder")}
           />
         </div>
         <button className="btn btn-dark" type="button" onClick={() => resolveDetectedCard(manualValue, "manual_entry")}>
           <Keyboard size={16} />
-          Find this card
+          {t("findCard")}
         </button>
 
         {detectedSlug ? (
           <div className="qr-detected-card" role="status" aria-live="polite">
             <div>
               <CheckCircle2 size={18} />
-              <span>Card ready</span>
+              <span>{t("cardReady")}</span>
             </div>
             <strong>{detectedCard?.title ?? detectedSlug}</strong>
-            <p>Choose how you want to continue with this GETH card.</p>
+            <p>{t("chooseHow")}</p>
             <div className="qr-detected-actions">
               <button className="btn btn-primary" type="button" onClick={() => goToClaim()}>
                 <QrCode size={16} />
-                Claim this card
+                {t("claimCard")}
               </button>
               <button className="btn btn-secondary" type="button" onClick={() => goToGiveDigitally()}>
                 <Send size={16} />
-                Give digitally
+                {t("giveDigitally")}
               </button>
             </div>
           </div>

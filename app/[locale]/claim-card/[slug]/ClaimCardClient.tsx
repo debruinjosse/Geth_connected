@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useDeferredValue, useState, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { ArrowLeft, ArrowRight, CheckCircle2, Search } from "lucide-react";
 import { claimRecognition, giveRecognition } from "@/app/actions/claimRecognition";
@@ -12,8 +13,8 @@ import { getLocalizedCardTitle, getLocalizedCategoryDisplayName, type GethCard }
 import { people } from "@/lib/demo-data";
 import { hasSupabaseBrowserConfig, saveStoredRecognition } from "@/lib/demo-session";
 
-const claimStages = ["Card", "Giver", "Note", "Confirm"] as const;
-const giveStages = ["Card", "Receiver", "Note", "Confirm"] as const;
+const claimStageKeys = ["stageCard", "stageGiver", "stageNote", "stageConfirm"] as const;
+const giveStageKeys = ["stageCard", "stageReceiver", "stageNote", "stageConfirm"] as const;
 const transitionEase = [0.22, 1, 0.36, 1] as const;
 
 type ClaimGiverOption = {
@@ -48,10 +49,11 @@ export function ClaimCardClient({
 }) {
   const prefersReducedMotion = useReducedMotion();
   const router = useRouter();
+  const t = useTranslations("claimCard");
   const searchParams = useSearchParams();
   const source = searchParams.get("source");
   const flowMode = searchParams.get("mode") === "give" ? "give" : "claim";
-  const stages = flowMode === "give" ? giveStages : claimStages;
+  const stages = flowMode === "give" ? giveStageKeys : claimStageKeys;
   const claimOrigin = flowMode === "give" ? "card_library" : source === "qr_scan" ? "qr_scan" : source === "manual_entry" ? "manual_entry" : "direct_link";
   const localePrefix = `/${locale}`;
   const [selectedGiver, setSelectedGiver] = useState("");
@@ -144,8 +146,8 @@ export function ClaimCardClient({
           cardTitle: displayCard?.title ?? card.title,
           category: displayCard?.category ?? card.category,
           giverId: selectedGiver,
-          giverName: flowMode === "give" ? resolvedReceiverName : selectedPerson?.name ?? "Unknown giver",
-          receiverName: flowMode === "give" ? selectedPerson?.name ?? "A teammate" : resolvedReceiverName,
+          giverName: flowMode === "give" ? resolvedReceiverName : selectedPerson?.name ?? t("unknownGiver"),
+          receiverName: flowMode === "give" ? selectedPerson?.name ?? t("aTeammate") : resolvedReceiverName,
           note,
           createdAt: new Date().toISOString()
         });
@@ -166,7 +168,7 @@ export function ClaimCardClient({
             return (
               <div className={`claim-progress-step ${active ? "active" : ""} ${complete ? "complete" : ""}`.trim()} key={stage}>
                 <span>{complete ? "✓" : stageNumber}</span>
-                <strong>{stage}</strong>
+                <strong>{t(stage)}</strong>
               </div>
             );
           })}
@@ -180,18 +182,18 @@ export function ClaimCardClient({
           {done ? (
             <div className="claim-success-state">
               <CheckCircle2 size={70} color="var(--theme-emerald)" />
-              <h2>{flowMode === "give" ? "Recognition sent" : "Recognition claimed"}</h2>
+              <h2>{flowMode === "give" ? t("sentTitle") : t("claimedTitle")}</h2>
               <p>
                 {flowMode === "give"
-                  ? `${selectedPerson?.name ?? "Your teammate"} will receive a notification to acknowledge this card.`
-                  : "This card has been added to your dashboard, the giver's dashboard, and company insights."}
+                  ? t("sentCopy", { name: selectedPerson?.name ?? t("yourTeammate") })
+                  : t("claimedCopy")}
               </p>
               <div className="claim-success-actions">
                 <Link className="btn btn-dark" href={`${localePrefix}/employee`}>
-                  Open my dashboard
+                  {t("openDashboard")}
                 </Link>
                 <Link className="btn btn-secondary" href={`${localePrefix}/cards`}>
-                  {flowMode === "give" ? "Give another card" : "Claim another card"}
+                  {flowMode === "give" ? t("giveAnother") : t("claimAnother")}
                 </Link>
               </div>
             </div>
@@ -206,21 +208,21 @@ export function ClaimCardClient({
               >
                 {step === 1 ? (
                   <>
-                    <h2>{flowMode === "give" ? "Give this recognition card." : "This is your recognition card."}</h2>
-                    {flowMode === "give" ? <p>Start by choosing the teammate who should receive this GETH card.</p> : null}
+                    <h2>{flowMode === "give" ? t("step1GiveTitle") : t("step1ClaimTitle")}</h2>
+                    {flowMode === "give" ? <p>{t("step1GiveCopy")}</p> : null}
                   </>
                 ) : null}
 
                 {step === 2 ? (
                   <>
-                    <h2>{flowMode === "give" ? "Who do you want to give this card to?" : "Who gave you this card?"}</h2>
+                    <h2>{flowMode === "give" ? t("step2GiveTitle") : t("step2ClaimTitle")}</h2>
                     <p>
                       {flowMode === "give"
-                        ? "Search by name or team and choose the teammate who should receive this recognition."
-                        : "Search by name or team and choose the colleague who handed you this GETH card."}
+                        ? t("step2GiveCopy")
+                        : t("step2ClaimCopy")}
                     </p>
                     <div className="form-field">
-                      <label htmlFor="giver-search">Search by name or team</label>
+                      <label htmlFor="giver-search">{t("searchLabel")}</label>
                       <div className="input-wrap">
                         <Search size={18} style={{ position: "absolute", left: 16, top: 18, color: "var(--theme-muted)" }} />
                         <input
@@ -229,7 +231,7 @@ export function ClaimCardClient({
                           style={{ paddingLeft: 46 }}
                           value={query}
                           onChange={(event) => setQuery(event.target.value)}
-                          placeholder="Search by name or team"
+                          placeholder={t("searchLabel")}
                         />
                       </div>
                     </div>
@@ -251,11 +253,11 @@ export function ClaimCardClient({
                         <div className="person-option" aria-live="polite">
                           <div className="person-details">
                             <div>
-                              <strong>No colleagues found</strong>
+                              <strong>{t("noColleagues")}</strong>
                               <p style={{ margin: "4px 0 0" }}>
                                 {hasSupabaseBrowserConfig()
-                                  ? `Log in with a company-linked profile to load ${flowMode === "give" ? "recipient" : "giver"} options.`
-                                  : `Try another search or ask your admin to add the ${flowMode === "give" ? "recipient" : "giver"}.`}
+                                  ? t("noColleaguesLoggedIn", { role: flowMode === "give" ? t("roleRecipient") : t("roleGiver") })
+                                  : t("noColleaguesDemo", { role: flowMode === "give" ? t("roleRecipient") : t("roleGiver") })}
                               </p>
                             </div>
                           </div>
@@ -267,11 +269,11 @@ export function ClaimCardClient({
 
                 {step === 3 ? (
                   <>
-                    <h2>{flowMode === "give" && selectedPerson ? `You are giving this card to ${selectedPerson.name}.` : "Add a personal note"}</h2>
+                    <h2>{flowMode === "give" && selectedPerson ? t("step3GiveTitle", { name: selectedPerson.name }) : t("step3ClaimTitle")}</h2>
                     <p>
                       {flowMode === "give"
-                        ? "Add a short message so they know exactly what you appreciated."
-                        : "This is optional, but a thank-you message makes the recognition feel even more personal."}
+                        ? t("step3GiveCopy")
+                        : t("step3ClaimCopy")}
                     </p>
                     {selectedPerson ? (
                       <div className="selected-giver-card">
@@ -286,7 +288,7 @@ export function ClaimCardClient({
                       </div>
                     ) : null}
                     <div className="form-field">
-                      <label htmlFor="note">Your note</label>
+                      <label htmlFor="note">{t("noteLabel")}</label>
                       <textarea
                         id="note"
                         className="input"
@@ -295,8 +297,8 @@ export function ClaimCardClient({
                         onChange={(event) => setNote(event.target.value)}
                         placeholder={
                           flowMode === "give"
-                            ? "I am giving you this card because I noticed the way you..."
-                            : "Thank you for recognising this today. It really meant a lot."
+                            ? t("notePlaceholderGive")
+                            : t("notePlaceholderClaim")
                         }
                       />
                       <span className="field-help">{note.length}/280 characters</span>
@@ -306,11 +308,11 @@ export function ClaimCardClient({
 
                 {step === 4 ? (
                   <>
-                    <h2>{flowMode === "give" ? "Confirm this card gift" : "Confirm your recognition"}</h2>
+                    <h2>{flowMode === "give" ? t("step4GiveTitle") : t("step4ClaimTitle")}</h2>
                     <p className="claim-step-copy">
                       {flowMode === "give"
-                        ? "Review the card, receiver, and note before you send it for acknowledgement."
-                        : "Review the card, giver, and note before you create the recognition event."}
+                        ? t("step4GiveCopy")
+                        : t("step4ClaimCopy")}
                     </p>
                     <div className="claim-summary">
                       <div className="claim-summary-row">
@@ -318,31 +320,31 @@ export function ClaimCardClient({
                         <p>{displayCard?.title ?? card.title}</p>
                       </div>
                       <div className="claim-summary-row">
-                        <strong>Category</strong>
+                        <strong>{t("category")}</strong>
                         <p>{displayCard?.category ?? card.category}</p>
                       </div>
                       <div className="claim-summary-row">
-                        <strong>Receiver</strong>
-                        <p>{flowMode === "give" ? selectedPerson?.name ?? "No receiver selected" : resolvedReceiverName}</p>
+                        <strong>{t("receiver")}</strong>
+                        <p>{flowMode === "give" ? selectedPerson?.name ?? t("noReceiver") : resolvedReceiverName}</p>
                       </div>
                       <div className="claim-summary-row">
-                        <strong>Given by</strong>
-                        <p>{flowMode === "give" ? resolvedReceiverName : selectedPerson ? `${selectedPerson.name} - ${selectedPerson.team}` : "No giver selected"}</p>
+                        <strong>{t("givenBy")}</strong>
+                        <p>{flowMode === "give" ? resolvedReceiverName : selectedPerson ? `${selectedPerson.name} - ${selectedPerson.team}` : t("noGiver")}</p>
                       </div>
                       <div className="claim-summary-row">
                         <strong>Note</strong>
-                        <p>{note || "No note added."}</p>
+                        <p>{note || t("noteAdded")}</p>
                       </div>
                       <div className="claim-summary-row">
-                        <strong>Claim source</strong>
+                        <strong>{t("claimSource")}</strong>
                         <p>
                           {flowMode === "give"
-                            ? "Given from card library"
+                            ? t("sourceLibrary")
                             : claimOrigin === "qr_scan"
-                              ? "Physical QR scan"
+                              ? t("sourceQr")
                               : claimOrigin === "manual_entry"
-                                ? "Manual QR entry"
-                                : "Direct digital link"}
+                                ? t("sourceManual")
+                                : t("sourceLink")}
                         </p>
                       </div>
                     </div>
@@ -357,15 +359,15 @@ export function ClaimCardClient({
 
                 <div className="claim-actions">
                   <button className="btn btn-secondary" onClick={() => setStep((current) => (current > 1 ? ((current - 1) as 1 | 2 | 3 | 4) : current))}>
-                    <ArrowLeft size={16} /> Back
+                    <ArrowLeft size={16} /> {t("back")}
                   </button>
                   {step < 4 ? (
                     <button className="btn btn-primary" disabled={step === 2 && !selectedGiver} onClick={() => setStep((current) => (current < 4 ? ((current + 1) as 1 | 2 | 3 | 4) : current))}>
-                      Continue <ArrowRight size={16} />
+                      {t("continue")} <ArrowRight size={16} />
                     </button>
                   ) : (
                     <button className="btn btn-primary" disabled={!selectedGiver || isPending} onClick={submit}>
-                      {isPending ? "Saving..." : flowMode === "give" ? "Send card" : "Claim recognition"} <ArrowRight size={16} />
+                      {isPending ? t("saving") : flowMode === "give" ? t("sendCard") : t("claimRecognition")} <ArrowRight size={16} />
                     </button>
                   )}
                 </div>
@@ -374,7 +376,7 @@ export function ClaimCardClient({
           )}
         </section>
 
-        {!done ? <p className="claim-support">Can&apos;t find the person? Ask your admin to add them.</p> : null}
+        {!done ? <p className="claim-support">{t("support")}</p> : null}
       </div>
     </section>
   );
