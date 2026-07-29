@@ -1,5 +1,6 @@
 import { Download } from "lucide-react";
 import { redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import { DashboardShell } from "@/components/DashboardShell";
 import { EmptyState } from "@/components/EmptyState";
 import { managerUser } from "@/lib/demo-data";
@@ -15,20 +16,22 @@ function getInitials(firstName: string | null, lastName: string | null) {
   return `${firstName?.[0] ?? ""}${lastName?.[0] ?? ""}`.toUpperCase() || "MG";
 }
 
-function renderDemoReports() {
+async function renderDemoReports(locale: string) {
+  const tp = await getTranslations({ locale, namespace: "managerPages" });
+
   return (
-    <DashboardShell role="manager" title="Reports" subtitle="Export-ready views for team rituals, reviews, and quarterly conversations." user={managerUser}>
+    <DashboardShell role="manager" title={tp("reportsTitle")} subtitle={tp("reportsSubtitleDemo")} user={managerUser}>
       <section className="dashboard-grid three">
         {[
-          ["Quarterly team report", "Recognition density, active members, and signal changes."],
-          ["One-to-one prep", "A concise summary of recognition notes for each direct report."],
-          ["Culture pulse", "A manager-friendly snapshot of engagement and celebration rhythm."]
+          [tp("demoQuarterlyTitle"), tp("demoQuarterlyCopy")],
+          [tp("demoOneToOneTitle"), tp("demoOneToOneCopy")],
+          [tp("demoPulseTitle"), tp("demoPulseCopy")]
         ].map(([title, copy]) => (
           <article className="panel dashboard-panel" key={title}>
             <h2>{title}</h2>
             <p className="section-copy">{copy}</p>
             <a className="btn btn-secondary" href="/manager">
-              Open report
+              {tp("openReport")}
             </a>
           </article>
         ))}
@@ -44,11 +47,13 @@ export default async function ManagerReportsPage({
   params: Promise<{ locale: string }>;
   searchParams: Promise<{ from?: string; to?: string }>;
 }) {
+  const [{ locale }, queryParams] = await Promise.all([params, searchParams]);
+  const tp = await getTranslations({ locale, namespace: "managerPages" });
+
   if (!hasSupabaseServerConfig()) {
-    return renderDemoReports();
+    return renderDemoReports(locale);
   }
 
-  const [{ locale }, queryParams] = await Promise.all([params, searchParams]);
   const range = getRecognitionReportRange(queryParams);
   const supabase = await createSupabaseServerClient();
   const {
@@ -57,7 +62,7 @@ export default async function ManagerReportsPage({
   } = await supabase.auth.getUser();
 
   if (userError || !user) {
-    return renderDemoReports();
+    return renderDemoReports(locale);
   }
 
   const { data: profile, error: profileError } = await supabase
@@ -81,7 +86,7 @@ export default async function ManagerReportsPage({
     .order("name");
 
   if (teamsError) {
-    throw new Error("Failed to load managed teams for reports.");
+    throw new Error(tp("errLoadReportTeams"));
   }
 
   const teamIds = (teams ?? []).map((team) => team.id);
@@ -97,8 +102,8 @@ export default async function ManagerReportsPage({
   return (
     <DashboardShell
       role="manager"
-      title="Reports"
-      subtitle="Team-scoped recognition exports for one-to-ones, rituals, and quarterly reviews."
+      title={tp("reportsTitle")}
+      subtitle={tp("reportsSubtitle")}
       user={{
         name: `${profile.first_name ?? ""} ${profile.last_name ?? ""}`.trim() || "Manager",
         initials: getInitials(profile.first_name, profile.last_name),
@@ -132,12 +137,12 @@ export default async function ManagerReportsPage({
 
       <section className="dashboard-grid three report-summary-grid">
         <article className="panel dashboard-panel report-summary-card">
-          <span className="eyebrow">Recognitions</span>
+          <span className="eyebrow">{tp("recognitions")}</span>
           <strong>{rows.length}</strong>
           <p>claimed by managed teams</p>
         </article>
         <article className="panel dashboard-panel report-summary-card">
-          <span className="eyebrow">Recipients</span>
+          <span className="eyebrow">{tp("recipients")}</span>
           <strong>{receiverCount}</strong>
           <p>team members recognized</p>
         </article>
@@ -151,7 +156,7 @@ export default async function ManagerReportsPage({
       <section className="panel dashboard-panel">
         <div className="panel-top">
           <div>
-            <h2>Team recognition report</h2>
+            <h2>{tp("reportTitle")}</h2>
             <p className="section-copy">Only recognitions from teams assigned to you are included.</p>
           </div>
           <a className={`btn btn-secondary ${teamIds.length ? "" : "disabled-link"}`.trim()} href={teamIds.length ? exportHref : "#"} aria-disabled={!teamIds.length}>
@@ -160,9 +165,9 @@ export default async function ManagerReportsPage({
         </div>
         {!teamIds.length ? (
           <EmptyState
-            eyebrow="No managed team"
-            title="Assign a team before exporting"
-            copy="Company admins can assign you as a manager for one or more teams. Your report will populate after that."
+            eyebrow={tp("noManagedTeamEyebrow")}
+            title={tp("noManagedTeamTitle")}
+            copy={tp("noManagedTeamCopy")}
           />
         ) : rows.length ? (
           <div className="table-wrap">
@@ -170,10 +175,10 @@ export default async function ManagerReportsPage({
               <thead>
                 <tr>
                   <th>Date</th>
-                  <th>Receiver</th>
+                  <th>{tp("receiver")}</th>
                   <th>Giver</th>
                   <th>Card</th>
-                  <th>Category</th>
+                  <th>{tp("category")}</th>
                   <th>Team</th>
                   <th>Note</th>
                 </tr>
@@ -195,9 +200,9 @@ export default async function ManagerReportsPage({
           </div>
         ) : (
           <EmptyState
-            eyebrow="No report rows"
-            title="No recognitions in this date range"
-            copy="Try a wider range or wait for employees in your teams to claim GETH cards."
+            eyebrow={tp("noRowsEyebrow")}
+            title={tp("noRowsTitle")}
+            copy={tp("noRowsCopy")}
           />
         )}
       </section>

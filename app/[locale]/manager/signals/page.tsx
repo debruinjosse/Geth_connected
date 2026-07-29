@@ -18,11 +18,13 @@ function getInitials(firstName: string | null, lastName: string | null) {
 
 export default async function ManagerSignalsPage() {
   const locale = await getLocale();
+  const tp = await getTranslations({ locale, namespace: "managerPages" });
+  const tc = await getTranslations({ locale, namespace: "common" });
   const tm = await getTranslations({ locale, namespace: "manager" });
 
   if (!hasSupabaseServerConfig()) {
     return (
-      <DashboardShell role="manager" title="Team signals" subtitle="Spot celebration gaps, upward trends, and people who need support." user={managerUser} actions={<span className="quality-pill">Demo fallback</span>}>
+      <DashboardShell role="manager" title={tp("signalsTitle")} subtitle={tp("signalsSubtitle")} user={managerUser} actions={<span className="quality-pill">{tc("demoFallback")}</span>}>
         <article className="panel dashboard-panel"><SignalList items={teamSignals} /></article>
       </DashboardShell>
     );
@@ -48,8 +50,8 @@ export default async function ManagerSignalsPage() {
   return (
     <DashboardShell
       role="manager"
-      title="Team signals"
-      subtitle="Spot celebration gaps, upward trends, and people who need support."
+      title={tp("signalsTitle")}
+      subtitle={tp("signalsSubtitle")}
       user={{
         name: `${insights.profile.first_name ?? ""} ${insights.profile.last_name ?? ""}`.trim() || "Manager",
         initials: getInitials(insights.profile.first_name, insights.profile.last_name),
@@ -62,7 +64,7 @@ export default async function ManagerSignalsPage() {
         {insights.signalItems.length ? (
           <SignalList items={insights.signalItems} />
         ) : (
-          <EmptyState title="No team signals yet" copy="Signals will appear when recognition activity creates gaps, risks, or momentum worth surfacing." />
+          <EmptyState title={tp("noSignalsTitle")} copy={tp("noSignalsCopy")} />
         )}
       </article>
     </DashboardShell>

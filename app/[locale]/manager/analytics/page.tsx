@@ -19,18 +19,20 @@ function getInitials(firstName: string | null, lastName: string | null) {
 
 export default async function ManagerAnalyticsPage() {
   const locale = await getLocale();
+  const tp = await getTranslations({ locale, namespace: "managerPages" });
+  const tc = await getTranslations({ locale, namespace: "common" });
   const tm = await getTranslations({ locale, namespace: "manager" });
 
   if (!hasSupabaseServerConfig()) {
     return (
-      <DashboardShell role="manager" title="Analytics" subtitle="Recognition health, quality spread, and impact signals for the quarter." user={managerUser} actions={<span className="quality-pill">Demo fallback</span>}>
+      <DashboardShell role="manager" title={tp("analyticsTitle")} subtitle={tp("analyticsSubtitle")} user={managerUser} actions={<span className="quality-pill">{tc("demoFallback")}</span>}>
         <section className="dashboard-grid two">
           <article className="panel dashboard-panel">
-            <div className="panel-top"><h2>Recognition activity</h2></div>
+            <div className="panel-top"><h2>{tp("activityTitle")}</h2></div>
             <BarChart items={["Jul", "Aug", "Sep"].map((label, index) => ({ label, value: managerTrendPoints[index] ?? 0, color: "var(--theme-ink)" }))} />
           </article>
           <article className="panel dashboard-panel">
-            <div className="panel-top"><h2>Qualities mix</h2></div>
+            <div className="panel-top"><h2>{tp("qualitiesMix")}</h2></div>
             <QualityBars items={topQualities} />
           </article>
         </section>
@@ -58,8 +60,8 @@ export default async function ManagerAnalyticsPage() {
   return (
     <DashboardShell
       role="manager"
-      title="Analytics"
-      subtitle="Recognition health, quality spread, and impact signals for the quarter."
+      title={tp("analyticsTitle")}
+      subtitle={tp("analyticsSubtitle")}
       user={{
         name: `${insights.profile.first_name ?? ""} ${insights.profile.last_name ?? ""}`.trim() || "Manager",
         initials: getInitials(insights.profile.first_name, insights.profile.last_name),
@@ -71,20 +73,20 @@ export default async function ManagerAnalyticsPage() {
     >
       <section className="dashboard-grid two">
         <article className="panel dashboard-panel">
-          <div className="panel-top"><h2>Recognition activity</h2></div>
+          <div className="panel-top"><h2>{tp("activityTitle")}</h2></div>
           {insights.recognitionCount ? (
             <BarChart items={insights.trendLabels.map((label, index) => ({ label, value: insights.trendPoints[index] ?? 0, color: "var(--theme-ink)" }))} />
           ) : (
-            <EmptyState title="No trend yet" copy="Team recognition trend will appear after recognitions are claimed." />
+            <EmptyState title={tp("noTrendTitle")} copy={tp("noTrendCopy")} />
           )}
         </article>
         <article className="panel dashboard-panel">
-          <div className="panel-top"><h2>Qualities mix</h2></div>
-          {insights.qualityBars.length ? <QualityBars items={insights.qualityBars} /> : <EmptyState title="No qualities yet" copy="Claimed cards will reveal your team's strongest qualities." />}
+          <div className="panel-top"><h2>{tp("qualitiesMix")}</h2></div>
+          {insights.qualityBars.length ? <QualityBars items={insights.qualityBars} /> : <EmptyState title={tp("noQualitiesTitle")} copy={tp("noQualitiesCopy")} />}
         </article>
       </section>
       <article className="panel dashboard-panel">
-        <div className="panel-top"><h2>Member comparison</h2></div>
+        <div className="panel-top"><h2>{tp("memberComparison")}</h2></div>
         {insights.memberComparison.length ? (
           insights.memberComparison.map((member) => (
             <div className="bar-row" key={member.label}>
@@ -94,7 +96,7 @@ export default async function ManagerAnalyticsPage() {
             </div>
           ))
         ) : (
-          <EmptyState title="No member comparison yet" copy="Once team members receive recognitions, comparison bars will appear here." />
+          <EmptyState title={tp("noComparisonTitle")} copy={tp("noComparisonCopy")} />
         )}
       </article>
     </DashboardShell>

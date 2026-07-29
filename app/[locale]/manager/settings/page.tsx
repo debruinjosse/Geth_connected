@@ -24,20 +24,22 @@ export default async function ManagerSettingsPage({
   searchParams: Promise<{ settings?: string }>;
 }) {
   const [{ settings }, locale] = await Promise.all([searchParams, getLocale()]);
+  const tp = await getTranslations({ locale, namespace: "managerPages" });
+  const tc = await getTranslations({ locale, namespace: "common" });
   const tm = await getTranslations({ locale, namespace: "manager" });
   const managerBase = `/${locale}/manager`;
   const returnTo = `${managerBase}/settings`;
 
   if (!hasSupabaseServerConfig()) {
     return (
-      <DashboardShell role="manager" title="Manager settings" subtitle="Workspace controls and reporting shortcuts for your team." user={managerUser}>
+      <DashboardShell role="manager" title={tp("settingsTitle")} subtitle={tp("settingsSubtitleDemo")} user={managerUser}>
         <section className="dashboard-grid two">
           <article className="panel dashboard-panel">
-            <div className="panel-top"><h2>Signal preferences</h2></div>
-            <EmptyState title="Demo mode" copy="Connect Supabase to load real manager settings and team context." />
+            <div className="panel-top"><h2>{tp("signalPreferences")}</h2></div>
+            <EmptyState title={tp("demoModeTitle")} copy={tp("demoModeCopy")} />
           </article>
           <article className="panel dashboard-panel manager-action-panel">
-            <Link className="manager-action-card" href={`${managerBase}/team`}><UsersRound size={18} /> Open team members</Link>
+            <Link className="manager-action-card" href={`${managerBase}/team`}><UsersRound size={18} /> {tp("openTeamMembers")}</Link>
             <Link className="manager-action-card" href={`${managerBase}/signals`}><Activity size={18} /> Review signals</Link>
           </article>
         </section>
@@ -67,15 +69,15 @@ export default async function ManagerSettingsPage({
   return (
     <DashboardShell
       role="manager"
-      title="Manager settings"
-      subtitle="Your team context, notification shortcuts, and reporting defaults."
+      title={tp("settingsTitle")}
+      subtitle={tp("settingsSubtitle")}
       user={{
         name: managerName,
         initials: getInitials(insights.profile.first_name, insights.profile.last_name),
         team: insights.teamLabel,
         imageUrl: insights.profile.profile_image
       }}
-      actions={<span className="quality-pill">Live profile</span>}
+      actions={<span className="quality-pill">{tp("liveProfile")}</span>}
       unreadNotifications={unreadNotifications}
     >
       <section className="dashboard-grid two">
@@ -90,29 +92,29 @@ export default async function ManagerSettingsPage({
         <article className="panel dashboard-panel">
           <div className="panel-top">
             <div>
-              <h2>Manager profile</h2>
-              <p>Read-only workspace details pulled from Supabase.</p>
+              <h2>{tp("managerProfile")}</h2>
+              <p>{tp("managerProfileCopy")}</p>
             </div>
           </div>
           <div className="profile-stack">
-            <div><strong>Name</strong><p>{managerName}</p></div>
-            <div><strong>Email</strong><p>{user.email ?? "No email on session"}</p></div>
-            <div><strong>Managed scope</strong><p>{insights.teamLabel}</p></div>
-            <div><strong>Managed teams</strong><p>{insights.teamIds.length}</p></div>
-            <div><strong>Team recognitions</strong><p>{insights.recognitionCount}</p></div>
+            <div><strong>{tp("name")}</strong><p>{managerName}</p></div>
+            <div><strong>{tp("email")}</strong><p>{user.email ?? tp("noEmailOnSession")}</p></div>
+            <div><strong>{tp("managedScope")}</strong><p>{insights.teamLabel}</p></div>
+            <div><strong>{tp("managedTeams")}</strong><p>{insights.teamIds.length}</p></div>
+            <div><strong>{tp("teamRecognitions")}</strong><p>{insights.recognitionCount}</p></div>
           </div>
         </article>
 
         <article className="panel dashboard-panel manager-action-panel">
           <div className="panel-top">
             <div>
-              <h2>Quick actions</h2>
-              <p>Jump to the manager tools connected to this workspace.</p>
+              <h2>{tp("quickActions")}</h2>
+              <p>{tp("quickActionsCopy")}</p>
             </div>
           </div>
-          <Link className="manager-action-card" href={`${managerBase}/team`}><UsersRound size={18} /> Open team members</Link>
-          <Link className="manager-action-card" href={`${managerBase}/signals`}><Activity size={18} /> Review team signals</Link>
-          <Link className="manager-action-card" href={`${managerBase}/analytics`}><Settings size={18} /> Review analytics</Link>
+          <Link className="manager-action-card" href={`${managerBase}/team`}><UsersRound size={18} /> {tp("openTeamMembers")}</Link>
+          <Link className="manager-action-card" href={`${managerBase}/signals`}><Activity size={18} /> {tp("reviewSignals")}</Link>
+          <Link className="manager-action-card" href={`${managerBase}/analytics`}><Settings size={18} /> {tp("reviewAnalytics")}</Link>
         </article>
       </section>
     </DashboardShell>

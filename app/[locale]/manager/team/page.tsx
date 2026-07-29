@@ -25,11 +25,13 @@ export default async function ManagerTeamPage({
   searchParams: Promise<{ note?: string }>;
 }) {
   const [{ locale }, queryParams] = await Promise.all([params, searchParams]);
+  const tp = await getTranslations({ locale, namespace: "managerPages" });
+  const tc = await getTranslations({ locale, namespace: "common" });
   const tm = await getTranslations({ locale, namespace: "manager" });
 
   if (!hasSupabaseServerConfig()) {
     return (
-      <DashboardShell role="manager" title="Team members" subtitle="A clear view of each person's recognition momentum." user={managerUser} actions={<span className="quality-pill">Demo fallback</span>}>
+      <DashboardShell role="manager" title={tp("teamTitle")} subtitle={tp("teamSubtitle")} user={managerUser} actions={<span className="quality-pill">{tc("demoFallback")}</span>}>
         <article className="panel dashboard-panel"><TeamTable people={people} /></article>
       </DashboardShell>
     );
@@ -55,8 +57,8 @@ export default async function ManagerTeamPage({
   return (
     <DashboardShell
       role="manager"
-      title="Team members"
-      subtitle="A clear view of each person's recognition momentum."
+      title={tp("teamTitle")}
+      subtitle={tp("teamSubtitle")}
       user={{
         name: `${insights.profile.first_name ?? ""} ${insights.profile.last_name ?? ""}`.trim() || "Manager",
         initials: getInitials(insights.profile.first_name, insights.profile.last_name),
@@ -69,26 +71,26 @@ export default async function ManagerTeamPage({
         {insights.teamRows.length ? (
           <TeamTable people={insights.teamRows} />
         ) : (
-          <EmptyState title="No managed team members yet" copy="Assign employees to teams managed by this profile to populate this page." />
+          <EmptyState title={tp("noMembersTitle")} copy={tp("noMembersCopy")} />
         )}
       </article>
       {insights.teamRows.length ? (
         <article className="panel dashboard-panel manager-note-panel">
           <div className="panel-top">
             <div>
-              <h2>Send a team note</h2>
-              <p>Send a short private notification to an employee in your managed team.</p>
+              <h2>{tp("noteTitle")}</h2>
+              <p>{tp("noteCopy")}</p>
             </div>
           </div>
-          {queryParams.note === "sent" ? <p className="team-form-feedback success">Note sent to the employee notification bell.</p> : null}
-          {queryParams.note === "error" ? <p className="team-form-feedback error">Please choose an employee and write a short note.</p> : null}
-          {queryParams.note === "not_allowed" ? <p className="team-form-feedback error">This note could not be sent because the selected employee is outside your manager scope.</p> : null}
+          {queryParams.note === "sent" ? <p className="team-form-feedback success">{tp("noteSent")}</p> : null}
+          {queryParams.note === "error" ? <p className="team-form-feedback error">{tp("noteError")}</p> : null}
+          {queryParams.note === "not_allowed" ? <p className="team-form-feedback error">{tp("noteNotAllowed")}</p> : null}
           <form className="manager-note-form" action={sendManagerNoteAction}>
             <input type="hidden" name="return_to" value={`/${locale}/manager/team`} />
             <label>
-              <span>Employee</span>
+              <span>{tp("employee")}</span>
               <select name="recipient_id" required>
-                <option value="">Choose an employee</option>
+                <option value="">{tp("chooseEmployee")}</option>
                 {insights.teamRows.map((member) => (
                   <option value={member.id} key={member.id}>
                     {member.name} - {member.team}
@@ -97,11 +99,11 @@ export default async function ManagerTeamPage({
               </select>
             </label>
             <label>
-              <span>Note</span>
-              <textarea name="note_body" rows={4} maxLength={500} placeholder="Share a short recognition nudge, follow-up, or supportive note." required />
+              <span>{tp("note")}</span>
+              <textarea name="note_body" rows={4} maxLength={500} placeholder={tp("notePlaceholder")} required />
             </label>
             <button className="btn btn-primary" type="submit">
-              Send note
+              {tp("sendNote")}
             </button>
           </form>
         </article>
