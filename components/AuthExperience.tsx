@@ -2,21 +2,22 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { ArrowRight, CheckCircle2, Eye, EyeOff } from "lucide-react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { hasSupabaseBrowserConfig, type DemoRole } from "@/lib/demo-session";
 
-const signupRoles: Array<{ value: DemoRole; label: string }> = [
-  { value: "employee", label: "Employee / invited user" },
-  { value: "manager", label: "Manager / invited leader" },
-  { value: "company_admin", label: "Company admin / new company" }
+// Labels are translation keys under the `authForm` namespace.
+const signupRoles: Array<{ value: DemoRole; labelKey: string }> = [
+  { value: "employee", labelKey: "roleEmployee" },
+  { value: "manager", labelKey: "roleManager" },
+  { value: "company_admin", labelKey: "roleCompanyAdmin" }
 ];
 
-const roleShortcuts: Array<{ value: DemoRole; label: string }> = [
-  { value: "employee", label: "Join as employee" },
-  { value: "manager", label: "Join as manager" },
-  { value: "company_admin", label: "Join as company" }
+const roleShortcuts: Array<{ value: DemoRole; labelKey: string }> = [
+  { value: "employee", labelKey: "joinEmployee" },
+  { value: "manager", labelKey: "joinManager" },
+  { value: "company_admin", labelKey: "joinCompany" }
 ];
 
 function getRoleTargetPath(role: DemoRole) {
@@ -42,6 +43,7 @@ export function AuthExperience({
   roleChoiceOnly?: boolean;
 }) {
   const locale = useLocale();
+  const t = useTranslations("authForm");
   const [submitBusy, setSubmitBusy] = useState(false);
   const [magicLinkBusy, setMagicLinkBusy] = useState(false);
   const [passwordResetBusy, setPasswordResetBusy] = useState(false);
@@ -127,9 +129,9 @@ export function AuthExperience({
   useEffect(() => {
     if (typeof window === "undefined" || authError !== "missing_profile") return;
     setStatusTone("info");
-    setStatus("Repairing your GETH profile and opening your dashboard...");
+    setStatus(t("repairing"));
     window.location.replace("/auth/repair-profile");
-  }, [authError]);
+  }, [authError, t]);
 
   function updateField(field: keyof typeof form, value: string) {
     setForm((current) => ({ ...current, [field]: value }));
@@ -154,21 +156,21 @@ export function AuthExperience({
     }
 
     if (!response.ok || !payload.redirectTo) {
-      throw new Error("Your account was authenticated, but profile setup failed.");
+      throw new Error(t("profileSetupFailed"));
     }
 
     window.location.assign(resolvePostAuthRedirect(payload.redirectTo));
   }
 
   function getRoleLabel(role?: string) {
-    if (role === "manager") return "manager";
-    if (role === "company_admin") return "company admin";
-    if (role === "platform_admin" || role === "super_admin") return "owner";
-    return "employee";
+    if (role === "manager") return t("roleNameManager");
+    if (role === "company_admin") return t("roleNameCompanyAdmin");
+    if (role === "platform_admin" || role === "super_admin") return t("roleNameOwner");
+    return t("roleNameEmployee");
   }
 
   function getRoleMismatchCopy(expectedRole?: string, actualRole?: string) {
-    return `This email belongs to a ${getRoleLabel(actualRole)} account, not a ${getRoleLabel(expectedRole)} account. Please choose the correct login option or use the right work email.`;
+    return t("roleMismatch", { actual: getRoleLabel(actualRole), expected: getRoleLabel(expectedRole) });
   }
 
   function repairProfileAndOpenDashboard() {
@@ -178,17 +180,17 @@ export function AuthExperience({
   function getAuthErrorCopy(error?: string) {
     switch (error) {
       case "auth_callback_failed":
-        return "That email link did not complete sign-in. Make sure the Supabase email redirect URL points to /auth/callback for this app.";
+        return t("errCallbackFailed");
       case "profile_bootstrap_failed":
-        return "Your login worked, but your GETH profile could not be created or loaded. Check that the profiles and companies tables exist and that the service role key is present.";
+        return t("errBootstrapFailed");
       case "missing_profile":
-        return "You are signed in, but your GETH profile is missing. Use the repair button below, or ask a company admin to invite you.";
+        return t("errMissingProfile");
       case "admin_required":
-        return "Admin access requires a super admin account. Choose Owner login or use the super admin credentials.";
+        return t("errAdminRequired");
       case "role_mismatch":
-        return `That email is not a ${getRoleLabel(selectedRole)} account. Please choose the correct login option or use the right work email.`;
+        return t("roleMismatchSimple", { expected: getRoleLabel(selectedRole) });
       case "password_updated":
-        return "Your password was updated. Log in with your new password.";
+        return t("passwordUpdated");
       default:
         return "";
     }
@@ -222,15 +224,15 @@ export function AuthExperience({
   }
 
   function getFriendlyAuthError(error: unknown) {
-    const message = getErrorMessage(error, "We couldn't start that sign-in flow.");
+    const message = getErrorMessage(error, t("errSignInFlow"));
     const lower = message.toLowerCase();
 
     if (lower.includes("invalid login credentials")) {
-      return "Those credentials did not match. If this email already exists, use Reset password to create a new password, then log in again.";
+      return t("errBadCredentials");
     }
 
     if (lower.includes("email not confirmed")) {
-      return "Please confirm your email first, then log in with your password.";
+      return t("errEmailNotConfirmed");
     }
 
     return message;
@@ -246,13 +248,13 @@ export function AuthExperience({
       if (supabaseReady && form.email) {
         const supabase = createSupabaseBrowserClient();
         if (mode === "signup" && ownerLoginOnly) {
-          throw new Error("Owner accounts cannot be created from the website. Log in with an existing super admin account.");
+          throw new Error(t("errOwnerSignup"));
         }
 
         const authRole = mode === "signup" ? selectedSignupRole : "employee";
 
         if (!form.password || form.password.length < 6) {
-          throw new Error("Enter a password with at least 6 characters.");
+          throw new Error(t("errShortPassword"));
         }
 
         if (mode === "signup") {
@@ -273,7 +275,7 @@ export function AuthExperience({
           const signupPayload = (await signupResponse.json().catch(() => ({}))) as { error?: string; redirectTo?: string };
 
           if (!signupResponse.ok || !signupPayload.redirectTo) {
-            throw new Error(signupPayload.error || "We could not create this account.");
+            throw new Error(signupPayload.error || t("errCreateAccount"));
           }
 
           const { error } = await supabase.auth.signInWithPassword({
@@ -298,7 +300,7 @@ export function AuthExperience({
         return;
       }
 
-      throw new Error("Supabase is not configured yet. Add the Supabase environment variables before using real login.");
+      throw new Error(t("errSupabaseMissing"));
     } catch (error) {
       setStatusTone("error");
       setStatus(getFriendlyAuthError(error));
@@ -314,7 +316,7 @@ export function AuthExperience({
 
     try {
       if (!supabaseReady || !form.email) {
-        throw new Error("Enter your work email first.");
+        throw new Error(t("errEmailFirst"));
       }
 
       const redirectTo = new URL("/auth/callback", window.location.origin);
@@ -326,10 +328,10 @@ export function AuthExperience({
       if (error) throw error;
 
       setStatusTone("success");
-      setStatus("Password reset email sent. Open the GETH button in your inbox to set a new password.");
+      setStatus(t("resetSent"));
     } catch (error) {
       setStatusTone("error");
-      setStatus(getErrorMessage(error, "We couldn't send that reset email. Check your email address and Supabase email settings."));
+      setStatus(getErrorMessage(error, t("errResetSend")));
     } finally {
       setPasswordResetBusy(false);
     }
@@ -342,13 +344,13 @@ export function AuthExperience({
 
     try {
       if (!supabaseReady || !form.email) {
-        throw new Error("Enter your work email first.");
+        throw new Error(t("errEmailFirst"));
       }
 
       const supabase = createSupabaseBrowserClient();
       const redirectTo = new URL("/auth/callback", window.location.origin);
       if (mode === "signup" && ownerLoginOnly) {
-        throw new Error("Owner accounts cannot be created from the website. Log in with an existing super admin account.");
+        throw new Error(t("errOwnerSignup"));
       }
 
       const authRole = mode === "signup" ? selectedSignupRole : "employee";
@@ -369,8 +371,8 @@ export function AuthExperience({
                 emailRedirectTo: redirectTo.toString(),
                 shouldCreateUser: true,
                 data: {
-                  full_name: form.name || "New User",
-                  company: form.company || "GETH Workspace",
+                  full_name: form.name || t("defaultUserName"),
+                  company: form.company || t("defaultWorkspace"),
                   role: authRole
                 }
               }
@@ -387,13 +389,11 @@ export function AuthExperience({
 
       setStatusTone("success");
       setStatus(
-        mode === "signup"
-          ? `Mail sent successfully to ${form.email}. Open the GETH button in your inbox to finish setup.`
-          : `Mail sent successfully to ${form.email}. Open the GETH button in your inbox to continue.`
+        mode === "signup" ? t("magicSentSignup", { email: form.email }) : t("magicSentLogin", { email: form.email })
       );
     } catch (error) {
       setStatusTone("error");
-      setStatus(getErrorMessage(error, "We couldn't send that magic link. Check Supabase Auth email settings."));
+      setStatus(getErrorMessage(error, t("errMagicSend")));
     } finally {
       setMagicLinkBusy(false);
     }
@@ -401,15 +401,13 @@ export function AuthExperience({
 
   return (
     <div className="auth-card">
-      <h2>{mode === "signup" ? "Create account" : "Log in"}</h2>
+      <h2>{mode === "signup" ? t("titleSignup") : t("titleLogin")}</h2>
       <p className="section-copy">
-        {mode === "signup"
-          ? "Create a company admin account for a new company, or create a regular user account for an invited team member."
-          : "Use your work email and password to access your workspace."}
+        {mode === "signup" ? t("introSignup") : t("introLogin")}
       </p>
       {roleChoiceOnly ? (
-        <div className="auth-role-shortcuts auth-role-entry" aria-label="Choose how you want to enter GETH">
-          <p>Choose how you want to enter GETH.</p>
+        <div className="auth-role-shortcuts auth-role-entry" aria-label={t("entryAria")}>
+          <p>{t("entryPrompt")}</p>
           <div className="auth-role-shortcut-list">
             {roleShortcuts.map((role) => (
               <Link
@@ -417,25 +415,25 @@ export function AuthExperience({
                 href={getAuthModeHref("login", role.value, getRoleTargetPath(role.value))}
                 key={role.value}
               >
-                {role.label} <ArrowRight size={15} />
+                {t(role.labelKey)} <ArrowRight size={15} />
               </Link>
             ))}
           </div>
         </div>
       ) : null}
       {!roleChoiceOnly && !ownerLoginOnly ? (
-        <div className="auth-mode-tabs" aria-label="Choose login or sign up">
+        <div className="auth-mode-tabs" aria-label={t("modeTabsAria")}>
           <Link className={mode === "login" ? "active" : ""} href={getAuthModeHref("login", selectedRole, getRoleTargetPath(selectedRole))}>
-            Log in
+            {t("tabLogin")}
           </Link>
           <Link className={mode === "signup" ? "active" : ""} href={getAuthModeHref("signup", selectedRole, getRoleTargetPath(selectedRole))}>
-            Sign up
+            {t("tabSignup")}
           </Link>
         </div>
       ) : null}
       {!roleChoiceOnly && !ownerLoginOnly ? (
-        <div className="auth-role-shortcuts" aria-label={mode === "signup" ? "Choose signup role" : "Choose login role"}>
-          <p>Switch entry type.</p>
+        <div className="auth-role-shortcuts" aria-label={mode === "signup" ? t("roleAriaSignup") : t("roleAriaLogin")}>
+          <p>{t("switchEntry")}</p>
         <div className="auth-role-shortcut-list">
           {roleShortcuts.map((role) => (
             <Link
@@ -444,18 +442,18 @@ export function AuthExperience({
               key={role.value}
               aria-current={selectedRole === role.value ? "page" : undefined}
             >
-              {role.label}
+              {t(role.labelKey)}
             </Link>
           ))}
         </div>
-        {inviteToken ? <span className="auth-role-shortcuts-note">Invitation details decide your final company, team, and role.</span> : null}
+        {inviteToken ? <span className="auth-role-shortcuts-note">{t("inviteNote")}</span> : null}
         </div>
       ) : null}
-      {inviteToken ? <p className="auth-status invite-status">This sign-in will apply your invitation after the magic link is opened.</p> : null}
+      {inviteToken ? <p className="auth-status invite-status">{t("inviteStatus")}</p> : null}
       {getAuthErrorCopy(authError) ? <p className="auth-status auth-error-status">{getAuthErrorCopy(authError)}</p> : null}
       {authError === "missing_profile" ? (
         <button className="btn btn-primary btn-full auth-switch-cta" type="button" onClick={repairProfileAndOpenDashboard} disabled={busy}>
-          Repair profile and open dashboard <ArrowRight size={16} />
+          {t("repairCta")} <ArrowRight size={16} />
         </button>
       ) : null}
 
@@ -463,35 +461,35 @@ export function AuthExperience({
         {mode === "signup" && !ownerLoginOnly ? (
           <>
             <div className="form-field">
-              <label htmlFor="name">Full name</label>
-              <input id="name" className="input" placeholder="Sarah van den Berg" value={form.name} onChange={(event) => updateField("name", event.target.value)} autoComplete="name" required />
+              <label htmlFor="name">{t("fullName")}</label>
+              <input id="name" className="input" placeholder={t("fullNamePlaceholder")} value={form.name} onChange={(event) => updateField("name", event.target.value)} autoComplete="name" required />
             </div>
             <div className="form-field">
-              <label htmlFor="company">Company</label>
-              <input id="company" className="input" placeholder="ABC Company" value={form.company} onChange={(event) => updateField("company", event.target.value)} autoComplete="organization" required />
+              <label htmlFor="company">{t("company")}</label>
+              <input id="company" className="input" placeholder={t("companyPlaceholder")} value={form.company} onChange={(event) => updateField("company", event.target.value)} autoComplete="organization" required />
             </div>
           </>
         ) : null}
         <div className="form-field">
-          <label htmlFor="auth-email">Work email</label>
-          <input id="auth-email" className="input" type="email" placeholder="sarah@company.com" value={form.email} onChange={(event) => updateField("email", event.target.value)} autoComplete="email" required />
+          <label htmlFor="auth-email">{t("workEmail")}</label>
+          <input id="auth-email" className="input" type="email" placeholder={t("emailPlaceholder")} value={form.email} onChange={(event) => updateField("email", event.target.value)} autoComplete="email" required />
         </div>
         <div className="form-field">
-          <label htmlFor="auth-password">Password</label>
+          <label htmlFor="auth-password">{t("password")}</label>
           <div className="password-input-wrap">
-            <input id="auth-password" className="input" type={showPassword ? "text" : "password"} placeholder="At least 6 characters" value={form.password} onChange={(event) => updateField("password", event.target.value)} autoComplete={mode === "signup" ? "new-password" : "current-password"} required minLength={6} />
-            <button className="password-toggle" type="button" onClick={() => setShowPassword((current) => !current)} aria-label={showPassword ? "Hide password" : "Show password"}>
+            <input id="auth-password" className="input" type={showPassword ? "text" : "password"} placeholder={t("passwordPlaceholder")} value={form.password} onChange={(event) => updateField("password", event.target.value)} autoComplete={mode === "signup" ? "new-password" : "current-password"} required minLength={6} />
+            <button className="password-toggle" type="button" onClick={() => setShowPassword((current) => !current)} aria-label={showPassword ? t("hidePassword") : t("showPassword")}>
               {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
             </button>
           </div>
         </div>
         {mode === "signup" && !ownerLoginOnly ? (
           <div className="form-field">
-            <label htmlFor="role">Account type</label>
+            <label htmlFor="role">{t("accountType")}</label>
             <select id="role" className="input" value={selectedSignupRole} onChange={(event) => setSelectedRole(event.target.value as DemoRole)}>
               {signupRoles.map((role) => (
                 <option value={role.value} key={role.value}>
-                  {role.label}
+                  {t(role.labelKey)}
                 </option>
               ))}
             </select>
@@ -499,19 +497,26 @@ export function AuthExperience({
         ) : null}
 
         <button className={`btn ${mode === "signup" ? "btn-primary" : "btn-dark"} btn-full`} disabled={busy} type="submit">
-          {submitBusy ? "Working..." : supabaseReady ? (mode === "signup" && !ownerLoginOnly ? "Create account" : "Log in") : "Continue in demo mode"} <ArrowRight size={16} />
+          {submitBusy
+            ? t("working")
+            : supabaseReady
+              ? mode === "signup" && !ownerLoginOnly
+                ? t("titleSignup")
+                : t("titleLogin")
+              : t("demoMode")}{" "}
+          <ArrowRight size={16} />
         </button>
       </form>}
 
       {supabaseReady && !roleChoiceOnly ? (
         <button className="btn btn-secondary btn-full auth-demo-cta" type="button" onClick={sendMagicLink} disabled={busy}>
-          {magicLinkBusy ? "Sending magic link..." : mode === "signup" && !ownerLoginOnly ? "Send magic link instead" : "Email me a magic link instead"}
+          {magicLinkBusy ? t("sendingMagicLink") : mode === "signup" && !ownerLoginOnly ? t("sendMagicLink") : t("emailMagicLink")}
         </button>
       ) : null}
 
       {supabaseReady && mode === "login" && !roleChoiceOnly ? (
         <button className="btn btn-secondary btn-full auth-demo-cta" type="button" onClick={sendPasswordReset} disabled={busy}>
-          {passwordResetBusy ? "Sending reset email..." : "Reset password"}
+          {passwordResetBusy ? t("sendingReset") : t("resetPassword")}
         </button>
       ) : null}
 
@@ -523,8 +528,8 @@ export function AuthExperience({
       ) : null}
 
       <div className={`auth-links ${mode === "login" ? "auth-links-single" : ""}`}>
-        {mode === "signup" && !ownerLoginOnly ? <Link href={getAuthModeHref("login")}>Already have an account?</Link> : null}
-        <Link href={getLocalizedPublicPath("/")}>Back to site</Link>
+        {mode === "signup" && !ownerLoginOnly ? <Link href={getAuthModeHref("login")}>{t("alreadyHaveAccount")}</Link> : null}
+        <Link href={getLocalizedPublicPath("/")}>{t("backToSite")}</Link>
       </div>
     </div>
   );

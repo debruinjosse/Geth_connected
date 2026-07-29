@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import {
   Activity,
   BarChart3,
@@ -28,38 +28,39 @@ import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { clearDemoSession, getDemoSession, hasSupabaseBrowserConfig } from "@/lib/demo-session";
 import { stripLocaleFromPathname, type AppLocale } from "@/i18n/routing";
 
+// Nav labels are translation keys under the `shell` namespace, resolved at render.
 const navByRole = {
   employee: [
-    ["Home", "/employee", Home],
-    ["Scan Card", "/employee/scan", QrCode],
-    ["My Cards", "/employee/cards", VerticalCardIcon],
-    ["Messages", "/employee/messages", GethBirdIcon]
+    ["navHome", "/employee", Home],
+    ["navScanCard", "/employee/scan", QrCode],
+    ["navMyCards", "/employee/cards", VerticalCardIcon],
+    ["navMessages", "/employee/messages", GethBirdIcon]
   ],
   manager: [
-    ["Overview", "/manager", Home],
-    ["My Team", "/manager/team", UsersRound],
-    ["Signals", "/manager/signals", Activity],
-    ["Analytics", "/manager/analytics", BarChart3],
-    ["Cards", "/cards", VerticalCardIcon],
-    ["Reports", "/manager/reports", FileBarChart2]
+    ["navOverview", "/manager", Home],
+    ["navMyTeam", "/manager/team", UsersRound],
+    ["navSignals", "/manager/signals", Activity],
+    ["navAnalytics", "/manager/analytics", BarChart3],
+    ["navCards", "/cards", VerticalCardIcon],
+    ["navReports", "/manager/reports", FileBarChart2]
   ],
   company: [
-    ["Overview", "/company", Home],
-    ["Teams", "/company/teams", UsersRound],
-    ["Employees", "/company/employees", UserRound],
-    ["Managers", "/company/managers", Shield],
-    ["Reports", "/company/reports", BarChart3],
-    ["Cards & Decks", "/company/cards", VerticalCardIcon],
-    ["Billing", "/company/billing", Building2]
+    ["navOverview", "/company", Home],
+    ["navTeams", "/company/teams", UsersRound],
+    ["navEmployees", "/company/employees", UserRound],
+    ["navManagers", "/company/managers", Shield],
+    ["navReports", "/company/reports", BarChart3],
+    ["navCardsDecks", "/company/cards", VerticalCardIcon],
+    ["navBilling", "/company/billing", Building2]
   ],
   admin: [
-    ["Overview", "/admin", Home],
-    ["Companies", "/admin/companies", Building2],
-    ["Demo bookings", "/admin/demo-bookings", CalendarIcon],
-    ["Subscriptions", "/admin/subscriptions", VerticalCardIcon],
-    ["Cards", "/admin/cards", VerticalCardIcon],
-    ["QR Routes", "/admin/qr-routes", QrCode],
-    ["Analytics", "/admin/analytics", BarChart3]
+    ["navOverview", "/admin", Home],
+    ["navCompanies", "/admin/companies", Building2],
+    ["navDemoBookings", "/admin/demo-bookings", CalendarIcon],
+    ["navSubscriptions", "/admin/subscriptions", VerticalCardIcon],
+    ["navCards", "/admin/cards", VerticalCardIcon],
+    ["navQrRoutes", "/admin/qr-routes", QrCode],
+    ["navAnalytics", "/admin/analytics", BarChart3]
   ]
 } as const;
 
@@ -106,11 +107,11 @@ function GethBirdIcon({ size = 19 }: { size?: number }) {
   );
 }
 
-const eyebrowCopy = {
-  employee: "GETH employee dashboard",
-  manager: "GETH manager workspace",
-  company: "GETH company admin",
-  admin: "GETH platform admin"
+const eyebrowKeyByRole = {
+  employee: "eyebrowEmployee",
+  manager: "eyebrowManager",
+  company: "eyebrowCompany",
+  admin: "eyebrowAdmin"
 } as const;
 
 const notificationHrefByRole = {
@@ -147,6 +148,7 @@ export function DashboardShell({
 }) {
   const pathname = usePathname();
   const router = useRouter();
+  const t = useTranslations("shell");
   const locale = useLocale() as AppLocale;
   const basePathname = stripLocaleFromPathname(pathname);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -178,7 +180,7 @@ export function DashboardShell({
 
   return (
     <div className="dashboard-layout">
-      <button className="mobile-shell-toggle" type="button" onClick={() => setMobileOpen(true)} aria-label="Open navigation">
+      <button className="mobile-shell-toggle" type="button" onClick={() => setMobileOpen(true)} aria-label={t("openNavigation")}>
         <Menu size={20} />
       </button>
 
@@ -188,18 +190,18 @@ export function DashboardShell({
         <div className="dashboard-sidebar-top">
           <div className="dashboard-sidebar-head">
             <BrandLogo href={`/${locale}`} />
-            <button className="mobile-nav-close" type="button" onClick={() => setMobileOpen(false)} aria-label="Close navigation">
+            <button className="mobile-nav-close" type="button" onClick={() => setMobileOpen(false)} aria-label={t("closeNavigation")}>
               <X size={18} />
             </button>
           </div>
-          <nav className="side-links" aria-label={`${role} navigation`}>
-            {nav.map(([label, href, Icon]) => {
+          <nav className="side-links" aria-label={t("navigationLabel", { role })}>
+            {nav.map(([labelKey, href, Icon]) => {
               const isRootDashboard = href === `/${role}` || (role === "company" && href === "/company");
               const active = basePathname === href || (!isRootDashboard && basePathname.startsWith(`${href}/`));
               return (
-                <Link href={localizeDashboardHref(href, locale)} className={active ? "active" : ""} key={label} onClick={() => setMobileOpen(false)}>
+                <Link href={localizeDashboardHref(href, locale)} className={active ? "active" : ""} key={labelKey} onClick={() => setMobileOpen(false)}>
                   <Icon size={19} />
-                  <span>{label}</span>
+                  <span>{t(labelKey)}</span>
                 </Link>
               );
             })}
@@ -209,7 +211,7 @@ export function DashboardShell({
         <div className="dashboard-sidebar-bottom">
           <button className="sidebar-logout" type="button" onClick={handleLogout} disabled={loggingOut}>
             <LogOut size={16} />
-            <span>{loggingOut ? "Logging out..." : "Sign out"}</span>
+            <span>{loggingOut ? t("loggingOut") : t("signOut")}</span>
           </button>
         </div>
       </aside>
@@ -217,25 +219,38 @@ export function DashboardShell({
       <main className={`dashboard-main dashboard-main-${role}`}>
         <div className="dashboard-header">
           <div>
-            <div className="eyebrow">{eyebrowCopy[role]}</div>
+            <div className="eyebrow">{t(eyebrowKeyByRole[role])}</div>
             <h1>{title}</h1>
             <p>{subtitle}</p>
           </div>
           <div className="dashboard-header-actions">
             {actions}
             <GoogleTranslateWidget />
-            <Link className="dashboard-icon-button notification-icon-button" href={notificationHref} aria-label={`${unreadNotifications} unread notifications`}>
+            <Link
+              className="dashboard-icon-button notification-icon-button"
+              href={notificationHref}
+              aria-label={t("unreadNotifications", { count: unreadNotifications })}
+            >
               <Bell size={17} />
               {unreadNotifications > 0 ? <span className="notification-count">{unreadNotifications > 9 ? "9+" : unreadNotifications}</span> : null}
             </Link>
-            <Link className="dashboard-avatar-chip" href={profileHref} title={`${user.name} - ${user.team}`} aria-label={`Open ${user.name}'s profile`}>
+            <Link
+              className="dashboard-avatar-chip"
+              href={profileHref}
+              title={`${user.name} - ${user.team}`}
+              aria-label={t("openProfile", { name: user.name })}
+            >
               <div className="avatar">
-                {user.imageUrl ? <Image src={user.imageUrl} alt={`${user.name} profile`} width={32} height={32} unoptimized /> : user.initials || <CircleUserRound size={18} />}
+                {user.imageUrl ? (
+                  <Image src={user.imageUrl} alt={t("profilePhotoAlt", { name: user.name })} width={32} height={32} unoptimized />
+                ) : (
+                  user.initials || <CircleUserRound size={18} />
+                )}
               </div>
             </Link>
             <button className="btn btn-secondary dashboard-logout dashboard-top-signout" type="button" onClick={handleLogout} disabled={loggingOut}>
               <LogOut size={16} />
-              {loggingOut ? "Signing out..." : "Sign out"}
+              {loggingOut ? t("signingOut") : t("signOut")}
             </button>
           </div>
         </div>

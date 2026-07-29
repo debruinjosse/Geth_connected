@@ -2,10 +2,12 @@
 
 import { FormEvent, useState } from "react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { ArrowRight, CheckCircle2, Eye, EyeOff } from "lucide-react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 export function ResetPasswordExperience() {
+  const t = useTranslations("resetPassword");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -36,7 +38,7 @@ export function ResetPasswordExperience() {
 
     try {
       if (password.length < 6) {
-        throw new Error("Enter a password with at least 6 characters.");
+        throw new Error(t("errShort"));
       }
 
       const supabase = createSupabaseBrowserClient();
@@ -44,10 +46,10 @@ export function ResetPasswordExperience() {
 
       if (error) throw error;
 
-      setStatus("Password updated. Redirecting you to your workspace...");
+      setStatus(t("updated"));
       await finalizeAuthenticatedSession();
     } catch (error) {
-      setStatus(error instanceof Error ? error.message : "We couldn't update your password.");
+      setStatus(error instanceof Error ? error.message : t("errUpdate"));
     } finally {
       setBusy(false);
     }
@@ -55,31 +57,31 @@ export function ResetPasswordExperience() {
 
   return (
     <div className="auth-card">
-      <h2>Set new password</h2>
-      <p className="section-copy">Choose a new password for your GETH account, then continue to your workspace.</p>
+      <h2>{t("title")}</h2>
+      <p className="section-copy">{t("copy")}</p>
 
       <form onSubmit={handleSubmit}>
         <div className="form-field">
-          <label htmlFor="new-password">New password</label>
+          <label htmlFor="new-password">{t("newPassword")}</label>
           <div className="password-input-wrap">
             <input
               id="new-password"
               className="input"
               type={showPassword ? "text" : "password"}
-              placeholder="At least 6 characters"
+              placeholder={t("placeholder")}
               value={password}
               onChange={(event) => setPassword(event.target.value)}
               required
               minLength={6}
             />
-            <button className="password-toggle" type="button" onClick={() => setShowPassword((current) => !current)} aria-label={showPassword ? "Hide password" : "Show password"}>
+            <button className="password-toggle" type="button" onClick={() => setShowPassword((current) => !current)} aria-label={showPassword ? t("hidePassword") : t("showPassword")}>
               {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
             </button>
           </div>
         </div>
 
         <button className="btn btn-dark btn-full" disabled={busy} type="submit">
-          {busy ? "Updating..." : "Update password"} <ArrowRight size={16} />
+          {busy ? t("updating") : t("update")} <ArrowRight size={16} />
         </button>
       </form>
 
@@ -91,8 +93,8 @@ export function ResetPasswordExperience() {
       ) : null}
 
       <div className="auth-links">
-        <Link href="/login">Back to login</Link>
-        <Link href="/">Back to site</Link>
+        <Link href="/login">{t("backToLogin")}</Link>
+        <Link href="/">{t("backToSite")}</Link>
       </div>
     </div>
   );

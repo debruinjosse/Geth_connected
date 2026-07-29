@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { LoaderCircle } from "lucide-react";
 import type { EmailOtpType } from "@supabase/supabase-js";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
@@ -34,7 +35,8 @@ async function finalizeAuth(inviteToken?: string | null, targetPath?: string | n
 
 export function AuthCallbackStatus({ inviteToken, targetPath, expectedRole }: { inviteToken?: string; targetPath?: string; expectedRole?: string }) {
   const searchParams = useSearchParams();
-  const [status, setStatus] = useState("Completing your secure sign-in...");
+  const t = useTranslations("authCallback");
+  const [status, setStatus] = useState(t("completing"));
 
   useEffect(() => {
     let cancelled = false;
@@ -86,7 +88,7 @@ export function AuthCallbackStatus({ inviteToken, targetPath, expectedRole }: { 
 
         if (type === "recovery") {
           if (!cancelled) {
-            setStatus("Opening password reset...");
+            setStatus(t("openingReset"));
             window.location.replace("/reset-password");
           }
           return;
@@ -95,7 +97,7 @@ export function AuthCallbackStatus({ inviteToken, targetPath, expectedRole }: { 
         const redirectTo = await finalizeAuth(inviteToken, targetPath, expectedRole);
 
         if (!cancelled) {
-          setStatus("Redirecting you to your workspace...");
+          setStatus(t("redirecting"));
           window.location.replace(redirectTo);
         }
       } catch {
@@ -110,7 +112,7 @@ export function AuthCallbackStatus({ inviteToken, targetPath, expectedRole }: { 
     return () => {
       cancelled = true;
     };
-  }, [expectedRole, inviteToken, searchParams, targetPath]);
+  }, [expectedRole, inviteToken, searchParams, t, targetPath]);
 
   return (
     <div className="auth-card">
@@ -118,7 +120,7 @@ export function AuthCallbackStatus({ inviteToken, targetPath, expectedRole }: { 
         <LoaderCircle className="spin-soft" size={18} />
         <span>{status}</span>
       </div>
-      <p className="section-copy">We&apos;re validating your magic link, restoring your secure session, and routing you to the right GETH workspace.</p>
+      <p className="section-copy">{t("copy")}</p>
     </div>
   );
 }

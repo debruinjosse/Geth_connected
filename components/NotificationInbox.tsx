@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { CheckCircle2, Bell } from "lucide-react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
@@ -17,17 +18,22 @@ export type NotificationInboxRow = {
   created_at: string;
 };
 
-export function formatNotificationTime(value: string) {
+export function formatNotificationTime(
+  value: string,
+  t?: (key: string, values?: Record<string, string | number | Date>) => string,
+  locale = "nl"
+) {
   const diffMs = Date.now() - new Date(value).getTime();
   const diffMinutes = Math.max(1, Math.floor(diffMs / 60000));
+  const label = (key: string, count: number) => (t ? t(key, { count }) : `${count}${key.charAt(0)}`);
 
-  if (diffMinutes < 60) return `${diffMinutes}m ago`;
+  if (diffMinutes < 60) return label("minutesAgo", diffMinutes);
   const diffHours = Math.floor(diffMinutes / 60);
-  if (diffHours < 24) return `${diffHours}h ago`;
+  if (diffHours < 24) return label("hoursAgo", diffHours);
   const diffDays = Math.floor(diffHours / 24);
-  if (diffDays < 7) return `${diffDays}d ago`;
+  if (diffDays < 7) return label("daysAgo", diffDays);
 
-  return new Intl.DateTimeFormat("en", { month: "short", day: "numeric" }).format(new Date(value));
+  return new Intl.DateTimeFormat(locale, { month: "short", day: "numeric" }).format(new Date(value));
 }
 
 function getLocalizedHref(href: string | undefined, locale: string) {
@@ -62,6 +68,7 @@ export function NotificationInbox({
   locale?: string;
 }) {
   const router = useRouter();
+  const t = useTranslations("notifications");
   const localizedEmptyActionHref = getLocalizedHref(emptyActionHref, locale);
   const [localNotifications, setLocalNotifications] = useState(notifications);
   const [pendingId, setPendingId] = useState<string | null>(null);
@@ -100,7 +107,7 @@ export function NotificationInbox({
   if (!localNotifications.length) {
     return (
       <EmptyState
-        eyebrow="No notifications"
+        eyebrow={t("emptyEyebrow")}
         title={emptyTitle}
         copy={emptyCopy}
         actionHref={localizedEmptyActionHref}
@@ -124,15 +131,15 @@ export function NotificationInbox({
             <p>{notification.body}</p>
             {notification.href ? (
               <Link href={getLocalizedHref(notification.href, locale) ?? notification.href} style={{ color: "var(--theme-ink)", fontWeight: 800 }}>
-                Open update
+                {t("openUpdate")}
               </Link>
             ) : null}
           </div>
           <div style={{ display: "grid", gap: 10, justifyItems: "end" }}>
-            <span className="quality-pill">{formatNotificationTime(notification.created_at)}</span>
+            <span className="quality-pill">{formatNotificationTime(notification.created_at, t, locale)}</span>
             {!notification.read_at ? (
               <button className="btn btn-secondary" type="button" disabled={pendingId === notification.id} onClick={() => markRead(notification.id)}>
-                {pendingId === notification.id ? "Marking..." : "Mark read"}
+                {pendingId === notification.id ? t("marking") : t("markRead")}
               </button>
             ) : null}
           </div>
@@ -142,8 +149,9 @@ export function NotificationInbox({
   );
 }
 
-export function MarkAllNotificationsReadButton({ label = "Mark all read" }: { label?: string }) {
+export function MarkAllNotificationsReadButton({ label }: { label?: string }) {
   const router = useRouter();
+  const t = useTranslations("notifications");
   const [pending, setPending] = useState(false);
   const [done, setDone] = useState(false);
 
@@ -175,7 +183,7 @@ export function MarkAllNotificationsReadButton({ label = "Mark all read" }: { la
 
   return (
     <button className="btn btn-secondary" type="button" onClick={markAllRead} disabled={pending}>
-      <CheckCircle2 size={16} /> {pending ? "Marking..." : label}
+      <CheckCircle2 size={16} /> {pending ? t("marking") : label ?? t("markAllRead")}
     </button>
   );
 }
