@@ -42,8 +42,6 @@ function HeroPhysicalCard() {
           width={560}
           height={797}
           sizes="(max-width: 767px) 88px, 176px"
-          priority
-          unoptimized
         />
       </div>
     </div>
@@ -67,7 +65,7 @@ export function HeroDashboardMockup({ locale = "en" }: { locale?: string }) {
                 <aside className="hero-screen-sidebar">
                   <div className="hero-app-brand">
                     <div className="hero-app-mark">
-                      <Image alt="GETH mark" src="/assets/geth-crest-mark.png" width={28} height={26} priority />
+                      <Image alt="GETH mark" src="/assets/geth-logo.svg" width={28} height={28} />
                     </div>
                     <span className="hero-app-name">GETH</span>
                   </div>

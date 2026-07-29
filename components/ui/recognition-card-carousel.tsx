@@ -24,7 +24,7 @@ function RecognitionCard({ card }: { card: RecognitionCardData }) {
     <article className="recognitionCard">
       <div className="recognitionCardTop">
         <span className="recognitionCardLogo">
-          <Image alt="GETH crest" src="/assets/geth-crest-mark.png" width={30} height={28} />
+          <Image alt="GETH crest" src="/assets/geth-logo.svg" width={30} height={30} />
           <span>GETH</span>
         </span>
         <span className="recognitionCardNumber">CARD {card.number}</span>

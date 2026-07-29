@@ -37,6 +37,11 @@ Thumbs.db
 *.temp
 temp-logo-extract/
 artifacts/
+.tmp-local-dev/
+tmp_*.png
+
+# generated source dumps, regenerate rather than commit
+LANDING_PAGE_MERGED_CODE.txt
 
 # accidental local token/session dump
 -

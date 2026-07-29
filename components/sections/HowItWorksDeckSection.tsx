@@ -8,7 +8,7 @@ function CardStackIcon() {
       <span className="deck-card-stack-icon__back" />
       <span className="deck-card-stack-icon__middle" />
       <span className="deck-card-stack-icon__front">
-        <Image src="/assets/geth-crest-mark.png" alt="" width={34} height={32} />
+        <Image src="/assets/geth-logo.svg" alt="" width={34} height={34} />
       </span>
     </div>
   );
