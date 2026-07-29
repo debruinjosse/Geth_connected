@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { getLocale } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import { Activity, Settings, UsersRound } from "lucide-react";
 import { AccountSettingsPanel } from "@/components/AccountSettingsPanel";
 import { DashboardShell } from "@/components/DashboardShell";
@@ -24,6 +24,7 @@ export default async function ManagerSettingsPage({
   searchParams: Promise<{ settings?: string }>;
 }) {
   const [{ settings }, locale] = await Promise.all([searchParams, getLocale()]);
+  const tm = await getTranslations({ locale, namespace: "manager" });
   const managerBase = `/${locale}/manager`;
   const returnTo = `${managerBase}/settings`;
 
@@ -54,7 +55,7 @@ export default async function ManagerSettingsPage({
 
   let insights;
   try {
-    insights = await getManagerInsights(supabase, user.id);
+    insights = await getManagerInsights(supabase, user.id, tm, locale);
   } catch (error) {
     if (error instanceof Error && error.message === "missing_profile") redirect(`/auth/repair-profile?next=${encodeURIComponent(returnTo)}`);
     throw error;

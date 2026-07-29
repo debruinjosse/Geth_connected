@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { getLocale } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import { DashboardShell } from "@/components/DashboardShell";
 import { EmptyState } from "@/components/EmptyState";
 import { SignalList } from "@/components/SignalList";
@@ -18,6 +18,7 @@ function getInitials(firstName: string | null, lastName: string | null) {
 
 export default async function ManagerSignalsPage() {
   const locale = await getLocale();
+  const tm = await getTranslations({ locale, namespace: "manager" });
 
   if (!hasSupabaseServerConfig()) {
     return (
@@ -36,7 +37,7 @@ export default async function ManagerSignalsPage() {
 
   let insights;
   try {
-    insights = await getManagerInsights(supabase, user.id);
+    insights = await getManagerInsights(supabase, user.id, tm, locale);
   } catch (error) {
     if (error instanceof Error && error.message === "missing_profile") redirect(`/auth/repair-profile?next=${encodeURIComponent(`/${locale}/manager/signals`)}`);
     throw error;

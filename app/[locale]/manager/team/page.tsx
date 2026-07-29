@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import { sendManagerNoteAction } from "@/app/actions/managerNotes";
 import { DashboardShell } from "@/components/DashboardShell";
 import { EmptyState } from "@/components/EmptyState";
@@ -24,6 +25,7 @@ export default async function ManagerTeamPage({
   searchParams: Promise<{ note?: string }>;
 }) {
   const [{ locale }, queryParams] = await Promise.all([params, searchParams]);
+  const tm = await getTranslations({ locale, namespace: "manager" });
 
   if (!hasSupabaseServerConfig()) {
     return (
@@ -42,7 +44,7 @@ export default async function ManagerTeamPage({
 
   let insights;
   try {
-    insights = await getManagerInsights(supabase, user.id);
+    insights = await getManagerInsights(supabase, user.id, tm, locale);
   } catch (error) {
     if (error instanceof Error && error.message === "missing_profile") redirect("/auth/repair-profile");
     throw error;

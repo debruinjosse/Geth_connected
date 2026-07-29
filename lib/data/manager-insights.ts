@@ -98,7 +98,14 @@ function getPercentageMix<T extends { value: number }>(items: T[]) {
   return rounded;
 }
 
-export async function getManagerInsights(supabase: SupabaseClient, userId: string): Promise<ManagerInsights> {
+type ManagerTranslator = (key: string, values?: Record<string, string | number | Date>) => string;
+
+export async function getManagerInsights(
+  supabase: SupabaseClient,
+  userId: string,
+  t: ManagerTranslator,
+  locale: string
+): Promise<ManagerInsights> {
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
     .select("first_name, last_name, profile_image")
@@ -115,13 +122,18 @@ export async function getManagerInsights(supabase: SupabaseClient, userId: strin
     .eq("manager_id", userId);
 
   if (teamsError) {
-    throw new Error("Failed to load managed teams.");
+    throw new Error(t("errLoadTeams"));
   }
 
   const managedTeams = teams ?? [];
   const teamIds = managedTeams.map((team) => team.id);
   const teamNameMap = new Map(managedTeams.map((team) => [team.id, team.name]));
-  const teamLabel = managedTeams.length === 1 ? managedTeams[0]?.name ?? "Assigned team" : managedTeams.length ? `${managedTeams.length} managed teams` : "No team assigned";
+  const teamLabel =
+    managedTeams.length === 1
+      ? managedTeams[0]?.name ?? t("assignedTeam")
+      : managedTeams.length
+        ? t("managedTeams", { count: managedTeams.length })
+        : t("noTeam");
 
   if (!teamIds.length) {
     return {
@@ -150,7 +162,7 @@ export async function getManagerInsights(supabase: SupabaseClient, userId: strin
   ]);
 
   if (membersError || recognitionsError) {
-    throw new Error("Failed to load manager team data.");
+    throw new Error(t("errLoadTeamData"));
   }
 
   const memberRows = (members ?? []) as Array<{ id: string; first_name: string | null; last_name: string | null; team_id: string | null }>;
@@ -197,12 +209,12 @@ export async function getManagerInsights(supabase: SupabaseClient, userId: strin
     const topQuality =
       topCategory && topCategory[1] >= 3
         ? getAnalyticCategoryLabel(topCategory[0])
-        : topCard?.[0] ?? "No recognitions yet";
+        : topCard?.[0] ?? t("noRecognitionsYet");
 
     return {
       id: member.id,
-      name: `${member.first_name ?? ""} ${member.last_name ?? ""}`.trim() || "Team member",
-      team: teamNameMap.get(member.team_id ?? "") ?? "Assigned team",
+      name: `${member.first_name ?? ""} ${member.last_name ?? ""}`.trim() || t("teamMember"),
+      team: teamNameMap.get(member.team_id ?? "") ?? t("assignedTeam"),
       cardsReceived: received.length,
       cardsGiven: given.length,
       trend: getTrendForDates(received.map((recognition) => recognition.created_at)),
@@ -222,26 +234,26 @@ export async function getManagerInsights(supabase: SupabaseClient, userId: strin
       signalItems.push({
         id: `signal-gap-${member.id}`,
         tone: "var(--theme-red)",
-        title: `${member.name} has no card activity yet`,
-        detail: "They have not received or given a card. Create a recognition moment to get them started.",
-        actionLabel: "Send a note",
+        title: t("signalNoActivityTitle", { name: member.name }),
+        detail: t("signalNoActivityDetail"),
+        actionLabel: t("signalSendNote"),
         actionHref: "/manager/team"
       });
     } else if (Date.now() - latestActivityAt >= INACTIVITY_SIGNAL_MS) {
       signalItems.push({
         id: `signal-inactive-${member.id}`,
         tone: "var(--theme-red)",
-        title: `${member.name} has had no card activity for ${getWeeksSince(latestActivityAt)} weeks`,
-        detail: "No cards received or given recently. Check in and help restart recognition momentum.",
-        actionLabel: "Send a note",
+        title: t("signalInactiveTitle", { name: member.name, weeks: getWeeksSince(latestActivityAt) }),
+        detail: t("signalInactiveDetail"),
+        actionLabel: t("signalSendNote"),
         actionHref: "/manager/team"
       });
     } else if (member.energy === "LAAG") {
       signalItems.push({
         id: `signal-low-${member.id}`,
         tone: "var(--theme-gold)",
-        title: `${member.name} needs recognition support`,
-        detail: "Recognition activity is present, but the recent rhythm is below the team average."
+        title: t("signalLowTitle", { name: member.name }),
+        detail: t("signalLowDetail")
       });
     }
   }
@@ -254,8 +266,8 @@ export async function getManagerInsights(supabase: SupabaseClient, userId: strin
       signalItems.push({
         id: `signal-card-repeat-${member.id}-${topCard[0]}`,
         tone: categoryColors[topCard[1].category] ?? "var(--theme-emerald)",
-        title: `${member.name}: ${topCard[0]} x${topCard[1].value}`,
-        detail: `This repeated card pattern is becoming a visible strength for ${member.name}.`
+        title: t("signalRepeatTitle", { name: member.name, card: topCard[0], count: topCard[1].value }),
+        detail: t("signalRepeatDetail", { name: member.name })
       });
     }
 
@@ -263,8 +275,8 @@ export async function getManagerInsights(supabase: SupabaseClient, userId: strin
       signalItems.push({
         id: `signal-category-${member.id}-${topCategory[0]}`,
         tone: categoryColors[topCategory[0]] ?? "var(--theme-gold)",
-        title: `${member.name} is a ${getAnalyticCategoryLabel(topCategory[0]).toLowerCase()}`,
-        detail: `${topCategory[1]} recognitions point to a clear ${topCategory[0].toLowerCase()} strength.`
+        title: t("signalCategoryTitle", { name: member.name, quality: getAnalyticCategoryLabel(topCategory[0]).toLowerCase() }),
+        detail: t("signalCategoryDetail", { count: topCategory[1], category: topCategory[0].toLowerCase() })
       });
     }
 
@@ -272,8 +284,8 @@ export async function getManagerInsights(supabase: SupabaseClient, userId: strin
       signalItems.push({
         id: `signal-streak-${member.id}`,
         tone: "var(--theme-emerald)",
-        title: `${member.name} has a 5-card recognition streak`,
-        detail: "This employee is receiving repeated peer validation and should be celebrated."
+        title: t("signalStreakTitle", { name: member.name }),
+        detail: t("signalStreakDetail")
       });
     }
   }
@@ -293,8 +305,8 @@ export async function getManagerInsights(supabase: SupabaseClient, userId: strin
     signalItems.push({
       id: "signal-team-momentum",
       tone: "var(--theme-emerald)",
-      title: "Recognition momentum is high",
-      detail: `${activeMemberCount} of ${teamRows.length} employees received or gave cards in the last 30 days.`
+      title: t("signalMomentumTitle"),
+      detail: t("signalMomentumDetail", { active: activeMemberCount, total: teamRows.length })
     });
   }
 
@@ -302,14 +314,14 @@ export async function getManagerInsights(supabase: SupabaseClient, userId: strin
     signalItems.push({
       id: "signal-positive",
       tone: "var(--theme-emerald)",
-      title: "Recognition momentum is healthy",
-      detail: "Every team member has recognition activity in the current dataset."
+      title: t("signalHealthyTitle"),
+      detail: t("signalHealthyDetail")
     });
   }
 
   const monthWindows = Array.from({ length: 6 }, (_, index) => {
     const date = new Date(new Date().getFullYear(), new Date().getMonth() - (5 - index), 1);
-    return { key: getMonthKey(date), label: new Intl.DateTimeFormat("en", { month: "short" }).format(date) };
+    return { key: getMonthKey(date), label: new Intl.DateTimeFormat(locale, { month: "short" }).format(date) };
   });
 
   return {
