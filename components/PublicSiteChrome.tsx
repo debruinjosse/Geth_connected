@@ -3,13 +3,15 @@ import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
 import { BrandLogo } from "@/components/BrandLogo";
 import { GoogleTranslateWidget } from "@/components/GoogleTranslateWidget";
+import { PublicMobileNav } from "@/components/PublicMobileNav";
 import { getRouteForAppRole, normalizeAppRole } from "@/lib/auth/roles";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 const navLinks = [
   { href: "/#how-it-works", labelKey: "howItWorks" },
   { href: "/pricing", labelKey: "pricing" },
-  { href: "/resources", labelKey: "support" }
+  { href: "/resources", labelKey: "support" },
+  { href: "/vision-mission", labelKey: "visionMission" }
 ];
 
 function localizeHref(href: string, locale: string) {
@@ -75,31 +77,31 @@ export async function PublicSiteChrome({
   const locale = localeOverride ?? await getLocale();
   const nav = await getTranslations({ locale, namespace: "nav" });
   const footer = await getTranslations({ locale, namespace: "footer" });
+  const home = await getTranslations({ locale, namespace: "home" });
   const localizedCtaHref = localizeHref(ctaHref, locale);
+  const localizedNavLinks = navLinks.map((link) => ({
+    href: localizeHref(link.href, locale),
+    label: nav(link.labelKey)
+  }));
+  const localizedDashboardHref = signedInUser ? localizeHref(signedInUser.dashboardHref, locale) : undefined;
 
   return (
     <main>
       <header className="site-header">
         <div className="pageContainer site-header-inner">
-          <BrandLogo href={`/${locale}`} />
+          <BrandLogo href={`/${locale}`} tagline />
           <nav className="site-nav" aria-label="Main navigation">
-            {navLinks.map((link) => (
-              <Link key={link.href} href={localizeHref(link.href, locale)}>
-                {nav(link.labelKey)}
+            {localizedNavLinks.map((link) => (
+              <Link key={link.href} href={link.href}>
+                {link.label}
               </Link>
             ))}
-            <details className="site-nav-menu">
-              <summary className="site-nav-menu-trigger">{nav("aboutUs")}</summary>
-              <div className="site-nav-submenu">
-                <Link href={localizeHref("/vision-mission", locale)}>{nav("visionMission")}</Link>
-              </div>
-            </details>
           </nav>
           <div className="site-actions">
             {signedInUser ? (
               <>
-                <Link className="site-user-link" href={localizeHref(signedInUser.dashboardHref, locale)}>{nav("hi", { name: signedInUser.name })}</Link>
-                <Link className="btn btn-primary site-primary-cta" href={localizeHref(signedInUser.dashboardHref, locale)}>
+                <Link className="site-user-link" href={localizedDashboardHref ?? `/${locale}`}>{nav("hi", { name: signedInUser.name })}</Link>
+                <Link className="btn btn-primary site-primary-cta" href={localizedDashboardHref ?? `/${locale}`}>
                   {nav("openDashboard")}
                 </Link>
                 <GoogleTranslateWidget />
@@ -115,6 +117,21 @@ export async function PublicSiteChrome({
               </>
             )}
           </div>
+          <PublicMobileNav
+            links={localizedNavLinks}
+            loginLabel={nav("login")}
+            loginHref={localizeHref("/login", locale)}
+            bookDemoLabel={nav("bookDemo")}
+            bookDemoHref={localizedCtaHref}
+            registerCompanyLabel={home("registerCompany")}
+            registerCompanyHref={localizeHref("/signup?role=company_admin", locale)}
+            menuLabel={nav("menu")}
+            closeLabel={nav("closeMenu")}
+            signedIn={Boolean(signedInUser)}
+            dashboardLabel={nav("openDashboard")}
+            dashboardHref={localizedDashboardHref}
+            signOutLabel={nav("signOut")}
+          />
         </div>
       </header>
 

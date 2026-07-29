@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { DashboardShell } from "@/components/DashboardShell";
 import { EmptyState } from "@/components/EmptyState";
-import { getCanonicalCardBySlugOrNumber, getLocalizedCardTitle } from "@/lib/cards";
+import { getLocalizedCardTitle } from "@/lib/cards";
 import { currentUser, employeeMessages } from "@/lib/demo-data";
 import { getUnreadNotificationCount } from "@/lib/notifications";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -104,9 +104,8 @@ export default async function EmployeeMessagesPage({ params }: { params: Promise
             <div className="signal-list">
               {messages.map((message) => {
                 const card = Array.isArray(message.card) ? message.card[0] : message.card;
-                const canonicalCard = card ? getCanonicalCardBySlugOrNumber(card.card_number, card.qr_slug) : null;
                 const cardTitle = card
-                  ? getLocalizedCardTitle({ title: canonicalCard?.title ?? card.title, slug: canonicalCard?.slug ?? card.qr_slug ?? undefined }, locale)
+                  ? getLocalizedCardTitle({ title: card.title, slug: card.qr_slug ?? undefined }, locale)
                   : "your recognition";
                 const giver =
                   (message.giver_user_id ? giverMap.get(message.giver_user_id) : null) ||

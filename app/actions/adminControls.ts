@@ -290,3 +290,48 @@ export async function updateCardActiveAction(formData: FormData) {
   revalidatePath("/admin/qr-routes");
   revalidatePath("/cards");
 }
+
+export async function updateCardContentAction(formData: FormData) {
+  const cardId = String(formData.get("cardId") ?? "").trim();
+  const title = String(formData.get("title") ?? "").trim();
+  const category = String(formData.get("category") ?? "").trim();
+  const description = String(formData.get("description") ?? "").trim();
+  const recognitionSentence = String(formData.get("recognitionSentence") ?? "").trim();
+
+  if (!cardId || !title || !category || !description || !recognitionSentence) {
+    return;
+  }
+
+  const auth = await requirePlatformAdmin();
+  if (!auth.ok) {
+    return;
+  }
+
+  const { error } = await auth.supabase
+    .from("card_library")
+    .update({
+      title,
+      category,
+      description,
+      recognition_sentence: recognitionSentence
+    })
+    .eq("id", cardId);
+
+  if (error) {
+    return;
+  }
+
+  revalidatePath("/admin/cards");
+  revalidatePath("/admin/analytics");
+  revalidatePath("/admin/qr-routes");
+  revalidatePath("/company/cards");
+  revalidatePath("/company/reports");
+  revalidatePath("/manager");
+  revalidatePath("/manager/analytics");
+  revalidatePath("/manager/reports");
+  revalidatePath("/employee");
+  revalidatePath("/employee/cards");
+  revalidatePath("/employee/growth");
+  revalidatePath("/employee/messages");
+  revalidatePath("/cards");
+}

@@ -24,7 +24,9 @@
     "bookDemo": "Demo boeken",
     "openDashboard": "Dashboard openen",
     "signOut": "Uitloggen",
-    "hi": "Hi, {name}"
+    "hi": "Hi, {name}",
+    "menu": "Menu",
+    "closeMenu": "Menu sluiten"
   },
   "home": {
     "eyebrow": "Herkennen om energie te geven",
@@ -206,7 +208,7 @@
     "topQualities": "Topkwaliteiten bedrijfsbreed",
     "recognitionActivity": "Erkenningsactiviteit",
     "recognitionActivityChartLabel": "Erkenningsactiviteit over de laatste zes maanden",
-    "teamComparison": "Teamvergelijking",
+    "teamComparison": "Teambetrokkenheid",
     "previous": "vorige",
     "emptyRecognitionsEyebrow": "Nog geen erkenningen",
     "emptyCategoryTitle": "Categorie-inzichten verschijnen hier",
@@ -217,7 +219,7 @@
     "emptyTrendEyebrow": "Trend niet beschikbaar",
     "emptyTrendTitle": "Erkenningsactiviteit heeft bedrijfsactiviteit nodig",
     "emptyTrendCopy": "Maandelijkse voortgang verschijnt hier zodra erkenningen door het bedrijf stromen.",
-    "teamComparisonWaiting": "Teams zijn geladen. Erkenningstotalen worden ingevuld zodra activiteit wordt geclaimd.",
+    "teamComparisonWaiting": "Teams zijn geladen. Betrokkenheid verschijnt zodra medewerkers of managers erkenningen geven of ontvangen.",
     "emptyTeamsEyebrow": "Nog geen teams",
     "emptyTeamsTitle": "Maak teams aan om momentum te vergelijken",
     "emptyTeamsCopy": "Zodra je bedrijf teams heeft, vergelijkt dit paneel de erkenningsactiviteit per team."
@@ -274,6 +276,8 @@
     "generatedInvoicesCopy": "Download officiele GETH-factuur-PDF's met factuurnummer, btw, vervaldatum en betalingsreferentie.",
     "status": "Status",
     "total": "Totaal",
+    "billingPeriod": "Factuurperiode",
+    "users": "Gebruikers",
     "dueDate": "Vervaldatum",
     "email": "Email",
     "pdf": "PDF",

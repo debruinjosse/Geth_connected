@@ -24,7 +24,8 @@ export default async function ManagerSettingsPage({
   searchParams: Promise<{ settings?: string }>;
 }) {
   const [{ settings }, locale] = await Promise.all([searchParams, getLocale()]);
-  const returnTo = `/${locale}/manager/settings`;
+  const managerBase = `/${locale}/manager`;
+  const returnTo = `${managerBase}/settings`;
 
   if (!hasSupabaseServerConfig()) {
     return (
@@ -35,8 +36,8 @@ export default async function ManagerSettingsPage({
             <EmptyState title="Demo mode" copy="Connect Supabase to load real manager settings and team context." />
           </article>
           <article className="panel dashboard-panel manager-action-panel">
-            <Link className="manager-action-card" href="/manager/team"><UsersRound size={18} /> Open team members</Link>
-            <Link className="manager-action-card" href="/manager/signals"><Activity size={18} /> Review signals</Link>
+            <Link className="manager-action-card" href={`${managerBase}/team`}><UsersRound size={18} /> Open team members</Link>
+            <Link className="manager-action-card" href={`${managerBase}/signals`}><Activity size={18} /> Review signals</Link>
           </article>
         </section>
       </DashboardShell>
@@ -49,13 +50,13 @@ export default async function ManagerSettingsPage({
     error: userError
   } = await supabase.auth.getUser();
 
-  if (userError || !user) redirect("/login?next=/manager/settings");
+  if (userError || !user) redirect(`/${locale}/login?next=${encodeURIComponent(returnTo)}`);
 
   let insights;
   try {
     insights = await getManagerInsights(supabase, user.id);
   } catch (error) {
-    if (error instanceof Error && error.message === "missing_profile") redirect("/auth/repair-profile?next=/manager/settings");
+    if (error instanceof Error && error.message === "missing_profile") redirect(`/auth/repair-profile?next=${encodeURIComponent(returnTo)}`);
     throw error;
   }
 
@@ -108,9 +109,9 @@ export default async function ManagerSettingsPage({
               <p>Jump to the manager tools connected to this workspace.</p>
             </div>
           </div>
-          <Link className="manager-action-card" href="/manager/team"><UsersRound size={18} /> Open team members</Link>
-          <Link className="manager-action-card" href="/manager/signals"><Activity size={18} /> Review team signals</Link>
-          <Link className="manager-action-card" href="/manager/analytics"><Settings size={18} /> Review analytics</Link>
+          <Link className="manager-action-card" href={`${managerBase}/team`}><UsersRound size={18} /> Open team members</Link>
+          <Link className="manager-action-card" href={`${managerBase}/signals`}><Activity size={18} /> Review team signals</Link>
+          <Link className="manager-action-card" href={`${managerBase}/analytics`}><Settings size={18} /> Review analytics</Link>
         </article>
       </section>
     </DashboardShell>

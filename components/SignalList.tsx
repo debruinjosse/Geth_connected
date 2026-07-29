@@ -1,6 +1,16 @@
 import type { CSSProperties } from "react";
+import Link from "next/link";
+import { getLocale } from "next-intl/server";
 
-export function SignalList({
+function localizeHref(href: string, locale: string) {
+  if (!href.startsWith("/") || href.startsWith("/api") || href.startsWith("/auth")) {
+    return href;
+  }
+
+  return `/${locale}${href}`;
+}
+
+export async function SignalList({
   items
 }: {
   items: Array<{
@@ -8,9 +18,13 @@ export function SignalList({
     tone: string;
     title: string;
     detail: string;
+    actionLabel?: string;
+    actionHref?: string;
     highlights?: Array<{ label: string; category: string; count: number; tone: string }>;
   }>;
 }) {
+  const locale = await getLocale();
+
   return (
     <div className="signal-list">
       {items.map((signal) => (
@@ -31,6 +45,11 @@ export function SignalList({
                     </span>
                   ))}
                 </div>
+              ) : null}
+              {signal.actionHref && signal.actionLabel ? (
+                <Link className="signal-action-link" href={localizeHref(signal.actionHref, locale)}>
+                  {signal.actionLabel}
+                </Link>
               ) : null}
             </div>
           </div>

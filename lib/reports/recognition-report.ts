@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { getCanonicalCardBySlugOrNumber, getCategoryDisplayName } from "@/lib/cards";
+import { getCategoryDisplayName } from "@/lib/cards";
 
 export type RecognitionReportRange = {
   from: string;
@@ -140,7 +140,6 @@ export async function fetchRecognitionReportRows(
 
   return events.map((event) => {
     const card = getSingle(event.card);
-    const canonicalCard = card ? getCanonicalCardBySlugOrNumber(card.card_number, card.qr_slug) : null;
     const team = getSingle(event.team);
     const receiver = getProfileDisplayName(profileMap.get(event.receiver_user_id)) || "Unknown receiver";
     const giver =
@@ -154,8 +153,8 @@ export async function fetchRecognitionReportRows(
       recognitionDate: event.created_at,
       receiver,
       giver,
-      cardTitle: canonicalCard?.title ?? card?.title ?? "Unknown card",
-      category: card ? getCategoryDisplayName(canonicalCard?.category ?? card.category) : "Uncategorized",
+      cardTitle: card?.title ?? "Unknown card",
+      category: card ? getCategoryDisplayName(card.category) : "Uncategorized",
       team: team?.name ?? "Unassigned",
       personalNote: event.personal_note ?? ""
     };

@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
-import { FileText } from "lucide-react";
-import { requestInvoicePaymentAction } from "@/app/actions/billing";
+import { AdminInvoiceForm } from "@/components/AdminInvoiceForm";
+import { BrandLogo } from "@/components/BrandLogo";
 import { DashboardShell } from "@/components/DashboardShell";
 import { EmptyState } from "@/components/EmptyState";
 import { subscriptions, superAdminUser } from "@/lib/demo-data";
@@ -34,6 +34,10 @@ function getBillingMessage(code?: string) {
       return "Invoice request could not be saved. Please check the billing details and try again.";
     case "invoice_not_enabled":
       return "Invoice payment is not enabled for this plan.";
+    case "custom_amount_required":
+      return "Enterprise/custom plans need a custom invoice amount before the invoice can be generated.";
+    case "invalid_invoice_inputs":
+      return "Choose a billing interval and enter a valid number of users per month.";
     case "unauthorized":
       return "Only the GETH owner/super admin can manage billing.";
     default:
@@ -136,6 +140,22 @@ export default async function AdminSubscriptionsPage({
       }}
       unreadNotifications={unreadNotifications}
     >
+      <section className="panel dashboard-panel admin-invoice-hero">
+        <div>
+          <BrandLogo compact tagline interactive={false} />
+          <span className="eyebrow">Owner invoice console</span>
+          <h2>Generate polished GETH invoices</h2>
+          <p>
+            Create European invoice-based payment documents with seller details, VAT, payment reference, and a downloadable PDF for the company admin.
+          </p>
+        </div>
+        <div className="admin-invoice-hero-card" aria-hidden="true">
+          <span>GETH</span>
+          <strong>Invoice</strong>
+          <small>Logo · VAT · IBAN · PDF</small>
+        </div>
+      </section>
+
       {message ? (
         <section className="panel dashboard-panel billing-status-banner">
           <strong>{message}</strong>
@@ -168,53 +188,7 @@ export default async function AdminSubscriptionsPage({
           </div>
         </div>
         {companies?.length && plans?.length ? (
-          <form action={requestInvoicePaymentAction} className="form-grid admin-company-create-form">
-            <input type="hidden" name="locale" value={locale} />
-            <div className="form-field">
-              <label htmlFor="companyId">Company</label>
-              <select id="companyId" className="input" name="companyId" required>
-                <option value="">Choose company</option>
-                {companies.map((company) => (
-                  <option key={company.id} value={company.id}>{company.company_name}</option>
-                ))}
-              </select>
-            </div>
-            <div className="form-field">
-              <label htmlFor="planId">Plan</label>
-              <select id="planId" className="input" name="planId" required>
-                <option value="">Choose plan</option>
-                {plans.map((plan) => (
-                  <option key={plan.id} value={plan.id} disabled={plan.invoice_enabled === false}>
-                    {plan.name} - {plan.currency.toUpperCase()} {(plan.price_cents / 100).toFixed(2)} / {plan.interval}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="form-field">
-              <label htmlFor="billingEmail">Billing email</label>
-              <input id="billingEmail" className="input" name="billingEmail" type="email" placeholder="finance@company.eu" required />
-            </div>
-            <div className="form-field">
-              <label htmlFor="vatNumber">VAT number</label>
-              <input id="vatNumber" className="input" name="vatNumber" placeholder="EU VAT number, if applicable" />
-            </div>
-            <div className="form-field">
-              <label htmlFor="purchaseOrderNumber">Purchase order</label>
-              <input id="purchaseOrderNumber" className="input" name="purchaseOrderNumber" placeholder="Optional PO number" />
-            </div>
-            <div className="form-field">
-              <label htmlFor="billingAddress">Billing address</label>
-              <textarea id="billingAddress" className="input" name="billingAddress" rows={3} placeholder="Company legal billing address" required />
-            </div>
-            <div className="form-field">
-              <label htmlFor="notes">Notes</label>
-              <textarea id="notes" className="input" name="notes" rows={3} placeholder="Payment terms, onboarding notes, or admin invite reminder" />
-            </div>
-            <div className="form-field admin-company-create-submit">
-              <span className="field-help">After payment is confirmed, create or send the company admin invite so they can add managers and employees.</span>
-              <button className="btn btn-primary" type="submit"><FileText size={16} /> Generate invoice</button>
-            </div>
-          </form>
+          <AdminInvoiceForm companies={companies} plans={plans} locale={locale} />
         ) : (
           <EmptyState eyebrow="Setup needed" title="Companies or plans missing" copy="Create a company workspace and seed billing plans before generating invoices." />
         )}

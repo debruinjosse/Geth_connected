@@ -8,6 +8,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 type QrRouteRow = {
   id: string;
   title: string;
+  category: string;
   qr_slug: string;
   active: boolean;
 };
@@ -48,7 +49,7 @@ export default async function AdminQrRoutesPage({ params }: { params: Promise<{ 
   const [{ data: routes, error }, { data: recognitions, error: recognitionsError }] = await Promise.all([
     supabase
       .from("card_library")
-      .select("id, title, qr_slug, active")
+      .select("id, title, category, qr_slug, active")
       .order("qr_slug", { ascending: true }),
     supabase.from("recognition_events").select("card_id")
   ]);
@@ -74,15 +75,16 @@ export default async function AdminQrRoutesPage({ params }: { params: Promise<{ 
       actions={<Link className="btn btn-secondary compact" href={`/${locale}/admin/cards`}>Manage cards</Link>}
     >
       <article className="panel dashboard-panel">
-        <div className="table-wrap">
+        <div className="table-wrap admin-table-scroll">
           {routes?.length ? (
             <table className="dashboard-table">
-              <thead><tr><th>Slug</th><th>Card</th><th>Destination</th><th>Status</th><th>Claims</th></tr></thead>
+              <thead><tr><th>Slug</th><th>Card</th><th>Category</th><th>Destination</th><th>Status</th><th>Claims</th></tr></thead>
               <tbody>
                 {(routes as QrRouteRow[]).map((route) => (
                   <tr key={route.id}>
                     <td><strong>{route.qr_slug}</strong></td>
                     <td>{route.title}</td>
+                    <td>{route.category}</td>
                     <td><Link className="panel-link" href={`/${locale}/claim-card/${route.qr_slug}`}>/{locale}/claim-card/{route.qr_slug}</Link></td>
                     <td><span className="admin-status-pill">{route.active ? "active" : "paused"}</span></td>
                     <td>{usageCounts.get(route.id) ?? 0}</td>

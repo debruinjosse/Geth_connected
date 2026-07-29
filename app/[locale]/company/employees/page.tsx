@@ -20,6 +20,10 @@ function getAppUrl() {
   return process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 }
 
+function formatRole(role: string) {
+  return role === "manager" ? "Manager" : "Employee";
+}
+
 function renderDemoEmployees() {
   return (
     <DashboardShell role="company" title="Employees" subtitle="Manage employee records, participation, and recognition visibility." user={companyAdmin}>
@@ -81,13 +85,13 @@ export default async function CompanyEmployeesPage() {
         .from("profiles")
         .select("id, first_name, last_name, email, team_id, department_id, status, role, team:teams!profiles_team_id_fkey(name), department:departments!profiles_department_id_fkey(name)")
         .eq("company_id", adminProfile.company_id)
-        .eq("role", "employee")
+        .in("role", ["employee", "manager"])
         .order("first_name"),
       supabase
         .from("invitations")
         .select("id, email, role, status, team_id, department_id, token, team:teams(name), department:departments!invitations_department_id_fkey(name)")
         .eq("company_id", adminProfile.company_id)
-        .eq("role", "employee")
+        .in("role", ["employee", "manager"])
         .eq("status", "pending")
         .order("created_at", { ascending: false }),
       supabase
@@ -129,7 +133,7 @@ export default async function CompanyEmployeesPage() {
                     return (
                       <tr key={employee.id}>
                         <td><strong>{`${employee.first_name} ${employee.last_name}`.trim()}</strong></td>
-                        <td>Employee</td>
+                        <td>{formatRole(employee.role)}</td>
                         <td>{department?.name ?? team?.name ?? "Unassigned"}</td>
                         <td>{team?.name ?? "Unassigned"}</td>
                         <td>{employee.status}</td>
@@ -143,7 +147,7 @@ export default async function CompanyEmployeesPage() {
                     return (
                       <tr key={invite.id}>
                         <td><strong>{invite.email}</strong></td>
-                        <td>Employee</td>
+                        <td>{formatRole(invite.role)}</td>
                         <td>{department?.name ?? team?.name ?? "Assign later"}</td>
                         <td>{team?.name ?? "Assign later"}</td>
                         <td>pending invite</td>
@@ -182,7 +186,7 @@ export default async function CompanyEmployeesPage() {
               id: employee.id,
               name: `${employee.first_name} ${employee.last_name}`.trim(),
               email: employee.email,
-              role: "employee",
+              role: employee.role === "manager" ? "manager" : "employee",
               teamId: employee.team_id,
               teamName: team?.name ?? "Unassigned",
               status: employee.status,
@@ -194,7 +198,7 @@ export default async function CompanyEmployeesPage() {
             return {
               id: invite.id,
               email: invite.email,
-              role: "employee",
+              role: invite.role === "manager" ? "manager" : "employee",
               teamName: team?.name ?? "Assign later",
               inviteLink: `${getAppUrl()}/invite/${invite.token}`
             };

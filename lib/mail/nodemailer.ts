@@ -303,22 +303,27 @@ export async function sendDemoBookingDecisionEmail({
   to: string;
   requesterName: string;
   company: string;
-  status: "approved" | "declined";
+  status: "approved" | "declined" | "rescheduled";
   preferredSlot: string;
   adminNote: string;
   ics?: string;
 }) {
   const approved = status === "approved";
+  const rescheduled = status === "rescheduled";
   const text = [
     `Hi ${requesterName},`,
     "",
     approved
       ? `Your GETH demo for ${company} has been approved.`
-      : `Thanks for your interest in GETH. We cannot confirm the requested demo slot for ${company} yet.`,
-    `Requested slot: ${preferredSlot}`,
+      : rescheduled
+        ? `Your GETH demo for ${company} has been rescheduled.`
+        : `Thanks for your interest in GETH. We cannot confirm the requested demo slot for ${company} yet.`,
+    `${rescheduled ? "New slot" : "Requested slot"}: ${preferredSlot}`,
     adminNote ? `Note: ${adminNote}` : "",
     "",
-    approved ? "A calendar file is attached so you can add it to Google Calendar, Outlook, or Apple Calendar." : "Please reply to this email and we will find another suitable time."
+    approved || rescheduled
+      ? "A calendar file is attached so you can add it to Google Calendar, Outlook, or Apple Calendar."
+      : "Please reply to this email and we will find another suitable time."
   ].filter(Boolean).join("\n");
 
   try {
@@ -327,7 +332,7 @@ export async function sendDemoBookingDecisionEmail({
       from: config.from,
       replyTo: config.replyTo,
       to,
-      subject: approved ? "Your GETH demo is confirmed" : "GETH demo request update",
+      subject: approved ? "Your GETH demo is confirmed" : rescheduled ? "Your GETH demo has been rescheduled" : "GETH demo request update",
       text,
       ...(ics
         ? {

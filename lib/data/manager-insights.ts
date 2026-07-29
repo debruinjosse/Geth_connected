@@ -1,7 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { QualityBarItem } from "@/components/QualityBars";
 import type { TeamMemberRow } from "@/components/TeamTable";
-import { categoryColors, getAnalyticCategoryLabel, getCanonicalCardBySlugOrNumber } from "@/lib/cards";
+import { categoryColors, getAnalyticCategoryLabel } from "@/lib/cards";
 
 export type ManagerInsights = {
   profile: {
@@ -12,13 +12,19 @@ export type ManagerInsights = {
   teamLabel: string;
   teamIds: string[];
   teamRows: TeamMemberRow[];
-  signalItems: Array<{ id: string; tone: string; title: string; detail: string }>;
+  signalItems: Array<{ id: string; tone: string; title: string; detail: string; actionLabel?: string; actionHref?: string }>;
   trendPoints: number[];
   trendLabels: string[];
   qualityBars: QualityBarItem[];
   memberComparison: Array<{ label: string; value: number }>;
   recognitionCount: number;
+  activeMemberCount: number;
+  engagementScore: number;
 };
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+const RECENT_ACTIVITY_MS = 30 * DAY_MS;
+const INACTIVITY_SIGNAL_MS = 21 * DAY_MS;
 
 function getMonthKey(date: Date) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
@@ -41,18 +47,17 @@ function getTrendForDates(dates: string[]) {
 }
 
 function getEnergyBucket(totalReceived: number, recentReceived: number): TeamMemberRow["energy"] {
-  if (totalReceived >= 3 || recentReceived >= 2) return "HOOG";
-  if (totalReceived >= 1 || recentReceived >= 1) return "GEMIDDELD";
+  if (recentReceived >= 2) return "HOOG";
+  if (recentReceived >= 1 || totalReceived >= 1) return "GEMIDDELD";
   return "LAAG";
 }
 
 type JoinedCard = { title: string; category: string; card_number?: number | null; qr_slug?: string | null };
 
 function getDisplayCard(card: JoinedCard) {
-  const canonicalCard = getCanonicalCardBySlugOrNumber(card.card_number, card.qr_slug);
   return {
-    title: canonicalCard?.title ?? card.title,
-    category: canonicalCard?.category ?? card.category
+    title: card.title,
+    category: card.category
   };
 }
 
@@ -73,6 +78,24 @@ function countByCard(received: Array<{ card: JoinedCard | Array<JoinedCard> | nu
   const topCategory = Array.from(categoryCounts.entries()).sort((a, b) => b[1] - a[1])[0];
 
   return { cardCounts, categoryCounts, topCard, topCategory };
+}
+
+function getLatestActivityTime(rows: Array<{ created_at: string }>) {
+  return rows.reduce((latest, row) => Math.max(latest, new Date(row.created_at).getTime()), 0);
+}
+
+function getWeeksSince(timestamp: number) {
+  return Math.max(3, Math.floor((Date.now() - timestamp) / (7 * DAY_MS)));
+}
+
+function getPercentageMix<T extends { value: number }>(items: T[]) {
+  const total = items.reduce((sum, item) => sum + item.value, 0);
+  if (!total) return items.map(() => 0);
+
+  const rounded = items.map((item) => Math.round((item.value / total) * 100));
+  const drift = 100 - rounded.reduce((sum, value) => sum + value, 0);
+  if (rounded.length) rounded[0] += drift;
+  return rounded;
 }
 
 export async function getManagerInsights(supabase: SupabaseClient, userId: string): Promise<ManagerInsights> {
@@ -111,7 +134,9 @@ export async function getManagerInsights(supabase: SupabaseClient, userId: strin
       trendLabels: Array.from({ length: 6 }, (_, index) => new Intl.DateTimeFormat("en", { month: "short" }).format(new Date(new Date().getFullYear(), new Date().getMonth() - (5 - index), 1))),
       qualityBars: [],
       memberComparison: [],
-      recognitionCount: 0
+      recognitionCount: 0,
+      activeMemberCount: 0,
+      engagementScore: 0
     };
   }
 
@@ -167,7 +192,7 @@ export async function getManagerInsights(supabase: SupabaseClient, userId: strin
   const teamRows: TeamMemberRow[] = memberRows.map((member) => {
     const received = recognitionsByReceiver.get(member.id) ?? [];
     const given = recognitionsByGiver.get(member.id) ?? [];
-    const recentReceived = received.filter((recognition) => Date.now() - new Date(recognition.created_at).getTime() <= 30 * 24 * 60 * 60 * 1000).length;
+    const recentReceived = received.filter((recognition) => Date.now() - new Date(recognition.created_at).getTime() <= RECENT_ACTIVITY_MS).length;
     const { topCard, topCategory } = countByCard(received);
     const topQuality =
       topCategory && topCategory[1] >= 3
@@ -189,12 +214,27 @@ export async function getManagerInsights(supabase: SupabaseClient, userId: strin
   const signalItems: ManagerInsights["signalItems"] = [];
 
   for (const member of teamRows) {
-    if (member.cardsReceived === 0) {
+    const received = recognitionsByReceiver.get(member.id) ?? [];
+    const given = recognitionsByGiver.get(member.id) ?? [];
+    const latestActivityAt = getLatestActivityTime([...received, ...given]);
+
+    if (!latestActivityAt) {
       signalItems.push({
         id: `signal-gap-${member.id}`,
         tone: "var(--theme-red)",
-        title: `${member.name} has not received a card yet`,
-        detail: "Create a moment of recognition to get them started."
+        title: `${member.name} has no card activity yet`,
+        detail: "They have not received or given a card. Create a recognition moment to get them started.",
+        actionLabel: "Send a note",
+        actionHref: "/manager/team"
+      });
+    } else if (Date.now() - latestActivityAt >= INACTIVITY_SIGNAL_MS) {
+      signalItems.push({
+        id: `signal-inactive-${member.id}`,
+        tone: "var(--theme-red)",
+        title: `${member.name} has had no card activity for ${getWeeksSince(latestActivityAt)} weeks`,
+        detail: "No cards received or given recently. Check in and help restart recognition momentum.",
+        actionLabel: "Send a note",
+        actionHref: "/manager/team"
       });
     } else if (member.energy === "LAAG") {
       signalItems.push({
@@ -239,19 +279,22 @@ export async function getManagerInsights(supabase: SupabaseClient, userId: strin
   }
 
   const thirtyDaysAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
-  const recentlyRecognizedEmployees = new Set(
-    recognitions
-      .filter((recognition) => new Date(recognition.created_at).getTime() >= thirtyDaysAgo)
-      .map((recognition) => recognition.receiver_user_id)
-  );
-  const activeShare = teamRows.length ? recentlyRecognizedEmployees.size / teamRows.length : 0;
+  const activeEmployeeIds = new Set<string>();
+  for (const recognition of recognitions) {
+    if (new Date(recognition.created_at).getTime() < thirtyDaysAgo) continue;
+    if (memberIds.has(recognition.receiver_user_id)) activeEmployeeIds.add(recognition.receiver_user_id);
+    if (recognition.giver_user_id && memberIds.has(recognition.giver_user_id)) activeEmployeeIds.add(recognition.giver_user_id);
+  }
+  const activeMemberCount = activeEmployeeIds.size;
+  const engagementScore = teamRows.length ? Math.round((activeMemberCount / teamRows.length) * 100) : 0;
+  const activeShare = teamRows.length ? activeMemberCount / teamRows.length : 0;
 
   if (teamRows.length && activeShare >= 0.7) {
     signalItems.push({
       id: "signal-team-momentum",
       tone: "var(--theme-emerald)",
       title: "Recognition momentum is high",
-      detail: `${recentlyRecognizedEmployees.size} of ${teamRows.length} employees received cards in the last 30 days.`
+      detail: `${activeMemberCount} of ${teamRows.length} employees received or gave cards in the last 30 days.`
     });
   }
 
@@ -277,15 +320,19 @@ export async function getManagerInsights(supabase: SupabaseClient, userId: strin
     signalItems: signalItems.slice(0, 10),
     trendPoints: monthWindows.map((month) => monthlyCounts.get(month.key) ?? 0),
     trendLabels: monthWindows.map((month) => month.label),
-    qualityBars: Array.from(qualityCounts.entries())
-      .sort((a, b) => b[1].value - a[1].value)
-      .slice(0, 6)
-      .map(([label, info]) => ({
+    qualityBars: (() => {
+      const topEntries = Array.from(qualityCounts.entries()).sort((a, b) => b[1].value - a[1].value).slice(0, 6);
+      const percentages = getPercentageMix(topEntries.map(([, info]) => ({ value: info.value })));
+
+      return topEntries.map(([label, info], index) => ({
         label,
-        value: recognitions.length ? Math.round((info.value / recognitions.length) * 100) : 0,
+        value: percentages[index] ?? 0,
         category: info.category
-      })),
+      }));
+    })(),
     memberComparison: teamRows.map((member) => ({ label: member.name, value: member.cardsReceived })).sort((a, b) => b.value - a.value).slice(0, 8),
-    recognitionCount: recognitions.length
+    recognitionCount: recognitions.length,
+    activeMemberCount,
+    engagementScore
   };
 }

@@ -23,6 +23,10 @@ export type InvoiceDocument = {
   vat_rate_bps: number;
   vat_cents: number;
   total_cents: number;
+  billing_interval?: string | null;
+  seat_count?: number | null;
+  unit_price_cents?: number | null;
+  custom_amount_cents?: number | null;
   billing_email: string;
   buyer_name: string;
   buyer_vat_number: string | null;
@@ -146,20 +150,40 @@ function moneyLine(label: string, value: string, y: number) {
   return `${textLine(360, y, label, 10)}\n${textLine(485, y, value, 10, "F2")}`;
 }
 
+function formatInterval(value: string | null | undefined) {
+  return value === "yearly" ? "Yearly" : "Monthly";
+}
+
 export function createInvoicePdf(invoice: InvoiceDocument) {
   const plan = getSingle(invoice.plan);
   const company = getSingle(invoice.company);
   const lines: string[] = [];
+  const seatCount = invoice.seat_count && invoice.seat_count > 0 ? invoice.seat_count : 1;
+  const intervalLabel = formatInterval(invoice.billing_interval);
+  const isCustomAmount = typeof invoice.custom_amount_cents === "number" && invoice.custom_amount_cents > 0;
+  const descriptionParts = [
+    plan?.name ? `GETH ${plan.name} subscription` : "GETH subscription",
+    `${intervalLabel.toLowerCase()} billing`,
+    `${seatCount} user${seatCount === 1 ? "" : "s"}`
+  ];
+  const description = descriptionParts.join(" - ");
 
-  lines.push("0.86 0.64 0.23 rg 48 776 74 28 re f");
-  lines.push(textLine(58, 785, "GETH", 18, "F2"));
-  lines.push(textLine(48, 752, "Recognition platform invoice", 10));
-  lines.push(textLine(390, 786, "INVOICE", 26, "F2"));
-  lines.push(textLine(390, 765, invoice.invoice_number, 11));
+  lines.push("0.08 0.03 0.14 rg 0 738 595 104 re f");
+  lines.push("0.86 0.64 0.23 rg 48 774 38 38 re f");
+  lines.push("1 1 1 rg");
+  lines.push(textLine(59, 787, "G", 20, "F2"));
+  lines.push("0.86 0.64 0.23 rg");
+  lines.push(textLine(98, 795, "GETH", 24, "F2"));
+  lines.push(textLine(100, 778, "RECOGNIZE TO ENERGIZE", 7, "F2"));
+  lines.push("1 1 1 rg");
+  lines.push(textLine(390, 792, "INVOICE", 28, "F2"));
+  lines.push(textLine(390, 770, invoice.invoice_number, 11));
+  lines.push("0 0 0 rg");
+  lines.push(textLine(48, 720, "Recognition platform invoice", 10));
 
-  lines.push(textLine(48, 710, "Seller", 12, "F2"));
-  lines.push(textLine(48, 694, invoice.seller_legal_name, 10));
-  let y = 680;
+  lines.push(textLine(48, 688, "Seller", 12, "F2"));
+  lines.push(textLine(48, 672, invoice.seller_legal_name, 10));
+  let y = 658;
   for (const line of wrapText(invoice.seller_billing_address, 52)) {
     lines.push(textLine(48, y, line, 9));
     y -= 12;
@@ -170,9 +194,9 @@ export function createInvoicePdf(invoice: InvoiceDocument) {
   }
   lines.push(textLine(48, y, invoice.seller_email, 9));
 
-  lines.push(textLine(310, 710, "Bill to", 12, "F2"));
-  lines.push(textLine(310, 694, invoice.buyer_name || company?.company_name || "Customer", 10));
-  y = 680;
+  lines.push(textLine(310, 688, "Bill to", 12, "F2"));
+  lines.push(textLine(310, 672, invoice.buyer_name || company?.company_name || "Customer", 10));
+  y = 658;
   for (const line of wrapText(invoice.buyer_billing_address || "Billing address not provided", 42)) {
     lines.push(textLine(310, y, line, 9));
     y -= 12;
@@ -193,8 +217,13 @@ export function createInvoicePdf(invoice: InvoiceDocument) {
   lines.push("0.95 0.93 0.89 rg 48 545 500 28 re f");
   lines.push(textLine(60, 555, "Description", 10, "F2"));
   lines.push(textLine(455, 555, "Amount", 10, "F2"));
-  lines.push(textLine(60, 520, plan?.name ? `GETH ${plan.name} subscription` : "GETH subscription", 10));
+  lines.push(textLine(60, 520, description, 10));
   lines.push(textLine(455, 520, formatMoney(invoice.subtotal_cents, invoice.currency), 10));
+  if (invoice.unit_price_cents && !isCustomAmount) {
+    lines.push(textLine(60, 502, `Unit price: ${formatMoney(invoice.unit_price_cents, invoice.currency)} per user/month`, 8));
+  } else if (isCustomAmount) {
+    lines.push(textLine(60, 502, "Custom Enterprise amount agreed with the customer.", 8));
+  }
 
   const vatRate = `${(invoice.vat_rate_bps / 100).toFixed(2).replace(/\.00$/, "")}% VAT`;
   lines.push(moneyLine("Subtotal", formatMoney(invoice.subtotal_cents, invoice.currency), 470));

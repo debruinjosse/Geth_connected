@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { DashboardShell } from "@/components/DashboardShell";
 import { EmptyState } from "@/components/EmptyState";
 import { companyAdmin, cardManagementRows } from "@/lib/demo-data";
-import { getCanonicalCardBySlugOrNumber, getCategoryDisplayName } from "@/lib/cards";
+import { getCategoryDisplayName } from "@/lib/cards";
 import { getUnreadNotificationCount } from "@/lib/notifications";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -113,25 +113,21 @@ export default async function CompanyCardsPage({ params }: { params: Promise<{ l
       <article className="panel dashboard-panel">
         {cards?.length ? (
           <div className="company-card-admin-grid">
-            {cards.map((card) => {
-              const canonicalCard = getCanonicalCardBySlugOrNumber(card.card_number, card.qr_slug);
-
-              return (
+            {cards.map((card) => (
                 <article className="company-card-admin-card" key={card.id}>
                   <div>
-                    <span className="eyebrow">{getCategoryDisplayName(canonicalCard?.category ?? card.category)}</span>
-                    <h3>{canonicalCard?.title ?? card.title}</h3>
-                    <p>{canonicalCard?.recognitionSentence ?? card.recognition_sentence}</p>
+                    <span className="eyebrow">{getCategoryDisplayName(card.category)}</span>
+                    <h3>{card.title}</h3>
+                    <p>{card.recognition_sentence}</p>
                   </div>
                   <div className="company-card-admin-meta">
                     <span>#{String(card.card_number).padStart(2, "0")}</span>
                     <span className={`energy ${card.active ? "high" : "low"}`.trim()}>{card.active ? "Active" : "Inactive"}</span>
                     <span>{usageCounts.get(card.id) ?? 0} used</span>
                   </div>
-                  <a className="btn btn-secondary" href={`/${locale}/claim-card/${canonicalCard?.slug ?? card.qr_slug}`}>Open QR route</a>
+                  <a className="btn btn-secondary" href={`/${locale}/claim-card/${card.qr_slug}`}>Open QR route</a>
                 </article>
-              );
-            })}
+              ))}
           </div>
         ) : (
           <EmptyState eyebrow="No cards" title="Card library is empty" copy="Seed the GETH card deck to manage company card routes here." />

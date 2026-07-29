@@ -25,8 +25,6 @@ export function MobileHeroProductPreview({ locale = "en" }: { locale?: string })
           width={560}
           height={797}
           sizes="92px"
-          priority
-          unoptimized
         />
       </div>
 

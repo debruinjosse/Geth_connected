@@ -148,11 +148,18 @@ async function requirePlatformAdmin() {
 
 export async function updateDemoBookingStatusAction(formData: FormData) {
   const bookingId = getValue(formData, "bookingId");
-  const status = getValue(formData, "status") as "approved" | "declined";
+  const status = getValue(formData, "status") as "approved" | "declined" | "rescheduled";
   const adminNote = getValue(formData, "adminNote");
+  const rescheduleDate = getValue(formData, "rescheduleDate");
+  const rescheduleTime = getValue(formData, "rescheduleTime");
+  const rescheduleDuration = Number(getValue(formData, "rescheduleDuration") || 30);
 
-  if (!bookingId || !["approved", "declined"].includes(status)) {
+  if (!bookingId || !["approved", "declined", "rescheduled"].includes(status)) {
     throw new Error("Invalid demo booking update.");
+  }
+
+  if (status === "rescheduled" && (!rescheduleDate || !rescheduleTime || ![30, 45, 60].includes(rescheduleDuration))) {
+    throw new Error("Choose a valid date, time, and duration before rescheduling.");
   }
 
   const adminUserId = await requirePlatformAdmin();
@@ -171,6 +178,9 @@ export async function updateDemoBookingStatusAction(formData: FormData) {
     .from("demo_bookings")
     .update({
       status,
+      preferred_date: status === "rescheduled" ? rescheduleDate : booking.preferred_date,
+      preferred_time: status === "rescheduled" ? rescheduleTime : booking.preferred_time,
+      duration_minutes: status === "rescheduled" ? rescheduleDuration : booking.duration_minutes,
       admin_note: adminNote || null,
       decided_by: adminUserId,
       decided_at: new Date().toISOString(),
@@ -182,18 +192,22 @@ export async function updateDemoBookingStatusAction(formData: FormData) {
     throw new Error(error.message);
   }
 
-  const preferredSlot = getPreferredSlot(booking.preferred_date ?? "", booking.preferred_time ?? "", booking.timezone ?? "");
+  const preferredSlot = getPreferredSlot(
+    status === "rescheduled" ? rescheduleDate : booking.preferred_date ?? "",
+    status === "rescheduled" ? rescheduleTime : booking.preferred_time ?? "",
+    booking.timezone ?? ""
+  );
   const ics =
-    status === "approved"
+    status === "approved" || status === "rescheduled"
       ? createDemoBookingIcs({
           id: booking.id,
           name: booking.name,
           email: booking.email,
           company: booking.company,
-          preferredDate: booking.preferred_date,
-          preferredTime: booking.preferred_time,
+          preferredDate: status === "rescheduled" ? rescheduleDate : booking.preferred_date,
+          preferredTime: status === "rescheduled" ? rescheduleTime : booking.preferred_time,
           timezone: booking.timezone,
-          durationMinutes: booking.duration_minutes,
+          durationMinutes: status === "rescheduled" ? rescheduleDuration : booking.duration_minutes,
           adminNote
         })
       : undefined;

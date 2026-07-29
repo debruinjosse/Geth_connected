@@ -36,6 +36,10 @@ function formatDate(value: string | null) {
   return new Intl.DateTimeFormat("en", { month: "short", day: "numeric", year: "numeric" }).format(new Date(`${value}T00:00:00`));
 }
 
+function getMinimumScheduleDate() {
+  return new Date().toISOString().slice(0, 10);
+}
+
 export default async function AdminDemoBookingsPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
 
@@ -99,36 +103,75 @@ export default async function AdminDemoBookingsPage({ params }: { params: Promis
           <EmptyState title="Demo booking table is not ready" copy="Run the Supabase migration 011_demo_bookings.sql, then reload this page." />
         ) : bookings?.length ? (
           <div className="demo-booking-list">
-            {(bookings as DemoBooking[]).map((booking) => (
-              <section className="demo-booking-card" key={booking.id}>
-                <div>
-                  <span className={`quality-pill status-${booking.status}`}>{booking.status}</span>
-                  <h3>{booking.company}</h3>
-                  <p>
-                    {booking.name} - {booking.email}
-                  </p>
-                  <p>
-                    {formatDate(booking.preferred_date)} at {booking.preferred_time ?? "time not selected"} {booking.timezone ? `(${booking.timezone})` : ""}
-                  </p>
-                  <p>
-                    {booking.role ?? "Role not provided"} - {booking.team_size ?? "Team size not provided"} - {booking.duration_minutes ?? 30} minutes
-                  </p>
-                  {booking.message ? <p className="section-copy">{booking.message}</p> : null}
-                </div>
-                <form action={updateDemoBookingStatusAction} className="demo-booking-actions">
-                  <input type="hidden" name="bookingId" value={booking.id} />
-                  <textarea className="input" name="adminNote" placeholder="Optional note for the customer" defaultValue={booking.admin_note ?? ""} />
+            {(bookings as DemoBooking[]).map((booking) => {
+              const isApproved = booking.status === "approved";
+              const isRescheduled = booking.status === "rescheduled";
+
+              return (
+                <section className="demo-booking-card" key={booking.id}>
                   <div>
-                    <button className="btn btn-primary compact" type="submit" name="status" value="approved">
-                      Yes, confirm
-                    </button>
-                    <button className="btn btn-secondary compact" type="submit" name="status" value="declined">
-                      No, reschedule
-                    </button>
+                    <span className={`quality-pill status-${booking.status}`}>{isApproved ? "Approved" : isRescheduled ? "Rescheduled" : booking.status}</span>
+                    <h3>{booking.company}</h3>
+                    <p>
+                      {booking.name} - {booking.email}
+                    </p>
+                    <p>
+                      {formatDate(booking.preferred_date)} at {booking.preferred_time ?? "time not selected"} {booking.timezone ? `(${booking.timezone})` : ""}
+                    </p>
+                    <p>
+                      {booking.role ?? "Role not provided"} - {booking.team_size ?? "Team size not provided"} - {booking.duration_minutes ?? 30} minutes
+                    </p>
+                    {booking.message ? <p className="section-copy">{booking.message}</p> : null}
                   </div>
-                </form>
-              </section>
-            ))}
+                  {isApproved ? (
+                    <div className="demo-booking-approved">
+                      <strong>Approved</strong>
+                      <p>The customer has been sent a confirmation email with a calendar attachment.</p>
+                      {booking.admin_note ? <small>Note: {booking.admin_note}</small> : null}
+                    </div>
+                  ) : (
+                    <div className="demo-booking-actions">
+                      <form action={updateDemoBookingStatusAction}>
+                        <input type="hidden" name="bookingId" value={booking.id} />
+                        <textarea className="input" name="adminNote" placeholder="Optional note for the customer" defaultValue={booking.admin_note ?? ""} />
+                        <button className="btn btn-primary compact" type="submit" name="status" value="approved">
+                          Yes, confirm
+                        </button>
+                      </form>
+                      <details className="demo-reschedule-panel">
+                        <summary>No, reschedule</summary>
+                        <form action={updateDemoBookingStatusAction} className="demo-reschedule-form">
+                          <input type="hidden" name="bookingId" value={booking.id} />
+                          <input type="hidden" name="status" value="rescheduled" />
+                          <div className="form-grid">
+                            <div className="form-field">
+                              <label htmlFor={`reschedule-date-${booking.id}`}>New date</label>
+                              <input id={`reschedule-date-${booking.id}`} className="input" name="rescheduleDate" type="date" min={getMinimumScheduleDate()} defaultValue={booking.preferred_date ?? ""} required />
+                            </div>
+                            <div className="form-field">
+                              <label htmlFor={`reschedule-time-${booking.id}`}>New time</label>
+                              <input id={`reschedule-time-${booking.id}`} className="input" name="rescheduleTime" type="time" defaultValue={booking.preferred_time ?? ""} required />
+                            </div>
+                            <div className="form-field">
+                              <label htmlFor={`reschedule-duration-${booking.id}`}>Duration</label>
+                              <select id={`reschedule-duration-${booking.id}`} className="input" name="rescheduleDuration" defaultValue={String(booking.duration_minutes ?? 30)}>
+                                <option value="30">30 minutes</option>
+                                <option value="45">45 minutes</option>
+                                <option value="60">60 minutes</option>
+                              </select>
+                            </div>
+                          </div>
+                          <textarea className="input" name="adminNote" placeholder="Add a reschedule note for the customer" defaultValue={booking.admin_note ?? ""} />
+                          <button className="btn btn-secondary compact" type="submit">
+                            Send reschedule
+                          </button>
+                        </form>
+                      </details>
+                    </div>
+                  )}
+                </section>
+              );
+            })}
           </div>
         ) : (
           <EmptyState title="No demo bookings yet" copy="New public book-demo submissions will appear here." />

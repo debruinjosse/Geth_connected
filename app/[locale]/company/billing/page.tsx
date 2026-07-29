@@ -47,6 +47,10 @@ function formatPaymentMethod(value: string | null | undefined) {
   return formatReadableStatus(value);
 }
 
+function formatBillingInterval(value: string | null | undefined) {
+  return value === "yearly" ? "Yearly" : "Monthly";
+}
+
 function getBillingMessage(code: string | undefined, t: BillingTranslation) {
   switch (code) {
     case "checkout_success":
@@ -187,7 +191,7 @@ export default async function CompanyBillingPage({
       }>(),
     supabase
       .from("billing_invoices")
-      .select("id, invoice_number, status, issue_date, due_date, total_cents, currency, billing_email, email_sent_at, email_error")
+      .select("id, invoice_number, status, issue_date, due_date, total_cents, currency, billing_email, billing_interval, seat_count, email_sent_at, email_error")
       .eq("company_id", profile.company_id)
       .order("created_at", { ascending: false })
       .limit(10),
@@ -248,6 +252,8 @@ export default async function CompanyBillingPage({
                   <th>{t("invoice")}</th>
                   <th>{t("status")}</th>
                   <th>{t("total")}</th>
+                  <th>{t("billingPeriod")}</th>
+                  <th>{t("users")}</th>
                   <th>{t("dueDate")}</th>
                   <th>{t("email")}</th>
                   <th>{t("pdf")}</th>
@@ -259,6 +265,8 @@ export default async function CompanyBillingPage({
                     <td><strong>{invoice.invoice_number}</strong></td>
                     <td>{formatReadableStatus(invoice.status)}</td>
                     <td>{formatMoney(invoice.total_cents, invoice.currency, "once")}</td>
+                    <td>{formatBillingInterval(invoice.billing_interval)}</td>
+                    <td>{invoice.seat_count ?? 1}</td>
                     <td>{formatDate(invoice.due_date)}</td>
                     <td>{invoice.email_sent_at ? t("emailSent") : invoice.email_error ? t("emailFailed") : t("emailPending")}</td>
                     <td>

@@ -3,7 +3,7 @@ import { BarChart } from "@/components/BarChart";
 import { DashboardShell } from "@/components/DashboardShell";
 import { EmptyState } from "@/components/EmptyState";
 import { QualityBars, type QualityBarItem } from "@/components/QualityBars";
-import { categoryMeta, getCanonicalCardBySlugOrNumber, getCategoryDisplayName, getLocalizedCardTitle, type CardCategory } from "@/lib/cards";
+import { categoryMeta, getCategoryDisplayName, getLocalizedCardTitle, type CardCategory } from "@/lib/cards";
 import { currentUser, employeeCategoryBreakdown, employeeGrowthPoints } from "@/lib/demo-data";
 import { getUnreadNotificationCount } from "@/lib/notifications";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -95,10 +95,9 @@ export default async function EmployeeGrowthPage({ params }: { params: Promise<{
     if (!card) continue;
     const monthKey = getMonthKey(new Date(recognition.created_at));
     if (monthlyCounts.has(monthKey)) monthlyCounts.set(monthKey, (monthlyCounts.get(monthKey) ?? 0) + 1);
-    const canonicalCard = getCanonicalCardBySlugOrNumber(card.card_number, card.qr_slug);
-    const category = canonicalCard?.category ?? card.category;
+    const category = card.category;
     categoryCounts.set(category, (categoryCounts.get(category) ?? 0) + 1);
-    const label = getLocalizedCardTitle({ title: canonicalCard?.title ?? card.title, slug: canonicalCard?.slug ?? card.qr_slug ?? undefined }, locale);
+    const label = getLocalizedCardTitle({ title: card.title, slug: card.qr_slug ?? undefined }, locale);
     const existing = qualityCounts.get(label);
     qualityCounts.set(label, { value: (existing?.value ?? 0) + 1, category });
   }

@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { getLocale } from "next-intl/server";
 import { DashboardShell } from "@/components/DashboardShell";
 import { EmptyState } from "@/components/EmptyState";
 import { SignalList } from "@/components/SignalList";
@@ -16,6 +17,8 @@ function getInitials(firstName: string | null, lastName: string | null) {
 }
 
 export default async function ManagerSignalsPage() {
+  const locale = await getLocale();
+
   if (!hasSupabaseServerConfig()) {
     return (
       <DashboardShell role="manager" title="Team signals" subtitle="Spot celebration gaps, upward trends, and people who need support." user={managerUser} actions={<span className="quality-pill">Demo fallback</span>}>
@@ -29,13 +32,13 @@ export default async function ManagerSignalsPage() {
     data: { user },
     error: userError
   } = await supabase.auth.getUser();
-  if (userError || !user) redirect("/login");
+  if (userError || !user) redirect(`/${locale}/login?next=${encodeURIComponent(`/${locale}/manager/signals`)}`);
 
   let insights;
   try {
     insights = await getManagerInsights(supabase, user.id);
   } catch (error) {
-    if (error instanceof Error && error.message === "missing_profile") redirect("/auth/repair-profile");
+    if (error instanceof Error && error.message === "missing_profile") redirect(`/auth/repair-profile?next=${encodeURIComponent(`/${locale}/manager/signals`)}`);
     throw error;
   }
 

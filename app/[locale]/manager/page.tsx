@@ -7,7 +7,7 @@ import { MetricCard } from "@/components/MetricCard";
 import { QualityBars, type QualityBarItem } from "@/components/QualityBars";
 import { SignalList } from "@/components/SignalList";
 import { TeamTable, type TeamMemberRow } from "@/components/TeamTable";
-import { categoryMeta, getCanonicalCardBySlugOrNumber } from "@/lib/cards";
+import { categoryMeta } from "@/lib/cards";
 import { managerTrendPoints, managerUser, people, teamSignals, topQualities } from "@/lib/demo-data";
 import { getUnreadNotificationCount } from "@/lib/notifications";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -28,6 +28,10 @@ function getQuarterKey(date: Date) {
   return `${date.getFullYear()}-Q${Math.floor(date.getMonth() / 3) + 1}`;
 }
 
+const DAY_MS = 24 * 60 * 60 * 1000;
+const RECENT_ACTIVITY_MS = 30 * DAY_MS;
+const INACTIVITY_SIGNAL_MS = 21 * DAY_MS;
+
 function getTrendForDates(dates: string[]) {
   const now = new Date();
   const currentMonth = getMonthKey(now);
@@ -47,9 +51,27 @@ function getTrendForDates(dates: string[]) {
 }
 
 function getEnergyBucket(totalReceived: number, recentReceived: number): TeamMemberRow["energy"] {
-  if (totalReceived >= 3 || recentReceived >= 2) return "HOOG";
-  if (totalReceived >= 1 || recentReceived >= 1) return "GEMIDDELD";
+  if (recentReceived >= 2) return "HOOG";
+  if (recentReceived >= 1 || totalReceived >= 1) return "GEMIDDELD";
   return "LAAG";
+}
+
+function getLatestActivityTime(rows: Array<{ created_at: string }>) {
+  return rows.reduce((latest, row) => Math.max(latest, new Date(row.created_at).getTime()), 0);
+}
+
+function getWeeksSince(timestamp: number) {
+  return Math.max(3, Math.floor((Date.now() - timestamp) / (7 * DAY_MS)));
+}
+
+function getPercentageMix<T extends { value: number }>(items: T[]) {
+  const total = items.reduce((sum, item) => sum + item.value, 0);
+  if (!total) return items.map(() => 0);
+
+  const rounded = items.map((item) => Math.round((item.value / total) * 100));
+  const drift = 100 - rounded.reduce((sum, value) => sum + value, 0);
+  if (rounded.length) rounded[0] += drift;
+  return rounded;
 }
 
 export default async function ManagerDashboardPage({ params }: { params: Promise<{ locale: string }> }) {
@@ -311,9 +333,8 @@ export default async function ManagerDashboardPage({ params }: { params: Promise
   for (const recognition of recognitions) {
     const card = Array.isArray(recognition.card) ? recognition.card[0] : recognition.card;
     if (card) {
-      const canonicalCard = getCanonicalCardBySlugOrNumber(card.card_number, card.qr_slug);
-      const title = canonicalCard?.title ?? card.title;
-      const category = canonicalCard?.category ?? card.category;
+      const title = card.title;
+      const category = card.category;
       const existingQuality = qualityCounts.get(title);
       qualityCounts.set(title, {
         value: (existingQuality?.value ?? 0) + 1,
@@ -341,14 +362,13 @@ export default async function ManagerDashboardPage({ params }: { params: Promise
     const receivedForMember = recognitionsByReceiver.get(member.id) ?? [];
     const givenForMember = recognitionsByGiver.get(member.id) ?? [];
     const trend = getTrendForDates(receivedForMember.map((recognition) => recognition.created_at));
-    const recent30DayReceived = receivedForMember.filter((recognition) => Date.now() - new Date(recognition.created_at).getTime() <= 30 * 24 * 60 * 60 * 1000).length;
+    const recent30DayReceived = receivedForMember.filter((recognition) => Date.now() - new Date(recognition.created_at).getTime() <= RECENT_ACTIVITY_MS).length;
 
     const topQualityCounter = new Map<string, number>();
     for (const recognition of receivedForMember) {
       const card = Array.isArray(recognition.card) ? recognition.card[0] : recognition.card;
       if (card) {
-        const canonicalCard = getCanonicalCardBySlugOrNumber(card.card_number, card.qr_slug);
-        const title = canonicalCard?.title ?? card.title;
+        const title = card.title;
         topQualityCounter.set(title, (topQualityCounter.get(title) ?? 0) + 1);
       }
     }
@@ -368,15 +388,44 @@ export default async function ManagerDashboardPage({ params }: { params: Promise
     };
   });
 
-  const signalItems = teamTableRows
-    .filter((member) => member.cardsReceived === 0 || member.energy === "LAAG")
-    .slice(0, 4)
-    .map((member, index) => ({
-      id: `signal-${member.id}`,
-      tone: member.cardsReceived === 0 ? "var(--theme-red)" : "var(--theme-gold)",
-      title: member.cardsReceived === 0 ? `${member.name} hasn't received a card yet` : `${member.name} needs more recognition support`,
-      detail: member.cardsReceived === 0 ? "Start recognition momentum for this team member." : "Recent recognition activity is below the team average."
-    }));
+  const signalItems = teamTableRows.flatMap((member) => {
+    const receivedForMember = recognitionsByReceiver.get(member.id) ?? [];
+    const givenForMember = recognitionsByGiver.get(member.id) ?? [];
+    const latestActivityAt = getLatestActivityTime([...receivedForMember, ...givenForMember]);
+
+    if (!latestActivityAt) {
+      return [{
+        id: `signal-${member.id}`,
+        tone: "var(--theme-red)",
+        title: `${member.name} has no card activity yet`,
+        detail: "They have not received or given a card. Create a recognition moment to get them started.",
+        actionLabel: "Send a note",
+        actionHref: "/manager/team"
+      }];
+    }
+
+    if (Date.now() - latestActivityAt >= INACTIVITY_SIGNAL_MS) {
+      return [{
+        id: `signal-inactive-${member.id}`,
+        tone: "var(--theme-red)",
+        title: `${member.name} has had no card activity for ${getWeeksSince(latestActivityAt)} weeks`,
+        detail: "No cards received or given recently. Check in and help restart recognition momentum.",
+        actionLabel: "Send a note",
+        actionHref: "/manager/team"
+      }];
+    }
+
+    if (member.energy === "LAAG") {
+      return [{
+        id: `signal-low-${member.id}`,
+        tone: "var(--theme-gold)",
+        title: `${member.name} needs more recognition support`,
+        detail: "Recent recognition activity is below the team average."
+      }];
+    }
+
+    return [];
+  }).slice(0, 4);
 
   if (!signalItems.length && teamTableRows.length) {
     signalItems.push({
@@ -387,12 +436,11 @@ export default async function ManagerDashboardPage({ params }: { params: Promise
     });
   }
 
-  const topQualityBars: QualityBarItem[] = Array.from(qualityCounts.entries())
-    .sort((a, b) => b[1].value - a[1].value)
-    .slice(0, 5)
-    .map(([label, info]) => ({
+  const topQualityEntries = Array.from(qualityCounts.entries()).sort((a, b) => b[1].value - a[1].value).slice(0, 5);
+  const topQualityPercentages = getPercentageMix(topQualityEntries.map(([, info]) => ({ value: info.value })));
+  const topQualityBars: QualityBarItem[] = topQualityEntries.map(([label, info], index) => ({
       label,
-      value: recognitions.length ? Math.round((info.value / recognitions.length) * 100) : 0,
+      value: topQualityPercentages[index] ?? 0,
       category: info.category
     }));
 
@@ -417,7 +465,14 @@ export default async function ManagerDashboardPage({ params }: { params: Promise
     if (quarterKey === previousQuarterKey) previousQuarterCount += 1;
   }
   const impactPercent = previousQuarterCount > 0 ? Math.round(((currentQuarterCount - previousQuarterCount) / previousQuarterCount) * 100) : currentQuarterCount > 0 ? 100 : 0;
-  const engagementScore = teamTableRows.length ? Math.min(99, Math.max(0, Math.round((teamTableRows.filter((member) => member.cardsReceived > 0).length / teamTableRows.length) * 100))) : 0;
+  const thirtyDaysAgo = Date.now() - RECENT_ACTIVITY_MS;
+  const activeEmployeeIds = new Set<string>();
+  for (const recognition of recognitions) {
+    if (new Date(recognition.created_at).getTime() < thirtyDaysAgo) continue;
+    if (memberIds.includes(recognition.receiver_user_id)) activeEmployeeIds.add(recognition.receiver_user_id);
+    if (recognition.giver_user_id && memberIds.includes(recognition.giver_user_id)) activeEmployeeIds.add(recognition.giver_user_id);
+  }
+  const engagementScore = teamTableRows.length ? Math.round((activeEmployeeIds.size / teamTableRows.length) * 100) : 0;
 
   return (
     <DashboardShell

@@ -327,10 +327,10 @@ export default async function CompanyDashboardPage({ params }: CompanyDashboardP
           {insights.teamComparisonRows.length ? (
             <>
               {insights.teamComparisonRows.map((team) => (
-                <div className="bar-row" key={team.label}>
+                <div className="bar-row" key={team.label} title={`${team.activeCount}/${team.memberCount} active workforce members in the latest 30 days`}>
                   <span>{team.label}</span>
                   <div className="bar-track"><span style={{ width: `${Math.round((team.value / insights.maxTeamValue) * 100)}%`, background: "var(--theme-ink)" }} /></div>
-                  <strong>{team.value}</strong>
+                  <strong>{team.value}%</strong>
                 </div>
               ))}
               {!insights.totalRecognitions ? (

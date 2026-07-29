@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { getCanonicalCardBySlugOrNumber, getCategoryDisplayName } from "@/lib/cards";
+import { getCategoryDisplayName } from "@/lib/cards";
 import { getRecognitionReportRange } from "@/lib/reports/recognition-report";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -120,7 +120,6 @@ export async function GET(request: NextRequest) {
 
   for (const event of events) {
     const card = getSingle(event.card);
-    const canonicalCard = card ? getCanonicalCardBySlugOrNumber(card.card_number, card.qr_slug) : null;
     const giverUserId = event.giver_user_id ?? "external_or_manual_giver";
     const key = [event.company_id, giverUserId, event.receiver_user_id, event.card_id].join("|");
     const existing = grouped.get(key);
@@ -138,8 +137,8 @@ export async function GET(request: NextRequest) {
       giverUserId,
       receiverUserId: event.receiver_user_id,
       cardId: event.card_id,
-      cardTitle: canonicalCard?.title ?? card?.title ?? "Unknown card",
-      category: card ? getCategoryDisplayName(canonicalCard?.category ?? card.category) : "Uncategorized",
+      cardTitle: card?.title ?? "Unknown card",
+      category: card ? getCategoryDisplayName(card.category) : "Uncategorized",
       count: 1,
       firstRecognitionAt: event.created_at,
       lastRecognitionAt: event.created_at

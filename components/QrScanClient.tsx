@@ -4,7 +4,7 @@ import jsQR from "jsqr";
 import type { ChangeEvent } from "react";
 import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Camera, ImageUp, Keyboard, QrCode, XCircle } from "lucide-react";
+import { Camera, CheckCircle2, ImageUp, Keyboard, QrCode, Send, XCircle } from "lucide-react";
 import { gethCards, resolveCardSlug } from "@/lib/cards";
 
 type BarcodeResult = {
@@ -191,6 +191,8 @@ export function QrScanClient() {
   const [status, setStatus] = useState("Camera scanner is ready.");
   const [scanning, setScanning] = useState(false);
   const [imageScanning, setImageScanning] = useState(false);
+  const [detectedSlug, setDetectedSlug] = useState("");
+  const [detectedSource, setDetectedSource] = useState<"qr_scan" | "manual_entry">("manual_entry");
 
   const locale = typeof params.locale === "string" ? params.locale : "en";
 
@@ -325,16 +327,38 @@ export function QrScanClient() {
     }
   }
 
-  function goToClaim(rawValue: string) {
+  const detectedCard = detectedSlug ? gethCards.find((card) => card.slug === detectedSlug) : null;
+
+  function resolveDetectedCard(rawValue: string, source: "qr_scan" | "manual_entry" = "manual_entry") {
     const slug = resolveClaimSlug(rawValue);
     if (!slug) {
       setStatus("Card not found. Try a QR link, card name, card number, or a shorter search like team.");
       return;
     }
 
-    setStatus("Valid card found. Redirecting to the claim form...");
+    setDetectedSlug(slug);
+    setDetectedSource(source);
+    setManualValue(slug);
+    setStatus("Valid card found. Choose whether you want to claim it or give it digitally.");
     stopScanner();
-    router.push(`/${locale}/claim-card/${encodeURIComponent(slug)}?source=qr_scan`);
+  }
+
+  function goToClaim(slug = detectedSlug) {
+    if (!slug) {
+      setStatus("Search or scan a card first.");
+      return;
+    }
+
+    router.push(`/${locale}/claim-card/${encodeURIComponent(slug)}?source=${detectedSource}`);
+  }
+
+  function goToGiveDigitally(slug = detectedSlug) {
+    if (!slug) {
+      setStatus("Search or scan a card first.");
+      return;
+    }
+
+    router.push(`/${locale}/claim-card/${encodeURIComponent(slug)}?mode=give`);
   }
 
   function stopScanner() {
@@ -384,7 +408,7 @@ export function QrScanClient() {
           try {
             const code = await detectQrFromVideo(videoRef.current);
             if (code) {
-              goToClaim(code);
+              resolveDetectedCard(code, "qr_scan");
               return;
             }
           } catch {
@@ -443,7 +467,7 @@ export function QrScanClient() {
       const code = canvas ? await detectQrFromCanvas(canvas) : "";
 
       if (code) {
-        goToClaim(code);
+        resolveDetectedCard(code, "qr_scan");
         return;
       }
 
@@ -536,14 +560,38 @@ export function QrScanClient() {
             id="manual-qr-value"
             className="input"
             value={manualValue}
-            onChange={(event) => setManualValue(event.target.value)}
+            onChange={(event) => {
+              setManualValue(event.target.value);
+              setDetectedSlug("");
+            }}
             placeholder="Team, Team Player, card 42, or a QR link"
           />
         </div>
-        <button className="btn btn-dark" type="button" onClick={() => goToClaim(manualValue)}>
+        <button className="btn btn-dark" type="button" onClick={() => resolveDetectedCard(manualValue, "manual_entry")}>
           <Keyboard size={16} />
-          Continue to claim
+          Find this card
         </button>
+
+        {detectedSlug ? (
+          <div className="qr-detected-card" role="status" aria-live="polite">
+            <div>
+              <CheckCircle2 size={18} />
+              <span>Card ready</span>
+            </div>
+            <strong>{detectedCard?.title ?? detectedSlug}</strong>
+            <p>Choose how you want to continue with this GETH card.</p>
+            <div className="qr-detected-actions">
+              <button className="btn btn-primary" type="button" onClick={() => goToClaim()}>
+                <QrCode size={16} />
+                Claim this card
+              </button>
+              <button className="btn btn-secondary" type="button" onClick={() => goToGiveDigitally()}>
+                <Send size={16} />
+                Give digitally
+              </button>
+            </div>
+          </div>
+        ) : null}
       </section>
     </div>
   );

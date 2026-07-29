@@ -1,8 +1,8 @@
 import { redirect } from "next/navigation";
-import { updateCardActiveAction } from "@/app/actions/adminControls";
+import { updateCardActiveAction, updateCardContentAction } from "@/app/actions/adminControls";
 import { DashboardShell } from "@/components/DashboardShell";
 import { EmptyState } from "@/components/EmptyState";
-import { getCanonicalCardBySlugOrNumber, getCategoryDisplayName } from "@/lib/cards";
+import { getCategoryDisplayName } from "@/lib/cards";
 import { superAdminUser } from "@/lib/demo-data";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -11,6 +11,7 @@ type AdminCardRow = {
   card_number: number;
   title: string;
   category: string;
+  description: string;
   recognition_sentence: string;
   qr_slug: string;
   active: boolean;
@@ -50,7 +51,7 @@ export default async function AdminCardsPage() {
   const [{ data: cards, error }, { data: recognitions, error: recognitionsError }] = await Promise.all([
     supabase
       .from("card_library")
-      .select("id, card_number, title, category, recognition_sentence, qr_slug, active")
+      .select("id, card_number, title, category, description, recognition_sentence, qr_slug, active")
       .order("card_number", { ascending: true }),
     supabase.from("recognition_events").select("card_id")
   ]);
@@ -84,23 +85,24 @@ export default async function AdminCardsPage() {
             <p>Pause a card to hide it from the public card library and claim route lookup.</p>
           </div>
         </div>
-        <div className="table-wrap">
+        <div className="table-wrap admin-table-scroll admin-card-library-scroll">
           {cards?.length ? (
             <table className="dashboard-table">
               <thead><tr><th>Card</th><th>Category</th><th>Number</th><th>Status</th><th>Usage</th><th>Route</th><th>Control</th></tr></thead>
               <tbody>
-                {(cards as AdminCardRow[]).map((card) => {
-                  const canonicalCard = getCanonicalCardBySlugOrNumber(card.card_number, card.qr_slug);
-
-                  return (
-                    <tr key={card.id}>
-                      <td><strong>{canonicalCard?.title ?? card.title}</strong><p style={{ margin: "4px 0 0", color: "var(--theme-muted)" }}>{canonicalCard?.recognitionSentence ?? card.recognition_sentence}</p></td>
-                      <td>{getCategoryDisplayName(canonicalCard?.category ?? card.category)}</td>
-                      <td>{card.card_number}</td>
-                      <td><span className="admin-status-pill">{card.active ? "active" : "paused"}</span></td>
-                      <td>{usageCounts.get(card.id) ?? 0}</td>
-                      <td>/claim-card/{canonicalCard?.slug ?? card.qr_slug}</td>
-                      <td>
+                {(cards as AdminCardRow[]).map((card) => (
+                  <tr key={card.id}>
+                    <td>
+                      <strong>{card.title}</strong>
+                      <p className="admin-card-caption">{card.recognition_sentence}</p>
+                    </td>
+                    <td>{getCategoryDisplayName(card.category)}</td>
+                    <td>{card.card_number}</td>
+                    <td><span className="admin-status-pill">{card.active ? "active" : "paused"}</span></td>
+                    <td>{usageCounts.get(card.id) ?? 0}</td>
+                    <td>/claim-card/{card.qr_slug}</td>
+                    <td>
+                      <div className="admin-card-controls">
                         <form action={updateCardActiveAction}>
                           <input type="hidden" name="cardId" value={card.id} />
                           <input type="hidden" name="active" value={card.active ? "false" : "true"} />
@@ -108,10 +110,40 @@ export default async function AdminCardsPage() {
                             {card.active ? "Pause" : "Activate"}
                           </button>
                         </form>
-                      </td>
-                    </tr>
-                  );
-                })}
+                        <details className="admin-card-edit">
+                          <summary>Edit</summary>
+                          <form action={updateCardContentAction} className="admin-card-edit-form">
+                            <input type="hidden" name="cardId" value={card.id} />
+                            <label>
+                              Name
+                              <input className="input" name="title" defaultValue={card.title} required />
+                            </label>
+                            <label>
+                              Category
+                              <select className="input" name="category" defaultValue={card.category} required>
+                                <option value="Communication">Communication</option>
+                                <option value="Creativity">Creativity</option>
+                                <option value="Competence">Competence</option>
+                                <option value="Collegiality">Collegiality</option>
+                                <option value="Open Category">Open Category</option>
+                              </select>
+                            </label>
+                            <label>
+                              Card caption
+                              <textarea className="input" name="description" rows={3} defaultValue={card.description} required />
+                            </label>
+                            <label>
+                              Recognition sentence
+                              <textarea className="input" name="recognitionSentence" rows={3} defaultValue={card.recognition_sentence} required />
+                            </label>
+                            <p>QR slug stays locked: {card.qr_slug}</p>
+                            <button className="btn btn-primary compact" type="submit">Save card text</button>
+                          </form>
+                        </details>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           ) : (

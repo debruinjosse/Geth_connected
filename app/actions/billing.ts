@@ -25,8 +25,60 @@ type CompanyBillingContext = {
   stripeCustomerId: string | null;
 };
 
+type BillingInterval = "monthly" | "yearly";
+
+const YEARLY_BILLING_MULTIPLIER = 0.8;
+
 function getBillingReturnUrl(locale: string, companyOwned: boolean) {
   return companyOwned ? `/${locale}/company/billing` : `/${locale}/admin/subscriptions`;
+}
+
+function getBillingInterval(value: FormDataEntryValue | null): BillingInterval | null {
+  if (value === "monthly" || value === "yearly") return value;
+  return null;
+}
+
+function parseSeatCount(value: FormDataEntryValue | null) {
+  const seatCount = Number.parseInt(String(value ?? ""), 10);
+  return Number.isFinite(seatCount) && seatCount > 0 ? seatCount : null;
+}
+
+function parseEuroAmountCents(value: FormDataEntryValue | null) {
+  const normalized = String(value ?? "").trim().replace(",", ".");
+  if (!normalized) return null;
+
+  const amount = Number(normalized);
+  if (!Number.isFinite(amount) || amount <= 0) return null;
+
+  return Math.round(amount * 100);
+}
+
+function isCustomPlan(plan: { plan_key: string; price_cents: number | null }) {
+  return plan.plan_key === "enterprise" || (plan.price_cents ?? 0) <= 0;
+}
+
+function calculateInvoiceSubtotalCents({
+  billingInterval,
+  customAmountCents,
+  plan,
+  seatCount
+}: {
+  billingInterval: BillingInterval;
+  customAmountCents: number | null;
+  plan: { plan_key: string; price_cents: number | null };
+  seatCount: number;
+}) {
+  if (isCustomPlan(plan)) {
+    return customAmountCents ?? 0;
+  }
+
+  const monthlySubtotal = (plan.price_cents ?? 0) * seatCount;
+
+  if (billingInterval === "yearly") {
+    return Math.round(monthlySubtotal * 12 * YEARLY_BILLING_MULTIPLIER);
+  }
+
+  return monthlySubtotal;
 }
 
 async function getCompanyBillingContext(): Promise<CompanyBillingContext> {
@@ -117,6 +169,9 @@ async function getPlatformBillingContext(companyId: string): Promise<CompanyBill
 export async function requestInvoicePaymentAction(formData: FormData) {
   const planId = String(formData.get("planId") ?? "");
   const companyId = String(formData.get("companyId") ?? "").trim();
+  const billingInterval = getBillingInterval(formData.get("billingInterval"));
+  const seatCount = parseSeatCount(formData.get("seatCount"));
+  const customAmountCents = parseEuroAmountCents(formData.get("customAmount"));
   const billingEmail = String(formData.get("billingEmail") ?? "").trim();
   const vatNumber = String(formData.get("vatNumber") ?? "").trim();
   const purchaseOrderNumber = String(formData.get("purchaseOrderNumber") ?? "").trim();
@@ -136,6 +191,10 @@ export async function requestInvoicePaymentAction(formData: FormData) {
     redirect(`${returnUrl}?billing=plan_not_found`);
   }
 
+  if (!billingInterval || !seatCount) {
+    redirect(`${returnUrl}?billing=invalid_invoice_inputs`);
+  }
+
   const missingInvoiceConfig = getMissingInvoiceConfig();
   if (missingInvoiceConfig.length) {
     redirect(`${returnUrl}?billing=invoice_config_missing`);
@@ -151,7 +210,7 @@ export async function requestInvoicePaymentAction(formData: FormData) {
       plan_key: string;
       name: string;
       invoice_enabled: boolean | null;
-      price_cents: number;
+      price_cents: number | null;
       currency: string;
       interval: string;
     }>();
@@ -164,13 +223,22 @@ export async function requestInvoicePaymentAction(formData: FormData) {
     redirect(`${returnUrl}?billing=invoice_not_enabled`);
   }
 
+  if (isCustomPlan(plan) && !customAmountCents) {
+    redirect(`${returnUrl}?billing=custom_amount_required`);
+  }
+
   const contactEmail = billingEmail || context.adminEmail;
   const adminSupabase = createSupabaseAdminClient();
   const now = new Date().toISOString();
   const invoiceConfig = getInvoiceConfig();
   const issueDate = new Date();
   const dueDate = addDays(issueDate, invoiceConfig.paymentTermsDays);
-  const subtotalCents = plan.price_cents ?? 0;
+  const subtotalCents = calculateInvoiceSubtotalCents({
+    billingInterval,
+    customAmountCents,
+    plan,
+    seatCount
+  });
   const vatCents = calculateVat(subtotalCents, invoiceConfig.vatRateBps);
   const invoiceNumber = createInvoiceNumber();
   const referenceSource = purchaseOrderNumber || invoiceNumber;
@@ -192,6 +260,9 @@ export async function requestInvoicePaymentAction(formData: FormData) {
       purchase_order_number: purchaseOrderNumber || null,
       billing_address: billingAddress || null,
       notes: notes || null,
+      billing_interval: billingInterval,
+      seat_count: seatCount,
+      custom_amount_cents: isCustomPlan(plan) ? customAmountCents : null,
       status: "generated"
     })
     .select("id")
@@ -212,6 +283,7 @@ export async function requestInvoicePaymentAction(formData: FormData) {
         invoice_requested_at: now,
         billing_contact_email: contactEmail,
         status: "invoice_issued",
+        current_period_end: billingInterval === "yearly" ? addDays(issueDate, 365).toISOString() : addDays(issueDate, 30).toISOString(),
         updated_at: now
       },
       { onConflict: "company_id" }
@@ -233,6 +305,10 @@ export async function requestInvoicePaymentAction(formData: FormData) {
     vat_rate_bps: invoiceConfig.vatRateBps,
     vat_cents: vatCents,
     total_cents: subtotalCents + vatCents,
+    billing_interval: billingInterval,
+    seat_count: seatCount,
+    unit_price_cents: isCustomPlan(plan) ? null : plan.price_cents,
+    custom_amount_cents: isCustomPlan(plan) ? customAmountCents : null,
     billing_email: contactEmail,
     buyer_name: context.companyName,
     buyer_vat_number: vatNumber || null,

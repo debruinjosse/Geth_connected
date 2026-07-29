@@ -100,9 +100,8 @@ function GethBirdIcon({ size = 19 }: { size?: number }) {
       aria-hidden="true"
       className="side-link-brand-icon"
       height={size}
-      src="/assets/geth-crest-mark.png"
+      src="/assets/geth-logo.svg"
       width={size}
-      unoptimized
     />
   );
 }

@@ -80,7 +80,6 @@ export async function POST(request: NextRequest) {
     const actualRole = normalizeAppRole(role);
 
     if (!inviteToken && requestedRole && !rolesAreCompatible(requestedRole, actualRole)) {
-      await supabase.auth.signOut();
       return jsonWithCookies(
         response,
         {

@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { getLocale } from "next-intl/server";
 import { BarChart } from "@/components/BarChart";
 import { DashboardShell } from "@/components/DashboardShell";
 import { EmptyState } from "@/components/EmptyState";
@@ -17,6 +18,8 @@ function getInitials(firstName: string | null, lastName: string | null) {
 }
 
 export default async function ManagerAnalyticsPage() {
+  const locale = await getLocale();
+
   if (!hasSupabaseServerConfig()) {
     return (
       <DashboardShell role="manager" title="Analytics" subtitle="Recognition health, quality spread, and impact signals for the quarter." user={managerUser} actions={<span className="quality-pill">Demo fallback</span>}>
@@ -39,13 +42,13 @@ export default async function ManagerAnalyticsPage() {
     data: { user },
     error: userError
   } = await supabase.auth.getUser();
-  if (userError || !user) redirect("/login");
+  if (userError || !user) redirect(`/${locale}/login?next=${encodeURIComponent(`/${locale}/manager/analytics`)}`);
 
   let insights;
   try {
     insights = await getManagerInsights(supabase, user.id);
   } catch (error) {
-    if (error instanceof Error && error.message === "missing_profile") redirect("/auth/repair-profile");
+    if (error instanceof Error && error.message === "missing_profile") redirect(`/auth/repair-profile?next=${encodeURIComponent(`/${locale}/manager/analytics`)}`);
     throw error;
   }
 
@@ -59,7 +62,8 @@ export default async function ManagerAnalyticsPage() {
       user={{
         name: `${insights.profile.first_name ?? ""} ${insights.profile.last_name ?? ""}`.trim() || "Manager",
         initials: getInitials(insights.profile.first_name, insights.profile.last_name),
-        team: insights.teamLabel
+        team: insights.teamLabel,
+        imageUrl: insights.profile.profile_image
       }}
       actions={<span className="quality-pill">{insights.recognitionCount} recognitions</span>}
       unreadNotifications={unreadNotifications}

@@ -3,6 +3,7 @@ import { categoryMeta } from "@/lib/cards";
 
 type CompanyProfileRow = {
   id: string;
+  team_id: string | null;
   role: string;
   status: "active" | "invited" | "disabled" | string | null;
 };
@@ -25,6 +26,7 @@ type CompanyRecognitionRow = {
   id: string;
   team_id: string | null;
   receiver_user_id: string;
+  giver_user_id: string | null;
   card_id: string;
   claimed_at: string | null;
   created_at: string;
@@ -50,6 +52,9 @@ export type CompanyCategorySegment = {
 export type CompanyTeamComparison = {
   label: string;
   value: number;
+  activeCount: number;
+  memberCount: number;
+  recognitionCount: number;
 };
 
 export type ComparisonState = "positive" | "negative" | "neutral" | "new";
@@ -108,6 +113,22 @@ function getPercentage(part: number, total: number) {
 function getRate(receivers: Set<string>, workforce: CompanyProfileRow[]) {
   if (!workforce.length) return 0;
   return getPercentage(workforce.filter((profile) => receivers.has(profile.id)).length, workforce.length);
+}
+
+function getActivityUserIds(recognitions: CompanyRecognitionRow[], workforceIds: Set<string>) {
+  const activeIds = new Set<string>();
+
+  for (const recognition of recognitions) {
+    if (workforceIds.has(recognition.receiver_user_id)) {
+      activeIds.add(recognition.receiver_user_id);
+    }
+
+    if (recognition.giver_user_id && workforceIds.has(recognition.giver_user_id)) {
+      activeIds.add(recognition.giver_user_id);
+    }
+  }
+
+  return activeIds;
 }
 
 function getComparison(current: number, previous: number): ComparisonMetric {
@@ -210,11 +231,11 @@ export async function fetchCompanyDashboardInsights(supabase: SupabaseClient, co
 
   const [{ data: profiles, error: profilesError }, { data: teams, error: teamsError }, { data: recognitions, error: recognitionsError }] =
     await Promise.all([
-      supabase.from("profiles").select("id, role, status").eq("company_id", companyId),
+      supabase.from("profiles").select("id, team_id, role, status").eq("company_id", companyId),
       supabase.from("teams").select("id, name, manager_id").eq("company_id", companyId).order("name"),
       supabase
         .from("recognition_events")
-        .select("id, team_id, receiver_user_id, card_id, claimed_at, created_at, card:card_library(id, title, category, card_number, qr_slug)")
+        .select("id, team_id, receiver_user_id, giver_user_id, card_id, claimed_at, created_at, card:card_library(id, title, category, card_number, qr_slug)")
         .eq("company_id", companyId)
         .order("created_at", { ascending: false })
     ]);
@@ -227,6 +248,7 @@ export async function fetchCompanyDashboardInsights(supabase: SupabaseClient, co
   const companyTeams = (teams ?? []) as CompanyTeamRow[];
   const companyRecognitions = (recognitions ?? []) as CompanyRecognitionRow[];
   const workforce = companyProfiles.filter(isActiveWorkforceProfile);
+  const workforceIds = new Set(workforce.map((profile) => profile.id));
   const managers = workforce.filter((profile) => profile.role === "manager");
 
   const currentPeriodRecognitions = companyRecognitions.filter((recognition) => {
@@ -238,10 +260,12 @@ export async function fetchCompanyDashboardInsights(supabase: SupabaseClient, co
     return date >= previousStart && date < currentStart;
   });
 
-  const allTimeReceiverIds = new Set(companyRecognitions.map((recognition) => recognition.receiver_user_id));
   const currentReceiverIds = new Set(currentPeriodRecognitions.map((recognition) => recognition.receiver_user_id));
   const previousReceiverIds = new Set(previousPeriodRecognitions.map((recognition) => recognition.receiver_user_id));
-  const engagementScore = getRate(allTimeReceiverIds, workforce);
+  const currentActiveUserIds = getActivityUserIds(currentPeriodRecognitions, workforceIds);
+  const previousActiveUserIds = getActivityUserIds(previousPeriodRecognitions, workforceIds);
+  const engagementScore = getRate(currentActiveUserIds, workforce);
+  const previousEngagementScore = getRate(previousActiveUserIds, workforce);
   const currentRate = getRate(currentReceiverIds, workforce);
   const previousRate = getRate(previousReceiverIds, workforce);
 
@@ -300,11 +324,35 @@ export async function fetchCompanyDashboardInsights(supabase: SupabaseClient, co
     });
 
   const teamComparisonRows = companyTeams
-    .map((team) => ({
-      label: team.name,
-      value: teamCounts.get(team.id) ?? 0
-    }))
-    .sort((a, b) => b.value - a.value)
+    .map((team) => {
+      const teamWorkforceIds = new Set(
+        workforce.filter((profile) => profile.team_id === team.id).map((profile) => profile.id)
+      );
+
+      if (team.manager_id && workforceIds.has(team.manager_id)) {
+        teamWorkforceIds.add(team.manager_id);
+      }
+
+      const teamActiveIds = getActivityUserIds(
+        currentPeriodRecognitions.filter(
+          (recognition) =>
+            teamWorkforceIds.has(recognition.receiver_user_id) ||
+            Boolean(recognition.giver_user_id && teamWorkforceIds.has(recognition.giver_user_id))
+        ),
+        teamWorkforceIds
+      );
+      const memberCount = teamWorkforceIds.size;
+      const recognitionCount = teamCounts.get(team.id) ?? 0;
+
+      return {
+        label: team.name,
+        value: getPercentage(teamActiveIds.size, memberCount),
+        activeCount: teamActiveIds.size,
+        memberCount,
+        recognitionCount
+      };
+    })
+    .sort((a, b) => b.value - a.value || b.recognitionCount - a.recognitionCount)
     .slice(0, 5);
 
   const { recent, previous } = getMonthWindows(6, now);
@@ -318,7 +366,7 @@ export async function fetchCompanyDashboardInsights(supabase: SupabaseClient, co
     totalTeams: companyTeams.length,
     totalManagers: managers.length,
     engagementScore,
-    engagementDelta: getPointComparison(currentRate, previousRate),
+    engagementDelta: getPointComparison(engagementScore, previousEngagementScore),
     recognitionRate: currentRate,
     recognitionRateDelta: getPointComparison(currentRate, previousRate),
     recognitionTrendPercent: recognitionTrend.value,
@@ -330,7 +378,7 @@ export async function fetchCompanyDashboardInsights(supabase: SupabaseClient, co
     topQualities,
     categorySegments,
     teamComparisonRows,
-    maxTeamValue: Math.max(...teamComparisonRows.map((team) => team.value), 1),
+    maxTeamValue: 100,
     trendLabels: recent.map((month) => month.label),
     trendPoints,
     comparisonLabels: previous.map((month) => month.label),

@@ -191,14 +191,6 @@ export async function proxy(request: NextRequest) {
 
   const actualRole = normalizeAppRole(profile.role);
   if (!protectedRule.allowedRoles.includes(actualRole)) {
-    if (pathname === "/admin" || pathname.startsWith("/admin/")) {
-      const signoutUrl = new URL("/auth/signout", request.url);
-      signoutUrl.searchParams.set("next", `${localizePath("/login", locale)}?error=admin_required`);
-      const signoutResponse = NextResponse.redirect(signoutUrl);
-      copyCookies(response, signoutResponse);
-      return signoutResponse;
-    }
-
     return buildRoleRedirect(request, response, actualRole, locale);
   }
 

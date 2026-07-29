@@ -14,6 +14,49 @@ function getInitials(firstName: string, lastName: string) {
   return `${firstName[0] ?? ""}${lastName[0] ?? ""}`.toUpperCase() || "CA";
 }
 
+const DAY_MS = 24 * 60 * 60 * 1000;
+const WORKFORCE_ROLES = new Set(["employee", "manager"]);
+
+type TeamMemberRow = {
+  id: string;
+  team_id: string | null;
+  role: string;
+  status: string | null;
+};
+
+type TeamRecognitionRow = {
+  id: string;
+  team_id: string | null;
+  receiver_user_id: string;
+  giver_user_id: string | null;
+  claimed_at: string | null;
+  created_at: string;
+};
+
+function isActiveWorkforceMember(member: TeamMemberRow) {
+  return WORKFORCE_ROLES.has(member.role) && member.status === "active";
+}
+
+function getRecognitionDate(recognition: TeamRecognitionRow) {
+  return new Date(recognition.claimed_at ?? recognition.created_at);
+}
+
+function getActivityUserIds(recognitions: TeamRecognitionRow[], workforceIds: Set<string>) {
+  const activeIds = new Set<string>();
+
+  for (const recognition of recognitions) {
+    if (workforceIds.has(recognition.receiver_user_id)) {
+      activeIds.add(recognition.receiver_user_id);
+    }
+
+    if (recognition.giver_user_id && workforceIds.has(recognition.giver_user_id)) {
+      activeIds.add(recognition.giver_user_id);
+    }
+  }
+
+  return activeIds;
+}
+
 function renderDemoTeams() {
   return (
     <DashboardShell role="company" title="Teams" subtitle="Create, compare, and support recognition activity across every team." user={companyAdmin}>
@@ -82,11 +125,11 @@ export default async function CompanyTeamsPage() {
         .order("first_name"),
       supabase
         .from("profiles")
-        .select("id, team_id")
+        .select("id, team_id, role, status")
         .eq("company_id", adminProfile.company_id),
       supabase
         .from("recognition_events")
-        .select("id, team_id")
+        .select("id, team_id, receiver_user_id, giver_user_id, claimed_at, created_at")
         .eq("company_id", adminProfile.company_id)
     ]);
 
@@ -94,15 +137,28 @@ export default async function CompanyTeamsPage() {
     throw new Error("Failed to load company team data.");
   }
 
-  const memberCountsByTeam = new Map<string, number>();
-  for (const member of members ?? []) {
-    if (member.team_id) {
-      memberCountsByTeam.set(member.team_id, (memberCountsByTeam.get(member.team_id) ?? 0) + 1);
+  const currentStart = new Date(Date.now() - 30 * DAY_MS);
+  const activeMembers = ((members ?? []) as TeamMemberRow[]).filter(isActiveWorkforceMember);
+  const activeMemberIds = new Set(activeMembers.map((member) => member.id));
+  const membersByTeam = new Map<string, Set<string>>();
+
+  for (const team of teams ?? []) {
+    membersByTeam.set(team.id, new Set<string>());
+  }
+
+  for (const member of activeMembers) {
+    if (member.team_id && membersByTeam.has(member.team_id)) {
+      membersByTeam.get(member.team_id)?.add(member.id);
     }
   }
 
   const recognitionCountsByTeam = new Map<string, number>();
-  for (const recognition of recognitions ?? []) {
+  const currentRecognitions = ((recognitions ?? []) as TeamRecognitionRow[]).filter((recognition) => {
+    const date = getRecognitionDate(recognition);
+    return date >= currentStart;
+  });
+
+  for (const recognition of (recognitions ?? []) as TeamRecognitionRow[]) {
     if (recognition.team_id) {
       recognitionCountsByTeam.set(recognition.team_id, (recognitionCountsByTeam.get(recognition.team_id) ?? 0) + 1);
     }
@@ -110,9 +166,23 @@ export default async function CompanyTeamsPage() {
 
   const tableRows = (teams ?? []).map((team) => {
     const manager = Array.isArray(team.manager) ? team.manager[0] : team.manager;
-    const memberCount = memberCountsByTeam.get(team.id) ?? 0;
+    const teamMemberIds = membersByTeam.get(team.id) ?? new Set<string>();
+
+    if (team.manager_id && activeMemberIds.has(team.manager_id)) {
+      teamMemberIds.add(team.manager_id);
+    }
+
     const recognitionCount = recognitionCountsByTeam.get(team.id) ?? 0;
-    const engagement = memberCount ? `${Math.min(99, Math.round((recognitionCount / memberCount) * 100))}%` : "0%";
+    const activeTeamMemberIds = getActivityUserIds(
+      currentRecognitions.filter(
+        (recognition) =>
+          teamMemberIds.has(recognition.receiver_user_id) ||
+          Boolean(recognition.giver_user_id && teamMemberIds.has(recognition.giver_user_id))
+      ),
+      teamMemberIds
+    );
+    const memberCount = teamMemberIds.size;
+    const engagement = memberCount ? `${Math.round((activeTeamMemberIds.size / memberCount) * 100)}%` : "0%";
 
     return {
       id: team.id,

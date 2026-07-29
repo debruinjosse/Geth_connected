@@ -20,17 +20,12 @@ export function BrandLogo({
         src="/assets/geth-crest-mark.png"
         width={compact ? 34 : 50}
         height={compact ? 31 : 46}
-        priority
+        sizes={compact ? "34px" : "50px"}
       />
   );
   const wordmark = (
       <span className="brand-copy">
-        <span className="brand-wordmark">
-          GETH
-          <sup className="brand-registered-mark" aria-label="registered trademark">
-            &reg;
-          </sup>
-        </span>
+        <span className="brand-wordmark">GETH</span>
         {tagline ? <span className="brand-tagline">Recognize to energize.</span> : null}
       </span>
   );

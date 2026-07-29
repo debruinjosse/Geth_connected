@@ -42,7 +42,7 @@ export default async function EmployeeScanPage({ params }: EmployeeScanPageProps
     <DashboardShell
       role="employee"
       title="Scan a GETH card"
-      subtitle="Use your camera to scan a physical recognition card."
+      subtitle="Scan a physical QR card, upload a QR image, or choose a card to give digitally."
       user={{
         name: `${profile.first_name ?? ""} ${profile.last_name ?? ""}`.trim() || "GETH user",
         initials: getInitials(profile.first_name, profile.last_name),

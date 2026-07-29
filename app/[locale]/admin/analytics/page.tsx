@@ -6,7 +6,7 @@ import { EmptyState } from "@/components/EmptyState";
 import { LineChart } from "@/components/LineChart";
 import { MetricCard } from "@/components/MetricCard";
 import { SignalList } from "@/components/SignalList";
-import { getCanonicalCardBySlugOrNumber, getCategoryDisplayName } from "@/lib/cards";
+import { getCategoryDisplayName } from "@/lib/cards";
 import { platformGrowthPoints, superAdminUser, teamComparison } from "@/lib/demo-data";
 import { getUnreadNotificationCount } from "@/lib/notifications";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -153,9 +153,7 @@ export default async function AdminAnalyticsPage({ params }: { params: Promise<{
     cardCounts.set(recognition.card_id, (cardCounts.get(recognition.card_id) ?? 0) + 1);
     const card = Array.isArray(recognition.card) ? recognition.card[0] : recognition.card;
     if (card) {
-      const canonicalCard = getCanonicalCardBySlugOrNumber(card.card_number, card.qr_slug);
-      const category = canonicalCard?.category ?? card.category;
-      categoryCounts.set(category, (categoryCounts.get(category) ?? 0) + 1);
+      categoryCounts.set(card.category, (categoryCounts.get(card.category) ?? 0) + 1);
     }
     claimOriginCounts.set(recognition.claim_origin ?? "direct_link", (claimOriginCounts.get(recognition.claim_origin ?? "direct_link") ?? 0) + 1);
     if (recognition.giver_user_id) giverUserIds.add(recognition.giver_user_id);
@@ -218,13 +216,12 @@ export default async function AdminAnalyticsPage({ params }: { params: Promise<{
   const maxCardUsage = Math.max(...Array.from(cardCounts.values()), 1);
   const cardRatings = (cards ?? [])
     .map((card) => {
-      const canonicalCard = getCanonicalCardBySlugOrNumber(card.card_number, card.qr_slug);
       const count = cardCounts.get(card.id) ?? 0;
       const rating = count ? Math.max(1, Math.round((count / maxCardUsage) * 100)) : 0;
       return {
         id: card.id,
-        label: `${String(card.card_number).padStart(2, "0")} ${canonicalCard?.title ?? card.title}`,
-        category: canonicalCard?.category ?? card.category,
+        label: `${String(card.card_number).padStart(2, "0")} ${card.title}`,
+        category: card.category,
         count,
         rating,
         active: card.active

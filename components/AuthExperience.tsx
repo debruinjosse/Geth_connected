@@ -150,8 +150,6 @@ export function AuthExperience({
     const payload = (await response.json().catch(() => ({}))) as { redirectTo?: string; error?: string; actualRole?: string; expectedRole?: string };
 
     if (response.status === 403 && payload.error === "role_mismatch") {
-      const supabase = createSupabaseBrowserClient();
-      await supabase.auth.signOut();
       throw new Error(getRoleMismatchCopy(payload.expectedRole, payload.actualRole));
     }
 
@@ -186,7 +184,7 @@ export function AuthExperience({
       case "missing_profile":
         return "You are signed in, but your GETH profile is missing. Use the repair button below, or ask a company admin to invite you.";
       case "admin_required":
-        return "Admin access requires a super admin account. You have been signed out of the previous role; log in with the super admin credentials.";
+        return "Admin access requires a super admin account. Choose Owner login or use the super admin credentials.";
       case "role_mismatch":
         return `That email is not a ${getRoleLabel(selectedRole)} account. Please choose the correct login option or use the right work email.`;
       case "password_updated":

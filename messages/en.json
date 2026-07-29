@@ -24,7 +24,9 @@
     "bookDemo": "Book a demo",
     "openDashboard": "Open dashboard",
     "signOut": "Sign out",
-    "hi": "Hi, {name}"
+    "hi": "Hi, {name}",
+    "menu": "Menu",
+    "closeMenu": "Close menu"
   },
   "auth": {
     "bullets": {
@@ -115,7 +117,7 @@
     "topQualities": "Top qualities company-wide",
     "recognitionActivity": "Recognition activity",
     "recognitionActivityChartLabel": "Recognition activity over the latest six months",
-    "teamComparison": "Team comparison",
+    "teamComparison": "Team engagement",
     "previous": "previous",
     "emptyRecognitionsEyebrow": "No recognitions yet",
     "emptyCategoryTitle": "Category insights will appear here",
@@ -126,7 +128,7 @@
     "emptyTrendEyebrow": "Trend unavailable",
     "emptyTrendTitle": "Recognition activity needs company activity",
     "emptyTrendCopy": "Monthly momentum will appear here after recognitions begin flowing through your company.",
-    "teamComparisonWaiting": "Teams are loaded. Recognition totals will fill in as activity is claimed.",
+    "teamComparisonWaiting": "Teams are loaded. Engagement appears when employees or managers give or receive recognitions.",
     "emptyTeamsEyebrow": "No teams yet",
     "emptyTeamsTitle": "Create teams to compare momentum",
     "emptyTeamsCopy": "Once your company has teams assigned, this panel will compare recognition activity across them."
@@ -264,6 +266,8 @@
     "generatedInvoicesCopy": "Download official GETH invoice PDFs with invoice number, VAT, due date, and payment reference.",
     "status": "Status",
     "total": "Total",
+    "billingPeriod": "Billing period",
+    "users": "Users",
     "dueDate": "Due date",
     "email": "Email",
     "pdf": "PDF",
