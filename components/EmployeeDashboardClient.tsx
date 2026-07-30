@@ -4,7 +4,7 @@ import Link from "next/link";
 import type { CSSProperties } from "react";
 import { useEffect, useState, useTransition } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { CheckCircle2, Gift, Heart, QrCode, Scale, Send, Sparkles } from "lucide-react";
+import { ArrowRight, CheckCircle2, Gift, Heart, QrCode, Scale, Send, Sparkles } from "lucide-react";
 import { acknowledgeReceivedRecognition, approveRecognitionVerification } from "@/app/actions/recognitionVerification";
 import { BarChart } from "@/components/BarChart";
 import { DashboardShell } from "@/components/DashboardShell";

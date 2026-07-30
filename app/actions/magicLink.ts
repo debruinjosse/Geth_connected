@@ -23,16 +23,23 @@ export async function requestMagicLinkEmail(input: {
 
   try {
     const admin = createSupabaseAdminClient();
-    const linkType = input.mode === "signup" ? "signup" : "magiclink";
+    const linkOptions = {
+      redirectTo: input.redirectTo,
+      data: input.metadata ?? undefined
+    };
 
-    const { data, error } = await admin.auth.admin.generateLink({
-      type: linkType,
-      email,
-      options: {
-        redirectTo: input.redirectTo,
-        data: input.metadata ?? undefined
-      }
-    });
+    const { data, error } =
+      input.mode === "signup"
+        ? await admin.auth.admin.generateLink({
+            type: "invite",
+            email,
+            options: linkOptions
+          })
+        : await admin.auth.admin.generateLink({
+            type: "magiclink",
+            email,
+            options: linkOptions
+          });
 
     if (error) {
       throw error;

@@ -61,7 +61,7 @@ function GethBirdIcon({ size = 19 }: { size?: number }) {
 function renderNavIcon(icon: DashboardNavItem["icon"]) {
   if (icon === "vertical-card") return <VerticalCardIcon size={19} />;
   if (icon === "calendar") return <CalendarIcon size={19} />;
-  if (icon === "geth-bird") return <GethBirdIcon size={19} />;
+  if (icon === "geth-bird" || icon === "brand-mark") return <GethBirdIcon size={19} />;
   const LucideIcon = icon;
   return <LucideIcon size={19} />;
 }
