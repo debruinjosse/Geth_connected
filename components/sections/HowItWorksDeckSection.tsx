@@ -88,13 +88,14 @@ export function HowItWorksDeckSection() {
         <div className="deck-how-it-works__grid">
           {steps.map((step, index) => (
             <article className="deck-how-it-works__step" key={step.key}>
-              <div className="deck-how-it-works__number">{index + 1}</div>
-
-              <div className="deck-how-it-works__icon">{step.icon}</div>
-
-              <h3>{t(`steps.${step.key}.title`)}</h3>
-
-              <p>{t(`steps.${step.key}.description`)}</p>
+              <div className="deck-how-it-works__meta">
+                <div className="deck-how-it-works__number">{index + 1}</div>
+                <div className="deck-how-it-works__icon">{step.icon}</div>
+              </div>
+              <div className="deck-how-it-works__content">
+                <h3>{t(`steps.${step.key}.title`)}</h3>
+                <p>{t(`steps.${step.key}.description`)}</p>
+              </div>
             </article>
           ))}
         </div>

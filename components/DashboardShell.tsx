@@ -141,10 +141,6 @@ export function DashboardShell({
 
   return (
     <div className={`dashboard-layout ${sidebarCollapsed ? "sidebar-collapsed" : ""}`.trim()}>
-      <button className="mobile-shell-toggle" type="button" onClick={() => setMobileOpen(true)} aria-label={t("openNavigation")}>
-        <Menu size={20} />
-      </button>
-
       <div className={`dashboard-overlay ${mobileOpen ? "open" : ""}`.trim()} onClick={() => setMobileOpen(false)} />
 
       <aside className={`dashboard-sidebar ${mobileOpen ? "open" : ""}`.trim()}>
@@ -212,6 +208,14 @@ export function DashboardShell({
       <main className={`dashboard-main dashboard-main-${role}`}>
         <div className="dashboard-header">
           <div className="dashboard-header-intro">
+            <button
+              className="dashboard-header-menu mobile-shell-toggle"
+              type="button"
+              onClick={() => setMobileOpen(true)}
+              aria-label={t("openNavigation")}
+            >
+              <Menu size={20} />
+            </button>
             {sidebarCollapsed ? (
               <button
                 className="dashboard-sidebar-expand-floating"
