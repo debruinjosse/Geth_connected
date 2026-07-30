@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 import { ArrowRight, CheckCircle2, Eye, EyeOff } from "lucide-react";
+import { requestMagicLinkEmail } from "@/app/actions/magicLink";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { hasSupabaseBrowserConfig, type DemoRole } from "@/lib/demo-session";
 
@@ -347,7 +348,6 @@ export function AuthExperience({
         throw new Error(t("errEmailFirst"));
       }
 
-      const supabase = createSupabaseBrowserClient();
       const redirectTo = new URL("/auth/callback", window.location.origin);
       if (mode === "signup" && ownerLoginOnly) {
         throw new Error(t("errOwnerSignup"));
@@ -363,34 +363,26 @@ export function AuthExperience({
         redirectTo.searchParams.set("next", safeTargetPath);
       }
 
-      const { error } =
-        mode === "signup"
-          ? await supabase.auth.signInWithOtp({
-              email: form.email,
-              options: {
-                emailRedirectTo: redirectTo.toString(),
-                shouldCreateUser: true,
-                data: {
-                  full_name: form.name || t("defaultUserName"),
-                  company: form.company || t("defaultWorkspace"),
-                  role: authRole
-                }
+      const result = await requestMagicLinkEmail({
+        email: form.email,
+        mode: mode === "signup" ? "signup" : "login",
+        redirectTo: redirectTo.toString(),
+        metadata:
+          mode === "signup"
+            ? {
+                full_name: form.name || t("defaultUserName"),
+                company: form.company || t("defaultWorkspace"),
+                role: authRole
               }
-            })
-          : await supabase.auth.signInWithOtp({
-              email: form.email,
-              options: {
-                emailRedirectTo: redirectTo.toString(),
-                shouldCreateUser: false
-              }
-            });
+            : undefined
+      });
 
-      if (error) throw error;
+      if (!result.ok) {
+        throw new Error(result.error);
+      }
 
       setStatusTone("success");
-      setStatus(
-        mode === "signup" ? t("magicSentSignup", { email: form.email }) : t("magicSentLogin", { email: form.email })
-      );
+      setStatus(t("magicSentSuccess"));
     } catch (error) {
       setStatusTone("error");
       setStatus(getErrorMessage(error, t("errMagicSend")));

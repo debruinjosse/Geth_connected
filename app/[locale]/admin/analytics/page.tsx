@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
-import { Activity, Award, BarChart3, Bell, Building2, Clock, CreditCard, Download, Sparkles, Star, UsersRound } from "lucide-react";
+import { getTranslations } from "next-intl/server";
+import { BarChart3, Bell, Building2, Clock, Download, Star, UsersRound } from "lucide-react";
 import { BarChart } from "@/components/BarChart";
 import { DashboardShell } from "@/components/DashboardShell";
 import { EmptyState } from "@/components/EmptyState";
@@ -27,8 +28,8 @@ function getPercent(part: number, total: number) {
   return total ? Math.round((part / total) * 100) : 0;
 }
 
-function formatDuration(seconds: number) {
-  if (!seconds) return "Not tracked yet";
+function formatDuration(seconds: number, notTrackedLabel: string) {
+  if (!seconds) return notTrackedLabel;
   const minutes = Math.round(seconds / 60);
   if (minutes < 60) return `${minutes}m`;
   const hours = Math.floor(minutes / 60);
@@ -62,17 +63,21 @@ function getHealthScore({
 
 export default async function AdminAnalyticsPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "adminPages" });
+  const tc = await getTranslations({ locale, namespace: "common" });
+  const dateLocale = locale === "nl" ? "nl-NL" : "en";
+  const notTrackedYet = tc("notTrackedYet");
 
   if (!hasSupabaseServerConfig()) {
     return (
-      <DashboardShell role="admin" title="Platform analytics" subtitle="Monitor adoption, volume, and recognition energy across the full ecosystem." user={superAdminUser} actions={<span className="quality-pill">Demo fallback</span>}>
+      <DashboardShell role="admin" title={t("analyticsTitle")} subtitle={t("analyticsSubtitle")} user={superAdminUser} actions={<span className="quality-pill">{tc("demoFallback")}</span>}>
         <section className="dashboard-grid two">
           <article className="panel dashboard-panel">
-            <div className="panel-top"><h2>Monthly recognitions</h2></div>
+            <div className="panel-top"><h2>{t("monthlyRecognitions")}</h2></div>
             <BarChart items={["Apr", "May", "Jun", "Jul"].map((label, index) => ({ label, value: platformGrowthPoints[index] ?? 0, color: "var(--theme-ink)" }))} />
           </article>
           <article className="panel dashboard-panel">
-            <div className="panel-top"><h2>Top company volume</h2></div>
+            <div className="panel-top"><h2>{t("topCompanyVolume")}</h2></div>
             {teamComparison.map((team) => (
               <div className="bar-row" key={team.label}>
                 <span>{team.label}</span>
@@ -126,12 +131,12 @@ export default async function AdminAnalyticsPage({ params }: { params: Promise<{
   ]);
 
   if (companiesError || profilesError || recognitionsError || cardsError || subscriptionsError || notificationsError || invoicesError) {
-    throw new Error("Failed to load platform analytics.");
+    throw new Error(t("errLoadAnalytics"));
   }
 
   const monthWindows = Array.from({ length: 6 }, (_, index) => {
     const date = new Date(new Date().getFullYear(), new Date().getMonth() - (5 - index), 1);
-    return { key: getMonthKey(date), label: new Intl.DateTimeFormat("en", { month: "short" }).format(date) };
+    return { key: getMonthKey(date), label: new Intl.DateTimeFormat(dateLocale, { month: "short" }).format(date) };
   });
   const monthlyCounts = new Map(monthWindows.map((month) => [month.key, 0]));
   const monthlyUserCounts = new Map(monthWindows.map((month) => [month.key, 0]));
@@ -191,9 +196,10 @@ export default async function AdminAnalyticsPage({ params }: { params: Promise<{
 
   const topCompanies = Array.from(companyCounts.entries())
     .map(([companyId, value]) => ({
-      label: companyNameMap.get(companyId) ?? "Unknown company",
+      key: companyId,
+      label: companyNameMap.get(companyId) ?? t("unknownCompany"),
       value,
-      helper: `${companyRecognizedUsers.get(companyId)?.size ?? 0} recognized users`
+      helper: t("recognizedUsersHelper", { count: companyRecognizedUsers.get(companyId)?.size ?? 0 })
     }))
     .sort((a, b) => b.value - a.value)
     .slice(0, 6);
@@ -205,9 +211,10 @@ export default async function AdminAnalyticsPage({ params }: { params: Promise<{
       const recognizedUsers = companyRecognizedUsers.get(company.id)?.size ?? 0;
       const score = Math.round(getPercent(recognizedUsers, Math.max(users, 1)) * 0.55 + Math.min(100, recognitionVolume * 10) * 0.45);
       return {
+        key: company.id,
         label: company.company_name,
         value: score,
-        helper: `${recognitionVolume} cards, ${recognizedUsers}/${users} recognized users`
+        helper: t("companyHealthRowHelper", { cards: recognitionVolume, recognized: recognizedUsers, users })
       };
     })
     .sort((a, b) => b.value - a.value)
@@ -245,9 +252,9 @@ export default async function AdminAnalyticsPage({ params }: { params: Promise<{
     totalCardCount: cards?.length ?? 0
   });
   const averageCardsPerUser = profiles?.length ? ((recognitions?.length ?? 0) / profiles.length).toFixed(1) : "0.0";
-  const averageTimePerView = pageViewsByPath.size ? formatDuration(Math.round(totalTrackedSeconds / Math.max(safeAnalyticsEvents.filter((event) => event.event_type === "page_view").length, 1))) : "Not tracked yet";
+  const averageTimePerView = pageViewsByPath.size ? formatDuration(Math.round(totalTrackedSeconds / Math.max(safeAnalyticsEvents.filter((event) => event.event_type === "page_view").length, 1)), notTrackedYet) : notTrackedYet;
   const topPages = Array.from(pageViewsByPath.entries())
-    .map(([path, value]) => ({ label: path, value, helper: formatDuration(timeByPath.get(path) ?? 0) }))
+    .map(([path, value]) => ({ key: path, label: path, value, helper: formatDuration(timeByPath.get(path) ?? 0, notTrackedYet) }))
     .sort((a, b) => b.value - a.value)
     .slice(0, 6);
 
@@ -260,158 +267,158 @@ export default async function AdminAnalyticsPage({ params }: { params: Promise<{
     {
       id: "morale-health",
       tone: healthScore >= 70 ? "var(--theme-emerald)" : healthScore >= 45 ? "var(--theme-gold)" : "var(--theme-red)",
-      title: `Platform health score: ${healthScore}/100`,
-      detail: healthScore >= 70 ? "Recognition adoption is healthy. Keep celebrating visible, respectful peer recognition." : "Watch company adoption, low-card usage, and users who have not yet received recognition."
+      title: t("platformHealthSignalTitle", { score: healthScore }),
+      detail: healthScore >= 70 ? t("platformHealthGoodDetail") : t("platformHealthWatchDetail")
     },
     {
       id: "card-balance",
       tone: unusedCardCount ? "var(--theme-gold)" : "var(--theme-emerald)",
-      title: `${unusedCardCount} of ${cards?.length ?? 0} cards have no usage yet`,
-      detail: unusedCardCount ? "Rotate low-used cards into demos and onboarding so every quality is represented." : "All cards have live recognition usage."
+      title: t("cardBalanceSignalTitle", { unused: unusedCardCount, total: cards?.length ?? 0 }),
+      detail: unusedCardCount ? t("cardBalanceUnusedDetail") : t("cardBalanceAllUsedDetail")
     },
     {
       id: "morale-standards",
       tone: "var(--theme-emerald)",
-      title: "Morale standard",
-      detail: "Encourage recognition that is specific, kind, peer-validated, and never used for ranking people negatively."
+      title: t("moraleStandardTitle"),
+      detail: t("moraleStandardDetail")
     }
   ];
 
   return (
     <DashboardShell
       role="admin"
-      title="Platform analytics"
-      subtitle="Monitor adoption, volume, and recognition energy across the full ecosystem."
+      title={t("analyticsTitle")}
+      subtitle={t("analyticsSubtitle")}
       user={{
         name: `${profile.first_name ?? ""} ${profile.last_name ?? ""}`.trim() || "GETH Admin",
         initials: getInitials(profile.first_name, profile.last_name),
-        team: "GETH Platform"
+        team: tc("platformTeam")
       }}
-      actions={<a className="btn btn-secondary" href={`/${locale}/admin/analytics/export`}><Download size={16} /> Export CSV</a>}
+      actions={<a className="btn btn-secondary" href={`/${locale}/admin/analytics/export`}><Download size={16} /> {t("exportCsv")}</a>}
       unreadNotifications={unreadNotifications}
     >
       <section className="metrics-grid">
-        <MetricCard icon={<Building2 />} value={companies?.length ?? 0} label="Companies" helper="Total workspaces" />
-        <MetricCard icon={<UsersRound />} value={profiles?.length ?? 0} label="Users" helper="All profiles" />
-        <MetricCard icon={<BarChart3 />} value={recognitions?.length ?? 0} label="Cards given" helper={`${averageCardsPerUser} avg per user`} />
-        <MetricCard icon={<Star />} value={`${healthScore}/100`} label="Health score" helper={`${activeCompanyCount} active companies`} tone="var(--theme-emerald)" iconBackground="rgba(58, 166, 95, 0.12)" />
-        <MetricCard icon={<Clock />} value={formatDuration(totalTrackedSeconds)} label="Time tracked" helper={`Avg ${averageTimePerView} per view`} tone="var(--theme-gold)" iconBackground="rgba(216, 162, 58, 0.12)" />
-        <MetricCard icon={<Bell />} value={unreadOperationalNotifications} label="Unread updates" helper={`${recentNotifications} updates this week`} tone="var(--theme-sky)" iconBackground="rgba(47, 119, 184, 0.12)" />
+        <MetricCard icon={<Building2 />} value={companies?.length ?? 0} label={t("metricCompanies")} helper={t("metricTotalWorkspaces")} />
+        <MetricCard icon={<UsersRound />} value={profiles?.length ?? 0} label={t("metricUsers")} helper={t("metricAllProfiles")} />
+        <MetricCard icon={<BarChart3 />} value={recognitions?.length ?? 0} label={t("metricCardsGiven")} helper={t("metricAvgPerUser", { count: averageCardsPerUser })} />
+        <MetricCard icon={<Star />} value={`${healthScore}/100`} label={t("metricHealthScore")} helper={t("metricActiveCompanies", { count: activeCompanyCount })} tone="var(--theme-emerald)" iconBackground="rgba(58, 166, 95, 0.12)" />
+        <MetricCard icon={<Clock />} value={formatDuration(totalTrackedSeconds, notTrackedYet)} label={t("metricTimeTracked")} helper={t("metricAvgPerView", { value: averageTimePerView })} tone="var(--theme-gold)" iconBackground="rgba(216, 162, 58, 0.12)" />
+        <MetricCard icon={<Bell />} value={unreadOperationalNotifications} label={t("metricUnreadUpdates")} helper={t("metricUpdatesThisWeek", { count: recentNotifications })} tone="var(--theme-sky)" iconBackground="rgba(47, 119, 184, 0.12)" />
       </section>
 
       <section className="dashboard-grid three report-summary-grid admin-report-summary-grid">
         <article className="panel dashboard-panel report-summary-card">
-          <span className="eyebrow">Most used card</span>
-          <strong>{topCard?.label ?? "No cards yet"}</strong>
-          <p>{topCard ? `${topCard.count} uses, ${topCard.rating}/100 rating` : "Live card ratings appear after claims."}</p>
+          <span className="eyebrow">{t("mostUsedCardEyebrow")}</span>
+          <strong>{topCard?.label ?? t("noCardsYet")}</strong>
+          <p>{topCard ? t("cardUsesRating", { count: topCard.count, rating: topCard.rating }) : t("liveCardRatingsCopy")}</p>
         </article>
         <article className="panel dashboard-panel report-summary-card">
-          <span className="eyebrow">Lowest-used card</span>
-          <strong>{lowestCard?.label ?? "No cards yet"}</strong>
-          <p>{lowestCard ? `${lowestCard.count} uses, ${lowestCard.rating}/100 rating` : "No live card usage yet."}</p>
+          <span className="eyebrow">{t("lowestUsedCardEyebrow")}</span>
+          <strong>{lowestCard?.label ?? t("noCardsYet")}</strong>
+          <p>{lowestCard ? t("cardUsesRating", { count: lowestCard.count, rating: lowestCard.rating }) : t("noLiveCardUsageCopy")}</p>
         </article>
         <article className="panel dashboard-panel report-summary-card">
-          <span className="eyebrow">Invoice value</span>
-          <strong>{new Intl.NumberFormat("en", { style: "currency", currency: "EUR" }).format(invoiceRevenueCents / 100)}</strong>
-          <p>{subscriptions?.length ?? 0} subscription records</p>
+          <span className="eyebrow">{t("invoiceValueEyebrow")}</span>
+          <strong>{new Intl.NumberFormat(dateLocale, { style: "currency", currency: "EUR" }).format(invoiceRevenueCents / 100)}</strong>
+          <p>{t("subscriptionRecords", { count: subscriptions?.length ?? 0 })}</p>
         </article>
       </section>
 
       <section className="dashboard-grid two admin-analytics-grid">
         <article className="panel dashboard-panel admin-chart-panel">
-          <div className="panel-top"><div><h2>Monthly recognitions</h2><p>Latest six months, oldest to newest.</p></div></div>
+          <div className="panel-top"><div><h2>{t("monthlyRecognitions")}</h2><p>{t("monthlyRecognitionsCopy")}</p></div></div>
           {recognitions?.length ? (
             <LineChart
               points={monthWindows.map((month) => monthlyCounts.get(month.key) ?? 0)}
               labels={monthWindows.map((month) => month.label)}
               color="var(--theme-ink)"
-              ariaLabel="Monthly recognition volume over the latest six months"
+              ariaLabel={t("chartAriaMonthlyRecognition")}
               showValues
             />
           ) : (
-            <EmptyState title="No recognitions yet" copy="Platform recognition trend will appear once companies start claiming cards." />
+            <EmptyState title={t("emptyNoRecognitionsAnalyticsTitle")} copy={t("emptyNoRecognitionsAnalyticsCopy")} />
           )}
         </article>
         <article className="panel dashboard-panel admin-ranking-panel">
-          <div className="panel-top"><h2>Top company volume</h2></div>
+          <div className="panel-top"><h2>{t("topCompanyVolume")}</h2></div>
           {topCompanies.length ? (
             <BarChart items={topCompanies.map((company) => ({ ...company, color: "var(--theme-ink)" }))} />
           ) : (
-            <EmptyState title="No company activity yet" copy="Company activity rankings will populate after recognition events are created." />
+            <EmptyState title={t("emptyNoCompanyActivityTitle")} copy={t("emptyNoCompanyActivityCopy")} />
           )}
         </article>
       </section>
 
       <section className="dashboard-grid two admin-analytics-grid">
         <article className="panel dashboard-panel admin-chart-panel">
-          <div className="panel-top"><div><h2>User growth</h2><p>New profiles created in the latest six months.</p></div></div>
+          <div className="panel-top"><div><h2>{t("userGrowthTitle")}</h2><p>{t("userGrowthAnalyticsCopy")}</p></div></div>
           {profiles?.length ? (
             <LineChart points={monthWindows.map((month) => monthlyUserCounts.get(month.key) ?? 0)} labels={monthWindows.map((month) => month.label)} color="var(--theme-gold)" />
           ) : (
-            <EmptyState title="No users yet" copy="User growth will appear after accounts are created." />
+            <EmptyState title={t("emptyNoUsersTitle")} copy={t("emptyNoUsersCopy")} />
           )}
         </article>
         <article className="panel dashboard-panel admin-ranking-panel">
-          <div className="panel-top"><h2>Page views</h2></div>
+          <div className="panel-top"><h2>{t("pageViewsTitle")}</h2></div>
           {safeAnalyticsEvents.length ? (
             <BarChart items={monthWindows.map((month) => ({ label: month.label, value: monthlyPageViews.get(month.key) ?? 0, color: "var(--theme-sky)" }))} />
           ) : (
-            <EmptyState title="Time tracking starts after migration" copy="Apply migration 013 to begin collecting page views and time spent." />
+            <EmptyState title={t("emptyTimeTrackingTitle")} copy={t("emptyTimeTrackingCopy")} />
           )}
         </article>
       </section>
 
       <section className="dashboard-grid two admin-analytics-grid">
         <article className="panel dashboard-panel">
-          <div className="panel-top"><h2>Company health</h2></div>
+          <div className="panel-top"><h2>{t("companyHealthTitle")}</h2></div>
           {companyHealthRows.length ? (
             <BarChart items={companyHealthRows.map((company) => ({ ...company, color: company.value >= 70 ? "var(--theme-emerald)" : company.value >= 40 ? "var(--theme-gold)" : "var(--theme-red)", valueLabel: `${company.value}/100` }))} />
           ) : (
-            <EmptyState title="No company health yet" copy="Company health appears after users and recognitions exist." />
+            <EmptyState title={t("emptyCompanyHealthTitle")} copy={t("emptyCompanyHealthCopy")} />
           )}
         </article>
         <article className="panel dashboard-panel">
-          <div className="panel-top"><h2>Operational insights</h2></div>
+          <div className="panel-top"><h2>{t("operationalInsightsTitle")}</h2></div>
           <SignalList items={platformSignals} />
         </article>
       </section>
 
       <section className="dashboard-grid two admin-analytics-grid">
         <article className="panel dashboard-panel">
-          <div className="panel-top"><h2>Category distribution</h2></div>
+          <div className="panel-top"><h2>{t("categoryDistributionTitle")}</h2></div>
           {categoryCounts.size ? (
             <BarChart items={Array.from(categoryCounts.entries()).sort((a, b) => b[1] - a[1]).map(([label, value]) => ({ label: getCategoryDisplayName(label), value, color: "var(--theme-emerald)" }))} />
           ) : (
-            <EmptyState title="No category data yet" copy="Recognition categories appear after cards are claimed." />
+            <EmptyState title={t("emptyCategoryTitle")} copy={t("emptyCategoryCopy")} />
           )}
         </article>
         <article className="panel dashboard-panel">
-          <div className="panel-top"><h2>Claim origin</h2></div>
+          <div className="panel-top"><h2>{t("claimOriginTitle")}</h2></div>
           {claimOriginCounts.size ? (
             <BarChart items={Array.from(claimOriginCounts.entries()).sort((a, b) => b[1] - a[1]).map(([label, value]) => ({ label: label.replaceAll("_", " "), value, color: label === "qr_scan" ? "var(--theme-gold)" : "var(--theme-ink)" }))} />
           ) : (
-            <EmptyState title="No claim origins yet" copy="QR, direct link, and manual entry origins appear after claims." />
+            <EmptyState title={t("emptyClaimOriginTitle")} copy={t("emptyClaimOriginCopy")} />
           )}
         </article>
       </section>
 
       <section className="dashboard-grid two admin-analytics-grid">
         <article className="panel dashboard-panel">
-          <div className="panel-top"><h2>Top pages by live usage</h2></div>
+          <div className="panel-top"><h2>{t("topPagesTitle")}</h2></div>
           {topPages.length ? (
             <BarChart items={topPages.map((page) => ({ ...page, color: "var(--theme-sky)" }))} />
           ) : (
-            <EmptyState title="No page usage yet" copy="Page usage will populate after visitors browse the deployed site with migration 013 applied." />
+            <EmptyState title={t("emptyPageUsageTitle")} copy={t("emptyPageUsageCopy")} />
           )}
         </article>
         <article className="panel dashboard-panel">
-          <div className="panel-top"><h2>Platform reach</h2></div>
+          <div className="panel-top"><h2>{t("platformReachTitle")}</h2></div>
           <BarChart
             items={[
-              { label: "Receivers", value: receiverUserIds.size, color: "var(--theme-emerald)", helper: "Users who received cards" },
-              { label: "Givers", value: giverUserIds.size, color: "var(--theme-gold)", helper: "Users who gave cards" },
-              { label: "Active companies", value: activeCompanyCount, color: "var(--theme-ink)", helper: "Companies with recognition volume" },
-              { label: "Active cards", value: cards?.filter((card) => card.active).length ?? 0, color: "var(--theme-sky)", helper: "Cards available to claim" }
+              { label: t("reachReceivers"), value: receiverUserIds.size, color: "var(--theme-emerald)", helper: t("reachReceiversHelper") },
+              { label: t("reachGivers"), value: giverUserIds.size, color: "var(--theme-gold)", helper: t("reachGiversHelper") },
+              { label: t("reachActiveCompanies"), value: activeCompanyCount, color: "var(--theme-ink)", helper: t("reachActiveCompaniesHelper") },
+              { label: t("reachActiveCards"), value: cards?.filter((card) => card.active).length ?? 0, color: "var(--theme-sky)", helper: t("reachActiveCardsHelper") }
             ]}
           />
         </article>
@@ -420,28 +427,28 @@ export default async function AdminAnalyticsPage({ params }: { params: Promise<{
       <article className="panel dashboard-panel admin-export-panel">
         <div className="panel-top">
           <div>
-            <h2>Privacy-safe recognition export</h2>
-            <p>Download grouped recognition data by company, giver user ID, receiver user ID, and card. Names, emails, and personal notes are excluded.</p>
+            <h2>{t("exportTitle")}</h2>
+            <p>{t("exportCopy")}</p>
           </div>
         </div>
         <form className="table-toolbar" action={`/${locale}/admin/analytics/export`} method="get">
           <label className="form-field">
-            <span>From</span>
+            <span>{t("dateFrom")}</span>
             <input className="input" type="date" name="from" />
           </label>
           <label className="form-field">
-            <span>To</span>
+            <span>{t("dateTo")}</span>
             <input className="input" type="date" name="to" />
           </label>
           <button className="btn btn-dark" type="submit">
-            <Download size={16} /> Download grouped CSV
+            <Download size={16} /> {t("downloadGroupedCsv")}
           </button>
         </form>
       </article>
 
       <section className="dashboard-grid two admin-analytics-grid">
       <article className="panel dashboard-panel">
-        <div className="panel-top"><h2>Role distribution</h2></div>
+        <div className="panel-top"><h2>{t("roleDistributionTitle")}</h2></div>
         {roleRows.length ? (
           roleRows.map(([role, value]) => (
             <div className="bar-row" key={role}>
@@ -451,15 +458,15 @@ export default async function AdminAnalyticsPage({ params }: { params: Promise<{
             </div>
           ))
         ) : (
-          <EmptyState title="No users yet" copy="Role distribution will appear after profiles are created." />
+          <EmptyState title={t("emptyNoUsersTitle")} copy={t("emptyRoleDistributionCopy")} />
         )}
       </article>
       <article className="panel dashboard-panel">
-        <div className="panel-top"><h2>All 53 card ratings</h2></div>
+        <div className="panel-top"><h2>{t("allCardsRatingsTitle")}</h2></div>
         {cardRatings.length ? (
           <div className="table-wrap">
             <table className="dashboard-table">
-              <thead><tr><th>Card</th><th>Category</th><th>Uses</th><th>Rating</th><th>Status</th></tr></thead>
+              <thead><tr><th>{t("tableCard")}</th><th>{t("tableCategory")}</th><th>{t("tableUses")}</th><th>{t("tableRating")}</th><th>{t("tableStatus")}</th></tr></thead>
               <tbody>
                 {cardRatings.map((card) => (
                   <tr key={card.id}>
@@ -467,14 +474,14 @@ export default async function AdminAnalyticsPage({ params }: { params: Promise<{
                     <td>{getCategoryDisplayName(card.category)}</td>
                     <td>{card.count}</td>
                     <td>{card.rating}/100</td>
-                    <td>{card.active ? "active" : "inactive"}</td>
+                    <td>{card.active ? t("cardStatusActive") : t("cardStatusInactive")}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
         ) : (
-          <EmptyState title="No cards seeded" copy="The 53-card rating report appears after card_library is seeded." />
+          <EmptyState title={t("emptyCardsSeededTitle")} copy={t("emptyCardsSeededCopy")} />
         )}
       </article>
       </section>

@@ -5,7 +5,7 @@ import { DEMO_SESSION_COOKIE, type DemoRole } from "@/lib/demo-session";
 import { defaultLocale, getLocaleFromPathname, stripLocaleFromPathname, type AppLocale } from "@/i18n/routing";
 
 const PUBLIC_EXACT_PATHS = new Set(["/", "/login", "/signup", "/cards", "/pricing", "/resources", "/book-demo"]);
-const PUBLIC_PREFIXES = ["/claim-card", "/invite"];
+const PUBLIC_PREFIXES = ["/claim-card", "/give-card", "/invite"];
 const NON_LOCALIZED_PREFIXES = ["/api", "/auth", "/_next"];
 
 const PROTECTED_ROUTE_RULES: Array<{
@@ -174,6 +174,9 @@ export async function proxy(request: NextRequest) {
   if (userError || !user) {
     return buildLoginRedirect(request, response, locale);
   }
+
+  // Refresh the session cookie so parallel tabs and shared admin testing stay signed in.
+  await supabase.auth.getSession();
 
   const { data: profile, error: profileError } = await supabase
     .from("profiles")

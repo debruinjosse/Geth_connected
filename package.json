@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "predev": "node scripts/db-migrate.mjs --soft",
     "dev:plain": "next dev",
     "build": "next build",
     "start": "next start",
@@ -17,12 +18,17 @@
     "seed:uat": "node ./scripts/seed-uat-accounts.mjs",
     "test:uat-auth": "node ./scripts/uat-auth-check.mjs",
     "test:smtp": "node scripts/test-smtp.mjs",
+    "test:post-deploy": "node scripts/post-deploy-smoke.mjs",
     "supabase:migration:auto": "node scripts/supabase-new-migration.mjs",
     "supabase:migration:new": "node scripts/supabase-new-migration.mjs",
-    "supabase:push": "node scripts/supabase-push.mjs",
+    "supabase:push": "node scripts/db-migrate.mjs",
     "supabase:auto": "node scripts/supabase-auto-push.mjs --continue-on-error",
-    "db:push": "node scripts/supabase-push.mjs",
-    "db:push:soft": "node scripts/supabase-auto-push.mjs --continue-on-error",
+    "logo:export": "node scripts/export-logo-png.mjs",
+    "db:push": "node scripts/db-migrate.mjs",
+    "db:push:direct": "node scripts/db-migrate-direct.mjs",
+    "db:push:soft": "node scripts/db-migrate.mjs --soft",
+    "env:push-production": "node scripts/push-production-env.mjs",
+    "env:push-supabase-auth": "node scripts/push-supabase-auth-smtp.mjs",
     "cards:sync:english": "node scripts/sync-english-cards.mjs",
     "translate:messages": "node scripts/translate-messages.mjs --full --locales=nl"
   },
@@ -40,12 +46,14 @@
     "stripe": "^22.3.1"
   },
   "devDependencies": {
+    "@resvg/resvg-js": "^2.6.2",
     "@types/node": "^22.10.0",
     "@types/nodemailer": "^8.0.1",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "eslint": "^9.17.0",
     "eslint-config-next": "^15.1.0",
+    "pg": "^8.22.0",
     "supabase": "^2.109.1",
     "typescript": "^5.7.2"
   }

@@ -49,3 +49,12 @@ export function getHeroCardText(locale: string) {
 export function getHeroPreviewCopy(locale: string) {
   return heroPreviewCopyByLocale[locale as keyof typeof heroPreviewCopyByLocale] ?? heroPreviewCopyByLocale.en;
 }
+
+/** Hero physical card beside the laptop mockup — locale-specific artwork. */
+export function getHeroPhysicalCardSrc(locale: string) {
+  return locale === "nl" ? "/assets/geth-card-flyer-cover.png" : "/assets/geth-connected-cards-en.png";
+}
+
+export function getHeroPhysicalCardAlt(locale: string) {
+  return locale === "nl" ? "GETH verbonden kaarten" : "GETH connected cards";
+}

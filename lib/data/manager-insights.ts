@@ -24,7 +24,7 @@ export type ManagerInsights = {
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const RECENT_ACTIVITY_MS = 30 * DAY_MS;
-const INACTIVITY_SIGNAL_MS = 21 * DAY_MS;
+const INACTIVITY_SIGNAL_MS = 14 * DAY_MS;
 
 function getMonthKey(date: Date) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
@@ -85,7 +85,7 @@ function getLatestActivityTime(rows: Array<{ created_at: string }>) {
 }
 
 function getWeeksSince(timestamp: number) {
-  return Math.max(3, Math.floor((Date.now() - timestamp) / (7 * DAY_MS)));
+  return Math.max(1, Math.floor((Date.now() - timestamp) / (7 * DAY_MS)));
 }
 
 function getPercentageMix<T extends { value: number }>(items: T[]) {
@@ -108,9 +108,9 @@ export async function getManagerInsights(
 ): Promise<ManagerInsights> {
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
-    .select("first_name, last_name, profile_image")
+    .select("id, first_name, last_name, profile_image, team_id")
     .eq("id", userId)
-    .maybeSingle<{ first_name: string | null; last_name: string | null; profile_image: string | null }>();
+    .maybeSingle<{ id: string; first_name: string | null; last_name: string | null; profile_image: string | null; team_id: string | null }>();
 
   if (profileError || !profile) {
     throw new Error("missing_profile");
@@ -153,7 +153,7 @@ export async function getManagerInsights(
   }
 
   const [{ data: members, error: membersError }, { data: recognitionRows, error: recognitionsError }] = await Promise.all([
-    supabase.from("profiles").select("id, first_name, last_name, team_id").in("team_id", teamIds).eq("role", "employee"),
+    supabase.from("profiles").select("id, first_name, last_name, team_id").in("team_id", teamIds).in("role", ["employee", "manager"]),
     supabase
       .from("recognition_events")
       .select("id, receiver_user_id, giver_user_id, team_id, created_at, card:card_library(title, category, card_number, qr_slug)")
@@ -166,6 +166,16 @@ export async function getManagerInsights(
   }
 
   const memberRows = (members ?? []) as Array<{ id: string; first_name: string | null; last_name: string | null; team_id: string | null }>;
+
+  if (!memberRows.some((member) => member.id === profile.id)) {
+    memberRows.push({
+      id: profile.id,
+      first_name: profile.first_name,
+      last_name: profile.last_name,
+      team_id: profile.team_id
+    });
+  }
+
   const recognitions = (recognitionRows ?? []) as Array<{
     id: string;
     receiver_user_id: string;

@@ -3,10 +3,15 @@ import process from "node:process";
 
 const continueOnError = process.argv.includes("--continue-on-error");
 const nodeCommand = process.execPath;
+const args = ["scripts/db-migrate.mjs"];
+if (continueOnError) {
+  args.push("--soft");
+}
 
-const child = spawn(nodeCommand, ["scripts/supabase-push.mjs"], {
+const child = spawn(nodeCommand, args, {
   cwd: process.cwd(),
-  stdio: "inherit"
+  stdio: "inherit",
+  shell: false
 });
 
 child.on("error", (error) => {
@@ -21,7 +26,7 @@ child.on("close", (code) => {
   }
 
   if (continueOnError) {
-    console.warn("Supabase migration push failed, but the requested command will continue.");
+    console.warn("Database migration failed, but the requested command will continue.");
     process.exitCode = 0;
     return;
   }

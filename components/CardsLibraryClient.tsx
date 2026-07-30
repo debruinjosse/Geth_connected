@@ -1,19 +1,19 @@
 "use client";
 
 import { useDeferredValue, useState } from "react";
-import { useLocale } from "next-intl";
-import { ArrowRight, Gift, Search } from "lucide-react";
+import { useLocale, useTranslations } from "next-intl";
+import { useSearchParams } from "next/navigation";
+import { ArrowRight, Gift, Search, Sparkles } from "lucide-react";
 import { GethCardVisual } from "@/components/GethCardVisual";
-import { getCategoryDisplayName, getLocalizedCardTitle, getLocalizedCategoryDisplayName, type CardCategory, type GethCard } from "@/lib/cards";
+import {
+  getCategoryDisplayName,
+  getLocalizedCardTitle,
+  getLocalizedCategoryDisplayName,
+  type CardCategory,
+  type GethCard
+} from "@/lib/cards";
 
-const filters: Array<{ value: "all" | CardCategory; label: string }> = [
-  { value: "all", label: "All categories" },
-  { value: "Communicatie", label: "Communication" },
-  { value: "Creativiteit", label: "Creativity" },
-  { value: "Competentie", label: "Competence" },
-  { value: "Collegialiteit", label: "Collegiality" },
-  { value: "Open kaart", label: "Open Card" }
-];
+const categoryFilters: CardCategory[] = ["Communicatie", "Creativiteit", "Competentie", "Collegialiteit", "Open kaart"];
 
 const categorySearchAliases: Record<string, string> = {
   Communicatie: "communication communicatie connector listener clear helder verbinder luisteraar",
@@ -53,6 +53,9 @@ function getCardSearchText(card: GethCard, locale: string) {
 
 export function CardsLibraryClient({ cards }: { cards: GethCard[] }) {
   const locale = useLocale();
+  const t = useTranslations("cardsPage");
+  const searchParams = useSearchParams();
+  const giveIntent = searchParams.get("intent") === "give";
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<"all" | CardCategory>("all");
   const deferredQuery = useDeferredValue(query);
@@ -67,24 +70,37 @@ export function CardsLibraryClient({ cards }: { cards: GethCard[] }) {
   });
 
   const searchActive = normalizedQuery.length > 0 || category !== "all";
+  const trimmedQuery = query.trim();
 
   return (
     <>
+      {giveIntent ? (
+        <div className="cards-give-intent-banner" role="status">
+          <strong>{t("giveIntentTitle")}</strong>
+          <p>{t("giveIntentCopy")}</p>
+        </div>
+      ) : null}
       <section className="cards-filter-bar">
-        <select className="input" aria-label="Filter cards by category" value={category} onChange={(event) => setCategory(event.target.value as "all" | CardCategory)}>
-          {filters.map((filter) => (
-            <option key={filter.value} value={filter.value}>
-              {filter.label}
+        <select
+          className="input"
+          aria-label={t("filterAriaLabel")}
+          value={category}
+          onChange={(event) => setCategory(event.target.value as "all" | CardCategory)}
+        >
+          <option value="all">{t("filterAllCategories")}</option>
+          {categoryFilters.map((value) => (
+            <option key={value} value={value}>
+              {getLocalizedCategoryDisplayName(value, locale)}
             </option>
           ))}
         </select>
         <div className="input-wrap">
           <Search size={18} style={{ position: "absolute", top: 18, left: 16, color: "var(--theme-muted)" }} />
           <input
-            aria-label="Search cards"
+            aria-label={t("searchAriaLabel")}
             className="input"
             style={{ paddingLeft: 44 }}
-            placeholder="Search by title, category, quality, card number, or phrase"
+            placeholder={t("searchPlaceholder")}
             value={query}
             onChange={(event) => setQuery(event.target.value)}
           />
@@ -92,28 +108,42 @@ export function CardsLibraryClient({ cards }: { cards: GethCard[] }) {
       </section>
 
       <p className="cards-count">
-        {searchActive ? `Showing ${visibleCards.length} matching cards out of ${cards.length}` : `Showing ${visibleCards.length} of ${cards.length} cards`}
-        {normalizedQuery ? ` for "${query.trim()}"` : ""}
+        {searchActive
+          ? t("showingMatching", { visible: visibleCards.length, total: cards.length })
+          : t("showingCount", { visible: visibleCards.length, total: cards.length })}
+        {trimmedQuery ? ` ${t("searchFor", { query: trimmedQuery })}` : ""}
       </p>
 
       {visibleCards.length ? (
         <section className="cards-grid">
-          {visibleCards.map((card) => (
-            <a className="card-library-card" href={`/${locale}/claim-card/${card.slug}?mode=give`} key={card.slug}>
-              <div className="card-library-copy">
-                <GethCardVisual card={{ ...card, title: getLocalizedCardTitle(card, locale), category: getLocalizedCategoryDisplayName(card.category, locale) }} variant="library" />
-                <span className="card-library-action">
-                  <Gift size={15} />
-                  Give this card <ArrowRight size={14} />
-                </span>
-              </div>
-            </a>
-          ))}
+          {visibleCards.map((card) => {
+            const cardHref = giveIntent
+              ? `/${locale}/give-card/${card.slug}`
+              : `/${locale}/claim-card/${card.slug}`;
+            return (
+              <a className="card-library-card" href={cardHref} key={card.slug}>
+                <div className="card-library-copy">
+                  <GethCardVisual
+                    card={{
+                      ...card,
+                      title: getLocalizedCardTitle(card, locale),
+                      category: getLocalizedCategoryDisplayName(card.category, locale)
+                    }}
+                    variant="library"
+                  />
+                  <span className="card-library-action">
+                    {giveIntent ? <Gift size={15} /> : <Sparkles size={15} />}
+                    {giveIntent ? t("giveThisCard") : t("cta")} <ArrowRight size={14} />
+                  </span>
+                </div>
+              </a>
+            );
+          })}
         </section>
       ) : (
         <section className="panel dashboard-panel cards-empty-search">
-          <h2>No cards found</h2>
-          <p className="section-copy">Try a broader word like communication, empathy, problem solver, clear, or a card number.</p>
+          <h2>{t("emptyTitle")}</h2>
+          <p className="section-copy">{t("emptyCopy")}</p>
           <button
             className="btn btn-secondary"
             type="button"
@@ -122,7 +152,7 @@ export function CardsLibraryClient({ cards }: { cards: GethCard[] }) {
               setCategory("all");
             }}
           >
-            Clear search
+            {t("clearSearch")}
           </button>
         </section>
       )}

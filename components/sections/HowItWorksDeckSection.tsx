@@ -1,4 +1,4 @@
-import Image from "next/image";
+import { BrandMarkIcon } from "@/components/BrandLogo";
 import { Heart, MessagesSquare, QrCode, TrendingUp, User, UsersRound } from "lucide-react";
 import { useTranslations } from "next-intl";
 
@@ -8,7 +8,7 @@ function CardStackIcon() {
       <span className="deck-card-stack-icon__back" />
       <span className="deck-card-stack-icon__middle" />
       <span className="deck-card-stack-icon__front">
-        <Image src="/assets/geth-logo.svg" alt="" width={34} height={34} />
+        <BrandMarkIcon alt="" size={34} />
       </span>
     </div>
   );

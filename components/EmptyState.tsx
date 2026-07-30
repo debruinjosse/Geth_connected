@@ -1,7 +1,10 @@
+"use client";
+
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 
 export function EmptyState({
-  eyebrow = "Nothing yet",
+  eyebrow,
   title,
   copy,
   actionLabel,
@@ -13,9 +16,12 @@ export function EmptyState({
   actionLabel?: string;
   actionHref?: string;
 }) {
+  const t = useTranslations("common");
+  const resolvedEyebrow = eyebrow ?? t("nothingYet");
+
   return (
     <div className="empty-state">
-      <div className="eyebrow">{eyebrow}</div>
+      <div className="eyebrow">{resolvedEyebrow}</div>
       <h3>{title}</h3>
       <p>{copy}</p>
       {actionLabel && actionHref ? (

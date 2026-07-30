@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { getHeroPreviewCopy } from "@/lib/hero-card-copy";
+import { getHeroPhysicalCardAlt, getHeroPhysicalCardSrc, getHeroPreviewCopy } from "@/lib/hero-card-copy";
 
 const kpis = [
   "78%",
@@ -18,10 +18,10 @@ export function MobileHeroProductPreview({ locale = "en" }: { locale?: string })
 
   return (
     <section className="mobile-hero-device-preview" aria-label="GETH dashboard preview">
-      <div className="mobile-hero-physical-card" aria-hidden="true">
+      <div className="mobile-hero-physical-card mobile-hero-card-float" aria-hidden="true">
         <Image
-          alt=""
-          src="/assets/geth-card-flyer-cover.png"
+          alt={getHeroPhysicalCardAlt(locale)}
+          src={getHeroPhysicalCardSrc(locale)}
           width={560}
           height={797}
           sizes="92px"

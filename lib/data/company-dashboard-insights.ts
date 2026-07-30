@@ -224,7 +224,11 @@ function buildSparkline(recognitions: CompanyRecognitionRow[], currentStart: Dat
   return buckets;
 }
 
-export async function fetchCompanyDashboardInsights(supabase: SupabaseClient, companyId: string): Promise<CompanyDashboardInsights> {
+export async function fetchCompanyDashboardInsights(
+  supabase: SupabaseClient,
+  companyId: string,
+  errorMessage: string
+): Promise<CompanyDashboardInsights> {
   const now = new Date();
   const currentStart = new Date(now.getTime() - 30 * DAY_MS);
   const previousStart = new Date(now.getTime() - 60 * DAY_MS);
@@ -241,7 +245,7 @@ export async function fetchCompanyDashboardInsights(supabase: SupabaseClient, co
     ]);
 
   if (profilesError || teamsError || recognitionsError) {
-    throw new Error("Failed to load company dashboard insights.");
+    throw new Error(errorMessage);
   }
 
   const companyProfiles = (profiles ?? []) as CompanyProfileRow[];

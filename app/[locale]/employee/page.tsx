@@ -38,41 +38,9 @@ function getEmployeeCategoryColor(category: string) {
   }
 }
 
-function getEmployeeCategoryPersonaKeys(category: string) {
-  switch (category) {
-    case "Communication":
-    case "Communicatie":
-      return { title: "personaCommunicationTitle", story: "personaCommunicationStory" };
-    case "Creativity":
-    case "Creativiteit":
-      return { title: "personaCreativityTitle", story: "personaCreativityStory" };
-    case "Competence":
-    case "Competentie":
-      return { title: "personaCompetenceTitle", story: "personaCompetenceStory" };
-    case "Collegiality":
-    case "Collegialiteit":
-      return { title: "personaCollegialityTitle", story: "personaCollegialityStory" };
-    default:
-      return { title: "personaDefaultTitle", story: "personaDefaultStory" };
-  }
-}
-
-function formatCardEvidence(
-  cards: Array<{ label: string; count: number; category: string }>,
-  cardWord: (count: number) => string
-) {
-  if (!cards.length) {
-    return "";
-  }
-
-  return cards.map((card) => `${card.label} (${card.category}, ${card.count} ${cardWord(card.count)})`).join(", ");
-}
-
 export default async function EmployeeDashboardPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "employeeDashboard" });
-  const tc = await getTranslations({ locale, namespace: "common" });
-  const cardWord = (count: number) => (count === 1 ? tc("card") : tc("cards"));
 
   if (!hasSupabaseServerConfig()) {
     return <EmployeeDashboardClient />;
@@ -297,37 +265,27 @@ export default async function EmployeeDashboardPage({ params }: { params: Promis
   const energyScore = normalizedRecognitions.length
     ? Math.min(96, Math.max(42, normalizedRecognitions.length * 12 + recent30DaysCount * 8))
     : 0;
-  const recognitionSignals = [];
-  const topThreeCards = topQualityDetails.slice(0, 3);
-  const aiCategory = topCategory?.[0] ?? topThreeCards[0]?.rawCategory;
-  const aiPersonaKeys = getEmployeeCategoryPersonaKeys(aiCategory ?? "");
-
-  if (!normalizedRecognitions.length) {
-    recognitionSignals.push({
-      id: "employee-signal-empty",
-      tone: "var(--theme-gold)",
-      title: t("emptySignalTitle"),
-      detail: t("emptySignalDetail")
-    });
-  } else {
-    recognitionSignals.push({
-      id: "employee-ai-recognition-story",
-      tone: getEmployeeCategoryColor(aiCategory ?? ""),
-      title: t(aiPersonaKeys.title),
-      detail: t("storyEvidence", {
-        story: t(aiPersonaKeys.story),
-        evidence: formatCardEvidence(topThreeCards, cardWord),
-        pace: recent30DaysCount >= 5 ? t("paceConsistent") : t("paceGrowing")
-      }),
-      highlights: topThreeCards.map((card) => ({
-        label: card.label,
-        category: card.category,
-        count: card.count,
-        tone: card.tone
-      }))
-    });
-  }
   const topStrengthLabel = topCategory ? getAnalyticCategoryLabel(topCategory[0]) : t("noSignalYet");
+  const signalsContext = {
+    locale,
+    employeeId: user.id,
+    employeeName: `${profile.first_name} ${profile.last_name}`.trim(),
+    teamName: team?.name ?? t("noTeam"),
+    cardsReceived: normalizedRecognitions.length,
+    cardsGiven: givenCount ?? 0,
+    recent30DaysCount,
+    topQualities: topQualityDetails.map((card) => ({
+      label: card.label,
+      count: card.count,
+      category: card.category,
+      tone: card.tone
+    })),
+    categoryBreakdown,
+    recentNotes: normalizedRecognitions
+      .slice(0, 8)
+      .map((item) => item.note)
+      .filter((note) => note && note !== t("noPersonalNote"))
+  };
   const pendingApprovals = pendingVerificationRows.flatMap((row) => {
     const card = Array.isArray(row.card) ? row.card[0] : row.card;
     if (!card) return [];
@@ -377,7 +335,7 @@ export default async function EmployeeDashboardPage({ params }: { params: Promis
         quartersActive: quarterKeys.has("NaN-QNaN") ? Math.max(quarterKeys.size - 1, 0) : quarterKeys.size,
         topQualitiesCount: qualityCounts.size,
         topStrengthLabel,
-        recognitionSignals,
+        signalsContext,
         pendingApprovals: [...pendingAcknowledgements, ...pendingApprovals],
         topQualities,
         categoryBreakdown,

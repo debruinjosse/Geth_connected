@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import { updateCardActiveAction, updateCardContentAction } from "@/app/actions/adminControls";
 import { DashboardShell } from "@/components/DashboardShell";
 import { EmptyState } from "@/components/EmptyState";
@@ -21,11 +22,15 @@ function getInitials(firstName: string, lastName: string) {
   return `${firstName[0] ?? ""}${lastName[0] ?? ""}`.toUpperCase() || "GA";
 }
 
-export default async function AdminCardsPage() {
+export default async function AdminCardsPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "adminPages" });
+  const tc = await getTranslations({ locale, namespace: "common" });
+
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
     return (
-      <DashboardShell role="admin" title="Platform card library" subtitle="Connect Supabase to manage the live shared deck." user={superAdminUser}>
-        <EmptyState title="Supabase not configured" copy="The platform card controls will appear here once Supabase env vars are configured." />
+      <DashboardShell role="admin" title={t("cardsLibraryTitle")} subtitle={t("cardsLibraryNoSupabaseSubtitle")} user={superAdminUser}>
+        <EmptyState title={t("cardsLibraryNoSupabaseTitle")} copy={t("cardsLibraryNoSupabaseCopy")} />
       </DashboardShell>
     );
   }
@@ -36,7 +41,7 @@ export default async function AdminCardsPage() {
     error: userError
   } = await supabase.auth.getUser();
 
-  if (userError || !user) redirect("/login");
+  if (userError || !user) redirect(`/${locale}/login`);
 
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
@@ -57,7 +62,7 @@ export default async function AdminCardsPage() {
   ]);
 
   if (error || recognitionsError) {
-    throw new Error("Failed to load platform card library.");
+    throw new Error(t("errLoadCards"));
   }
 
   const activeCount = cards?.filter((card) => card.active).length ?? 0;
@@ -69,26 +74,26 @@ export default async function AdminCardsPage() {
   return (
     <DashboardShell
       role="admin"
-      title="Platform card library"
-      subtitle="Control which recognition cards are available across public library and QR claim routes."
+      title={t("cardsLibraryTitle")}
+      subtitle={t("cardsLibrarySubtitleLive")}
       user={{
         name: `${profile.first_name} ${profile.last_name}`.trim(),
         initials: getInitials(profile.first_name, profile.last_name),
-        team: "GETH Platform"
+        team: tc("platformTeam")
       }}
-      actions={<span className="quality-pill">{activeCount} active cards</span>}
+      actions={<span className="quality-pill">{t("activeCardsPill", { count: activeCount })}</span>}
     >
       <article className="panel dashboard-panel">
         <div className="panel-top">
           <div>
-            <h2>Shared card deck</h2>
-            <p>Pause a card to hide it from the public card library and claim route lookup.</p>
+            <h2>{t("sharedCardDeckTitle")}</h2>
+            <p>{t("sharedCardDeckCopy")}</p>
           </div>
         </div>
         <div className="table-wrap admin-table-scroll admin-card-library-scroll">
           {cards?.length ? (
             <table className="dashboard-table">
-              <thead><tr><th>Card</th><th>Category</th><th>Number</th><th>Status</th><th>Usage</th><th>Route</th><th>Control</th></tr></thead>
+              <thead><tr><th>{t("tableCard")}</th><th>{t("tableCategory")}</th><th>{t("tableNumber")}</th><th>{t("tableStatus")}</th><th>{t("tableUsage")}</th><th>{t("tableRoute")}</th><th>{t("tableControl")}</th></tr></thead>
               <tbody>
                 {(cards as AdminCardRow[]).map((card) => (
                   <tr key={card.id}>
@@ -98,7 +103,7 @@ export default async function AdminCardsPage() {
                     </td>
                     <td>{getCategoryDisplayName(card.category)}</td>
                     <td>{card.card_number}</td>
-                    <td><span className="admin-status-pill">{card.active ? "active" : "paused"}</span></td>
+                    <td><span className="admin-status-pill">{card.active ? t("cardStatusActive") : t("cardStatusPaused")}</span></td>
                     <td>{usageCounts.get(card.id) ?? 0}</td>
                     <td>/claim-card/{card.qr_slug}</td>
                     <td>
@@ -107,19 +112,19 @@ export default async function AdminCardsPage() {
                           <input type="hidden" name="cardId" value={card.id} />
                           <input type="hidden" name="active" value={card.active ? "false" : "true"} />
                           <button className="btn btn-secondary compact" type="submit">
-                            {card.active ? "Pause" : "Activate"}
+                            {card.active ? t("pauseButton") : t("activateButton")}
                           </button>
                         </form>
                         <details className="admin-card-edit">
-                          <summary>Edit</summary>
+                          <summary>{t("editButton")}</summary>
                           <form action={updateCardContentAction} className="admin-card-edit-form">
                             <input type="hidden" name="cardId" value={card.id} />
                             <label>
-                              Name
+                              {t("formNameLabel")}
                               <input className="input" name="title" defaultValue={card.title} required />
                             </label>
                             <label>
-                              Category
+                              {t("tableCategory")}
                               <select className="input" name="category" defaultValue={card.category} required>
                                 <option value="Communication">Communication</option>
                                 <option value="Creativity">Creativity</option>
@@ -129,15 +134,15 @@ export default async function AdminCardsPage() {
                               </select>
                             </label>
                             <label>
-                              Card caption
+                              {t("formCaptionLabel")}
                               <textarea className="input" name="description" rows={3} defaultValue={card.description} required />
                             </label>
                             <label>
-                              Recognition sentence
+                              {t("formRecognitionSentenceLabel")}
                               <textarea className="input" name="recognitionSentence" rows={3} defaultValue={card.recognition_sentence} required />
                             </label>
-                            <p>QR slug stays locked: {card.qr_slug}</p>
-                            <button className="btn btn-primary compact" type="submit">Save card text</button>
+                            <p>{t("qrSlugLocked", { slug: card.qr_slug })}</p>
+                            <button className="btn btn-primary compact" type="submit">{t("saveCardTextButton")}</button>
                           </form>
                         </details>
                       </div>
@@ -147,7 +152,7 @@ export default async function AdminCardsPage() {
               </tbody>
             </table>
           ) : (
-            <EmptyState title="No cards seeded yet" copy="Seed card_library to control the platform deck from here." />
+            <EmptyState title={t("emptyNoCardsSeededTitle")} copy={t("emptyNoCardsSeededCopy")} />
           )}
         </div>
       </article>

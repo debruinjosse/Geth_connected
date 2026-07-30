@@ -1,30 +1,33 @@
+"use client";
+
 import Image from "next/image";
 import { KeyRound, Save, UploadCloud } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { sendPasswordResetFromSettingsAction, updateOwnProfileNameAction, updateOwnProfilePhotoAction } from "@/app/actions/accountSettings";
 import { ProfilePhotoUploadField } from "@/components/ProfilePhotoUploadField";
 
-function getSettingsMessage(code?: string) {
+function getSettingsMessage(t: (key: string) => string, code?: string) {
   switch (code) {
     case "profile-updated":
-      return { tone: "success", copy: "Your display name was updated." };
+      return { tone: "success", copy: t("profileUpdated") };
     case "profile-photo-updated":
-      return { tone: "success", copy: "Your profile photo was updated." };
+      return { tone: "success", copy: t("profilePhotoUpdated") };
     case "reset-email-sent":
-      return { tone: "success", copy: "Password reset email sent. Open the GETH button in your inbox." };
+      return { tone: "success", copy: t("resetEmailSent") };
     case "first-name-required":
-      return { tone: "error", copy: "First name is required." };
+      return { tone: "error", copy: t("firstNameRequired") };
     case "profile-photo-required":
-      return { tone: "error", copy: "Choose a profile photo before uploading." };
+      return { tone: "error", copy: t("profilePhotoRequired") };
     case "profile-photo-invalid":
-      return { tone: "error", copy: "Use a JPG, PNG, WEBP, GIF, HEIC, or HEIF image." };
+      return { tone: "error", copy: t("profilePhotoInvalid") };
     case "profile-photo-too-large":
-      return { tone: "error", copy: "That image is larger than 100 MB. Use an HD photo under 100 MB." };
+      return { tone: "error", copy: t("profilePhotoTooLarge") };
     case "profile-photo-failed":
-      return { tone: "error", copy: "We could not upload that photo. Check the Supabase profile-photos bucket and service role key." };
+      return { tone: "error", copy: t("profilePhotoFailed") };
     case "profile-update-failed":
-      return { tone: "error", copy: "We could not update your name. Make sure migration 008 is applied." };
+      return { tone: "error", copy: t("profileUpdateFailed") };
     case "reset-email-failed":
-      return { tone: "error", copy: "We could not send the reset email. Check Supabase SMTP/email settings." };
+      return { tone: "error", copy: t("resetEmailFailed") };
     default:
       return null;
   }
@@ -45,15 +48,16 @@ export function AccountSettingsPanel({
   returnTo: string;
   statusCode?: string;
 }) {
-  const message = getSettingsMessage(statusCode);
+  const t = useTranslations("accountSettings");
+  const message = getSettingsMessage(t, statusCode);
   const initials = `${firstName[0] ?? ""}${lastName[0] ?? ""}`.toUpperCase() || "GU";
 
   return (
     <article className="panel dashboard-panel account-settings-panel">
       <div className="panel-top">
         <div>
-          <h2>Account settings</h2>
-          <p>Update your display name or send yourself a secure password reset email.</p>
+          <h2>{t("title")}</h2>
+          <p>{t("subtitle")}</p>
         </div>
       </div>
 
@@ -63,49 +67,56 @@ export function AccountSettingsPanel({
         <input type="hidden" name="returnTo" value={returnTo} />
         <div className="settings-photo-preview">
           <div className="profile-photo-large">
-            {profileImageUrl ? <Image src={profileImageUrl} alt={`${firstName || "Your"} profile`} width={82} height={82} unoptimized /> : <span>{initials}</span>}
+            {profileImageUrl ? (
+              <Image src={profileImageUrl} alt={t("profilePhotoAlt", { name: firstName || "Your" })} width={82} height={82} unoptimized />
+            ) : (
+              <span>{initials}</span>
+            )}
           </div>
           <div>
-            <strong>Profile photo</strong>
-            <p>Upload an HD JPG, PNG, WEBP, GIF, HEIC, or HEIF up to 100 MB. This photo appears in your dashboard and claim-card people picker.</p>
+            <strong>{t("profilePhoto")}</strong>
+            <p>{t("profilePhotoCopy")}</p>
           </div>
         </div>
         <ProfilePhotoUploadField />
         <div className="settings-action-row">
           <button className="btn btn-secondary" type="submit">
-            <UploadCloud size={16} /> Upload photo
+            <UploadCloud size={16} /> {t("uploadPhoto")}
           </button>
         </div>
       </form>
 
-      <form action={updateOwnProfileNameAction} className="settings-form">
+      <form action={updateOwnProfileNameAction} className="settings-name-form">
         <input type="hidden" name="returnTo" value={returnTo} />
-        <div className="form-grid">
+        <div className="settings-field-grid">
           <label>
-            First name
-            <input className="input" name="firstName" defaultValue={firstName} required />
+            {t("firstName")}
+            <input name="firstName" value={firstName} required />
           </label>
           <label>
-            Last name
-            <input className="input" name="lastName" defaultValue={lastName} />
+            {t("lastName")}
+            <input name="lastName" value={lastName} required />
           </label>
         </div>
         <div className="settings-action-row">
-          <button className="btn btn-primary" type="submit">
-            <Save size={16} /> Save name
+          <button className="btn btn-dark" type="submit">
+            <Save size={16} /> {t("saveName")}
           </button>
         </div>
       </form>
 
       <form action={sendPasswordResetFromSettingsAction} className="settings-reset-form">
         <input type="hidden" name="returnTo" value={returnTo} />
+        <input type="hidden" name="email" value={email} />
         <div>
-          <strong>Password reset</strong>
-          <p>We will send a reset link to {email}.</p>
+          <strong>{t("passwordReset")}</strong>
+          <p>{t("passwordResetCopy")}</p>
         </div>
-        <button className="btn btn-secondary" type="submit">
-          <KeyRound size={16} /> Send reset email
-        </button>
+        <div className="settings-action-row">
+          <button className="btn btn-secondary" type="submit">
+            <KeyRound size={16} /> {t("sendResetEmail")}
+          </button>
+        </div>
       </form>
     </article>
   );

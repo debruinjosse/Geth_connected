@@ -22,7 +22,10 @@ declare global {
   }
 }
 
-const MAX_DECODE_SIZE = 960;
+const MAX_DECODE_SIZE = 1280;
+const CAMERA_DECODE_SCALES = [1, 1.2];
+const IMAGE_DECODE_SCALES = [1, 1.35, 0.75, 1.75, 2];
+const DECODE_ROTATIONS = [0, 90, 180, 270];
 const VALID_LOCALES = new Set(["nl", "en"]);
 const SLUG_PATTERN = /^[a-z0-9][a-z0-9-]{1,80}$/i;
 const CAMERA_CONSTRAINTS: MediaStreamConstraints[] = [
@@ -155,6 +158,14 @@ function resolveClaimSlug(value: string) {
   const parts = withoutQuery.split("/").filter(Boolean);
   const [firstPart, secondPart, thirdPart] = parts;
 
+  if (VALID_LOCALES.has(firstPart) && secondPart === "give-card") {
+    return getSlugCandidate(thirdPart);
+  }
+
+  if (firstPart === "give-card") {
+    return getSlugCandidate(secondPart);
+  }
+
   if (VALID_LOCALES.has(firstPart) && secondPart === "claim-card") {
     return getSlugCandidate(thirdPart);
   }
@@ -195,6 +206,7 @@ export function QrScanClient() {
   const [imageScanning, setImageScanning] = useState(false);
   const [detectedSlug, setDetectedSlug] = useState("");
   const [detectedSource, setDetectedSource] = useState<"qr_scan" | "manual_entry">("manual_entry");
+  const [decodedRaw, setDecodedRaw] = useState("");
 
   const locale = typeof params.locale === "string" ? params.locale : "en";
 
@@ -260,10 +272,10 @@ export function QrScanClient() {
     return canvasRef.current;
   }
 
-  function drawSourceToCanvas(source: CanvasImageSource, sourceWidth: number, sourceHeight: number) {
+  function drawSourceToCanvas(source: CanvasImageSource, sourceWidth: number, sourceHeight: number, scaleMultiplier = 1) {
     if (!sourceWidth || !sourceHeight) return null;
 
-    const scale = Math.min(1, MAX_DECODE_SIZE / Math.max(sourceWidth, sourceHeight));
+    const scale = Math.min(1, MAX_DECODE_SIZE / Math.max(sourceWidth, sourceHeight)) * scaleMultiplier;
     const width = Math.max(1, Math.round(sourceWidth * scale));
     const height = Math.max(1, Math.round(sourceHeight * scale));
     const canvas = getCanvas();
@@ -302,11 +314,55 @@ export function QrScanClient() {
     return result?.data ?? "";
   }
 
-  async function detectQrFromCanvas(canvas: HTMLCanvasElement) {
+  function drawRotatedImage(image: HTMLImageElement, rotation: number, scale = 1) {
+    const sourceWidth = image.naturalWidth;
+    const sourceHeight = image.naturalHeight;
+    if (!sourceWidth || !sourceHeight) return null;
+
+    const rotated = rotation === 90 || rotation === 270;
+    const baseWidth = rotated ? sourceHeight : sourceWidth;
+    const baseHeight = rotated ? sourceWidth : sourceHeight;
+    const fittedScale = Math.min(1, MAX_DECODE_SIZE / Math.max(baseWidth, baseHeight)) * scale;
+    const width = Math.max(1, Math.round(baseWidth * fittedScale));
+    const height = Math.max(1, Math.round(baseHeight * fittedScale));
+    const canvas = getCanvas();
+    const context = canvas.getContext("2d", { willReadFrequently: true });
+
+    if (!context) return null;
+
+    canvas.width = width;
+    canvas.height = height;
+    context.fillStyle = "#ffffff";
+    context.fillRect(0, 0, width, height);
+    context.translate(width / 2, height / 2);
+    context.rotate((rotation * Math.PI) / 180);
+    const drawWidth = Math.round(sourceWidth * fittedScale);
+    const drawHeight = Math.round(sourceHeight * fittedScale);
+    context.drawImage(image, -drawWidth / 2, -drawHeight / 2, drawWidth, drawHeight);
+    context.setTransform(1, 0, 0, 1, 0, 0);
+
+    return canvas;
+  }
+
+  async function decodeQrFromCanvas(canvas: HTMLCanvasElement) {
     const nativeResult = await detectWithNativeScanner(canvas);
     if (nativeResult) return nativeResult;
 
     return detectWithJsQr(canvas);
+  }
+
+  async function decodeQrFromImage(image: HTMLImageElement) {
+    for (const rotation of DECODE_ROTATIONS) {
+      for (const scale of IMAGE_DECODE_SCALES) {
+        const canvas = drawRotatedImage(image, rotation, scale);
+        if (!canvas) continue;
+
+        const code = await decodeQrFromCanvas(canvas);
+        if (code) return code;
+      }
+    }
+
+    return "";
   }
 
   async function detectQrFromVideo(video: HTMLVideoElement) {
@@ -316,8 +372,15 @@ export function QrScanClient() {
     const nativeResult = await detectWithNativeScanner(video);
     if (nativeResult) return nativeResult;
 
-    const canvas = drawSourceToCanvas(video, video.videoWidth, video.videoHeight);
-    return canvas ? detectWithJsQr(canvas) : "";
+    for (const scale of CAMERA_DECODE_SCALES) {
+      const canvas = drawSourceToCanvas(video, video.videoWidth, video.videoHeight, scale);
+      if (!canvas) continue;
+
+      const code = await decodeQrFromCanvas(canvas);
+      if (code) return code;
+    }
+
+    return "";
   }
 
   function stopScanLoop() {
@@ -331,13 +394,32 @@ export function QrScanClient() {
 
   const detectedCard = detectedSlug ? gethCards.find((card) => card.slug === detectedSlug) : null;
 
+  function handleDecodedQr(rawValue: string) {
+    const trimmed = rawValue.trim();
+    if (!trimmed) return;
+
+    const slug = resolveClaimSlug(trimmed) || resolveCardSearch(trimmed);
+    if (slug) {
+      resolveDetectedCard(slug, "qr_scan");
+      return;
+    }
+
+    setDetectedSlug("");
+    setDecodedRaw(trimmed);
+    setManualValue(trimmed);
+    setStatus(t("qrDecoded", { value: trimmed.length > 120 ? `${trimmed.slice(0, 120)}…` : trimmed }));
+    stopScanner();
+  }
+
   function resolveDetectedCard(rawValue: string, source: "qr_scan" | "manual_entry" = "manual_entry") {
-    const slug = resolveClaimSlug(rawValue);
+    const slug = resolveClaimSlug(rawValue) || resolveCardSearch(rawValue);
     if (!slug) {
+      setDecodedRaw("");
       setStatus(t("notFound"));
       return;
     }
 
+    setDecodedRaw("");
     setDetectedSlug(slug);
     setDetectedSource(source);
     setManualValue(slug);
@@ -360,7 +442,7 @@ export function QrScanClient() {
       return;
     }
 
-    router.push(`/${locale}/claim-card/${encodeURIComponent(slug)}?mode=give`);
+    router.push(`/${locale}/give-card/${encodeURIComponent(slug)}`);
   }
 
   function stopScanner() {
@@ -403,14 +485,14 @@ export function QrScanClient() {
       const tick = async (timestamp: number) => {
         if (session !== scanSessionRef.current || !videoRef.current || !streamRef.current) return;
 
-        if (!decoding && timestamp - lastScanAt > 140) {
+        if (!decoding && timestamp - lastScanAt > 220) {
           decoding = true;
           lastScanAt = timestamp;
 
           try {
             const code = await detectQrFromVideo(videoRef.current);
             if (code) {
-              resolveDetectedCard(code, "qr_scan");
+              handleDecodedQr(code);
               return;
             }
           } catch {
@@ -465,11 +547,10 @@ export function QrScanClient() {
     try {
       image = await loadImageFromFile(file);
 
-      const canvas = drawSourceToCanvas(image, image.naturalWidth, image.naturalHeight);
-      const code = canvas ? await detectQrFromCanvas(canvas) : "";
+      const code = await decodeQrFromImage(image);
 
       if (code) {
-        resolveDetectedCard(code, "qr_scan");
+        handleDecodedQr(code);
         return;
       }
 
@@ -508,7 +589,7 @@ export function QrScanClient() {
         </div>
 
         <div className="qr-camera-frame">
-          <video ref={videoRef} autoPlay playsInline muted />
+          <video ref={videoRef} autoPlay playsInline muted className={scanning ? "is-active" : ""} />
           {!scanning ? (
             <div className="qr-camera-placeholder">
               <Camera size={44} />
@@ -573,6 +654,20 @@ export function QrScanClient() {
           <Keyboard size={16} />
           {t("findCard")}
         </button>
+
+        {decodedRaw && !detectedSlug ? (
+          <div className="qr-detected-card qr-detected-raw" role="status" aria-live="polite">
+            <div>
+              <CheckCircle2 size={18} />
+              <span>{t("qrDecoded", { value: decodedRaw.length > 120 ? `${decodedRaw.slice(0, 120)}…` : decodedRaw })}</span>
+            </div>
+            {/^https?:\/\//i.test(decodedRaw) ? (
+              <a className="btn btn-secondary" href={decodedRaw} target="_blank" rel="noreferrer">
+                Open scanned link
+              </a>
+            ) : null}
+          </div>
+        ) : null}
 
         {detectedSlug ? (
           <div className="qr-detected-card" role="status" aria-live="polite">

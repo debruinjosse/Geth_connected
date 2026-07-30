@@ -106,6 +106,9 @@ export function PublicMobileNav({
                 {signOutLabel}
               </a>
             ) : null}
+            <div className="public-mobile-nav-language">
+              <GoogleTranslateWidget />
+            </div>
           </nav>
         </>
       ) : null}

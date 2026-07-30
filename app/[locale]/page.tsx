@@ -13,8 +13,11 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { HeroDashboardMockup } from "@/components/HeroDashboardMockup";
 import { MobileHeroProductPreview } from "@/components/MobileHeroProductPreview";
+import { InfinityValueStrip } from "@/components/InfinityValueStrip";
 import { PublicSiteChrome } from "@/components/PublicSiteChrome";
 import { Reveal } from "@/components/Reveal";
+import { RECOGNITION_MOMENT_ALT, RECOGNITION_MOMENT_SRC } from "@/lib/brand";
+import { getSiteContentOverrides, pickSiteContentText } from "@/lib/site-content";
 import { CardDeckPreview } from "@/components/sections/card-deck-preview";
 import { HowItWorksDeckSection } from "@/components/sections/HowItWorksDeckSection";
 
@@ -27,13 +30,24 @@ export default async function LandingPage({ params }: LandingPageProps) {
   setRequestLocale(locale);
   const t = await getTranslations({ locale, namespace: "home" });
   const nav = await getTranslations({ locale, namespace: "nav" });
+  const overrides = await getSiteContentOverrides("home", locale);
+  const text = (key: string) => pickSiteContentText(overrides, t(key), key);
 
   const audiences = [
-    [t("companiesLabel"), t("companiesTitle"), t("companiesCopy"), Building2],
-    [t("managersLabel"), t("managersTitle"), t("managersCopy"), UsersRound],
-    [t("employeesLabel"), t("employeesTitle"), t("employeesCopy"), HeartHandshake]
+    [text("companiesLabel"), text("companiesTitle"), text("companiesCopy"), Building2],
+    [text("managersLabel"), text("managersTitle"), text("managersCopy"), UsersRound],
+    [text("employeesLabel"), text("employeesTitle"), text("employeesCopy"), HeartHandshake]
   ];
   const bookDemoHref = "/book-demo";
+  const valueStripItems = [
+    t("infinityStripRecognition"),
+    t("infinityStripCards"),
+    t("infinityStripInsights"),
+    t("infinityStripEngagement"),
+    t("infinityStripPrivacy"),
+    t("infinityStripCulture"),
+    t("infinityStripAnalytics")
+  ];
 
   return (
     <PublicSiteChrome locale={locale}>
@@ -41,35 +55,31 @@ export default async function LandingPage({ params }: LandingPageProps) {
         <div className="pageContainer landingHeroInner">
           <div className="hero-copy landingHeroCopy">
             <Reveal delay={0.02}>
-              <div className="eyebrow">{t("eyebrow")}</div>
+              <div className="eyebrow">{text("ctaEyebrow")}</div>
             </Reveal>
             <Reveal delay={0.1}>
-              <h1 className="brand-display">
-                {t("headlineLine1")}
-                <br />
-                {t("headlineLine2")}
-              </h1>
+              <h1 className="brand-display">{text("ctaTitle")}</h1>
             </Reveal>
             <Reveal delay={0.18}>
-              <p>{t("description")}</p>
+              <p className="hero-detail-copy">{text("heroDetail")}</p>
             </Reveal>
             <Reveal className="hero-actions" delay={0.26} distance={14}>
               <Link className="btn btn-dark" href="/book-demo">
                 {nav("bookDemo")} <ArrowRight size={16} />
               </Link>
               <Link className="btn btn-secondary" href="#how-it-works">
-                <CirclePlay size={16} /> {t("seeHow")}
+                <CirclePlay size={16} /> {text("seeHow")}
               </Link>
             </Reveal>
             <Reveal className="trust-row" delay={0.34} distance={12}>
               <span>
-                <ShieldCheck size={18} /> {t("trustSecure")}
+                <ShieldCheck size={18} /> {text("trustSecure")}
               </span>
               <span>
-                <BarChart3 size={18} /> {t("trustInsights")}
+                <BarChart3 size={18} /> {text("trustInsights")}
               </span>
               <span>
-                <UsersRound size={18} /> {t("trustTeams")}
+                <UsersRound size={18} /> {text("trustTeams")}
               </span>
             </Reveal>
           </div>
@@ -82,10 +92,12 @@ export default async function LandingPage({ params }: LandingPageProps) {
           </Reveal>
         </div>
         <a className="scrollToExplore" href="#how-it-works">
-          <span>{t("scrollExplore")}</span>
+          <span>{text("scrollExplore")}</span>
           <ArrowRight size={16} />
         </a>
       </section>
+
+      <InfinityValueStrip items={valueStripItems} className="infinity-strip-below-hero" />
 
       <HowItWorksDeckSection />
 
@@ -115,31 +127,33 @@ export default async function LandingPage({ params }: LandingPageProps) {
         </div>
       </section>
 
-      <section className="section-shell cta-band landingCta">
+      <section className="section-shell cta-band landingCta pre-footer-recognition" id="recognition-moment">
         <div className="pageContainer landingCtaInner">
           <div className="landingCtaContent">
             <Reveal className="cta-copy" distance={18}>
-              <div className="eyebrow">{t("ctaEyebrow")}</div>
-              <h2 className="section-title">{t("ctaTitle")}</h2>
+              <div className="eyebrow">{text("ctaEyebrow")}</div>
+              <h2 className="section-title">{text("ctaTitle")}</h2>
+              <p className="hero-detail-copy landingCtaDetail">{text("heroDetail")}</p>
             </Reveal>
             <Reveal className="hero-actions landingCtaActions" delay={0.1} distance={14}>
               <Link className="btn btn-primary" href="/book-demo">
                 {nav("bookDemo")} <Sparkles size={16} />
               </Link>
               <Link className="btn btn-dark" href="/signup?role=company_admin">
-                {t("registerCompany")} <ArrowRight size={16} />
+                {text("registerCompany")} <ArrowRight size={16} />
               </Link>
               <Link className="btn btn-secondary" href="/pricing">
-                {t("viewPricing")}
+                {text("viewPricing")}
               </Link>
             </Reveal>
           </div>
-          <Reveal className="landingCtaMedia" delay={0.16} distance={16}>
+          <Reveal className="landingCtaMedia landingRecognitionPhoto" delay={0.16} distance={16}>
             <Image
-              src="/assets/geth-recognition-moment.png"
-              alt="A team celebrating a GETH recognition moment"
+              src={RECOGNITION_MOMENT_SRC}
+              alt={RECOGNITION_MOMENT_ALT}
               fill
-              sizes="(max-width: 920px) calc(100vw - 40px), 480px"
+              sizes="(max-width: 920px) calc(100vw - 40px), 520px"
+              className="landingRecognitionPhotoImg"
               priority={false}
             />
           </Reveal>

@@ -39,22 +39,27 @@ export function ClaimCardClient({
   requestedSlug,
   giverOptions,
   receiverName,
-  locale
+  locale,
+  initialFlowMode = "claim"
 }: {
   card: GethCard | null;
   requestedSlug: string;
   giverOptions?: ClaimGiverOption[];
   receiverName?: string;
   locale: string;
+  initialFlowMode?: "give" | "claim";
 }) {
   const prefersReducedMotion = useReducedMotion();
   const router = useRouter();
   const t = useTranslations("claimCard");
   const searchParams = useSearchParams();
   const source = searchParams.get("source");
-  const flowMode = searchParams.get("mode") === "give" ? "give" : "claim";
+  const flowMode = initialFlowMode === "give" || searchParams.get("mode") === "give" ? "give" : "claim";
   const stages = flowMode === "give" ? giveStageKeys : claimStageKeys;
-  const claimOrigin = flowMode === "give" ? "card_library" : source === "qr_scan" ? "qr_scan" : source === "manual_entry" ? "manual_entry" : "direct_link";
+  const claimOrigin =
+    source === "qr_scan" ? "qr_scan" : source === "manual_entry" ? "manual_entry" : flowMode === "give" ? "card_library" : "direct_link";
+  const giveClaimOrigin =
+    source === "manual_entry" ? "manual_entry" : source === "qr_scan" ? "direct_link" : "card_library";
   const localePrefix = `/${locale}`;
   const [selectedGiver, setSelectedGiver] = useState("");
   const [note, setNote] = useState("");
@@ -78,8 +83,8 @@ export function ClaimCardClient({
     return (
       <div className="claim-empty">
         <section className="panel claim-empty-card">
-          <div className="eyebrow">Card not found</div>
-          <h1 style={{ margin: "12px 0", fontSize: 52 }}>We couldn&apos;t find &ldquo;{requestedSlug}&rdquo;.</h1>
+          <div className="eyebrow">{t("cardNotFound")}</div>
+          <h1 className="claim-empty-title">We couldn&apos;t find &ldquo;{requestedSlug}&rdquo;.</h1>
           <p className="section-copy">The QR route may be inactive, renamed, or not part of this deck.</p>
           <div style={{ display: "flex", justifyContent: "center", gap: 14, marginTop: 26, flexWrap: "wrap" }}>
             <Link className="btn btn-dark" href={`${localePrefix}/cards`}>
@@ -100,9 +105,8 @@ export function ClaimCardClient({
   });
   const selectedPerson = availablePeople.find((person) => person.id === selectedGiver);
 
-  function chooseGiver(giverId: string) {
-    setSelectedGiver(giverId);
-    setStep(3);
+  function selectTeammate(teammateId: string) {
+    setSelectedGiver(teammateId);
   }
 
   function submit() {
@@ -116,7 +120,7 @@ export function ClaimCardClient({
               cardSlug: card.slug,
               receiverUserId: selectedGiver,
               personalNote: note,
-              claimOrigin: "card_library"
+              claimOrigin: giveClaimOrigin
             })
           : await claimRecognition({
               cardSlug: card.slug,
@@ -132,7 +136,7 @@ export function ClaimCardClient({
         if (result.code === "AUTH_REQUIRED") {
           const nextUrl =
             flowMode === "give"
-              ? `${localePrefix}/claim-card/${requestedSlug}?mode=give`
+              ? `${localePrefix}/give-card/${requestedSlug}`
               : `${localePrefix}/claim-card/${requestedSlug}${claimOrigin === "qr_scan" ? "?source=qr_scan" : ""}`;
           router.push(`${localePrefix}/login?next=${encodeURIComponent(nextUrl)}`);
         }
@@ -145,7 +149,7 @@ export function ClaimCardClient({
           cardSlug: card.slug,
           cardTitle: displayCard?.title ?? card.title,
           category: displayCard?.category ?? card.category,
-          giverId: selectedGiver,
+          giverId: flowMode === "give" ? "demo-giver-self" : selectedGiver,
           giverName: flowMode === "give" ? resolvedReceiverName : selectedPerson?.name ?? t("unknownGiver"),
           receiverName: flowMode === "give" ? selectedPerson?.name ?? t("aTeammate") : resolvedReceiverName,
           note,
@@ -192,7 +196,10 @@ export function ClaimCardClient({
                 <Link className="btn btn-dark" href={`${localePrefix}/employee`}>
                   {t("openDashboard")}
                 </Link>
-                <Link className="btn btn-secondary" href={`${localePrefix}/cards`}>
+                <Link
+                  className="btn btn-secondary"
+                  href={`${localePrefix}/cards${flowMode === "give" ? "?intent=give" : ""}`}
+                >
                   {flowMode === "give" ? t("giveAnother") : t("claimAnother")}
                 </Link>
               </div>
@@ -246,7 +253,7 @@ export function ClaimCardClient({
                                 <p style={{ margin: "4px 0 0" }}>{person.team}</p>
                               </div>
                             </div>
-                            <input type="radio" name="giver" value={person.id} checked={selectedGiver === person.id} onChange={(event) => chooseGiver(event.target.value)} />
+                            <input type="radio" name="giver" value={person.id} checked={selectedGiver === person.id} onChange={(event) => selectTeammate(event.target.value)} />
                           </label>
                         ))
                       ) : (
@@ -277,7 +284,9 @@ export function ClaimCardClient({
                     </p>
                     {selectedPerson ? (
                       <div className="selected-giver-card">
-                        <span className="approval-eyebrow">{flowMode === "give" ? "Selected receiver" : "Selected giver"}</span>
+                        <span className="approval-eyebrow">
+                          {flowMode === "give" ? t("selectedReceiver") : t("selectedGiver")}
+                        </span>
                         <div className="person-details">
                           <ProfileAvatar person={selectedPerson} />
                           <div>
@@ -301,7 +310,7 @@ export function ClaimCardClient({
                             : t("notePlaceholderClaim")
                         }
                       />
-                      <span className="field-help">{note.length}/280 characters</span>
+                      <span className="field-help">{t("noteCharCount", { count: note.length })}</span>
                     </div>
                   </>
                 ) : null}
@@ -316,7 +325,7 @@ export function ClaimCardClient({
                     </p>
                     <div className="claim-summary">
                       <div className="claim-summary-row">
-                        <strong>Card</strong>
+                        <strong>{t("summaryCard")}</strong>
                         <p>{displayCard?.title ?? card.title}</p>
                       </div>
                       <div className="claim-summary-row">
@@ -332,14 +341,18 @@ export function ClaimCardClient({
                         <p>{flowMode === "give" ? resolvedReceiverName : selectedPerson ? `${selectedPerson.name} - ${selectedPerson.team}` : t("noGiver")}</p>
                       </div>
                       <div className="claim-summary-row">
-                        <strong>Note</strong>
+                        <strong>{t("noteLabel")}</strong>
                         <p>{note || t("noteAdded")}</p>
                       </div>
                       <div className="claim-summary-row">
                         <strong>{t("claimSource")}</strong>
                         <p>
                           {flowMode === "give"
-                            ? t("sourceLibrary")
+                            ? giveClaimOrigin === "manual_entry"
+                              ? t("sourceManual")
+                              : giveClaimOrigin === "direct_link"
+                                ? t("sourceLink")
+                                : t("sourceLibrary")
                             : claimOrigin === "qr_scan"
                               ? t("sourceQr")
                               : claimOrigin === "manual_entry"
@@ -358,9 +371,15 @@ export function ClaimCardClient({
                 ) : null}
 
                 <div className="claim-actions">
-                  <button className="btn btn-secondary" onClick={() => setStep((current) => (current > 1 ? ((current - 1) as 1 | 2 | 3 | 4) : current))}>
-                    <ArrowLeft size={16} /> {t("back")}
-                  </button>
+                  {step > 1 ? (
+                    <button
+                      className="btn btn-secondary"
+                      type="button"
+                      onClick={() => setStep((current) => (current > 1 ? ((current - 1) as 1 | 2 | 3 | 4) : current))}
+                    >
+                      <ArrowLeft size={16} /> {t("back")}
+                    </button>
+                  ) : null}
                   {step < 4 ? (
                     <button className="btn btn-primary" disabled={step === 2 && !selectedGiver} onClick={() => setStep((current) => (current < 4 ? ((current + 1) as 1 | 2 | 3 | 4) : current))}>
                       {t("continue")} <ArrowRight size={16} />

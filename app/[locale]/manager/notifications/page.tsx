@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server";
 import { DashboardShell } from "@/components/DashboardShell";
 import { MarkAllNotificationsReadButton, NotificationInbox } from "@/components/NotificationInbox";
 import { employeeNotifications, managerUser } from "@/lib/demo-data";
@@ -7,9 +8,11 @@ function hasSupabaseServerConfig() {
   return Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
 }
 
-function DemoNotificationsPage() {
+async function DemoNotificationsPage({ locale }: { locale: string }) {
+  const t = await getTranslations({ locale, namespace: "companyPages" });
+
   return (
-    <DashboardShell role="manager" title="Notifications" subtitle="Team signals, invite updates, and manager activity in one place." user={managerUser}>
+    <DashboardShell role="manager" title={t("managerNotificationsTitle")} subtitle={t("managerNotificationsSubtitle")} user={managerUser}>
       <section className="dashboard-grid">
         <article className="panel dashboard-panel">
           <div className="signal-list">
@@ -31,9 +34,10 @@ function DemoNotificationsPage() {
 
 export default async function ManagerNotificationsPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "companyPages" });
 
   if (!hasSupabaseServerConfig()) {
-    return <DemoNotificationsPage />;
+    return <DemoNotificationsPage locale={locale} />;
   }
 
   const data = await getNotificationInboxPageData({
@@ -45,8 +49,8 @@ export default async function ManagerNotificationsPage({ params }: { params: Pro
   return (
     <DashboardShell
       role="manager"
-      title="Notifications"
-      subtitle="Team signals, invite updates, and manager activity in one place."
+      title={t("managerNotificationsTitle")}
+      subtitle={t("managerNotificationsSubtitle")}
       user={data.user}
       unreadNotifications={data.unreadCount}
       actions={
@@ -59,10 +63,10 @@ export default async function ManagerNotificationsPage({ params }: { params: Pro
         <article className="panel dashboard-panel">
           <NotificationInbox
             notifications={data.notifications}
-            emptyTitle="No manager notifications yet"
-            emptyCopy="Team recognition alerts, invite acceptances, and important manager updates will appear here."
-            emptyActionLabel="View team"
-            emptyActionHref="/manager/team"
+            emptyTitle={t("managerNotificationsEmptyTitle")}
+            emptyCopy={t("managerNotificationsEmptyCopy")}
+            emptyActionLabel={t("viewTeam")}
+            emptyActionHref={`/${locale}/manager/team`}
             locale={locale}
           />
         </article>

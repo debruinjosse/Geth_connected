@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import { DashboardShell } from "@/components/DashboardShell";
 import { EmptyState } from "@/components/EmptyState";
 import { BulkEmployeeImportPanel } from "@/components/BulkEmployeeImportPanel";
@@ -20,18 +21,27 @@ function getAppUrl() {
   return process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 }
 
-function formatRole(role: string) {
-  return role === "manager" ? "Manager" : "Employee";
+function formatRole(role: string, t: Awaited<ReturnType<typeof getTranslations>>) {
+  return role === "manager" ? t("roleManager") : t("roleEmployee");
 }
 
-function renderDemoEmployees() {
+function renderDemoEmployees(t: Awaited<ReturnType<typeof getTranslations>>) {
   return (
-    <DashboardShell role="company" title="Employees" subtitle="Manage employee records, participation, and recognition visibility." user={companyAdmin}>
+    <DashboardShell role="company" title={t("employeesTitle")} subtitle={t("employeesSubtitle")} user={companyAdmin}>
       <section className="dashboard-grid two">
         <article className="panel dashboard-panel">
           <div className="table-wrap">
             <table className="dashboard-table">
-              <thead><tr><th>Name</th><th>Role</th><th>Department</th><th>Team</th><th>Status</th><th>Cards</th></tr></thead>
+              <thead>
+                <tr>
+                  <th>{t("tableName")}</th>
+                  <th>{t("tableRole")}</th>
+                  <th>{t("tableDepartment")}</th>
+                  <th>{t("team")}</th>
+                  <th>{t("tableStatus")}</th>
+                  <th>{t("tableCards")}</th>
+                </tr>
+              </thead>
               <tbody>
                 {companyEmployees.map((employee) => (
                   <tr key={employee.id}>
@@ -47,15 +57,28 @@ function renderDemoEmployees() {
             </table>
           </div>
         </article>
-        <InlineDemoForm title="Add employee" description="Demo-safe employee creation with no backend dependency." buttonLabel="Add employee" fields={[{ id: "employee-name", label: "Full name", placeholder: "Jamie Miller" }, { id: "employee-email", label: "Email", placeholder: "jamie@company.com" }, { id: "employee-team", label: "Team", placeholder: "Marketing" }]} />
+        <InlineDemoForm
+          title={t("addEmployee")}
+          description={t("employeesDemoDescription")}
+          buttonLabel={t("addEmployee")}
+          fields={[
+            { id: "employee-name", label: t("fullName"), placeholder: "Jamie Miller" },
+            { id: "employee-email", label: t("email"), placeholder: "jamie@company.com" },
+            { id: "employee-team", label: t("team"), placeholder: "Marketing" }
+          ]}
+        />
       </section>
     </DashboardShell>
   );
 }
 
-export default async function CompanyEmployeesPage() {
+export default async function CompanyEmployeesPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "companyPages" });
+  const tc = await getTranslations({ locale, namespace: "common" });
+
   if (!hasSupabaseServerConfig()) {
-    return renderDemoEmployees();
+    return renderDemoEmployees(t);
   }
 
   const supabase = await createSupabaseServerClient();
@@ -65,7 +88,7 @@ export default async function CompanyEmployeesPage() {
   } = await supabase.auth.getUser();
 
   if (userError || !user) {
-    return renderDemoEmployees();
+    return renderDemoEmployees(t);
   }
 
   const { data: adminProfile, error: adminError } = await supabase
@@ -101,7 +124,7 @@ export default async function CompanyEmployeesPage() {
     ]);
 
   if (teamsError || employeesError || invitationsError || recognitionsError) {
-    throw new Error("Failed to load company employee data.");
+    throw new Error(t("errLoadEmployees"));
   }
 
   const recognitionCounts = new Map<string, number>();
@@ -112,12 +135,12 @@ export default async function CompanyEmployeesPage() {
   return (
     <DashboardShell
       role="company"
-      title="Employees"
-      subtitle="Manage employee records, participation, and recognition visibility."
+      title={t("employeesTitle")}
+      subtitle={t("employeesSubtitle")}
       user={{
         name: `${adminProfile.first_name} ${adminProfile.last_name}`.trim(),
         initials: getInitials(adminProfile.first_name, adminProfile.last_name),
-        team: "Company admin"
+        team: t("companyAdmin")
       }}
     >
       <section className="dashboard-grid two">
@@ -125,7 +148,16 @@ export default async function CompanyEmployeesPage() {
           <div className="table-wrap">
             {employees?.length || invitations?.length ? (
               <table className="dashboard-table">
-                <thead><tr><th>Name</th><th>Role</th><th>Department</th><th>Team</th><th>Status</th><th>Cards</th></tr></thead>
+                <thead>
+                  <tr>
+                    <th>{t("tableName")}</th>
+                    <th>{t("tableRole")}</th>
+                    <th>{t("tableDepartment")}</th>
+                    <th>{t("team")}</th>
+                    <th>{t("tableStatus")}</th>
+                    <th>{t("tableCards")}</th>
+                  </tr>
+                </thead>
                 <tbody>
                   {(employees ?? []).map((employee) => {
                     const team = Array.isArray(employee.team) ? employee.team[0] : employee.team;
@@ -133,9 +165,9 @@ export default async function CompanyEmployeesPage() {
                     return (
                       <tr key={employee.id}>
                         <td><strong>{`${employee.first_name} ${employee.last_name}`.trim()}</strong></td>
-                        <td>{formatRole(employee.role)}</td>
-                        <td>{department?.name ?? team?.name ?? "Unassigned"}</td>
-                        <td>{team?.name ?? "Unassigned"}</td>
+                        <td>{formatRole(employee.role, t)}</td>
+                        <td>{department?.name ?? team?.name ?? tc("unassigned")}</td>
+                        <td>{team?.name ?? tc("unassigned")}</td>
                         <td>{employee.status}</td>
                         <td>{recognitionCounts.get(employee.id) ?? 0}</td>
                       </tr>
@@ -147,10 +179,10 @@ export default async function CompanyEmployeesPage() {
                     return (
                       <tr key={invite.id}>
                         <td><strong>{invite.email}</strong></td>
-                        <td>{formatRole(invite.role)}</td>
-                        <td>{department?.name ?? team?.name ?? "Assign later"}</td>
-                        <td>{team?.name ?? "Assign later"}</td>
-                        <td>pending invite</td>
+                        <td>{formatRole(invite.role, t)}</td>
+                        <td>{department?.name ?? team?.name ?? tc("assignLater")}</td>
+                        <td>{team?.name ?? tc("assignLater")}</td>
+                        <td>{tc("pendingInvite")}</td>
                         <td>0</td>
                       </tr>
                     );
@@ -159,16 +191,16 @@ export default async function CompanyEmployeesPage() {
               </table>
             ) : (
               <EmptyState
-                eyebrow="No employees yet"
-                title="Invite your first employee"
-                copy="Create an invite link to bring a teammate into this company workspace and start tracking recognition."
+                eyebrow={t("noEmployeesEyebrow")}
+                title={t("inviteFirstEmployeeTitle")}
+                copy={t("inviteFirstEmployeeCopy")}
               />
             )}
           </div>
         </article>
         <InvitationPanel
-          title="Invite employee"
-          description="Generate a secure invite link for an employee and optionally attach them to a team before they join."
+          title={t("inviteEmployee")}
+          description={t("inviteEmployeeDescription")}
           defaultRole="employee"
           teams={(teams ?? []).map((team) => ({ id: team.id, name: team.name }))}
         />
@@ -188,7 +220,7 @@ export default async function CompanyEmployeesPage() {
               email: employee.email,
               role: employee.role === "manager" ? "manager" : "employee",
               teamId: employee.team_id,
-              teamName: team?.name ?? "Unassigned",
+              teamName: team?.name ?? tc("unassigned"),
               status: employee.status,
               cards: recognitionCounts.get(employee.id) ?? 0
             };
@@ -199,7 +231,7 @@ export default async function CompanyEmployeesPage() {
               id: invite.id,
               email: invite.email,
               role: invite.role === "manager" ? "manager" : "employee",
-              teamName: team?.name ?? "Assign later",
+              teamName: team?.name ?? tc("assignLater"),
               inviteLink: `${getAppUrl()}/invite/${invite.token}`
             };
           })}

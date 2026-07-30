@@ -1,6 +1,8 @@
+"use client";
+
 import type { CSSProperties } from "react";
 import Link from "next/link";
-import { getLocale } from "next-intl/server";
+import { useLocale } from "next-intl";
 
 function localizeHref(href: string, locale: string) {
   if (!href.startsWith("/") || href.startsWith("/api") || href.startsWith("/auth")) {
@@ -10,7 +12,7 @@ function localizeHref(href: string, locale: string) {
   return `/${locale}${href}`;
 }
 
-export async function SignalList({
+export function SignalList({
   items
 }: {
   items: Array<{
@@ -23,7 +25,7 @@ export async function SignalList({
     highlights?: Array<{ label: string; category: string; count: number; tone: string }>;
   }>;
 }) {
-  const locale = await getLocale();
+  const locale = useLocale();
 
   return (
     <div className="signal-list">
@@ -39,7 +41,11 @@ export async function SignalList({
               {signal.highlights?.length ? (
                 <div className="signal-highlight-list" aria-label="Top recognition cards behind this signal">
                   {signal.highlights.map((highlight) => (
-                    <span className="signal-highlight-pill" key={`${signal.id}-${highlight.label}`} style={{ "--signal-tone": highlight.tone } as CSSProperties}>
+                    <span
+                      className="signal-highlight-pill"
+                      key={`${signal.id}-${highlight.label}`}
+                      style={{ "--signal-tone": highlight.tone } as CSSProperties}
+                    >
                       <b>{highlight.label}</b>
                       <small>{highlight.category} - {highlight.count} cards</small>
                     </span>

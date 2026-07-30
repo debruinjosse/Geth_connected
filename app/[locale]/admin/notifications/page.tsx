@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server";
 import { DashboardShell } from "@/components/DashboardShell";
 import { MarkAllNotificationsReadButton, NotificationInbox } from "@/components/NotificationInbox";
 import { employeeNotifications, superAdminUser } from "@/lib/demo-data";
@@ -7,9 +8,11 @@ function hasSupabaseServerConfig() {
   return Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
 }
 
-function DemoNotificationsPage() {
+async function DemoNotificationsPage({ locale }: { locale: string }) {
+  const t = await getTranslations({ locale, namespace: "adminPages" });
+
   return (
-    <DashboardShell role="admin" title="Notifications" subtitle="Platform alerts, subscription activity, and operational updates." user={superAdminUser}>
+    <DashboardShell role="admin" title={t("notificationsTitle")} subtitle={t("notificationsSubtitle")} user={superAdminUser}>
       <section className="dashboard-grid">
         <article className="panel dashboard-panel">
           <div className="signal-list">
@@ -31,9 +34,10 @@ function DemoNotificationsPage() {
 
 export default async function AdminNotificationsPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "adminPages" });
 
   if (!hasSupabaseServerConfig()) {
-    return <DemoNotificationsPage />;
+    return <DemoNotificationsPage locale={locale} />;
   }
 
   const data = await getNotificationInboxPageData({
@@ -45,8 +49,8 @@ export default async function AdminNotificationsPage({ params }: { params: Promi
   return (
     <DashboardShell
       role="admin"
-      title="Notifications"
-      subtitle="Platform alerts, subscription activity, and operational updates."
+      title={t("notificationsTitle")}
+      subtitle={t("notificationsSubtitle")}
       user={data.user}
       unreadNotifications={data.unreadCount}
       actions={
@@ -59,9 +63,9 @@ export default async function AdminNotificationsPage({ params }: { params: Promi
         <article className="panel dashboard-panel">
           <NotificationInbox
             notifications={data.notifications}
-            emptyTitle="No platform notifications yet"
-            emptyCopy="Platform-level billing, company, and operational alerts will appear here."
-            emptyActionLabel="View companies"
+            emptyTitle={t("emptyNoNotificationsTitle")}
+            emptyCopy={t("emptyNoNotificationsCopy")}
+            emptyActionLabel={t("viewCompanies")}
             emptyActionHref="/admin/companies"
             locale={locale}
           />

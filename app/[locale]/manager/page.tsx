@@ -31,7 +31,7 @@ function getQuarterKey(date: Date) {
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const RECENT_ACTIVITY_MS = 30 * DAY_MS;
-const INACTIVITY_SIGNAL_MS = 21 * DAY_MS;
+const INACTIVITY_SIGNAL_MS = 14 * DAY_MS;
 
 function getTrendForDates(dates: string[]) {
   const now = new Date();
@@ -62,7 +62,7 @@ function getLatestActivityTime(rows: Array<{ created_at: string }>) {
 }
 
 function getWeeksSince(timestamp: number) {
-  return Math.max(3, Math.floor((Date.now() - timestamp) / (7 * DAY_MS)));
+  return Math.max(1, Math.floor((Date.now() - timestamp) / (7 * DAY_MS)));
 }
 
 function getPercentageMix<T extends { value: number }>(items: T[]) {
@@ -73,6 +73,11 @@ function getPercentageMix<T extends { value: number }>(items: T[]) {
   const drift = 100 - rounded.reduce((sum, value) => sum + value, 0);
   if (rounded.length) rounded[0] += drift;
   return rounded;
+}
+
+function toPercentageQualityBars(items: QualityBarItem[]): QualityBarItem[] {
+  const percentages = getPercentageMix(items.map((item) => ({ value: item.value })));
+  return items.map((item, index) => ({ ...item, value: percentages[index] ?? 0 }));
 }
 
 export default async function ManagerDashboardPage({ params }: { params: Promise<{ locale: string }> }) {
@@ -126,7 +131,7 @@ export default async function ManagerDashboardPage({ params }: { params: Promise
             <div className="panel-top">
               <h2>{t("topQualitiesTitle")}</h2>
             </div>
-            <QualityBars items={topQualities} />
+            <QualityBars items={toPercentageQualityBars(topQualities)} />
           </article>
           <article className="panel dashboard-panel">
             <div className="panel-top">
@@ -199,7 +204,7 @@ export default async function ManagerDashboardPage({ params }: { params: Promise
             <div className="panel-top">
               <h2>{t("topQualitiesTitle")}</h2>
             </div>
-            <QualityBars items={topQualities} />
+            <QualityBars items={toPercentageQualityBars(topQualities)} />
           </article>
           <article className="panel dashboard-panel">
             <div className="panel-top">
@@ -304,7 +309,7 @@ export default async function ManagerDashboardPage({ params }: { params: Promise
       .from("profiles")
       .select("id, first_name, last_name, team_id")
       .in("team_id", teamIds)
-      .eq("role", "employee"),
+      .in("role", ["employee", "manager"]),
     supabase
       .from("recognition_events")
       .select("id, receiver_user_id, giver_user_id, created_at, card:card_library(title, category, card_number, qr_slug)")
@@ -317,6 +322,16 @@ export default async function ManagerDashboardPage({ params }: { params: Promise
   }
 
   const memberRows = (members ?? []) as Array<{ id: string; first_name: string; last_name: string; team_id: string | null }>;
+
+  if (!memberRows.some((member) => member.id === managerProfile.id)) {
+    memberRows.push({
+      id: managerProfile.id,
+      first_name: managerProfile.first_name,
+      last_name: managerProfile.last_name,
+      team_id: managerProfile.team_id
+    });
+  }
+
   const recognitions = (teamRecognitions ?? []) as Array<{
     id: string;
     receiver_user_id: string;
@@ -377,7 +392,7 @@ export default async function ManagerDashboardPage({ params }: { params: Promise
     }
     const topQuality =
       Array.from(topQualityCounter.entries()).sort((a, b) => b[1] - a[1])[0]?.[0] ??
-      "No recognitions yet";
+      t("noRecognitionsYet");
 
     return {
       id: member.id,
@@ -400,9 +415,9 @@ export default async function ManagerDashboardPage({ params }: { params: Promise
       return [{
         id: `signal-${member.id}`,
         tone: "var(--theme-red)",
-        title: `${member.name} has no card activity yet`,
-        detail: "They have not received or given a card. Create a recognition moment to get them started.",
-        actionLabel: "Send a note",
+        title: t("signalNoActivityTitle", { name: member.name }),
+        detail: t("signalNoActivityDetail"),
+        actionLabel: t("signalSendNote"),
         actionHref: "/manager/team"
       }];
     }
@@ -411,9 +426,9 @@ export default async function ManagerDashboardPage({ params }: { params: Promise
       return [{
         id: `signal-inactive-${member.id}`,
         tone: "var(--theme-red)",
-        title: `${member.name} has had no card activity for ${getWeeksSince(latestActivityAt)} weeks`,
-        detail: "No cards received or given recently. Check in and help restart recognition momentum.",
-        actionLabel: "Send a note",
+        title: t("signalInactiveTitle", { name: member.name, weeks: getWeeksSince(latestActivityAt) }),
+        detail: t("signalInactiveDetail"),
+        actionLabel: t("signalSendNote"),
         actionHref: "/manager/team"
       }];
     }
@@ -422,8 +437,8 @@ export default async function ManagerDashboardPage({ params }: { params: Promise
       return [{
         id: `signal-low-${member.id}`,
         tone: "var(--theme-gold)",
-        title: `${member.name} needs more recognition support`,
-        detail: "Recent recognition activity is below the team average."
+        title: t("signalLowTitle", { name: member.name }),
+        detail: t("signalLowDetail")
       }];
     }
 
@@ -434,8 +449,8 @@ export default async function ManagerDashboardPage({ params }: { params: Promise
     signalItems.push({
       id: "signal-positive",
       tone: "var(--theme-emerald)",
-      title: "Great team momentum",
-      detail: "Recognition activity is flowing consistently across your managed team."
+      title: t("signalGreatTitle"),
+      detail: t("signalGreatDetail")
     });
   }
 
@@ -451,7 +466,7 @@ export default async function ManagerDashboardPage({ params }: { params: Promise
     const date = new Date(new Date().getFullYear(), new Date().getMonth() - (2 - index), 1);
     return {
       key: getMonthKey(date),
-      label: new Intl.DateTimeFormat("en", { month: "short" }).format(date)
+      label: new Intl.DateTimeFormat(locale, { month: "short" }).format(date)
     };
   });
   const trendPoints = growthMonths.map((month) => monthlyCounts.get(month.key) ?? 0);

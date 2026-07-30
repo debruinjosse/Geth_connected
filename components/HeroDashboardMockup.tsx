@@ -1,8 +1,9 @@
 import Image from "next/image";
+import { BrandMarkIcon } from "@/components/BrandLogo";
 import { BarChart3, CreditCard, House, Settings, Sparkles, TrendingUp, UsersRound } from "lucide-react";
 import type { CSSProperties } from "react";
 import { CountUp } from "@/components/CountUp";
-import { getHeroPreviewCopy } from "@/lib/hero-card-copy";
+import { getHeroPhysicalCardAlt, getHeroPhysicalCardSrc, getHeroPreviewCopy } from "@/lib/hero-card-copy";
 
 const heroSidebarIcons = [
   House,
@@ -32,13 +33,13 @@ const chartPoints = [
   { cx: 208, cy: 24 }
 ] as const;
 
-function HeroPhysicalCard() {
+function HeroPhysicalCard({ locale }: { locale: string }) {
   return (
     <div className="hero-physical-card-wrap" aria-hidden="true">
       <div className="hero-physical-card">
         <Image
-          alt=""
-          src="/assets/geth-card-flyer-cover.png"
+          alt={getHeroPhysicalCardAlt(locale)}
+          src={getHeroPhysicalCardSrc(locale)}
           width={560}
           height={797}
           sizes="(max-width: 767px) 88px, 176px"
@@ -54,7 +55,7 @@ export function HeroDashboardMockup({ locale = "en" }: { locale?: string }) {
   return (
     <div className="hero-visual hero-visual-stable">
       <div className="hero-device-stage">
-        <HeroPhysicalCard />
+        <HeroPhysicalCard locale={locale} />
 
         <div className="hero-laptop">
           <div className="hero-laptop-shell">
@@ -65,19 +66,24 @@ export function HeroDashboardMockup({ locale = "en" }: { locale?: string }) {
                 <aside className="hero-screen-sidebar">
                   <div className="hero-app-brand">
                     <div className="hero-app-mark">
-                      <Image alt="GETH mark" src="/assets/geth-logo.svg" width={28} height={28} />
+                      <BrandMarkIcon size={28} />
                     </div>
                     <span className="hero-app-name">GETH</span>
                   </div>
-                  <nav>
+                  <nav className="hero-sidebar-nav" aria-label="Dashboard preview navigation">
                     {copy.sidebar.map((label, index) => {
                       const Icon = heroSidebarIcons[index] ?? House;
+                      const isActive = index === 0;
 
                       return (
-                      <span key={label}>
-                        <Icon size={14} />
-                        {label}
-                      </span>
+                        <span
+                          key={label}
+                          className={`hero-nav-tab ${isActive ? "is-active" : ""}`.trim()}
+                          style={{ "--nav-delay": `${0.48 + index * 0.07}s` } as CSSProperties}
+                        >
+                          <Icon size={14} />
+                          <span className="hero-nav-tab-label">{label}</span>
+                        </span>
                       );
                     })}
                   </nav>
@@ -144,8 +150,15 @@ export function HeroDashboardMockup({ locale = "en" }: { locale?: string }) {
                         <svg aria-hidden="true" className="hero-chart" viewBox="0 0 230 128">
                           <path className="hero-chart-axis" d="M18 112H210" />
                           <path className="hero-chart-trend" d="M18 112C42 108 62 94 82 78C103 61 125 66 146 56C167 47 187 32 208 24" />
-                          {chartPoints.map((point) => (
-                            <circle key={`${point.cx}-${point.cy}`} cx={point.cx} cy={point.cy} r="4" className="hero-chart-point" />
+                          {chartPoints.map((point, index) => (
+                            <circle
+                              key={`${point.cx}-${point.cy}`}
+                              cx={point.cx}
+                              cy={point.cy}
+                              r="4"
+                              className="hero-chart-point"
+                              style={{ "--point-delay": `${1.35 + index * 0.12}s` } as CSSProperties}
+                            />
                           ))}
                         </svg>
                         <div className="hero-chart-labels">

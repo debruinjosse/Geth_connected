@@ -14,9 +14,11 @@ function getInitials(firstName: string | null, lastName: string | null) {
   return `${firstName?.[0] ?? ""}${lastName?.[0] ?? ""}`.toUpperCase() || "EM";
 }
 
-function DemoNotificationsPage() {
+async function DemoNotificationsPage({ locale }: { locale: string }) {
+  const t = await getTranslations({ locale, namespace: "employeePages" });
+
   return (
-    <DashboardShell role="employee" title="Notifications" subtitle="Important recognition updates in one place." user={currentUser}>
+    <DashboardShell role="employee" title={t("notificationsTitle")} subtitle={t("notificationsSubtitle")} user={currentUser}>
       <section className="dashboard-grid">
         <article className="panel dashboard-panel">
           <div className="signal-list">
@@ -42,7 +44,7 @@ export default async function EmployeeNotificationsPage({ params }: { params: Pr
   const tc = await getTranslations({ locale, namespace: "common" });
 
   if (!hasSupabaseServerConfig()) {
-    return <DemoNotificationsPage />;
+    return <DemoNotificationsPage locale={locale} />;
   }
 
   const supabase = await createSupabaseServerClient();

@@ -4,14 +4,15 @@ import Link from "next/link";
 import type { CSSProperties } from "react";
 import { useEffect, useState, useTransition } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { ArrowRight, CheckCircle2, Gift, Heart, Megaphone, QrCode, Scale, Send, Sparkles } from "lucide-react";
+import { CheckCircle2, Gift, Heart, QrCode, Scale, Send, Sparkles } from "lucide-react";
 import { acknowledgeReceivedRecognition, approveRecognitionVerification } from "@/app/actions/recognitionVerification";
 import { BarChart } from "@/components/BarChart";
 import { DashboardShell } from "@/components/DashboardShell";
 import { EmptyState } from "@/components/EmptyState";
 import { MetricCard } from "@/components/MetricCard";
 import { RecognitionList, type RecognitionItem } from "@/components/RecognitionList";
-import { SignalList } from "@/components/SignalList";
+import { EmployeeAiSignalsPanel } from "@/components/EmployeeAiSignalsPanel";
+import type { EmployeeSignalsContext } from "@/lib/ai/employee-recognition-signals";
 import { currentUser, employeeCategoryBreakdown, employeeGrowthPoints, employeeTopQualities, recognitions } from "@/lib/demo-data";
 import { getStoredRecognitions, type StoredRecognition } from "@/lib/demo-session";
 
@@ -32,14 +33,6 @@ type DashboardUser = {
   initials: string;
   team: string;
   imageUrl?: string | null;
-};
-
-type RecognitionSignal = {
-  id: string;
-  tone: string;
-  title: string;
-  detail: string;
-  highlights?: Array<{ label: string; category: string; count: number; tone: string }>;
 };
 
 type PendingApproval = {
@@ -65,7 +58,7 @@ type EmployeeDashboardData = {
   quartersActive: number;
   topQualitiesCount: number;
   topStrengthLabel?: string;
-  recognitionSignals?: RecognitionSignal[];
+  signalsContext?: EmployeeSignalsContext;
   pendingApprovals?: PendingApproval[];
   topQualities: QualityPill[];
   categoryBreakdown: CategoryBreakdown[];
@@ -93,7 +86,6 @@ const zeroQualityRows: QualityPill[] = [
 export function EmployeeDashboardClient({ data }: { data?: EmployeeDashboardData }) {
   const locale = useLocale();
   const [storedRecognitions, setStoredRecognitions] = useState<StoredRecognition[]>([]);
-  const [announcementVisible, setAnnouncementVisible] = useState(true);
   const [pendingApprovals, setPendingApprovals] = useState<PendingApproval[]>(data?.pendingApprovals ?? []);
   const [approvalMessage, setApprovalMessage] = useState("");
   const [approvingId, setApprovingId] = useState<string | null>(null);
@@ -111,14 +103,23 @@ export function EmployeeDashboardClient({ data }: { data?: EmployeeDashboardData
     quartersActive: 3,
     topQualitiesCount: 11,
     topStrengthLabel: t("demoStrength"),
-    recognitionSignals: [
-      {
-        id: "demo-signal-communication",
-        tone: "var(--theme-sky)",
-        title: t("demoStrength"),
-        detail: t("demoSignalDetail")
-      }
-    ],
+    signalsContext: {
+      locale,
+      employeeId: "demo-employee",
+      employeeName: currentUser.name,
+      teamName: currentUser.team,
+      cardsReceived: 15,
+      cardsGiven: 7,
+      recent30DaysCount: 4,
+      topQualities: employeeTopQualities.map((quality) => ({
+        label: quality.label,
+        count: quality.count,
+        category: quality.label,
+        tone: quality.tone
+      })),
+      categoryBreakdown: employeeCategoryBreakdown,
+      recentNotes: recognitions.slice(0, 6).map((item) => item.note)
+    },
     pendingApprovals: [],
     topQualities: employeeTopQualities,
     categoryBreakdown: employeeCategoryBreakdown,
@@ -188,25 +189,12 @@ export function EmployeeDashboardClient({ data }: { data?: EmployeeDashboardData
       actions={
         <>
           <Link className="btn btn-primary compact" href={`/${locale}/employee/scan`}><QrCode size={16} /> {t("scanCard")}</Link>
-          <Link className="btn btn-dark compact" href={`/${locale}/cards`}><Gift size={16} /> {t("giveCard")}</Link>
+          <Link className="btn btn-dark compact" href={`/${locale}/cards?intent=give`}><Gift size={16} /> {t("giveCard")}</Link>
         </>
       }
       unreadNotifications={resolvedData.unreadNotifications ?? 0}
     >
       <div className="employee-dashboard">
-        {announcementVisible ? (
-          <section className="employee-hero">
-            <div className="dashboard-announcement">
-              <div className="announcement-icon">
-                <Megaphone size={18} />
-              </div>
-              <p>{t("announcement")}</p>
-              <Link href={`/${locale}/employee/scan`}>{t("scanCard")} <ArrowRight size={14} /></Link>
-              <button className="announcement-close" type="button" onClick={() => setAnnouncementVisible(false)} aria-label={t("dismissAnnouncement")}>x</button>
-            </div>
-          </section>
-        ) : null}
-
         <section className="compact-metrics-grid">
           <MetricCard icon={<Heart />} value={resolvedData.cardsReceived} label={t("received")} helper={t("receivedHelper")} />
           <MetricCard icon={<Send />} value={resolvedData.cardsGiven} label={t("given")} helper={t("givenHelper")} />
@@ -226,18 +214,7 @@ export function EmployeeDashboardClient({ data }: { data?: EmployeeDashboardData
           </article>
         </section>
 
-        {resolvedData.recognitionSignals?.length ? (
-          <article className="panel dashboard-panel">
-            <div className="panel-top">
-              <div>
-                <h2>{t("signalsTitle")}</h2>
-                <p>{t("signalsCopy")}</p>
-              </div>
-              <span className="quality-pill">{t("signalsActive", { count: resolvedData.recognitionSignals.length })}</span>
-            </div>
-            <SignalList items={resolvedData.recognitionSignals} />
-          </article>
-        ) : null}
+        {resolvedData.signalsContext ? <EmployeeAiSignalsPanel context={resolvedData.signalsContext} /> : null}
 
         {pendingApprovals.length ? (
           <article className="panel dashboard-panel approval-panel">
@@ -390,7 +367,7 @@ export function EmployeeDashboardClient({ data }: { data?: EmployeeDashboardData
             <Link className="btn btn-dark" href={`/${locale}/employee/scan`}>
               {t("scanCard")} <QrCode size={16} />
             </Link>
-            <Link className="btn btn-secondary" href={`/${locale}/cards`}>
+            <Link className="btn btn-secondary" href={`/${locale}/cards?intent=give`}>
               {t("giveCard")} <Gift size={16} />
             </Link>
           </article>

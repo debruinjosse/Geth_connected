@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import { BarChart3, Building2, CalendarCheck2, CreditCard, UsersRound } from "lucide-react";
 import { DashboardShell } from "@/components/DashboardShell";
 import { EmptyState } from "@/components/EmptyState";
@@ -19,11 +20,14 @@ function getMonthKey(date: Date) {
 
 export default async function AdminDashboardPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "adminPages" });
+  const tc = await getTranslations({ locale, namespace: "common" });
+  const dateLocale = locale === "nl" ? "nl-NL" : "en";
 
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
     return (
-      <DashboardShell role="admin" title="Platform overview" subtitle="Supabase is not configured yet." user={superAdminUser}>
-        <EmptyState title="Connect Supabase to activate platform admin" copy="The platform admin dashboard reads live companies, users, cards, and recognition data once Supabase env vars are configured." />
+      <DashboardShell role="admin" title={t("overviewTitle")} subtitle={t("overviewNoSupabaseSubtitle")} user={superAdminUser}>
+        <EmptyState title={t("noSupabaseEmptyTitle")} copy={t("noSupabaseEmptyCopy")} />
       </DashboardShell>
     );
   }
@@ -75,7 +79,7 @@ export default async function AdminDashboardPage({ params }: { params: Promise<{
     const date = new Date(new Date().getFullYear(), new Date().getMonth() - (5 - index), 1);
     return {
       key: getMonthKey(date),
-      label: new Intl.DateTimeFormat("en", { month: "short" }).format(date)
+      label: new Intl.DateTimeFormat(dateLocale, { month: "short" }).format(date)
     };
   });
   const monthlyCounts = new Map<string, number>();
@@ -95,57 +99,64 @@ export default async function AdminDashboardPage({ params }: { params: Promise<{
   return (
     <DashboardShell
       role="admin"
-      title="Platform overview"
-      subtitle="Monitor company health, subscriptions, card routes, and recognition activity."
+      title={t("overviewTitle")}
+      subtitle={t("overviewSubtitle")}
       user={{
         name: `${profile.first_name} ${profile.last_name}`.trim(),
         initials: getInitials(profile.first_name, profile.last_name),
-        team: "GETH Platform"
+        team: tc("platformTeam")
       }}
-      actions={<span className="quality-pill">Live platform data</span>}
+      actions={<span className="quality-pill">{tc("livePlatformData")}</span>}
       unreadNotifications={unreadNotifications}
     >
       <section className="metrics-grid">
-        <MetricCard icon={<Building2 />} value={companyCount ?? 0} label="Companies" helper="Tenant workspaces" />
-        <MetricCard icon={<UsersRound />} value={profileCount ?? 0} label="Users" helper="All platform profiles" />
-        <MetricCard icon={<BarChart3 />} value={recognitionCount ?? 0} label="Recognitions" helper="Claimed events" tone="var(--theme-emerald)" iconBackground="rgba(58, 166, 95, 0.12)" />
-        <MetricCard icon={<CreditCard />} value={cardCount ?? 0} label="Cards" helper="Library templates" tone="var(--theme-gold)" iconBackground="rgba(216, 162, 58, 0.12)" />
-        <MetricCard icon={<CalendarCheck2 />} value={demoBookingCount ?? 0} label="Demo requests" helper={`${pendingDemoBookingCount ?? 0} pending owner reviews`} tone="var(--theme-sky)" iconBackground="rgba(47, 119, 184, 0.12)" />
+        <MetricCard icon={<Building2 />} value={companyCount ?? 0} label={t("metricCompanies")} helper={t("metricCompaniesHelper")} />
+        <MetricCard icon={<UsersRound />} value={profileCount ?? 0} label={t("metricUsers")} helper={t("metricUsersHelper")} />
+        <MetricCard icon={<BarChart3 />} value={recognitionCount ?? 0} label={t("metricRecognitions")} helper={t("metricRecognitionsHelper")} tone="var(--theme-emerald)" iconBackground="rgba(58, 166, 95, 0.12)" />
+        <MetricCard icon={<CreditCard />} value={cardCount ?? 0} label={t("metricCards")} helper={t("metricCardsHelper")} tone="var(--theme-gold)" iconBackground="rgba(216, 162, 58, 0.12)" />
+        <MetricCard
+          icon={<CalendarCheck2 />}
+          value={demoBookingCount ?? 0}
+          label={t("metricDemoRequests")}
+          helper={t("metricDemoPending", { count: pendingDemoBookingCount ?? 0 })}
+          tone="var(--theme-sky)"
+          iconBackground="rgba(47, 119, 184, 0.12)"
+        />
       </section>
 
       <section className="dashboard-grid two admin-overview-graphics">
         <article className="panel dashboard-panel admin-chart-panel">
           <div className="panel-top">
             <div>
-              <h2>Recognition activity</h2>
-              <p>Platform recognition volume across recent months.</p>
+              <h2>{t("recognitionActivityTitle")}</h2>
+              <p>{t("recognitionActivityCopy")}</p>
             </div>
-            <Link className="quality-pill" href={`/${locale}/admin/analytics`}>Analytics</Link>
+            <Link className="quality-pill" href={`/${locale}/admin/analytics`}>{tc("analytics")}</Link>
           </div>
           {recognitionCount ? (
             <LineChart
               points={trendPoints}
               labels={monthWindows.map((month) => month.label)}
               color="var(--theme-ink)"
-              ariaLabel="Platform recognition activity over the latest six months"
+              ariaLabel={t("chartAriaRecognition")}
               showValues
             />
           ) : (
-            <EmptyState title="No platform recognitions yet" copy="Recognition activity will appear here as companies start claiming cards." />
+            <EmptyState title={t("emptyNoRecognitionsTitle")} copy={t("emptyNoRecognitionsCopy")} />
           )}
         </article>
 
         <article className="panel dashboard-panel admin-chart-panel">
           <div className="panel-top">
             <div>
-              <h2>User growth</h2>
-              <p>New platform users created across recent months.</p>
+              <h2>{t("userGrowthTitle")}</h2>
+              <p>{t("userGrowthCopy")}</p>
             </div>
           </div>
           {profileCount ? (
             <LineChart points={userTrendPoints} labels={monthWindows.map((month) => month.label)} color="var(--theme-gold)" />
           ) : (
-            <EmptyState title="No user growth yet" copy="New company admins, managers, and employees will appear here once accounts are created." />
+            <EmptyState title={t("emptyNoUserGrowthTitle")} copy={t("emptyNoUserGrowthCopy")} />
           )}
         </article>
       </section>
@@ -153,29 +164,36 @@ export default async function AdminDashboardPage({ params }: { params: Promise<{
       <article className="panel dashboard-panel">
         <div className="panel-top">
           <div>
-            <h2>Recent companies</h2>
-            <p>Latest tenant workspaces in the platform.</p>
+            <h2>{t("recentCompaniesTitle")}</h2>
+            <p>{t("recentCompaniesCopy")}</p>
           </div>
-          <Link href={`/${locale}/admin/companies`} className="panel-link">View all</Link>
+          <Link href={`/${locale}/admin/companies`} className="panel-link">{tc("viewAll")}</Link>
         </div>
         {companies?.length ? (
           <div className="table-wrap">
             <table className="dashboard-table">
-              <thead><tr><th>Company</th><th>Plan</th><th>Status</th><th>Created</th></tr></thead>
+              <thead>
+                <tr>
+                  <th>{t("tableCompany")}</th>
+                  <th>{t("tablePlan")}</th>
+                  <th>{t("tableStatus")}</th>
+                  <th>{t("tableCreated")}</th>
+                </tr>
+              </thead>
               <tbody>
                 {companies.map((company) => (
                   <tr key={company.id}>
                     <td><strong>{company.company_name}</strong></td>
                     <td>{company.subscription_plan}</td>
                     <td>{company.status}</td>
-                    <td>{new Intl.DateTimeFormat("en", { month: "short", day: "numeric", year: "numeric" }).format(new Date(company.created_at))}</td>
+                    <td>{new Intl.DateTimeFormat(dateLocale, { month: "short", day: "numeric", year: "numeric" }).format(new Date(company.created_at))}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
         ) : (
-          <EmptyState title="No companies yet" copy="Company workspaces will appear here after company admins sign up or you seed test accounts." />
+          <EmptyState title={t("emptyNoCompaniesTitle")} copy={t("emptyNoCompaniesCopy")} />
         )}
       </article>
     </DashboardShell>

@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import { DashboardShell } from "@/components/DashboardShell";
 import { EmptyState } from "@/components/EmptyState";
 import { InlineDemoForm } from "@/components/InlineDemoForm";
@@ -57,14 +58,14 @@ function getActivityUserIds(recognitions: TeamRecognitionRow[], workforceIds: Se
   return activeIds;
 }
 
-function renderDemoTeams() {
+function renderDemoTeams(t: Awaited<ReturnType<typeof getTranslations>>) {
   return (
-    <DashboardShell role="company" title="Teams" subtitle="Create, compare, and support recognition activity across every team." user={companyAdmin}>
+    <DashboardShell role="company" title={t("teamsTitle")} subtitle={t("teamsSubtitle")} user={companyAdmin}>
       <section className="dashboard-grid two">
         <article className="panel dashboard-panel">
           <div className="table-wrap">
             <table className="dashboard-table">
-              <thead><tr><th>Team</th><th>Members</th><th>Manager</th><th>Engagement</th><th>Recognitions</th></tr></thead>
+              <thead><tr><th>{t("team")}</th><th>Members</th><th>{t("manager")}</th><th>Engagement</th><th>Recognitions</th></tr></thead>
               <tbody>
                 {companyTeams.map((team) => (
                   <tr key={team.id}>
@@ -79,15 +80,27 @@ function renderDemoTeams() {
             </table>
           </div>
         </article>
-        <InlineDemoForm title="Create team" description="Use this demo form to test a future team-creation workflow." buttonLabel="Create team" fields={[{ id: "team-name", label: "Team name", placeholder: "Customer Success" }, { id: "team-manager", label: "Manager", placeholder: "Lisa Jansen" }]} />
+        <InlineDemoForm
+          title={t("createTeam")}
+          description={t("createFirstTeamCopy")}
+          buttonLabel={t("createTeam")}
+          fields={[
+            { id: "team-name", label: t("teamName"), placeholder: "Customer Success" },
+            { id: "team-manager", label: t("manager"), placeholder: "Lisa Jansen" }
+          ]}
+        />
       </section>
     </DashboardShell>
   );
 }
 
-export default async function CompanyTeamsPage() {
+export default async function CompanyTeamsPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "companyPages" });
+  const tc = await getTranslations({ locale, namespace: "common" });
+
   if (!hasSupabaseServerConfig()) {
-    return renderDemoTeams();
+    return renderDemoTeams(t);
   }
 
   const supabase = await createSupabaseServerClient();
@@ -97,7 +110,7 @@ export default async function CompanyTeamsPage() {
   } = await supabase.auth.getUser();
 
   if (userError || !user) {
-    return renderDemoTeams();
+    return renderDemoTeams(t);
   }
 
   const { data: adminProfile, error: adminError } = await supabase
@@ -188,7 +201,7 @@ export default async function CompanyTeamsPage() {
       id: team.id,
       name: team.name,
       managerId: team.manager_id,
-      managerName: manager ? `${manager.first_name} ${manager.last_name}`.trim() : "Unassigned",
+      managerName: manager ? `${manager.first_name} ${manager.last_name}`.trim() : tc("unassigned"),
       memberCount,
       engagement,
       recognitions: recognitionCount
@@ -203,21 +216,21 @@ export default async function CompanyTeamsPage() {
   return (
     <DashboardShell
       role="company"
-      title="Teams"
-      subtitle="Create, compare, and support recognition activity across every team."
+      title={t("teamsTitle")}
+      subtitle={t("teamsSubtitle")}
       user={{
         name: `${adminProfile.first_name} ${adminProfile.last_name}`.trim(),
         initials: getInitials(adminProfile.first_name, adminProfile.last_name),
-        team: "Company admin"
+        team: t("companyAdmin")
       }}
-      actions={<span className="quality-pill">Live data</span>}
+      actions={<span className="quality-pill">{tc("liveData")}</span>}
     >
       <section className="dashboard-grid two">
         <article className="panel dashboard-panel">
           <div className="table-wrap">
             {tableRows.length ? (
               <table className="dashboard-table">
-                <thead><tr><th>Team</th><th>Members</th><th>Manager</th><th>Engagement</th><th>Recognitions</th></tr></thead>
+                <thead><tr><th>{t("team")}</th><th>Members</th><th>{t("manager")}</th><th>Engagement</th><th>Recognitions</th></tr></thead>
                 <tbody>
                   {tableRows.map((team) => (
                     <tr key={team.id}>
@@ -232,9 +245,9 @@ export default async function CompanyTeamsPage() {
               </table>
             ) : (
               <EmptyState
-                eyebrow="No teams yet"
-                title="Create your first team"
-                copy="Once you add a team here, you can assign a manager, invite members into it, and start tracking recognition momentum."
+                eyebrow={t("noTeamsEyebrow")}
+                title={t("createFirstTeamTitle")}
+                copy={t("createFirstTeamCopy")}
               />
             )}
           </div>

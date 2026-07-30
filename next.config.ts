@@ -9,7 +9,8 @@ const nextConfig: NextConfig = {
     root: process.cwd()
   },
   experimental: {
-    serverActions: { bodySizeLimit: "105mb" }
+    serverActions: { bodySizeLimit: "105mb" },
+    viewTransition: true
   },
   webpack(config, { dev }) {
     if (dev) {

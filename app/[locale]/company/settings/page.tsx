@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { getLocale } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import { AccountSettingsPanel } from "@/components/AccountSettingsPanel";
 import { DashboardShell } from "@/components/DashboardShell";
 import { companyAdmin } from "@/lib/demo-data";
@@ -19,12 +19,22 @@ export default async function CompanySettingsPage({
   searchParams: Promise<{ settings?: string }>;
 }) {
   const [{ settings }, locale] = await Promise.all([searchParams, getLocale()]);
+  const t = await getTranslations({ locale, namespace: "companyPages" });
+  const tc = await getTranslations({ locale, namespace: "common" });
+  const td = await getTranslations({ locale, namespace: "companyDashboard" });
   const returnTo = `/${locale}/company/settings`;
 
   if (!hasSupabaseServerConfig()) {
     return (
-      <DashboardShell role="company" title="Settings" subtitle="Workspace identity and Phase 1 configuration." user={companyAdmin}>
-        <CompanySettingsPanels companyName="ABC Company" industry="Demo workspace" plan="Growth" status="Demo" adminEmail={companyAdmin.email} />
+      <DashboardShell role="company" title={t("settingsTitle")} subtitle={t("settingsSubtitle")} user={companyAdmin}>
+        <CompanySettingsPanels
+          labels={t}
+          companyName={td("demoCompany")}
+          industry={tc("demoFallback")}
+          plan={tc("demoFallback")}
+          status={tc("demoFallback")}
+          adminEmail={companyAdmin.email}
+        />
       </DashboardShell>
     );
   }
@@ -37,8 +47,15 @@ export default async function CompanySettingsPage({
 
   if (userError || !user) {
     return (
-      <DashboardShell role="company" title="Settings" subtitle="Workspace identity and Phase 1 configuration." user={companyAdmin}>
-        <CompanySettingsPanels companyName="ABC Company" industry="Demo workspace" plan="Growth" status="Demo" adminEmail={companyAdmin.email} />
+      <DashboardShell role="company" title={t("settingsTitle")} subtitle={t("settingsSubtitle")} user={companyAdmin}>
+        <CompanySettingsPanels
+          labels={t}
+          companyName={td("demoCompany")}
+          industry={tc("demoFallback")}
+          plan={tc("demoFallback")}
+          status={tc("demoFallback")}
+          adminEmail={companyAdmin.email}
+        />
       </DashboardShell>
     );
   }
@@ -61,29 +78,48 @@ export default async function CompanySettingsPage({
   const name = `${profile.first_name} ${profile.last_name}`.trim();
 
   return (
-    <DashboardShell role="company" title="Settings" subtitle="Workspace identity and Phase 1 configuration." user={{ name, initials: getInitials(profile.first_name, profile.last_name), team: company?.company_name ?? "Company admin", imageUrl: profile.profile_image }}>
+    <DashboardShell
+      role="company"
+      title={t("settingsTitle")}
+      subtitle={t("settingsSubtitle")}
+      user={{
+        name,
+        initials: getInitials(profile.first_name, profile.last_name),
+        team: company?.company_name ?? t("companyAdmin"),
+        imageUrl: profile.profile_image
+      }}
+    >
       <section className="dashboard-grid two">
         <AccountSettingsPanel
-          email={profile.email ?? user.email ?? "No email"}
+          email={profile.email ?? user.email ?? tc("noEmail")}
           firstName={profile.first_name ?? ""}
           lastName={profile.last_name ?? ""}
           profileImageUrl={profile.profile_image}
           returnTo={returnTo}
           statusCode={settings}
         />
-        <CompanySettingsPanels companyName={company?.company_name ?? "No company"} industry={company?.industry ?? "Not set"} plan={company?.subscription_plan ?? "Not set"} status={company?.status ?? "Unknown"} adminEmail={profile.email} />
+        <CompanySettingsPanels
+          labels={t}
+          companyName={company?.company_name ?? tc("noCompany")}
+          industry={company?.industry ?? tc("notSet")}
+          plan={company?.subscription_plan ?? tc("notSet")}
+          status={company?.status ?? tc("notSet")}
+          adminEmail={profile.email}
+        />
       </section>
     </DashboardShell>
   );
 }
 
 function CompanySettingsPanels({
+  labels: t,
   companyName,
   industry,
   plan,
   status,
   adminEmail
 }: {
+  labels: Awaited<ReturnType<typeof getTranslations>>;
   companyName: string;
   industry: string;
   plan: string;
@@ -93,20 +129,20 @@ function CompanySettingsPanels({
   return (
     <>
       <article className="panel dashboard-panel">
-        <h2>Workspace details</h2>
+        <h2>{t("workspaceDetails")}</h2>
         <div className="profile-stack">
-          <div><strong>Company</strong><p>{companyName}</p></div>
-          <div><strong>Industry</strong><p>{industry}</p></div>
-          <div><strong>Status</strong><p>{status}</p></div>
-          <div><strong>Plan</strong><p>{plan}</p></div>
+          <div><strong>{t("company")}</strong><p>{companyName}</p></div>
+          <div><strong>{t("industry")}</strong><p>{industry}</p></div>
+          <div><strong>{t("status")}</strong><p>{status}</p></div>
+          <div><strong>{t("plan")}</strong><p>{plan}</p></div>
         </div>
       </article>
       <article className="panel dashboard-panel">
-        <h2>Admin access</h2>
+        <h2>{t("adminAccess")}</h2>
         <div className="profile-stack">
-          <div><strong>Primary admin</strong><p>{adminEmail}</p></div>
-          <div><strong>Team management</strong><p>Create teams, assign managers, and invite employees from the company workspace.</p></div>
-          <div><strong>Billing</strong><p>Billing remains a Phase 2 integration.</p></div>
+          <div><strong>{t("primaryAdmin")}</strong><p>{adminEmail}</p></div>
+          <div><strong>{t("teamManagement")}</strong><p>{t("teamManagementCopy")}</p></div>
+          <div><strong>{t("billing")}</strong><p>{t("billingCopy")}</p></div>
         </div>
       </article>
     </>

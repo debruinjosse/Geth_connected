@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import { DashboardShell } from "@/components/DashboardShell";
 import { EmptyState } from "@/components/EmptyState";
 import { InlineDemoForm } from "@/components/InlineDemoForm";
@@ -19,14 +20,14 @@ function getAppUrl() {
   return process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 }
 
-function renderDemoManagers() {
+function renderDemoManagers(t: Awaited<ReturnType<typeof getTranslations>>) {
   return (
-    <DashboardShell role="company" title="Managers" subtitle="Assign managers, compare engagement health, and support team leads." user={companyAdmin}>
+    <DashboardShell role="company" title={t("managersTitle")} subtitle={t("managersSubtitle")} user={companyAdmin}>
       <section className="dashboard-grid two">
         <article className="panel dashboard-panel">
           <div className="table-wrap">
             <table className="dashboard-table">
-              <thead><tr><th>Manager</th><th>Team</th><th>Members</th><th>Score</th><th>Report</th></tr></thead>
+              <thead><tr><th>{t("manager")}</th><th>{t("team")}</th><th>Members</th><th>Score</th><th>Report</th></tr></thead>
               <tbody>
                 {companyManagers.map((manager) => (
                   <tr key={manager.id}>
@@ -41,15 +42,27 @@ function renderDemoManagers() {
             </table>
           </div>
         </article>
-        <InlineDemoForm title="Assign manager" description="Connect a team lead to an existing team in demo mode." buttonLabel="Assign manager" fields={[{ id: "manager-name", label: "Manager name", placeholder: "Sarah Connors" }, { id: "manager-team", label: "Team", placeholder: "Marketing" }]} />
+        <InlineDemoForm
+          title={t("assignManager")}
+          description={t("managersSubtitle")}
+          buttonLabel={t("assignManager")}
+          fields={[
+            { id: "manager-name", label: t("manager"), placeholder: "Sarah Connors" },
+            { id: "manager-team", label: t("team"), placeholder: "Marketing" }
+          ]}
+        />
       </section>
     </DashboardShell>
   );
 }
 
-export default async function CompanyManagersPage() {
+export default async function CompanyManagersPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "companyPages" });
+  const tc = await getTranslations({ locale, namespace: "common" });
+
   if (!hasSupabaseServerConfig()) {
-    return renderDemoManagers();
+    return renderDemoManagers(t);
   }
 
   const supabase = await createSupabaseServerClient();
@@ -59,7 +72,7 @@ export default async function CompanyManagersPage() {
   } = await supabase.auth.getUser();
 
   if (userError || !user) {
-    return renderDemoManagers();
+    return renderDemoManagers(t);
   }
 
   const { data: adminProfile, error: adminError } = await supabase
@@ -117,12 +130,12 @@ export default async function CompanyManagersPage() {
   return (
     <DashboardShell
       role="company"
-      title="Managers"
-      subtitle="Assign managers, compare engagement health, and support team leads."
+      title={t("managersTitle")}
+      subtitle={t("managersSubtitle")}
       user={{
         name: `${adminProfile.first_name} ${adminProfile.last_name}`.trim(),
         initials: getInitials(adminProfile.first_name, adminProfile.last_name),
-        team: "Company admin"
+        team: t("companyAdmin")
       }}
     >
       <section className="dashboard-grid two">
@@ -130,7 +143,7 @@ export default async function CompanyManagersPage() {
           <div className="table-wrap">
             {(managers?.length || invitations?.length) ? (
               <table className="dashboard-table">
-                <thead><tr><th>Manager</th><th>Team</th><th>Members</th><th>Score</th><th>Report</th></tr></thead>
+                <thead><tr><th>{t("manager")}</th><th>{t("team")}</th><th>Members</th><th>Score</th><th>Report</th></tr></thead>
                 <tbody>
                   {(managers ?? []).map((manager) => {
                     const managedTeams = teamList.filter((team) => team.manager_id === manager.id);
@@ -143,7 +156,7 @@ export default async function CompanyManagersPage() {
                     return (
                       <tr key={manager.id}>
                         <td><strong>{`${manager.first_name} ${manager.last_name}`.trim()}</strong></td>
-                        <td>{managedTeam?.name ?? "Unassigned"}</td>
+                        <td>{managedTeam?.name ?? tc("unassigned")}</td>
                         <td>{memberCount}</td>
                         <td>{score}</td>
                         <td>{manager.status === "active" ? report : manager.status}</td>
@@ -155,7 +168,7 @@ export default async function CompanyManagersPage() {
                     return (
                       <tr key={invite.id}>
                         <td><strong>{invite.email}</strong></td>
-                        <td>{team?.name ?? "Assign later"}</td>
+                        <td>{team?.name ?? tc("assignLater")}</td>
                         <td>0</td>
                         <td>Pending</td>
                         <td>Awaiting acceptance</td>
@@ -166,16 +179,16 @@ export default async function CompanyManagersPage() {
               </table>
             ) : (
               <EmptyState
-                eyebrow="No managers yet"
-                title="Invite your first manager"
-                copy="Create a manager invitation to assign a team lead and unlock team-level insights for your company."
+                eyebrow={t("noManagersEyebrow")}
+                title={t("inviteFirstManagerTitle")}
+                copy={t("inviteFirstManagerCopy")}
               />
             )}
           </div>
         </article>
         <InvitationPanel
-          title="Invite manager"
-          description="Generate a secure invite link for a manager and optionally pre-assign their team before they join."
+          title={t("inviteManager")}
+          description={t("inviteFirstManagerCopy")}
           defaultRole="manager"
           teams={teamList.map((team) => ({ id: team.id, name: team.name }))}
         />
@@ -193,7 +206,7 @@ export default async function CompanyManagersPage() {
               email: manager.email,
               role: "manager",
               teamId: manager.team_id,
-              teamName: defaultTeam?.name ?? "Unassigned",
+              teamName: defaultTeam?.name ?? tc("unassigned"),
               status: manager.status,
               managedTeamIds: managedTeams.map((team) => team.id)
             };
@@ -204,7 +217,7 @@ export default async function CompanyManagersPage() {
               id: invite.id,
               email: invite.email,
               role: "manager",
-              teamName: team?.name ?? "Assign later",
+              teamName: team?.name ?? tc("assignLater"),
               inviteLink: `${getAppUrl()}/invite/${invite.token}`
             };
           })}

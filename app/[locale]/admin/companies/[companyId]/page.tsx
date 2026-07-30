@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { getLocale } from "next-intl/server";
-import { Building2, CreditCard, Shield, Star, UserRound, UsersRound } from "lucide-react";
+import { getLocale, getTranslations } from "next-intl/server";
+import { Building2, Shield, Star, UserRound, UsersRound } from "lucide-react";
 import { createCompanyInviteFromAdminAction, updateCompanyStatusAction } from "@/app/actions/adminControls";
 import { DashboardShell } from "@/components/DashboardShell";
 import { EmptyState } from "@/components/EmptyState";
@@ -55,12 +55,12 @@ function getInitials(firstName: string | null, lastName: string | null) {
   return `${firstName?.[0] ?? ""}${lastName?.[0] ?? ""}`.toUpperCase() || "SA";
 }
 
-function formatDate(value: string) {
-  return new Intl.DateTimeFormat("en", { dateStyle: "medium" }).format(new Date(value));
+function formatDate(value: string, dateLocale: string) {
+  return new Intl.DateTimeFormat(dateLocale, { dateStyle: "medium" }).format(new Date(value));
 }
 
-function getName(profile: ProfileRow) {
-  return `${profile.first_name ?? ""} ${profile.last_name ?? ""}`.trim() || profile.email || "GETH user";
+function getName(profile: ProfileRow, fallbackLabel: string) {
+  return `${profile.first_name ?? ""} ${profile.last_name ?? ""}`.trim() || profile.email || fallbackLabel;
 }
 
 export default async function AdminCompanyDetailPage({
@@ -71,6 +71,9 @@ export default async function AdminCompanyDetailPage({
   searchParams: Promise<{ invite?: string }>;
 }) {
   const [{ companyId }, { invite }, locale] = await Promise.all([params, searchParams, getLocale()]);
+  const t = await getTranslations({ locale, namespace: "adminPages" });
+  const tc = await getTranslations({ locale, namespace: "common" });
+  const dateLocale = locale === "nl" ? "nl-NL" : "en";
   const returnTo = `/${locale}/admin/companies/${companyId}`;
 
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
@@ -131,84 +134,84 @@ export default async function AdminCompanyDetailPage({
   }
 
   if (profilesError || teamsError || invitationsError) {
-    throw new Error("Failed to load company control data.");
+    throw new Error(t("errLoadCompanyDetail"));
   }
 
   const companyProfiles = (profiles ?? []) as ProfileRow[];
   const companyTeams = (teams ?? []) as TeamRow[];
-  const pendingInvitations = ((invitations ?? []) as InvitationRow[]).filter((invite) => invite.status === "pending");
+  const pendingInvitations = ((invitations ?? []) as InvitationRow[]).filter((inviteRow) => inviteRow.status === "pending");
   const companyAdmins = companyProfiles.filter((profile) => profile.role === "company_admin");
   const managers = companyProfiles.filter((profile) => profile.role === "manager");
   const employees = companyProfiles.filter((profile) => profile.role === "employee");
   const teamMap = new Map(companyTeams.map((team) => [team.id, team.name]));
-  const managerMap = new Map(companyProfiles.map((profile) => [profile.id, getName(profile)]));
+  const managerMap = new Map(companyProfiles.map((profile) => [profile.id, getName(profile, tc("gethUser"))]));
 
   return (
     <DashboardShell
       role="admin"
       title={company.company_name}
-      subtitle="Company workspace controls, hierarchy, teams, and platform-level status."
+      subtitle={t("companyDetailSubtitle")}
       user={{
         name: `${adminProfile.first_name ?? ""} ${adminProfile.last_name ?? ""}`.trim() || "GETH Admin",
         initials: getInitials(adminProfile.first_name, adminProfile.last_name),
-        team: "GETH Platform"
+        team: tc("platformTeam")
       }}
-      actions={<Link className="btn btn-secondary" href={`/${locale}/admin/companies`}>Back to companies</Link>}
+      actions={<Link className="btn btn-secondary" href={`/${locale}/admin/companies`}>{t("backToCompanies")}</Link>}
       unreadNotifications={unreadNotifications}
     >
       <section className="metrics-grid">
-        <MetricCard icon={<Shield />} value={companyAdmins.length} label="Company admins" helper="Workspace owners" />
-        <MetricCard icon={<UsersRound />} value={managers.length} label="Managers" helper="Team leads" tone="var(--theme-gold)" iconBackground="rgba(216, 162, 58, 0.12)" />
-        <MetricCard icon={<UserRound />} value={employees.length} label="Employees" helper="Recognized users" />
-        <MetricCard icon={<Star />} value={recognitionCount ?? 0} label="Recognitions" helper="Company total" tone="var(--theme-emerald)" iconBackground="rgba(58, 166, 95, 0.12)" />
+        <MetricCard icon={<Shield />} value={companyAdmins.length} label={t("metricCompanyAdmins")} helper={t("metricCompanyAdminsHelper")} />
+        <MetricCard icon={<UsersRound />} value={managers.length} label={t("metricManagers")} helper={t("metricManagersHelper")} tone="var(--theme-gold)" iconBackground="rgba(216, 162, 58, 0.12)" />
+        <MetricCard icon={<UserRound />} value={employees.length} label={t("metricEmployees")} helper={t("metricEmployeesHelper")} />
+        <MetricCard icon={<Star />} value={recognitionCount ?? 0} label={t("metricRecognitionsCompany")} helper={t("metricRecognitionsCompanyHelper")} tone="var(--theme-emerald)" iconBackground="rgba(58, 166, 95, 0.12)" />
       </section>
 
       <section className="dashboard-grid two">
         <article className="panel dashboard-panel">
           <div className="panel-top">
             <div>
-              <h2>Workspace status</h2>
-              <p className="section-copy">Super admins can pause or reactivate a company here.</p>
+              <h2>{t("workspaceStatusTitle")}</h2>
+              <p className="section-copy">{t("workspaceStatusCopy")}</p>
             </div>
           </div>
           <div className="profile-stack">
-            <div><strong>Industry</strong><p>{company.industry ?? "Not set"}</p></div>
-            <div><strong>Slug</strong><p>{company.slug ?? "Not set"}</p></div>
-            <div><strong>Plan</strong><p>{company.subscription_plan ?? "Starter"}</p></div>
-            <div><strong>Billing status</strong><p>{company.subscription_status ?? "not_configured"}</p></div>
-            <div><strong>Created</strong><p>{formatDate(company.created_at)}</p></div>
+            <div><strong>{t("industryLabel")}</strong><p>{company.industry ?? tc("notSet")}</p></div>
+            <div><strong>{t("slugLabel")}</strong><p>{company.slug ?? tc("notSet")}</p></div>
+            <div><strong>{tc("plan")}</strong><p>{company.subscription_plan ?? "Starter"}</p></div>
+            <div><strong>{t("billingStatusLabel")}</strong><p>{company.subscription_status ?? "not_configured"}</p></div>
+            <div><strong>{t("createdLabel")}</strong><p>{formatDate(company.created_at, dateLocale)}</p></div>
           </div>
           <form action={updateCompanyStatusAction} className="admin-control-form" style={{ marginTop: 18 }}>
             <input type="hidden" name="companyId" value={company.id} />
-            <label className="sr-only" htmlFor="company-status">Company status</label>
+            <label className="sr-only" htmlFor="company-status">{t("companyStatusLabel")}</label>
             <select id="company-status" name="status" defaultValue={company.status ?? "active"} aria-label={`Update ${company.company_name} status`}>
-              <option value="active">Active</option>
-              <option value="demo">Demo</option>
-              <option value="inactive">Inactive</option>
+              <option value="active">{t("statusActiveOption")}</option>
+              <option value="demo">{t("statusDemoOption")}</option>
+              <option value="inactive">{t("statusInactiveOption")}</option>
             </select>
-            <button className="btn btn-secondary compact" type="submit">Save status</button>
+            <button className="btn btn-secondary compact" type="submit">{t("saveStatusButton")}</button>
           </form>
         </article>
 
         <article className="panel dashboard-panel">
           <div className="panel-top">
             <div>
-              <h2>Hierarchy</h2>
-              <p className="section-copy">Platform → company → admins/managers/employees.</p>
+              <h2>{t("hierarchyTitle")}</h2>
+              <p className="section-copy">{t("hierarchyCopy")}</p>
             </div>
           </div>
           <div className="signal-list">
             <div className="signal-card">
               <Building2 size={18} />
-              <div><strong>GETH Platform</strong><p>Super admin controls companies and subscriptions.</p></div>
+              <div><strong>{t("platformHierarchyTitle")}</strong><p>{t("platformHierarchyCopy")}</p></div>
             </div>
             <div className="signal-card">
               <Shield size={18} />
-              <div><strong>{company.company_name}</strong><p>{companyAdmins.length} admin{companyAdmins.length === 1 ? "" : "s"} manage this workspace.</p></div>
+              <div><strong>{company.company_name}</strong><p>{t("companyAdminsManage", { count: companyAdmins.length })}</p></div>
             </div>
             <div className="signal-card">
               <UsersRound size={18} />
-              <div><strong>{companyTeams.length} team{companyTeams.length === 1 ? "" : "s"}</strong><p>{managers.length} manager{managers.length === 1 ? "" : "s"} and {employees.length} employee{employees.length === 1 ? "" : "s"}.</p></div>
+              <div><p>{t("teamsManagersEmployees", { teams: companyTeams.length, managers: managers.length, employees: employees.length })}</p></div>
             </div>
           </div>
           <form action={createCompanyInviteFromAdminAction} className="admin-invite-form">
@@ -216,27 +219,27 @@ export default async function AdminCompanyDetailPage({
             <input type="hidden" name="returnTo" value={returnTo} />
             <input type="hidden" name="locale" value={locale} />
             <div>
-              <h3>Send an invite to this company</h3>
-              <p className="section-copy">Create a role-specific onboarding link for this workspace.</p>
+              <h3>{t("sendInviteTitle")}</h3>
+              <p className="section-copy">{t("sendInviteCopy")}</p>
             </div>
             {invite ? (
               <p className={`settings-feedback ${invite === "created" ? "success" : "error"}`}>
-                {invite === "created" ? "Invite created and email sent if SMTP is configured." : "Invite created, but email may need to be copied from pending invitations."}
+                {invite === "created" ? t("inviteCreatedSuccess") : t("inviteCreatedPartial")}
               </p>
             ) : null}
             <label>
-              Work email
+              {t("workEmailLabel")}
               <input className="input" type="email" name="email" placeholder="new.user@company.com" required />
             </label>
             <label>
-              Role
+              {t("roleLabel")}
               <select className="input" name="role" defaultValue="employee">
-                <option value="employee">Employee</option>
-                <option value="manager">Manager</option>
-                <option value="company_admin">Company admin</option>
+                <option value="employee">{t("roleEmployeeOption")}</option>
+                <option value="manager">{t("roleManagerOption")}</option>
+                <option value="company_admin">{t("roleCompanyAdminOption")}</option>
               </select>
             </label>
-            <button className="btn btn-primary compact" type="submit">Send invite</button>
+            <button className="btn btn-primary compact" type="submit">{t("sendInviteButton")}</button>
           </form>
         </article>
       </section>
@@ -245,51 +248,51 @@ export default async function AdminCompanyDetailPage({
         <article className="panel dashboard-panel">
           <div className="panel-top">
             <div>
-              <h2>Teams</h2>
-              <p className="section-copy">Manager ownership for this company.</p>
+              <h2>{t("teamsSectionTitle")}</h2>
+              <p className="section-copy">{t("teamsSectionCopy")}</p>
             </div>
           </div>
           {companyTeams.length ? (
             <div className="table-wrap">
               <table className="dashboard-table">
-                <thead><tr><th>Team</th><th>Manager</th></tr></thead>
+                <thead><tr><th>{t("tableTeam")}</th><th>{t("tableManager")}</th></tr></thead>
                 <tbody>
                   {companyTeams.map((team) => (
                     <tr key={team.id}>
                       <td><strong>{team.name}</strong></td>
-                      <td>{team.manager_id ? managerMap.get(team.manager_id) ?? "Assigned manager" : "Unassigned"}</td>
+                      <td>{team.manager_id ? managerMap.get(team.manager_id) ?? t("assignedManager") : tc("unassigned")}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
           ) : (
-            <EmptyState title="No teams yet" copy="Company admins can create teams from their company portal." />
+            <EmptyState title={t("emptyNoTeamsTitle")} copy={t("emptyNoTeamsCopy")} />
           )}
         </article>
 
         <article className="panel dashboard-panel">
           <div className="panel-top">
             <div>
-              <h2>Pending invitations</h2>
-              <p className="section-copy">Open onboarding links for this company. Copy these links for company registration.</p>
+              <h2>{t("pendingInvitationsTitle")}</h2>
+              <p className="section-copy">{t("pendingInvitationsCopy")}</p>
             </div>
           </div>
           {pendingInvitations.length ? (
             <div className="signal-list">
-              {pendingInvitations.map((invite) => (
-                <div className="signal-card" key={invite.id}>
+              {pendingInvitations.map((inviteRow) => (
+                <div className="signal-card" key={inviteRow.id}>
                   <div>
-                    <strong>{invite.email}</strong>
-                    <p>{invite.role.replace("_", " ")} invite expires {formatDate(invite.expires_at)}.</p>
-                    <Link className="panel-link" href={`/${locale}/invite/${invite.token}`}>Open registration link</Link>
+                    <strong>{inviteRow.email}</strong>
+                    <p>{t("inviteExpires", { role: inviteRow.role.replace("_", " "), date: formatDate(inviteRow.expires_at, dateLocale) })}</p>
+                    <Link className="panel-link" href={`/${locale}/invite/${inviteRow.token}`}>{t("openRegistrationLink")}</Link>
                   </div>
-                  <span className="quality-pill">{invite.status}</span>
+                  <span className="quality-pill">{inviteRow.status}</span>
                 </div>
               ))}
             </div>
           ) : (
-            <EmptyState title="No pending invites" copy="Pending employee and manager invites will appear here." />
+            <EmptyState title={t("emptyNoInvitesTitle")} copy={t("emptyNoInvitesCopy")} />
           )}
         </article>
       </section>
@@ -297,21 +300,21 @@ export default async function AdminCompanyDetailPage({
       <article className="panel dashboard-panel">
         <div className="panel-top">
           <div>
-            <h2>People</h2>
-            <p className="section-copy">Company admins, managers, and employees in this workspace.</p>
+            <h2>{t("peopleTitle")}</h2>
+            <p className="section-copy">{t("peopleCopy")}</p>
           </div>
         </div>
         {companyProfiles.length ? (
           <div className="table-wrap">
             <table className="dashboard-table">
-              <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Team</th><th>Status</th></tr></thead>
+              <thead><tr><th>{t("tableName")}</th><th>{t("tableEmail")}</th><th>{t("tableRole")}</th><th>{t("tableTeam")}</th><th>{t("tableStatus")}</th></tr></thead>
               <tbody>
                 {companyProfiles.map((profile) => (
                   <tr key={profile.id}>
-                    <td><strong>{getName(profile)}</strong></td>
-                    <td>{profile.email ?? "No email"}</td>
+                    <td><strong>{getName(profile, tc("gethUser"))}</strong></td>
+                    <td>{profile.email ?? tc("noEmail")}</td>
                     <td>{profile.role.replace("_", " ")}</td>
-                    <td>{profile.team_id ? teamMap.get(profile.team_id) ?? "Assigned team" : "Unassigned"}</td>
+                    <td>{profile.team_id ? teamMap.get(profile.team_id) ?? t("assignedTeam") : tc("unassigned")}</td>
                     <td><span className="admin-status-pill">{profile.status ?? "active"}</span></td>
                   </tr>
                 ))}
@@ -319,7 +322,7 @@ export default async function AdminCompanyDetailPage({
             </table>
           </div>
         ) : (
-          <EmptyState title="No profiles yet" copy="Users will appear here after signup, seed, or invitation acceptance." />
+          <EmptyState title={t("emptyNoProfilesTitle")} copy={t("emptyNoProfilesCopy")} />
         )}
       </article>
     </DashboardShell>

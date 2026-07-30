@@ -1,4 +1,7 @@
+import Image from "next/image";
 import { getTranslations, setRequestLocale } from "next-intl/server";
+import { BrandLogo } from "@/components/BrandLogo";
+import { RECOGNITION_MOMENT_ALT, RECOGNITION_MOMENT_SRC } from "@/lib/brand";
 import { PublicSiteChrome } from "@/components/PublicSiteChrome";
 import { SupportContactForm } from "@/components/SupportContactForm";
 
@@ -17,6 +20,16 @@ export default async function ResourcesPage({ params }: { params: Promise<{ loca
         </div>
         <div className="support-page-grid">
           <article className="audience-card support-whatsapp-card">
+            <BrandLogo href={`/${locale}`} dark />
+            <div className="support-recognition-photo">
+              <Image
+                src={RECOGNITION_MOMENT_SRC}
+                alt={t("supportPhotoAlt")}
+                fill
+                sizes="(max-width: 720px) 100vw, 320px"
+                priority={false}
+              />
+            </div>
             <div className="eyebrow">{t("supportTitle")}</div>
             <h3>{t("supportCardTitle")}</h3>
             <p>{t("supportCopy")}</p>

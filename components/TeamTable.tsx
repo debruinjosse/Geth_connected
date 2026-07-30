@@ -1,3 +1,7 @@
+"use client";
+
+import { useTranslations } from "next-intl";
+
 export type TeamMemberRow = {
   id: string;
   name: string;
@@ -9,22 +13,31 @@ export type TeamMemberRow = {
   topQuality: string;
 };
 
-export function TeamTable({
-  people
-}: {
-  people: TeamMemberRow[];
-}) {
+function energyLabel(energy: TeamMemberRow["energy"], t: ReturnType<typeof useTranslations>) {
+  switch (energy) {
+    case "HOOG":
+      return t("energyHigh");
+    case "LAAG":
+      return t("energyLow");
+    default:
+      return t("energyMid");
+  }
+}
+
+export function TeamTable({ people }: { people: TeamMemberRow[] }) {
+  const t = useTranslations("teamTable");
+
   return (
     <div className="table-wrap">
       <table className="dashboard-table">
         <thead>
           <tr>
-            <th>Member</th>
-            <th>Cards Received</th>
-            <th>Cards Given</th>
-            <th>Trend</th>
-            <th>Energy</th>
-            <th>Top Quality</th>
+            <th>{t("member")}</th>
+            <th>{t("cardsReceived")}</th>
+            <th>{t("cardsGiven")}</th>
+            <th>{t("trend")}</th>
+            <th>{t("energy")}</th>
+            <th>{t("topQuality")}</th>
           </tr>
         </thead>
         <tbody>
@@ -41,7 +54,9 @@ export function TeamTable({
                 {person.trend}
               </td>
               <td>
-                <span className={`energy ${person.energy === "HOOG" ? "high" : person.energy === "LAAG" ? "low" : "mid"}`}>{person.energy}</span>
+                <span className={`energy ${person.energy === "HOOG" ? "high" : person.energy === "LAAG" ? "low" : "mid"}`}>
+                  {energyLabel(person.energy, t)}
+                </span>
               </td>
               <td>{person.topQuality}</td>
             </tr>

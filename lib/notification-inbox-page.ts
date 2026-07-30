@@ -1,6 +1,8 @@
 import { redirect } from "next/navigation";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { NotificationInboxRow } from "@/components/NotificationInbox";
+import { localizedLoginPath } from "@/lib/auth/paths";
+import { defaultLocale } from "@/i18n/routing";
 import { getUnreadNotificationCount } from "@/lib/notifications";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -44,7 +46,7 @@ export async function getNotificationInboxPageData({
   } = await supabase.auth.getUser();
 
   if (userError || !user) {
-    redirect("/login");
+    redirect(localizedLoginPath(defaultLocale));
   }
 
   const { data: profile, error: profileError } = await supabase

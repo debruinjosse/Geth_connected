@@ -1,19 +1,41 @@
 "use client";
 
 import { useState } from "react";
-import { Building2, Check, UserRoundPlus, UsersRound } from "lucide-react";
+import { ArrowRight, Building2, Check, Headset, Rocket, ShieldCheck, UserRoundPlus } from "lucide-react";
+import { Link } from "@/i18n/navigation";
 
 export type PricingTier = {
   name: string;
   monthly: string;
   yearly: string;
-  icon: "team" | "growth" | "enterprise";
+  icon: "growth" | "enterprise";
+  description: string;
   features: string[];
-  featured?: boolean;
+  cta: string;
+  ctaHref: string;
+  kind: "growth" | "custom";
+};
+
+export type PricingLabels = {
+  monthly: string;
+  monthlySubcopy: string;
+  yearly: string;
+  yearlySubcopy: string;
+  bestValue: string;
+  billingPeriod: string;
+  perEmployeeMonth: string;
+  billedMonthly: string;
+  billedYearly: string;
+  customPrice: string;
+};
+
+export type PricingTrustItem = {
+  title: string;
+  copy: string;
 };
 
 function PricingIcon({ icon }: { icon: PricingTier["icon"] }) {
-  const Icon = icon === "enterprise" ? Building2 : icon === "growth" ? UserRoundPlus : UsersRound;
+  const Icon = icon === "enterprise" ? Building2 : UserRoundPlus;
   return (
     <span className="pricing-plan-icon">
       <Icon size={25} strokeWidth={1.8} />
@@ -24,29 +46,22 @@ function PricingIcon({ icon }: { icon: PricingTier["icon"] }) {
 export function PricingPlansClient({
   tiers,
   labels,
-  locale
+  trustItems
 }: {
   tiers: PricingTier[];
-  labels: {
-    monthly: string;
-    yearly: string;
-    yearlySubcopy: string;
-    bestValue: string;
-    contact: string;
-    perEmployee: string;
-    customPricing: string;
-    mostPopular: string;
-  };
-  locale: string;
+  labels: PricingLabels;
+  trustItems: PricingTrustItem[];
 }) {
   const [cycle, setCycle] = useState<"monthly" | "yearly">("monthly");
+  const trustIcons = [ShieldCheck, Rocket, Headset];
 
   return (
     <>
       <div className="pricing-toggle-wrap">
-        <div className="pricing-toggle" role="tablist" aria-label="Billing period">
+        <div className="pricing-toggle" role="tablist" aria-label={labels.billingPeriod}>
           <button className={cycle === "monthly" ? "active" : ""} type="button" onClick={() => setCycle("monthly")}>
-            {labels.monthly}
+            <span>{labels.monthly}</span>
+            <small>{labels.monthlySubcopy}</small>
           </button>
           <button className={cycle === "yearly" ? "active" : ""} type="button" onClick={() => setCycle("yearly")}>
             <span>{labels.yearly}</span>
@@ -59,32 +74,54 @@ export function PricingPlansClient({
       <div className="pricing-grid pricing-plan-grid">
         {tiers.map((tier) => {
           const price = cycle === "monthly" ? tier.monthly : tier.yearly;
-          const custom = price === "Custom";
+          const custom = tier.kind === "custom";
 
           return (
-            <article className={`pricing-plan-card ${tier.featured ? "featured" : ""}`.trim()} key={tier.name}>
-              {tier.featured ? <div className="pricing-popular-ribbon">{labels.mostPopular}</div> : null}
+            <article className="pricing-plan-card" key={tier.name}>
               <div className="pricing-plan-top">
-                <div className="eyebrow">{tier.name}</div>
+                <div className="eyebrow pricing-plan-eyebrow">{tier.name}</div>
                 <PricingIcon icon={tier.icon} />
               </div>
               <div className="pricing-price-block">
-                <h2>{custom ? "Custom" : price}</h2>
-                <p>{custom ? labels.customPricing : labels.perEmployee}</p>
+                <h2>{custom ? labels.customPrice : price}</h2>
+                <p className="pricing-price-meta">
+                  {labels.perEmployeeMonth}
+                  <span className="pricing-billing-note">
+                    {cycle === "monthly" ? labels.billedMonthly : labels.billedYearly}
+                  </span>
+                </p>
               </div>
+              <p className="pricing-plan-description">{tier.description}</p>
               <div className="pricing-feature-divider" />
               <div className="pricing-features">
-                {tier.features.map((feature, index) => (
-                  <span className={tier.featured && index >= 3 ? "highlight" : ""} key={feature}>
+                {tier.features.map((feature) => (
+                  <span key={feature}>
                     <Check size={13} />
                     {feature}
                   </span>
                 ))}
               </div>
-              <a className="btn btn-dark pricing-contact-button" href={`/${locale}/book-demo`}>
-                {labels.contact}
-              </a>
+              <Link className="btn btn-primary pricing-contact-button" href={tier.ctaHref}>
+                {tier.cta} <ArrowRight size={16} />
+              </Link>
             </article>
+          );
+        })}
+      </div>
+
+      <div className="pricing-trust-bar">
+        {trustItems.map((item, index) => {
+          const Icon = trustIcons[index] ?? ShieldCheck;
+          return (
+            <div className="pricing-trust-item" key={item.title}>
+              <span className="pricing-trust-icon" aria-hidden="true">
+                <Icon size={22} strokeWidth={1.8} />
+              </span>
+              <div>
+                <strong>{item.title}</strong>
+                <p>{item.copy}</p>
+              </div>
+            </div>
           );
         })}
       </div>

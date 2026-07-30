@@ -5,7 +5,13 @@ import {
   getInviteEmailText,
   getInvoiceEmailHtml,
   getInvoiceEmailSubject,
-  getInvoiceEmailText
+  getInvoiceEmailText,
+  getMagicLinkEmailHtml,
+  getMagicLinkEmailSubject,
+  getMagicLinkEmailText,
+  getRecognitionEmailHtml,
+  getRecognitionEmailSubject,
+  getRecognitionEmailText
 } from "@/lib/mail/templates";
 
 export type InviteEmailErrorCode =
@@ -62,6 +68,12 @@ function getSmtpConfig(): SmtpConfig {
     throw new InviteEmailError("SMTP_MISSING", `SMTP is not configured. Missing: ${status.missing.join(", ")}`);
   }
 
+  const from = status.from;
+  const user = status.user;
+  if (!/geth\.pro/i.test(from) || !/geth\.pro/i.test(user)) {
+    console.warn("SMTP_FROM or SMTP_USER is not using info@geth.pro — invite emails may land in spam.");
+  }
+
   return {
     host: status.host,
     port: status.port,
@@ -114,6 +126,30 @@ export function createSmtpTransport() {
 
 export function hasSmtpConfig() {
   return getSmtpConfigStatus().configured;
+}
+
+export async function sendMagicLinkEmail({
+  to,
+  magicLink,
+  mode
+}: {
+  to: string;
+  magicLink: string;
+  mode: "login" | "signup";
+}) {
+  try {
+    const config = getSmtpConfig();
+    await createSmtpTransport().sendMail({
+      from: config.from,
+      replyTo: config.replyTo,
+      to,
+      subject: getMagicLinkEmailSubject(mode),
+      text: getMagicLinkEmailText({ recipientEmail: to, magicLink, mode }),
+      html: getMagicLinkEmailHtml({ recipientEmail: to, magicLink, mode })
+    });
+  } catch (error) {
+    throw new InviteEmailError(classifySmtpError(error), "Magic link email could not be sent.", error);
+  }
 }
 
 export async function sendInviteEmail({
@@ -180,6 +216,50 @@ export async function sendInvoiceEmail({
     });
   } catch (error) {
     throw new InviteEmailError(classifySmtpError(error), "Invoice email could not be sent.", error);
+  }
+}
+
+export async function sendRecognitionReceivedEmail({
+  to,
+  giverName,
+  cardTitle,
+  personalNote,
+  dashboardUrl,
+  acknowledgementPending
+}: {
+  to: string;
+  giverName: string;
+  cardTitle: string;
+  personalNote?: string | null;
+  dashboardUrl: string;
+  acknowledgementPending?: boolean;
+}) {
+  try {
+    const config = getSmtpConfig();
+    await createSmtpTransport().sendMail({
+      from: config.from,
+      replyTo: config.replyTo,
+      to,
+      subject: getRecognitionEmailSubject(giverName),
+      text: getRecognitionEmailText({
+        recipientEmail: to,
+        giverName,
+        cardTitle,
+        personalNote,
+        dashboardUrl,
+        acknowledgementPending
+      }),
+      html: getRecognitionEmailHtml({
+        recipientEmail: to,
+        giverName,
+        cardTitle,
+        personalNote,
+        dashboardUrl,
+        acknowledgementPending
+      })
+    });
+  } catch (error) {
+    throw new InviteEmailError(classifySmtpError(error), "Recognition email could not be sent.", error);
   }
 }
 

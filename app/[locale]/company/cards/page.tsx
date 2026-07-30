@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import { DashboardShell } from "@/components/DashboardShell";
 import { EmptyState } from "@/components/EmptyState";
 import { companyAdmin, cardManagementRows } from "@/lib/demo-data";
@@ -14,9 +15,18 @@ function getInitials(firstName: string | null, lastName: string | null) {
   return `${firstName?.[0] ?? ""}${lastName?.[0] ?? ""}`.toUpperCase() || "CA";
 }
 
-function renderDemoCards(locale = "en") {
+function renderDemoCards(
+  locale: string,
+  t: Awaited<ReturnType<typeof getTranslations>>
+) {
   return (
-    <DashboardShell role="company" title="Cards & Decks" subtitle="Manage deck visibility, statuses, and linked claim routes." user={companyAdmin} actions={<a className="btn btn-dark" href={`/${locale}/cards`}>Open public library</a>}>
+    <DashboardShell
+      role="company"
+      title={t("cardsTitle")}
+      subtitle={t("cardsSubtitle")}
+      user={companyAdmin}
+      actions={<a className="btn btn-dark" href={`/${locale}/cards`}>{t("openPublicLibrary")}</a>}
+    >
       <article className="panel dashboard-panel">
         <div className="company-card-admin-grid">
           {cardManagementRows.map((card) => (
@@ -41,9 +51,10 @@ function renderDemoCards(locale = "en") {
 
 export default async function CompanyCardsPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "companyPages" });
 
   if (!hasSupabaseServerConfig()) {
-    return renderDemoCards(locale);
+    return renderDemoCards(locale, t);
   }
 
   const supabase = await createSupabaseServerClient();
@@ -53,7 +64,7 @@ export default async function CompanyCardsPage({ params }: { params: Promise<{ l
   } = await supabase.auth.getUser();
 
   if (userError || !user) {
-    return renderDemoCards(locale);
+    return renderDemoCards(locale, t);
   }
 
   const { data: profile, error: profileError } = await supabase
@@ -100,14 +111,14 @@ export default async function CompanyCardsPage({ params }: { params: Promise<{ l
   return (
     <DashboardShell
       role="company"
-      title="Cards & Decks"
-      subtitle="Manage deck visibility, statuses, and linked claim routes."
+      title={t("cardsTitle")}
+      subtitle={t("cardsSubtitle")}
       user={{
-        name: `${profile.first_name ?? ""} ${profile.last_name ?? ""}`.trim() || "Company admin",
+        name: `${profile.first_name ?? ""} ${profile.last_name ?? ""}`.trim() || t("companyAdmin"),
         initials: getInitials(profile.first_name, profile.last_name),
-        team: company?.company_name ?? "Company admin"
+        team: company?.company_name ?? t("companyAdmin")
       }}
-      actions={<a className="btn btn-dark" href={`/${locale}/cards`}>Open public library</a>}
+      actions={<a className="btn btn-dark" href={`/${locale}/cards`}>{t("openPublicLibrary")}</a>}
       unreadNotifications={unreadNotifications}
     >
       <article className="panel dashboard-panel">
@@ -130,7 +141,11 @@ export default async function CompanyCardsPage({ params }: { params: Promise<{ l
               ))}
           </div>
         ) : (
-          <EmptyState eyebrow="No cards" title="Card library is empty" copy="Seed the GETH card deck to manage company card routes here." />
+          <EmptyState
+            eyebrow={t("cardsTitle")}
+            title={t("cardLibraryEmptyTitle")}
+            copy={t("cardLibraryEmptyCopy")}
+          />
         )}
       </article>
     </DashboardShell>

@@ -2,96 +2,171 @@ import { setRequestLocale } from "next-intl/server";
 import { PublicSiteChrome } from "@/components/PublicSiteChrome";
 import { PricingPlansClient, type PricingTier } from "@/components/PricingPlansClient";
 
-type PricingCopy = {
-  eyebrow: string;
-  title: string;
+type PricingContent = {
+  titleLine1: string;
+  titleLine2: string;
+  subtitle: string;
+  heroDetail: string;
   labels: {
     monthly: string;
+    monthlySubcopy: string;
     yearly: string;
     yearlySubcopy: string;
     bestValue: string;
-    contact: string;
-    perEmployee: string;
-    customPricing: string;
-    mostPopular: string;
+    billingPeriod: string;
+    perEmployeeMonth: string;
+    billedMonthly: string;
+    billedYearly: string;
+    customPrice: string;
   };
   tiers: PricingTier[];
+  trust: Array<{ title: string; copy: string }>;
 };
 
-const pricingCopy: Record<string, PricingCopy> = {
+const pricingContent: Record<string, PricingContent> = {
   en: {
-    eyebrow: "Pricing",
-    title: "Choose the plan that fits your team and start making recognition visible.",
+    titleLine1: "Simple plans.",
+    titleLine2: "Stronger cultures.",
+    subtitle: "Built for teams that value recognition.",
+    heroDetail:
+      "Managers often notice too late what is really happening within their team. Recognition remains invisible, talent is not fully utilised, and engagement is difficult to measure. GETH makes peer-to-peer recognition visible and turns it into actionable insights, helping managers support employees more effectively, use individual strengths more strategically, and build stronger teams.",
     labels: {
       monthly: "Monthly",
+      monthlySubcopy: "Pay as you go",
       yearly: "Yearly",
       yearlySubcopy: "Save up to 20%",
       bestValue: "Best value",
-      contact: "Contact us",
-      perEmployee: "/month per employee",
-      customPricing: "Custom pricing",
-      mostPopular: "Most popular"
+      billingPeriod: "Billing period",
+      perEmployeeMonth: "/employee /month",
+      billedMonthly: "billed monthly",
+      billedYearly: "billed yearly",
+      customPrice: "Custom"
     },
     tiers: [
       {
-        name: "Starter",
-        monthly: "€19",
-        yearly: "€15",
-        icon: "team",
-        features: ["Up to 50 employees", "Personal recognition dashboard", "Connected cards experience", "Basic analytics", "Email support"]
-      },
-      {
-        name: "Growth",
-        monthly: "€29",
-        yearly: "€23",
+        name: "GROWTH",
+        monthly: "€ 11,99",
+        yearly: "€ 9,59",
         icon: "growth",
-        featured: true,
-        features: ["Up to 50 employees", "Personal recognition dashboard", "Connected cards experience", "Advanced analytics", "Email/WhatsApp support", "Manager insights", "Organisation insights", "Recognition reports"]
+        kind: "growth",
+        description: "For growing teams building a strong culture.",
+        features: [
+          "Up to 50 employees",
+          "Unlimited recognition cards",
+          "Advanced analytics",
+          "Manager insights",
+          "Company Insights",
+          "Priority support"
+        ],
+        cta: "Get started",
+        ctaHref: "/signup?role=company_admin"
       },
       {
-        name: "Enterprise",
+        name: "CUSTOM",
         monthly: "Custom",
         yearly: "Custom",
         icon: "enterprise",
-        features: ["For larger organizations", "Unlimited employees", "Personal recognition dashboard", "Connected cards experience", "Advanced analytics", "Manager insights", "Organisation insights", "Recognition reports", "SSO & integrations", "Dedicated support"]
+        kind: "custom",
+        description: "For organizations with more than 50 employees driving culture at scale.",
+        features: [
+          "More than 50 employees",
+          "Unlimited recognition cards",
+          "Advanced analytics",
+          "Manager insights",
+          "Company Insights",
+          "SSO & integrations",
+          "API access",
+          "Dedicated support"
+        ],
+        cta: "Contact us",
+        ctaHref: "/book-demo"
+      }
+    ],
+    trust: [
+      {
+        title: "Privacy first",
+        copy: "GDPR compliant & hosted in Europe."
+      },
+      {
+        title: "Easy to implement",
+        copy: "Up and running in minutes."
+      },
+      {
+        title: "Personal support",
+        copy: "Direct contact with our team."
       }
     ]
   },
   nl: {
-    eyebrow: "Prijzen",
-    title: "Kies het pakket dat bij je team past en maak waardering zichtbaar.",
+    titleLine1: "Eenvoudige prijzen.",
+    titleLine2: "Sterkere culturen.",
+    subtitle: "Voor teams die waardering centraal stellen.",
+    heroDetail:
+      "Managers zien vaak te laat wat er echt speelt binnen hun team. Waardering blijft onzichtbaar, talent wordt niet volledig benut en betrokkenheid is moeilijk te meten. GETH maakt peer-to-peer waardering zichtbaar en zet dit om in bruikbare inzichten, zodat managers medewerkers effectiever kunnen ondersteunen, individuele sterke punten strategischer kunnen benutten en sterkere teams kunnen bouwen.",
     labels: {
       monthly: "Maandelijks",
+      monthlySubcopy: "Flexibel betalen",
       yearly: "Jaarlijks",
       yearlySubcopy: "Bespaar tot 20%",
       bestValue: "Beste prijs",
-      contact: "Neem contact op",
-      perEmployee: "/maand per medewerker",
-      customPricing: "Prijs op maat",
-      mostPopular: "Meest gekozen"
+      billingPeriod: "Facturatieperiode",
+      perEmployeeMonth: "/medewerker / maand",
+      billedMonthly: "maandelijks gefactureerd",
+      billedYearly: "jaarlijks gefactureerd",
+      customPrice: "Maatwerk"
     },
     tiers: [
       {
-        name: "Starter",
-        monthly: "€19",
-        yearly: "€15",
-        icon: "team",
-        features: ["Tot 50 medewerkers", "Persoonlijk waarderingsdashboard", "Connected cards-ervaring", "Basisanalytics", "E-mailsupport"]
-      },
-      {
-        name: "Growth",
-        monthly: "€29",
-        yearly: "€23",
+        name: "GROEI",
+        monthly: "€ 11,99",
+        yearly: "€ 9,59",
         icon: "growth",
-        featured: true,
-        features: ["Tot 50 medewerkers", "Persoonlijk waarderingsdashboard", "Connected cards-ervaring", "Geavanceerde analytics", "E-mail/WhatsApp-support", "Managerinzichten", "Organisatie-inzichten", "Waarderingsrapporten"]
+        kind: "growth",
+        description: "Voor groeiende teams die bouwen aan een sterke waarderingscultuur.",
+        features: [
+          "Tot 50 medewerkers",
+          "Onbeperkt waarderingskaarten versturen",
+          "Geavanceerde analyses",
+          "Inzichten voor leidinggevenden",
+          "Company Insights",
+          "Prioriteitssupport"
+        ],
+        cta: "Start direct",
+        ctaHref: "/signup?role=company_admin"
       },
       {
-        name: "Enterprise",
-        monthly: "Op maat",
-        yearly: "Op maat",
+        name: "MAATWERK",
+        monthly: "Maatwerk",
+        yearly: "Maatwerk",
         icon: "enterprise",
-        features: ["Voor grotere organisaties", "Onbeperkt aantal medewerkers", "Persoonlijk waarderingsdashboard", "Connected cards-ervaring", "Geavanceerde analytics", "Managerinzichten", "Organisatie-inzichten", "Waarderingsrapporten", "SSO & integraties", "Dedicated support"]
+        kind: "custom",
+        description: "Voor organisaties met meer dan 50 medewerkers die waardering organisatiebreed willen inzetten.",
+        features: [
+          "Meer dan 50 medewerkers",
+          "Onbeperkt waarderingskaarten versturen",
+          "Geavanceerde analyses",
+          "Inzichten voor leidinggevenden",
+          "Company Insights",
+          "SSO & integraties",
+          "API-toegang",
+          "Dedicated support"
+        ],
+        cta: "Neem contact op",
+        ctaHref: "/book-demo"
+      }
+    ],
+    trust: [
+      {
+        title: "Privacy first",
+        copy: "AVG-compliant & gehost in Europa."
+      },
+      {
+        title: "Snel en eenvoudig",
+        copy: "Binnen enkele minuten actief in jouw organisatie."
+      },
+      {
+        title: "Persoonlijke support",
+        copy: "Direct contact met ons team."
       }
     ]
   }
@@ -100,17 +175,19 @@ const pricingCopy: Record<string, PricingCopy> = {
 export default async function PricingPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   setRequestLocale(locale);
-  const copy = pricingCopy[locale] ?? pricingCopy.en;
+  const copy = pricingContent[locale] ?? pricingContent.en;
 
   return (
     <PublicSiteChrome locale={locale}>
       <section className="section-shell page-shell pricing-page-shell">
         <div className="section-head pricing-hero-copy">
-          <div className="eyebrow">{copy.eyebrow}</div>
-          <h1 className="section-title">{copy.title}</h1>
-          <span className="pricing-title-mark" aria-hidden="true" />
+          <h1 className="section-title pricing-hero-title">
+            {copy.titleLine1} <span className="pricing-hero-accent">{copy.titleLine2}</span>
+          </h1>
+          <p className="pricing-hero-subtitle">{copy.subtitle}</p>
+          <p className="hero-detail-copy pricing-hero-detail">{copy.heroDetail}</p>
         </div>
-        <PricingPlansClient tiers={copy.tiers} labels={copy.labels} locale={locale} />
+        <PricingPlansClient tiers={copy.tiers} labels={copy.labels} trustItems={copy.trust} />
       </section>
     </PublicSiteChrome>
   );

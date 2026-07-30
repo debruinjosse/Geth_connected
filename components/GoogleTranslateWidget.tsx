@@ -9,6 +9,11 @@ const languageLabels: Record<AppLocale, string> = {
   en: "English"
 };
 
+const widgetLabels: Record<AppLocale, { chooseLanguage: string; language: string }> = {
+  nl: { chooseLanguage: "Kies taal", language: "Taal" },
+  en: { chooseLanguage: "Choose language", language: "Language" }
+};
+
 function getLocalizedPath(pathname: string, nextLocale: AppLocale) {
   const parts = pathname.split("/");
   const currentLocale = parts[1];
@@ -26,18 +31,26 @@ export function GoogleTranslateWidget() {
   const [search, setSearch] = useState("");
   const pathLocale = pathname.split("/")[1];
   const activeLocale = ((locales as readonly string[]).includes(pathLocale) ? pathLocale : "nl") as AppLocale;
+  const labels = widgetLabels[activeLocale];
 
   useEffect(() => {
     setSearch(window.location.search || "");
   }, [pathname]);
 
   return (
-    <nav className="google-translate-widget route-language-widget" aria-label="Choose language">
+    <nav className="google-translate-widget route-language-widget" aria-label={labels.chooseLanguage}>
       {(locales as readonly AppLocale[]).map((locale) => {
         const href = `${getLocalizedPath(pathname, locale)}${search}`;
 
         return (
-          <a className={locale === activeLocale ? "active" : ""} href={href} hrefLang={locale} key={locale} title={languageLabels[locale]}>
+          <a
+            className={locale === activeLocale ? "active" : ""}
+            href={href}
+            hrefLang={locale}
+            key={locale}
+            title={languageLabels[locale]}
+            aria-label={`${labels.language}: ${languageLabels[locale]}`}
+          >
             {locale.toUpperCase()}
           </a>
         );

@@ -1,53 +1,18 @@
-import { readFile } from "node:fs/promises";
 import { spawn } from "node:child_process";
+import { readFile, unlink, writeFile } from "node:fs/promises";
+import { existsSync } from "node:fs";
 import path from "node:path";
 import process from "node:process";
+import { fileURLToPath } from "node:url";
+import {
+  getEnvLocalCandidatePaths,
+  inferProjectIdFromSupabaseUrl,
+  loadLocalEnv,
+  stripEnvBomIfPresent
+} from "./lib/env-local.mjs";
 
 const projectRoot = process.cwd();
-const envPath = path.join(projectRoot, ".env.local");
-
-function parseEnvLine(line) {
-  const trimmed = line.trim();
-  if (!trimmed || trimmed.startsWith("#") || !trimmed.includes("=")) return null;
-
-  const separatorIndex = trimmed.indexOf("=");
-  const key = trimmed.slice(0, separatorIndex).trim();
-  let value = trimmed.slice(separatorIndex + 1).trim();
-
-  if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
-    value = value.slice(1, -1);
-  }
-
-  return [key, value];
-}
-
-async function loadLocalEnv() {
-  try {
-    const envFile = await readFile(envPath, "utf8");
-    for (const line of envFile.split(/\r?\n/)) {
-      const parsed = parseEnvLine(line);
-      if (!parsed) continue;
-
-      const [key, value] = parsed;
-      process.env[key] ??= value;
-    }
-  } catch {
-    // .env.local is optional. Required values can also come from the shell/CI.
-  }
-}
-
-function inferProjectIdFromSupabaseUrl() {
-  if (process.env.SUPABASE_PROJECT_ID || !process.env.NEXT_PUBLIC_SUPABASE_URL) return;
-
-  const match = process.env.NEXT_PUBLIC_SUPABASE_URL.match(/^https:\/\/([a-z0-9]+)\.supabase\.co/i);
-  if (match?.[1]) {
-    process.env.SUPABASE_PROJECT_ID = match[1];
-  }
-}
-
-function getNpxCommand() {
-  return process.platform === "win32" ? "npx.cmd" : "npx";
-}
+const supabaseCli = path.join(projectRoot, "node_modules", "supabase", "dist", "supabase.js");
 
 function safeArgs(args) {
   return args.map((arg, index) => {
@@ -58,13 +23,13 @@ function safeArgs(args) {
 
 function runSupabase(args) {
   return new Promise((resolve, reject) => {
-    const child = spawn(getNpxCommand(), ["supabase", ...args], {
+    const child = spawn(process.execPath, [supabaseCli, ...args], {
       cwd: projectRoot,
       env: {
         ...process.env,
         SUPABASE_TELEMETRY_DISABLED: "1"
       },
-      shell: process.platform === "win32",
+      shell: false,
       stdio: "inherit"
     });
 
@@ -75,13 +40,37 @@ function runSupabase(args) {
         return;
       }
 
-      reject(new Error(`Supabase CLI failed with exit code ${code}: npx supabase ${safeArgs(args).join(" ")}`));
+      reject(new Error(`Supabase CLI failed with exit code ${code}: node supabase ${safeArgs(args).join(" ")}`));
     });
   });
 }
 
+async function quarantineEnvFilesForSupabaseCli() {
+  const backups = [];
+
+  for (const candidate of getEnvLocalCandidatePaths(projectRoot)) {
+    if (!existsSync(candidate)) continue;
+
+    const backupPath = `${candidate}.supabase-cli-bak`;
+    const buffer = await readFile(candidate);
+    await writeFile(backupPath, buffer);
+    await unlink(candidate);
+    backups.push({ original: candidate, backup: backupPath });
+  }
+
+  return async () => {
+    for (const entry of backups) {
+      if (!existsSync(entry.backup)) continue;
+      const buffer = await readFile(entry.backup);
+      await writeFile(entry.original, buffer);
+      await unlink(entry.backup);
+    }
+  };
+}
+
 async function main() {
-  await loadLocalEnv();
+  await stripEnvBomIfPresent(projectRoot);
+  await loadLocalEnv(projectRoot);
   inferProjectIdFromSupabaseUrl();
 
   if (!process.env.SUPABASE_PROJECT_ID) {
@@ -96,12 +85,24 @@ async function main() {
     console.warn("SUPABASE_ACCESS_TOKEN is missing. This is okay only if the Supabase CLI is already logged in.");
   }
 
-  await runSupabase(["link", "--project-ref", process.env.SUPABASE_PROJECT_ID, "--password", process.env.SUPABASE_DB_PASSWORD]);
-  await runSupabase(["db", "push", "--yes"]);
-  console.log("Supabase migrations pushed.");
+  const restoreEnvFiles = await quarantineEnvFilesForSupabaseCli();
+
+  try {
+    await runSupabase(["link", "--project-ref", process.env.SUPABASE_PROJECT_ID, "--password", process.env.SUPABASE_DB_PASSWORD]);
+    await runSupabase(["db", "push", "--yes"]);
+    console.log("Supabase migrations pushed via CLI.");
+  } finally {
+    await restoreEnvFiles();
+  }
 }
 
-main().catch((error) => {
-  console.error(error instanceof Error ? error.message : error);
-  process.exitCode = 1;
-});
+const isDirectEntry = process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1]);
+
+if (isDirectEntry) {
+  main().catch((error) => {
+    console.error(error instanceof Error ? error.message : error);
+    process.exitCode = 1;
+  });
+}
+
+export { main as pushWithSupabaseCli };

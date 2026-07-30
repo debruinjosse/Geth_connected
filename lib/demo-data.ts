@@ -228,15 +228,15 @@ export const companyReports = [
 
 export const companies = [
   { id: "co1", name: "ABC Company", subscription: "Growth", status: "Active", employees: 142, teams: 18 },
-  { id: "co2", name: "Northlight Studio", subscription: "Starter", status: "Trial", employees: 34, teams: 4 },
-  { id: "co3", name: "Luma Health", subscription: "Enterprise", status: "Active", employees: 284, teams: 26 },
+  { id: "co2", name: "Northlight Studio", subscription: "Growth", status: "Trial", employees: 34, teams: 4 },
+  { id: "co3", name: "Luma Health", subscription: "Custom", status: "Active", employees: 284, teams: 26 },
   { id: "co4", name: "Fieldhouse Group", subscription: "Growth", status: "Paused", employees: 68, teams: 9 }
 ];
 
 export const subscriptions = [
   { id: "sub1", company: "ABC Company", plan: "Growth", renewal: "Aug 21, 2026", status: "Active" },
-  { id: "sub2", company: "Northlight Studio", plan: "Starter", renewal: "Jul 18, 2026", status: "Trial" },
-  { id: "sub3", company: "Luma Health", plan: "Enterprise", renewal: "Oct 01, 2026", status: "Active" },
+  { id: "sub2", company: "Northlight Studio", plan: "Growth", renewal: "Jul 18, 2026", status: "Trial" },
+  { id: "sub3", company: "Luma Health", plan: "Custom", renewal: "Oct 01, 2026", status: "Active" },
   { id: "sub4", company: "Fieldhouse Group", plan: "Growth", renewal: "Paused", status: "Paused" }
 ];
 

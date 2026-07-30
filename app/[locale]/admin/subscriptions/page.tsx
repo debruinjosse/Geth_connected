@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import { AdminInvoiceForm } from "@/components/AdminInvoiceForm";
 import { BrandLogo } from "@/components/BrandLogo";
 import { DashboardShell } from "@/components/DashboardShell";
@@ -15,43 +16,50 @@ function getInitials(firstName: string | null, lastName: string | null) {
   return `${firstName?.[0] ?? ""}${lastName?.[0] ?? ""}`.toUpperCase() || "SA";
 }
 
-function formatDate(value: string | null) {
-  if (!value) return "Not set";
-  return new Intl.DateTimeFormat("en", { dateStyle: "medium" }).format(new Date(value));
+function formatDate(value: string | null, notSetLabel: string, dateLocale: string) {
+  if (!value) return notSetLabel;
+  return new Intl.DateTimeFormat(dateLocale, { dateStyle: "medium" }).format(new Date(value));
 }
 
-function getBillingMessage(code?: string) {
+function formatPlanPrice(cents: number | null, currency: string, planKey: string, dateLocale: string) {
+  if (planKey === "enterprise" || !cents || cents <= 0) return "Custom";
+  return new Intl.NumberFormat(dateLocale, { style: "currency", currency: currency.toUpperCase() }).format(cents / 100);
+}
+
+function getBillingMessage(code: string | undefined, t: Awaited<ReturnType<typeof getTranslations>>) {
   switch (code) {
     case "invoice_generated":
-      return "Invoice generated and emailed successfully. The company admin can download it from their billing page.";
+      return t("billingInvoiceGenerated");
     case "invoice_generated_email_failed":
-      return "Invoice generated, but email delivery failed. Check SMTP/get.pro settings.";
+      return t("billingInvoiceEmailFailed");
     case "invoice_generation_failed":
-      return "Invoice request was saved, but the invoice document could not be generated.";
+      return t("billingInvoiceGenerationFailed");
     case "invoice_config_missing":
-      return "Invoice generation is blocked until seller and payment account details are configured.";
+      return t("billingInvoiceConfigMissing");
     case "invoice_request_failed":
-      return "Invoice request could not be saved. Please check the billing details and try again.";
+      return t("billingInvoiceRequestFailed");
     case "invoice_not_enabled":
-      return "Invoice payment is not enabled for this plan.";
+      return t("billingInvoiceNotEnabled");
     case "custom_amount_required":
-      return "Enterprise/custom plans need a custom invoice amount before the invoice can be generated.";
+      return t("billingCustomAmountRequired");
     case "invalid_invoice_inputs":
-      return "Choose a billing interval and enter a valid number of users per month.";
+      return t("billingInvalidInputs");
     case "unauthorized":
-      return "Only the GETH owner/super admin can manage billing.";
+      return t("billingUnauthorized");
     default:
       return null;
   }
 }
 
-function renderDemoSubscriptions() {
+async function renderDemoSubscriptions(locale: string) {
+  const t = await getTranslations({ locale, namespace: "adminPages" });
+
   return (
-    <DashboardShell role="admin" title="Subscriptions" subtitle="Plan visibility and renewal status across the platform." user={superAdminUser}>
+    <DashboardShell role="admin" title={t("subscriptionsTitle")} subtitle={t("subscriptionsSubtitle")} user={superAdminUser}>
       <article className="panel dashboard-panel">
         <div className="table-wrap">
           <table className="dashboard-table">
-            <thead><tr><th>Company</th><th>Plan</th><th>Renewal</th><th>Status</th></tr></thead>
+            <thead><tr><th>{t("tableCompany")}</th><th>{t("tablePlan")}</th><th>{t("tableRenewal")}</th><th>{t("tableStatus")}</th></tr></thead>
             <tbody>
               {subscriptions.map((subscription) => (
                 <tr key={subscription.id}>
@@ -77,9 +85,12 @@ export default async function AdminSubscriptionsPage({
   searchParams: Promise<{ billing?: string }>;
 }) {
   const [{ locale }, queryParams] = await Promise.all([params, searchParams]);
+  const t = await getTranslations({ locale, namespace: "adminPages" });
+  const tc = await getTranslations({ locale, namespace: "common" });
+  const dateLocale = locale === "nl" ? "nl-NL" : "en";
 
   if (!hasSupabaseServerConfig()) {
-    return renderDemoSubscriptions();
+    return renderDemoSubscriptions(locale);
   }
 
   const supabase = await createSupabaseServerClient();
@@ -89,7 +100,7 @@ export default async function AdminSubscriptionsPage({
   } = await supabase.auth.getUser();
 
   if (userError || !user) {
-    return renderDemoSubscriptions();
+    return renderDemoSubscriptions(locale);
   }
 
   const { data: profile, error: profileError } = await supabase
@@ -120,39 +131,37 @@ export default async function AdminSubscriptionsPage({
   ]);
 
   if (companiesError || subscriptionsError || plansError) {
-    throw new Error("Failed to load subscription data.");
+    throw new Error(t("errLoadSubscriptions"));
   }
 
   const subscriptionMap = new Map((subscriptionRows ?? []).map((row) => [row.company_id, row]));
   const activeCount = (companies ?? []).filter((company) => ["active", "trialing"].includes(company.subscription_status ?? "")).length;
   const invoiceCount = (subscriptionRows ?? []).filter((subscription) => subscription.payment_method === "invoice" || subscription.invoice_status === "requested").length;
-  const message = getBillingMessage(queryParams.billing);
+  const message = getBillingMessage(queryParams.billing, t);
 
   return (
     <DashboardShell
       role="admin"
-      title="Subscriptions"
-      subtitle="Plan visibility and renewal status across the platform."
+      title={t("subscriptionsTitle")}
+      subtitle={t("subscriptionsSubtitle")}
       user={{
         name: `${profile.first_name ?? ""} ${profile.last_name ?? ""}`.trim() || "GETH Admin",
         initials: getInitials(profile.first_name, profile.last_name),
-        team: "Platform"
+        team: tc("platformTeam")
       }}
       unreadNotifications={unreadNotifications}
     >
       <section className="panel dashboard-panel admin-invoice-hero">
         <div>
           <BrandLogo compact interactive={false} />
-          <span className="eyebrow">Owner invoice console</span>
-          <h2>Generate polished GETH invoices</h2>
-          <p>
-            Create European invoice-based payment documents with seller details, VAT, payment reference, and a downloadable PDF for the company admin.
-          </p>
+          <span className="eyebrow">{t("ownerInvoiceConsole")}</span>
+          <h2>{t("generateInvoicesTitle")}</h2>
+          <p>{t("generateInvoicesCopy")}</p>
         </div>
         <div className="admin-invoice-hero-card" aria-hidden="true">
           <span>GETH</span>
-          <strong>Invoice</strong>
-          <small>Logo · VAT · IBAN · PDF</small>
+          <strong>{t("invoiceCardLabel")}</strong>
+          <small>{t("invoiceCardMeta")}</small>
         </div>
       </section>
 
@@ -164,41 +173,76 @@ export default async function AdminSubscriptionsPage({
 
       <section className="dashboard-grid three report-summary-grid">
         <article className="panel dashboard-panel report-summary-card">
-          <span className="eyebrow">Companies</span>
+          <span className="eyebrow">{t("summaryCompaniesEyebrow")}</span>
           <strong>{companies?.length ?? 0}</strong>
-          <p>tracked workspaces</p>
+          <p>{t("trackedWorkspaces")}</p>
         </article>
         <article className="panel dashboard-panel report-summary-card">
-          <span className="eyebrow">Active billing</span>
+          <span className="eyebrow">{t("summaryActiveBillingEyebrow")}</span>
           <strong>{activeCount}</strong>
-          <p>active or trialing</p>
+          <p>{t("activeOrTrialing")}</p>
         </article>
         <article className="panel dashboard-panel report-summary-card">
-          <span className="eyebrow">Invoice billing</span>
+          <span className="eyebrow">{t("summaryInvoiceBillingEyebrow")}</span>
           <strong>{invoiceCount}</strong>
-          <p>invoice-based accounts</p>
+          <p>{t("invoiceBasedAccounts")}</p>
         </article>
       </section>
+
+      {plans?.length ? (
+        <article className="panel dashboard-panel">
+          <div className="panel-top">
+            <div>
+              <h2>{t("availablePlansTitle")}</h2>
+              <p className="section-copy">{t("availablePlansCopy")}</p>
+            </div>
+          </div>
+          <div className="table-wrap">
+            <table className="dashboard-table">
+              <thead>
+                <tr>
+                  <th>{t("tablePlan")}</th>
+                  <th>{t("tablePlanPrice")}</th>
+                  <th>{t("tablePlanInterval")}</th>
+                  <th>{t("tablePlanStatus")}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {plans
+                  .filter((plan) => plan.plan_key === "growth" || plan.plan_key === "enterprise" || plan.plan_key === "starter")
+                  .map((plan) => (
+                    <tr key={plan.id}>
+                      <td><strong>{plan.name}</strong></td>
+                      <td>{formatPlanPrice(plan.price_cents, plan.currency, plan.plan_key, dateLocale)} / employee</td>
+                      <td>{plan.interval === "month" ? t("billingMonthly") : plan.interval}</td>
+                      <td>{plan.invoice_enabled ? t("planInvoiceEnabled") : t("planInvoiceDisabled")}</td>
+                    </tr>
+                  ))}
+              </tbody>
+            </table>
+          </div>
+        </article>
+      ) : null}
 
       <article className="panel dashboard-panel">
         <div className="panel-top">
           <div>
-            <h2>Generate company invoice</h2>
-            <p className="section-copy">Billing is owner-managed: generate the invoice first, confirm payment, then invite the first company admin from the company hierarchy.</p>
+            <h2>{t("generateCompanyInvoiceTitle")}</h2>
+            <p className="section-copy">{t("generateCompanyInvoiceCopy")}</p>
           </div>
         </div>
         {companies?.length && plans?.length ? (
           <AdminInvoiceForm companies={companies} plans={plans} locale={locale} />
         ) : (
-          <EmptyState eyebrow="Setup needed" title="Companies or plans missing" copy="Create a company workspace and seed billing plans before generating invoices." />
+          <EmptyState eyebrow={t("setupNeededEyebrow")} title={t("setupNeededTitle")} copy={t("setupNeededCopy")} />
         )}
       </article>
 
       <article className="panel dashboard-panel">
         <div className="panel-top">
           <div>
-            <h2>Subscription statuses</h2>
-            <p className="section-copy">Invoice-first billing status for European customers. Stripe IDs are retained only when legacy checkout was used.</p>
+            <h2>{t("subscriptionStatusesTitle")}</h2>
+            <p className="section-copy">{t("subscriptionStatusesCopy")}</p>
           </div>
         </div>
         {companies?.length ? (
@@ -206,13 +250,13 @@ export default async function AdminSubscriptionsPage({
             <table className="dashboard-table">
               <thead>
                 <tr>
-                  <th>Company</th>
-                  <th>Plan</th>
-                  <th>Status</th>
-                  <th>Payment method</th>
-                  <th>Invoice status</th>
-                  <th>Billing email</th>
-                  <th>Requested</th>
+                  <th>{t("tableCompany")}</th>
+                  <th>{t("tablePlan")}</th>
+                  <th>{t("tableStatus")}</th>
+                  <th>{t("tablePaymentMethod")}</th>
+                  <th>{t("tableInvoiceStatus")}</th>
+                  <th>{t("tableBillingEmail")}</th>
+                  <th>{t("tableRequested")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -226,8 +270,8 @@ export default async function AdminSubscriptionsPage({
                       <td>{subscription?.status ?? company.subscription_status ?? "not_configured"}</td>
                       <td>{subscription?.payment_method ?? company.billing_payment_method ?? "invoice"}</td>
                       <td>{subscription?.invoice_status ?? "not_requested"}</td>
-                      <td>{subscription?.billing_contact_email ?? company.billing_email ?? "Not set"}</td>
-                      <td>{formatDate(subscription?.invoice_requested_at ?? subscription?.current_period_end ?? company.subscription_current_period_end)}</td>
+                      <td>{subscription?.billing_contact_email ?? company.billing_email ?? tc("notSet")}</td>
+                      <td>{formatDate(subscription?.invoice_requested_at ?? subscription?.current_period_end ?? company.subscription_current_period_end, tc("notSet"), dateLocale)}</td>
                     </tr>
                   );
                 })}
@@ -235,7 +279,7 @@ export default async function AdminSubscriptionsPage({
             </table>
           </div>
         ) : (
-          <EmptyState eyebrow="No companies" title="No subscription data yet" copy="Companies will appear here after workspaces are created." />
+          <EmptyState eyebrow={t("emptyNoCompaniesEyebrow")} title={t("emptyNoSubscriptionTitle")} copy={t("emptyNoSubscriptionCopy")} />
         )}
       </article>
     </DashboardShell>

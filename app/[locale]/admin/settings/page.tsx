@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { getLocale } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import { AccountSettingsPanel } from "@/components/AccountSettingsPanel";
 import { DashboardShell } from "@/components/DashboardShell";
 import { EmptyState } from "@/components/EmptyState";
@@ -14,22 +14,20 @@ function getInitials(firstName: string | null, lastName: string | null) {
   return `${firstName?.[0] ?? ""}${lastName?.[0] ?? ""}`.toUpperCase() || "GA";
 }
 
-function statusLabel(value: boolean) {
-  return value ? "Configured" : "Missing";
-}
-
 export default async function AdminSettingsPage({
   searchParams
 }: {
   searchParams: Promise<{ settings?: string }>;
 }) {
   const [{ settings }, locale] = await Promise.all([searchParams, getLocale()]);
+  const t = await getTranslations({ locale, namespace: "adminPages" });
+  const tc = await getTranslations({ locale, namespace: "common" });
   const returnTo = `/${locale}/admin/settings`;
 
   if (!hasSupabaseServerConfig()) {
     return (
-      <DashboardShell role="admin" title="Platform settings" subtitle="Global configuration and production readiness checks." user={superAdminUser}>
-        <EmptyState title="Supabase not configured" copy="Add Supabase environment variables to activate platform configuration checks." />
+      <DashboardShell role="admin" title={t("settingsTitle")} subtitle={t("settingsSubtitle")} user={superAdminUser}>
+        <EmptyState title={t("settingsNoSupabaseTitle")} copy={t("settingsNoSupabaseCopy")} />
       </DashboardShell>
     );
   }
@@ -39,7 +37,7 @@ export default async function AdminSettingsPage({
     data: { user },
     error: userError
   } = await supabase.auth.getUser();
-  if (userError || !user) redirect("/login");
+  if (userError || !user) redirect(`/${locale}/login`);
 
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
@@ -52,31 +50,36 @@ export default async function AdminSettingsPage({
   }
 
   const checks = [
-    { label: "Supabase URL", ok: Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL), detail: "Required for auth and database reads." },
-    { label: "Supabase anon key", ok: Boolean(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY), detail: "Required for browser/server session clients." },
-    { label: "Service role key", ok: Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY), detail: "Used by trusted seed/card helper scripts only." },
-    { label: "App SMTP mailbox", ok: Boolean(process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS && process.env.SMTP_FROM), detail: "Required for GETH invite and bulk-import emails. Use the get.pro SMTP mailbox here." },
-    { label: "Stripe secret key", ok: Boolean(process.env.STRIPE_SECRET_KEY), detail: "Required for checkout and billing portal actions." },
-    { label: "Stripe webhook secret", ok: Boolean(process.env.STRIPE_WEBHOOK_SECRET), detail: "Required for subscription webhook verification." },
-    { label: "App URL", ok: Boolean(process.env.NEXT_PUBLIC_APP_URL), detail: "Used to generate invite and billing redirect links." }
+    { label: t("checkSupabaseUrl"), ok: Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL), detail: t("checkSupabaseUrlDetail") },
+    { label: t("checkSupabaseAnonKey"), ok: Boolean(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY), detail: t("checkSupabaseAnonKeyDetail") },
+    { label: t("checkServiceRoleKey"), ok: Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY), detail: t("checkServiceRoleKeyDetail") },
+    { label: t("checkAppSmtp"), ok: Boolean(process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS && process.env.SMTP_FROM), detail: t("checkAppSmtpDetail") },
+    {
+      label: t("checkSmtpMailbox"),
+      ok: /geth\.pro/i.test(process.env.SMTP_FROM ?? "") && /geth\.pro/i.test(process.env.SMTP_USER ?? ""),
+      detail: t("checkSmtpMailboxDetail")
+    },
+    { label: t("checkStripeSecret"), ok: Boolean(process.env.STRIPE_SECRET_KEY), detail: t("checkStripeSecretDetail") },
+    { label: t("checkStripeWebhook"), ok: Boolean(process.env.STRIPE_WEBHOOK_SECRET), detail: t("checkStripeWebhookDetail") },
+    { label: t("checkAppUrl"), ok: Boolean(process.env.NEXT_PUBLIC_APP_URL), detail: t("checkAppUrlDetail") }
   ];
 
   return (
     <DashboardShell
       role="admin"
-      title="Platform settings"
-      subtitle="Global configuration and production readiness checks."
+      title={t("settingsTitle")}
+      subtitle={t("settingsSubtitle")}
       user={{
         name: `${profile.first_name ?? ""} ${profile.last_name ?? ""}`.trim() || "GETH Admin",
         initials: getInitials(profile.first_name, profile.last_name),
-        team: "GETH Platform",
+        team: tc("platformTeam"),
         imageUrl: profile.profile_image
       }}
-      actions={<span className="quality-pill">Read-only status</span>}
+      actions={<span className="quality-pill">{t("readOnlyStatusPill")}</span>}
     >
       <section className="dashboard-grid two">
         <AccountSettingsPanel
-          email={user.email ?? "No email"}
+          email={user.email ?? tc("noEmail")}
           firstName={profile.first_name ?? ""}
           lastName={profile.last_name ?? ""}
           profileImageUrl={profile.profile_image}
@@ -86,8 +89,8 @@ export default async function AdminSettingsPage({
         <article className="panel dashboard-panel">
           <div className="panel-top">
             <div>
-              <h2>System configuration</h2>
-              <p>No secrets are displayed here.</p>
+              <h2>{t("systemConfigurationTitle")}</h2>
+              <p>{t("systemConfigurationCopy")}</p>
             </div>
           </div>
           <div className="signal-list">
@@ -97,7 +100,7 @@ export default async function AdminSettingsPage({
                   <strong>{check.label}</strong>
                   <p>{check.detail}</p>
                 </div>
-                <span className={`energy ${check.ok ? "high" : "low"}`}>{statusLabel(check.ok)}</span>
+                <span className={`energy ${check.ok ? "high" : "low"}`}>{check.ok ? t("configuredLabel") : t("missingLabel")}</span>
               </div>
             ))}
           </div>
@@ -105,14 +108,15 @@ export default async function AdminSettingsPage({
         <article className="panel dashboard-panel">
           <div className="panel-top">
             <div>
-              <h2>Production notes</h2>
-              <p>Editable platform settings need a dedicated `platform_settings` table.</p>
+              <h2>{t("productionNotesTitle")}</h2>
+              <p>{t("productionNotesTableCopy")}</p>
             </div>
           </div>
           <div className="settings-list">
-            <p className="section-copy">Current page is intentionally read-only so production configuration cannot be changed accidentally from the UI.</p>
-            <p className="section-copy">Use Supabase Auth SMTP settings for magic-link, signup, and password-reset emails. Use `.env.local` SMTP settings for GETH app invite emails.</p>
-            <p className="section-copy">Once the get.pro mailbox details are available, configure them in both places so all automated user emails share the same sender identity.</p>
+            <p className="section-copy">{t("productionNotesReadOnly")}</p>
+            <p className="section-copy">{t("productionNotesSmtp")}</p>
+            <p className="section-copy">{t("productionNotesMailbox")}</p>
+            <p className="section-copy">{t("productionNotesConcurrent")}</p>
           </div>
         </article>
       </section>

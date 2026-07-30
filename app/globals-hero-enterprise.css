@@ -1,0 +1,63 @@
+/* Pre-footer recognition band — text left, team photo right (not in footer) */
+
+.pre-footer-recognition {
+  padding-block: clamp(64px, 7vw, 96px);
+  background:
+    radial-gradient(circle at 8% 20%, rgba(183, 160, 87, 0.07), transparent 34%),
+    linear-gradient(180deg, #fffdf8 0%, #f8f3ea 100%);
+}
+
+.pre-footer-recognition .landingCtaInner {
+  align-items: center;
+  gap: clamp(32px, 5vw, 64px);
+}
+
+.landingRecognitionPhoto {
+  border-radius: 28px;
+  min-height: clamp(300px, 34vw, 460px);
+  box-shadow:
+    0 28px 64px rgba(42, 23, 61, 0.14),
+    0 8px 24px rgba(42, 23, 61, 0.08);
+}
+
+.landingRecognitionPhotoImg {
+  object-fit: cover;
+  object-position: center 42%;
+}
+
+.landingFooterCopy {
+  max-width: 720px;
+  margin-bottom: clamp(28px, 4vw, 40px);
+}
+
+.landingFooterCopy p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+@media (max-width: 920px) {
+  .pre-footer-recognition .landingCtaInner {
+    grid-template-columns: 1fr;
+  }
+
+  .landingRecognitionPhoto {
+    min-height: clamp(240px, 52vw, 360px);
+  }
+
+  .landingRecognitionPhotoImg {
+    object-position: center 38%;
+  }
+}
+
+@media (max-width: 767px) {
+  .pre-footer-recognition {
+    padding-block: 48px 56px;
+  }
+
+  .landingRecognitionPhoto {
+    border-radius: 22px;
+    min-height: clamp(220px, 58vw, 300px);
+  }
+}

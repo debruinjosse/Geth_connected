@@ -1,7 +1,7 @@
 "use client";
 
+import { BrandMarkIcon } from "@/components/BrandLogo";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 
 export interface RecognitionCardData {
@@ -24,7 +24,7 @@ function RecognitionCard({ card }: { card: RecognitionCardData }) {
     <article className="recognitionCard">
       <div className="recognitionCardTop">
         <span className="recognitionCardLogo">
-          <Image alt="GETH crest" src="/assets/geth-logo.svg" width={30} height={30} />
+          <BrandMarkIcon size={30} />
           <span>GETH</span>
         </span>
         <span className="recognitionCardNumber">CARD {card.number}</span>

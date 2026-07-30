@@ -1,5 +1,6 @@
 import { Download } from "lucide-react";
 import { redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import { DashboardShell } from "@/components/DashboardShell";
 import { EmptyState } from "@/components/EmptyState";
 import { companyAdmin, companyReports } from "@/lib/demo-data";
@@ -15,16 +16,18 @@ function getInitials(firstName: string | null, lastName: string | null) {
   return `${firstName?.[0] ?? ""}${lastName?.[0] ?? ""}`.toUpperCase() || "CA";
 }
 
-function renderDemoReports() {
+async function renderDemoReports(locale: string) {
+  const t = await getTranslations({ locale, namespace: "companyPages" });
+
   return (
-    <DashboardShell role="company" title="Reports" subtitle="Company-level exports and story-ready reporting views." user={companyAdmin}>
+    <DashboardShell role="company" title={t("reportsTitle")} subtitle={t("reportsSubtitle")} user={companyAdmin}>
       <section className="dashboard-grid three">
         {companyReports.map((report) => (
           <article className="panel dashboard-panel" key={report.id}>
             <h2>{report.title}</h2>
             <p className="section-copy">{report.copy}</p>
-            <a className="btn btn-secondary" href="/company">
-              Open report
+            <a className="btn btn-secondary" href={`/${locale}/company`}>
+              {t("openReport")}
             </a>
           </article>
         ))}
@@ -41,9 +44,10 @@ export default async function CompanyReportsPage({
   searchParams: Promise<{ from?: string; to?: string }>;
 }) {
   const [{ locale }, queryParams] = await Promise.all([params, searchParams]);
+  const t = await getTranslations({ locale, namespace: "companyPages" });
 
   if (!hasSupabaseServerConfig()) {
-    return renderDemoReports();
+    return renderDemoReports(locale);
   }
 
   const range = getRecognitionReportRange(queryParams);
@@ -54,7 +58,7 @@ export default async function CompanyReportsPage({
   } = await supabase.auth.getUser();
 
   if (userError || !user) {
-    return renderDemoReports();
+    return renderDemoReports(locale);
   }
 
   const { data: profile, error: profileError } = await supabase
@@ -83,12 +87,12 @@ export default async function CompanyReportsPage({
   return (
     <DashboardShell
       role="company"
-      title="Reports"
-      subtitle="Company-wide recognition exports for reviews, rituals, and culture reporting."
+      title={t("reportsTitle")}
+      subtitle={t("reportsSubtitle")}
       user={{
-        name: `${profile.first_name ?? ""} ${profile.last_name ?? ""}`.trim() || "Company admin",
+        name: `${profile.first_name ?? ""} ${profile.last_name ?? ""}`.trim() || t("companyAdmin"),
         initials: getInitials(profile.first_name, profile.last_name),
-        team: "Company admin"
+        team: t("companyAdmin")
       }}
       actions={
         <a className="btn btn-secondary" href={exportHref}>
@@ -123,12 +127,12 @@ export default async function CompanyReportsPage({
           <p>claimed in this range</p>
         </article>
         <article className="panel dashboard-panel report-summary-card">
-          <span className="eyebrow">Employees</span>
+          <span className="eyebrow">{t("employeesTitle")}</span>
           <strong>{receiverCount}</strong>
           <p>recognized recipients</p>
         </article>
         <article className="panel dashboard-panel report-summary-card">
-          <span className="eyebrow">Teams</span>
+          <span className="eyebrow">{t("teamsTitle")}</span>
           <strong>{teamCount}</strong>
           <p>represented in the report</p>
         </article>
@@ -137,7 +141,7 @@ export default async function CompanyReportsPage({
       <section className="panel dashboard-panel">
         <div className="panel-top">
           <div>
-            <h2>Company recognition report</h2>
+            <h2>{t("companyReportTitle")}</h2>
             <p className="section-copy">Includes receiver, giver, card, category, team, and personal note.</p>
           </div>
           <a className="btn btn-secondary" href={exportHref}>
@@ -154,7 +158,7 @@ export default async function CompanyReportsPage({
                   <th>Giver</th>
                   <th>Card</th>
                   <th>Category</th>
-                  <th>Team</th>
+                  <th>{t("team")}</th>
                   <th>Note</th>
                 </tr>
               </thead>
@@ -176,8 +180,8 @@ export default async function CompanyReportsPage({
         ) : (
           <EmptyState
             eyebrow="No report rows"
-            title="No recognitions in this date range"
-            copy="Adjust the date range or wait for employees to claim cards. CSV export will include the same filtered data shown here."
+            title={t("noRowsTitle")}
+            copy={t("noRowsCopy")}
           />
         )}
       </section>

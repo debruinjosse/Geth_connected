@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useState, useTransition } from "react";
+import { useTranslations } from "next-intl";
 import { CheckCircle2, Copy, MailPlus } from "lucide-react";
 import { createInvitationAction, type InvitationActionState } from "@/app/actions/invitations";
 
@@ -20,6 +21,7 @@ export function InvitationPanel({
   defaultRole: "employee" | "manager";
   teams: Array<{ id: string; name: string }>;
 }) {
+  const t = useTranslations("invitations");
   const [state, formAction, pending] = useActionState(createInvitationAction, initialState);
   const [copied, setCopied] = useState(false);
   const [isCopying, startCopyTransition] = useTransition();
@@ -47,22 +49,22 @@ export function InvitationPanel({
 
       <div className="form-grid">
         <div className="form-field">
-          <label htmlFor={`${defaultRole}-invite-email`}>Work email</label>
-          <input id={`${defaultRole}-invite-email`} name="email" className="input" placeholder="teammate@company.com" type="email" required />
+          <label htmlFor={`${defaultRole}-invite-email`}>{t("workEmail")}</label>
+          <input id={`${defaultRole}-invite-email`} name="email" className="input" placeholder={t("emailPlaceholder")} type="email" required />
         </div>
 
         <div className="form-field">
-          <label htmlFor={`${defaultRole}-invite-role`}>Role</label>
+          <label htmlFor={`${defaultRole}-invite-role`}>{t("role")}</label>
           <select id={`${defaultRole}-invite-role`} name="role" className="input" defaultValue={defaultRole}>
-            <option value="employee">Employee</option>
-            <option value="manager">Manager</option>
+            <option value="employee">{t("roleEmployee")}</option>
+            <option value="manager">{t("roleManager")}</option>
           </select>
         </div>
 
         <div className="form-field" style={{ gridColumn: "1 / -1" }}>
-          <label htmlFor={`${defaultRole}-invite-team`}>Team assignment</label>
+          <label htmlFor={`${defaultRole}-invite-team`}>{t("teamAssignment")}</label>
           <select id={`${defaultRole}-invite-team`} name="team_id" className="input" defaultValue="">
-            <option value="">Assign later</option>
+            <option value="">{t("assignLater")}</option>
             {teams.map((team) => (
               <option key={team.id} value={team.id}>
                 {team.name}
@@ -74,7 +76,7 @@ export function InvitationPanel({
 
       <button className="btn btn-primary" type="submit" disabled={pending}>
         <MailPlus size={16} />
-        {pending ? "Creating invite..." : "Generate invite link"}
+        {pending ? t("creatingInvite") : t("generateInviteLink")}
       </button>
 
       {state.message ? (
@@ -89,14 +91,14 @@ export function InvitationPanel({
           <div className="invite-link-meta">
             <strong>{state.inviteEmail}</strong>
             <small>
-              {state.emailSent ? "Email sent" : "Email not sent - copy link or try resend"} - Expires {state.expiresAt ? new Date(state.expiresAt).toLocaleDateString() : "soon"}
+              {state.emailSent ? t("emailSent") : t("emailNotSent")} - {t("expires")} {state.expiresAt ? new Date(state.expiresAt).toLocaleDateString() : t("soon")}
             </small>
           </div>
           <div className="invite-link-row">
-            <input className="input" value={state.inviteLink} readOnly aria-label="Generated invitation link" />
+            <input className="input" value={state.inviteLink} readOnly aria-label={t("inviteLinkAria")} />
             <button className="btn btn-secondary" type="button" onClick={() => handleCopy(state.inviteLink!)} disabled={isCopying}>
               <Copy size={16} />
-              {copied ? "Copied" : "Copy"}
+              {copied ? t("copied") : t("copy")}
             </button>
           </div>
         </div>

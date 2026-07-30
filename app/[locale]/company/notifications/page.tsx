@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server";
 import { DashboardShell } from "@/components/DashboardShell";
 import { MarkAllNotificationsReadButton, NotificationInbox } from "@/components/NotificationInbox";
 import { companyAdmin, employeeNotifications } from "@/lib/demo-data";
@@ -7,9 +8,11 @@ function hasSupabaseServerConfig() {
   return Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
 }
 
-function DemoNotificationsPage() {
+async function DemoNotificationsPage({ locale }: { locale: string }) {
+  const t = await getTranslations({ locale, namespace: "companyPages" });
+
   return (
-    <DashboardShell role="company" title="Notifications" subtitle="Company admin activity, invite updates, and workspace alerts." user={companyAdmin}>
+    <DashboardShell role="company" title={t("notificationsTitle")} subtitle={t("notificationsSubtitle")} user={companyAdmin}>
       <section className="dashboard-grid">
         <article className="panel dashboard-panel">
           <div className="signal-list">
@@ -31,9 +34,10 @@ function DemoNotificationsPage() {
 
 export default async function CompanyNotificationsPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "companyPages" });
 
   if (!hasSupabaseServerConfig()) {
-    return <DemoNotificationsPage />;
+    return <DemoNotificationsPage locale={locale} />;
   }
 
   const data = await getNotificationInboxPageData({
@@ -45,8 +49,8 @@ export default async function CompanyNotificationsPage({ params }: { params: Pro
   return (
     <DashboardShell
       role="company"
-      title="Notifications"
-      subtitle="Company admin activity, invite updates, and workspace alerts."
+      title={t("notificationsTitle")}
+      subtitle={t("notificationsSubtitle")}
       user={data.user}
       unreadNotifications={data.unreadCount}
       actions={
@@ -59,10 +63,10 @@ export default async function CompanyNotificationsPage({ params }: { params: Pro
         <article className="panel dashboard-panel">
           <NotificationInbox
             notifications={data.notifications}
-            emptyTitle="No company notifications yet"
-            emptyCopy="Invite acceptances, billing events, and company-wide activity alerts will appear here."
-            emptyActionLabel="Manage employees"
-            emptyActionHref="/company/employees"
+            emptyTitle={t("notificationsEmptyTitle")}
+            emptyCopy={t("notificationsEmptyCopy")}
+            emptyActionLabel={t("manageEmployees")}
+            emptyActionHref={`/${locale}/company/employees`}
             locale={locale}
           />
         </article>

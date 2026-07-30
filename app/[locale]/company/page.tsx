@@ -141,7 +141,7 @@ function DemoCompanyDashboard({ t }: { t: Translation }) {
   ];
 
   return (
-    <DashboardShell role="company" title="ABC Company" subtitle={t("subtitle")} user={companyAdmin} actions={<span className="quality-pill">{t("thisQuarter")}</span>}>
+    <DashboardShell role="company" title={t("demoCompany")} subtitle={t("subtitle")} user={companyAdmin} actions={<span className="quality-pill">{t("thisQuarter")}</span>}>
       <section className="company-metrics-grid" aria-label={t("kpiSection")}>
         <CompanyMetricCard icon={<Star size={18} />} value="458" label={t("totalRecognitions")} tone="var(--theme-gold)" iconBackground="rgba(216, 162, 58, 0.12)" />
         <CompanyMetricCard icon={<UserRound size={18} />} value="142" label={t("totalEmployees")} comparison={{ text: t("employeesDefinition"), state: "neutral" }} />
@@ -221,19 +221,19 @@ export default async function CompanyDashboardPage({ params }: CompanyDashboardP
   const companyId = currentProfile.company_id;
   const [{ data: company, error: companyError }, insights, unreadNotifications] = await Promise.all([
     supabase.from("companies").select("id, company_name").eq("id", companyId).maybeSingle<CompanyRow>(),
-    fetchCompanyDashboardInsights(supabase, companyId),
+    fetchCompanyDashboardInsights(supabase, companyId, t("errLoad")),
     getUnreadNotificationCount(supabase, user.id)
   ]);
 
   if (companyError) {
-    throw new Error("Failed to load company dashboard data.");
+    throw new Error(t("errLoad"));
   }
 
   const companyRow = company as CompanyRow | null;
   const userLabel =
     insights.totalManagers > 0
-      ? `${insights.totalManagers} manager${insights.totalManagers === 1 ? "" : "s"} across ${insights.totalTeams || 0} team${insights.totalTeams === 1 ? "" : "s"}`
-      : companyRow?.company_name ?? "Company workspace";
+      ? t("managerScope", { managers: insights.totalManagers, teams: insights.totalTeams || 0 })
+      : companyRow?.company_name ?? t("companyWorkspace");
 
   return (
     <DashboardShell

@@ -116,7 +116,7 @@ export async function createCompanyWorkspaceAction(formData: FormData) {
   const companyName = String(formData.get("companyName") ?? "").trim();
   const requestedSlug = String(formData.get("slug") ?? "").trim() || companyName;
   const industry = String(formData.get("industry") ?? "").trim() || null;
-  const subscriptionPlan = String(formData.get("subscriptionPlan") ?? "starter").trim() || "starter";
+  const subscriptionPlan = String(formData.get("subscriptionPlan") ?? "growth").trim() || "growth";
   const companyAdminEmail = normalizeEmail(formData.get("companyAdminEmail"));
   const managerEmail = normalizeEmail(formData.get("managerEmail"));
   const teamName = String(formData.get("teamName") ?? "").trim();

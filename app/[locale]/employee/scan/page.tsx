@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { redirect } from "next/navigation";
-import { QrScanClient } from "@/components/QrScanClient";
+import { QrScanClientLazy } from "@/components/QrScanClientLazy";
 import { DashboardShell } from "@/components/DashboardShell";
 import { getUnreadNotificationCount } from "@/lib/notifications";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -59,7 +59,7 @@ export default async function EmployeeScanPage({ params }: EmployeeScanPageProps
           {tc("openCardLibrary")}
         </Link>
       </div>
-      <QrScanClient />
+      <QrScanClientLazy />
     </DashboardShell>
   );
 }

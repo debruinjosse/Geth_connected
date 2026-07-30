@@ -1,4 +1,5 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
+import { Suspense } from "react";
 import { CardsLibraryClient } from "@/components/CardsLibraryClient";
 import { DashboardShell } from "@/components/DashboardShell";
 import { PublicSiteChrome } from "@/components/PublicSiteChrome";
@@ -40,11 +41,18 @@ function getDashboardRole(role: AppRole): DashboardRole {
   return role;
 }
 
-function getDashboardAction(role: DashboardRole) {
+function getDashboardAction(
+  role: DashboardRole,
+  labels: {
+    scanCard: string;
+    manageDecks: string;
+    manageCards: string;
+  }
+) {
   if (role === "employee") {
     return (
       <Link className="btn btn-secondary compact" href="/employee/scan">
-        Scan a card
+        {labels.scanCard}
       </Link>
     );
   }
@@ -52,7 +60,7 @@ function getDashboardAction(role: DashboardRole) {
   if (role === "company") {
     return (
       <Link className="btn btn-secondary compact" href="/company/cards">
-        Manage decks
+        {labels.manageDecks}
       </Link>
     );
   }
@@ -60,7 +68,7 @@ function getDashboardAction(role: DashboardRole) {
   if (role === "admin") {
     return (
       <Link className="btn btn-secondary compact" href="/admin/cards">
-        Manage cards
+        {labels.manageCards}
       </Link>
     );
   }
@@ -68,12 +76,13 @@ function getDashboardAction(role: DashboardRole) {
   return null;
 }
 
-async function getAuthenticatedCardsContext(): Promise<AuthenticatedCardsContext | null> {
+async function getAuthenticatedCardsContext(locale: string): Promise<AuthenticatedCardsContext | null> {
   if (!hasSupabaseServerConfig()) {
     return null;
   }
 
   try {
+    const tCommon = await getTranslations({ locale, namespace: "common" });
     const supabase = await createSupabaseServerClient();
     const {
       data: { user },
@@ -112,7 +121,10 @@ async function getAuthenticatedCardsContext(): Promise<AuthenticatedCardsContext
     ]);
 
     const role = normalizeAppRole(profile.role);
-    const fallbackName = profile.email?.split("@")[0]?.replace(/[._-]+/g, " ") || user.email?.split("@")[0]?.replace(/[._-]+/g, " ") || "GETH user";
+    const fallbackName =
+      profile.email?.split("@")[0]?.replace(/[._-]+/g, " ") ||
+      user.email?.split("@")[0]?.replace(/[._-]+/g, " ") ||
+      tCommon("gethUser");
     const name = [profile.first_name, profile.last_name].filter(Boolean).join(" ").trim() || fallbackName;
 
     return {
@@ -121,7 +133,13 @@ async function getAuthenticatedCardsContext(): Promise<AuthenticatedCardsContext
       user: {
         name,
         initials: getInitials(profile.first_name, profile.last_name, fallbackName),
-        team: team?.name ?? (role === "company_admin" ? "Company admin" : role === "platform_admin" || role === "super_admin" ? "Platform admin" : "Workspace"),
+        team:
+          team?.name ??
+          (role === "company_admin"
+            ? tCommon("companyAdminRole")
+            : role === "platform_admin" || role === "super_admin"
+              ? tCommon("platformAdminRole")
+              : tCommon("workspaceFallback")),
         imageUrl: profile.profile_image
       }
     };
@@ -134,9 +152,14 @@ export default async function CardsPage({ params }: CardsPageProps) {
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations({ locale, namespace: "cardsPage" });
-  const authenticatedContext = await getAuthenticatedCardsContext();
+  const authenticatedContext = await getAuthenticatedCardsContext(locale);
   const showFullDeck = Boolean(authenticatedContext);
   const cards = showFullDeck ? await getPublicCardLibrary() : [];
+  const actionLabels = {
+    scanCard: t("actionScanCard"),
+    manageDecks: t("actionManageDecks"),
+    manageCards: t("actionManageCards")
+  };
 
   if (authenticatedContext) {
     return (
@@ -146,10 +169,12 @@ export default async function CardsPage({ params }: CardsPageProps) {
         subtitle={t("copy")}
         user={authenticatedContext.user}
         unreadNotifications={authenticatedContext.unreadNotifications}
-        actions={getDashboardAction(authenticatedContext.dashboardRole)}
+        actions={getDashboardAction(authenticatedContext.dashboardRole, actionLabels)}
       >
         <section className="cards-page dashboard-card-library">
-          <CardsLibraryClient cards={cards} />
+          <Suspense fallback={<p className="section-copy">{t("loading")}</p>}>
+            <CardsLibraryClient cards={cards} />
+          </Suspense>
         </section>
       </DashboardShell>
     );

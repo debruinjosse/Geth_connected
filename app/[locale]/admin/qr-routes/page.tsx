@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import { DashboardShell } from "@/components/DashboardShell";
 import { EmptyState } from "@/components/EmptyState";
 import { superAdminUser } from "@/lib/demo-data";
@@ -19,11 +20,13 @@ function getInitials(firstName: string, lastName: string) {
 
 export default async function AdminQrRoutesPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "adminPages" });
+  const tc = await getTranslations({ locale, namespace: "common" });
 
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
     return (
-      <DashboardShell role="admin" title="QR routes" subtitle="Connect Supabase to inspect live QR destinations." user={superAdminUser}>
-        <EmptyState title="Supabase not configured" copy="QR route controls will appear here after Supabase is configured." />
+      <DashboardShell role="admin" title={t("qrRoutesTitle")} subtitle={t("qrRoutesNoSupabaseSubtitle")} user={superAdminUser}>
+        <EmptyState title={t("cardsLibraryNoSupabaseTitle")} copy={t("qrRoutesNoSupabaseCopy")} />
       </DashboardShell>
     );
   }
@@ -55,7 +58,7 @@ export default async function AdminQrRoutesPage({ params }: { params: Promise<{ 
   ]);
 
   if (error || recognitionsError) {
-    throw new Error("Failed to load QR routes.");
+    throw new Error(t("errLoadQrRoutes"));
   }
   const usageCounts = new Map<string, number>();
   for (const recognition of recognitions ?? []) {
@@ -65,20 +68,20 @@ export default async function AdminQrRoutesPage({ params }: { params: Promise<{ 
   return (
     <DashboardShell
       role="admin"
-      title="QR routes"
-      subtitle="Track the public claim URLs that physical GETH cards point to."
+      title={t("qrRoutesTitle")}
+      subtitle={t("qrRoutesSubtitle")}
       user={{
         name: `${profile.first_name} ${profile.last_name}`.trim(),
         initials: getInitials(profile.first_name, profile.last_name),
-        team: "GETH Platform"
+        team: tc("platformTeam")
       }}
-      actions={<Link className="btn btn-secondary compact" href={`/${locale}/admin/cards`}>Manage cards</Link>}
+      actions={<Link className="btn btn-secondary compact" href={`/${locale}/admin/cards`}>{t("manageCardsButton")}</Link>}
     >
       <article className="panel dashboard-panel">
         <div className="table-wrap admin-table-scroll">
           {routes?.length ? (
             <table className="dashboard-table">
-              <thead><tr><th>Slug</th><th>Card</th><th>Category</th><th>Destination</th><th>Status</th><th>Claims</th></tr></thead>
+              <thead><tr><th>{t("tableSlug")}</th><th>{t("tableCard")}</th><th>{t("tableCategory")}</th><th>{t("tableDestination")}</th><th>{t("tableStatus")}</th><th>{t("tableClaims")}</th></tr></thead>
               <tbody>
                 {(routes as QrRouteRow[]).map((route) => (
                   <tr key={route.id}>
@@ -86,14 +89,14 @@ export default async function AdminQrRoutesPage({ params }: { params: Promise<{ 
                     <td>{route.title}</td>
                     <td>{route.category}</td>
                     <td><Link className="panel-link" href={`/${locale}/claim-card/${route.qr_slug}`}>/{locale}/claim-card/{route.qr_slug}</Link></td>
-                    <td><span className="admin-status-pill">{route.active ? "active" : "paused"}</span></td>
+                    <td><span className="admin-status-pill">{route.active ? t("cardStatusActive") : t("cardStatusPaused")}</span></td>
                     <td>{usageCounts.get(route.id) ?? 0}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           ) : (
-            <EmptyState title="No QR routes yet" copy="QR routes are generated from the card_library qr_slug values." />
+            <EmptyState title={t("emptyNoQrRoutesTitle")} copy={t("emptyNoQrRoutesCopy")} />
           )}
         </div>
       </article>

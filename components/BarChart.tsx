@@ -1,4 +1,5 @@
 type BarChartItem = {
+  key?: string;
   label: string;
   value: number;
   color?: string;
@@ -19,11 +20,11 @@ export function BarChart({
 
   return (
     <div className={compact ? "bar-chart compact" : "bar-chart"} aria-label="Bar chart">
-      {items.map((item) => {
+      {items.map((item, index) => {
         const width = item.value > 0 ? Math.max(8, Math.round((item.value / max) * 100)) : 0;
 
         return (
-          <div className="bar-chart-row" key={item.label}>
+          <div className="bar-chart-row" key={item.key ?? `${item.label}-${index}`}>
             <div className="bar-chart-meta">
               <span>{item.label}</span>
               <strong>
@@ -32,7 +33,10 @@ export function BarChart({
             </div>
             {item.helper ? <p>{item.helper}</p> : null}
             <div className="bar-chart-track">
-              <span style={{ width: `${width}%`, background: item.color ?? "var(--theme-ink)" }} />
+              <span
+                className="bar-chart-fill"
+                style={{ width: `${width}%`, background: item.color ?? "var(--theme-ink)" }}
+              />
             </div>
           </div>
         );

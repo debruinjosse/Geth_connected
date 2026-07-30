@@ -2,8 +2,10 @@
 
 import { getCardBySlug, resolveCardSlug } from "@/lib/cards";
 import { createNotification } from "@/lib/notifications";
+import { hasSmtpConfig, sendRecognitionReceivedEmail } from "@/lib/mail/nodemailer";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getAppUrl } from "@/lib/stripe/server";
 
 export async function claimRecognition(input: {
   cardSlug: string;
@@ -277,6 +279,21 @@ export async function giveRecognition(input: {
           : `Your ${cardRecord.title} card was sent to ${receiverName}.`,
         href: "/employee/cards"
       });
+
+      if (receiverProfile.email && hasSmtpConfig()) {
+        try {
+          await sendRecognitionReceivedEmail({
+            to: receiverProfile.email,
+            giverName,
+            cardTitle: cardRecord.title,
+            personalNote: input.personalNote,
+            dashboardUrl: `${getAppUrl()}/en/employee`,
+            acknowledgementPending
+          });
+        } catch (error) {
+          console.warn("Recognition received email failed:", error instanceof Error ? error.message : error);
+        }
+      }
     }
 
     return { ok: true as const, cardTitle: cardRecord.title, receiverName, mode: "supabase" as const, acknowledgementPending };

@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { sendManagerNoteAction } from "@/app/actions/managerNotes";
+import { localizedLoginPath } from "@/lib/auth/paths";
 import { DashboardShell } from "@/components/DashboardShell";
 import { EmptyState } from "@/components/EmptyState";
 import { TeamTable } from "@/components/TeamTable";
@@ -42,14 +43,29 @@ export default async function ManagerTeamPage({
     data: { user },
     error: userError
   } = await supabase.auth.getUser();
-  if (userError || !user) redirect("/login");
+  if (userError || !user) redirect(localizedLoginPath(locale, `/${locale}/manager/team`));
 
   let insights;
   try {
     insights = await getManagerInsights(supabase, user.id, tm, locale);
   } catch (error) {
     if (error instanceof Error && error.message === "missing_profile") redirect("/auth/repair-profile");
-    throw error;
+    console.error("manager team insights failed", error);
+    return (
+      <DashboardShell
+        role="manager"
+        title={tp("teamTitle")}
+        subtitle={tp("teamSubtitle")}
+        user={{
+          name: "Manager",
+          initials: "MG",
+          team: tc("noTeam")
+        }}
+        unreadNotifications={0}
+      >
+        <EmptyState title={tp("insightsErrorTitle")} copy={tp("insightsErrorCopy")} />
+      </DashboardShell>
+    );
   }
 
   const unreadNotifications = await getUnreadNotificationCount(supabase, user.id);
