@@ -2,7 +2,7 @@
 
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { buildAuthCallbackEmailLink } from "@/lib/auth/build-auth-callback-link";
-import { getAuthCallbackUrl } from "@/lib/app-url";
+import { getAuthCallbackUrl, getProductionAppUrl } from "@/lib/app-url";
 import { InviteEmailError, sendPasswordResetEmail } from "@/lib/mail/nodemailer";
 
 export async function requestPasswordResetEmail(email: string) {
@@ -27,6 +27,10 @@ export async function requestPasswordResetEmail(email: string) {
     }
 
     const resetLink = buildAuthCallbackEmailLink(data.properties ?? {}, redirectTo, "recovery");
+
+    if (!resetLink.includes(getProductionAppUrl())) {
+      throw new Error("Reset link did not target the production app URL.");
+    }
 
     await sendPasswordResetEmail({
       to: normalized,
