@@ -45,7 +45,7 @@ async function main() {
   const body = {
     external_email_enabled: true,
     smtp_host: process.env.SMTP_HOST.trim(),
-    smtp_port: port,
+    smtp_port: String(port),
     smtp_user: process.env.SMTP_USER.trim(),
     smtp_pass: process.env.SMTP_PASS,
     smtp_admin_email: email,

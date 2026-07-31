@@ -154,12 +154,13 @@ async function main() {
     process.exit(1);
   }
 
-  if (!/geth\.pro/i.test(values.SMTP_FROM) || !/geth\.pro/i.test(values.SMTP_USER)) {
-    console.warn("Warning: SMTP_FROM and SMTP_USER should use info@geth.pro for production.");
+  if (values.NEXT_PUBLIC_APP_URL?.includes("ngrok") || values.NEXT_PUBLIC_APP_URL?.includes("localhost")) {
+    console.warn("Warning: NEXT_PUBLIC_APP_URL is local/dev — using https://geth.pro for production push.");
+    values.NEXT_PUBLIC_APP_URL = "https://geth.pro";
   }
 
-  if (values.NEXT_PUBLIC_APP_URL?.includes("ngrok")) {
-    console.warn("Warning: NEXT_PUBLIC_APP_URL points to ngrok — set https://geth.pro for production invite links.");
+  if (!/geth\.pro/i.test(values.SMTP_FROM) || !/geth\.pro/i.test(values.SMTP_USER)) {
+    console.warn("Warning: SMTP_FROM and SMTP_USER should use info@geth.pro for production.");
   }
 
   const token = process.env.VERCEL_TOKEN?.trim();
