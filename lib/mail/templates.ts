@@ -173,6 +173,57 @@ export function getMagicLinkEmailText({ recipientEmail, magicLink, mode }: Magic
   return `${headline}\n\nThis link was sent to ${recipientEmail}.\n\nOpen GETH:\n${magicLink}\n\nIf you did not request this email, you can ignore it.`;
 }
 
+type PasswordResetEmailInput = {
+  recipientEmail: string;
+  resetLink: string;
+};
+
+export function getPasswordResetEmailSubject() {
+  return "Reset your GETH password";
+}
+
+export function getPasswordResetEmailHtml({ recipientEmail, resetLink }: PasswordResetEmailInput) {
+  return `
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin:0;padding:0;background:#fbf8f1;font-family:${emailFontStack};color:#241033;">
+      <tr>
+        <td align="center" style="padding:40px 20px;">
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:560px;background:#fffdf8;border:1px solid #e7ded0;border-radius:24px;overflow:hidden;">
+            <tr>
+              <td style="background:#16091f;padding:28px 32px;color:#ffffff;">
+                <div style="font-size:28px;letter-spacing:0.38em;font-weight:800;">GETH</div>
+                <div style="margin-top:6px;font-size:11px;letter-spacing:0.2em;color:#d8a23a;text-transform:uppercase;">Recognize to energize</div>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:34px 32px 28px;">
+                <p style="margin:0 0 10px;color:#b98325;font-size:12px;font-weight:800;letter-spacing:0.24em;text-transform:uppercase;">Secure account recovery</p>
+                <h1 style="margin:0 0 14px;font-size:34px;line-height:1.05;color:#241033;">Reset your GETH password</h1>
+                <p style="margin:0 0 18px;font-size:16px;line-height:1.7;color:#6c6174;">
+                  Use the button below to set a new password for your GETH account. This message was sent to <strong>${recipientEmail}</strong>.
+                </p>
+                <a href="${resetLink}" style="display:inline-block;background:#d8a23a;color:#241033;text-decoration:none;font-weight:800;padding:15px 22px;border-radius:14px;">
+                  Reset password
+                </a>
+                <p style="margin:28px 0 0;font-size:13px;line-height:1.6;color:#6c6174;">If the button does not work, copy and paste this link into your browser:</p>
+                <p style="word-break:break-all;margin:8px 0 0;font-size:12px;line-height:1.6;color:#6f5793;">${resetLink}</p>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:18px 32px 28px;border-top:1px solid #e7ded0;color:#6c6174;font-size:12px;line-height:1.6;">
+                If you did not request this email, you can ignore it.
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  `;
+}
+
+export function getPasswordResetEmailText({ recipientEmail, resetLink }: PasswordResetEmailInput) {
+  return `Reset your GETH password\n\nThis link was sent to ${recipientEmail}.\n\nReset password:\n${resetLink}\n\nIf you did not request this email, you can ignore it.`;
+}
+
 type RecognitionEmailInput = {
   recipientEmail: string;
   giverName: string;

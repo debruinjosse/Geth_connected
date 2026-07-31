@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 import { ArrowRight, CheckCircle2, Eye, EyeOff } from "lucide-react";
 import { requestMagicLinkEmail } from "@/app/actions/magicLink";
+import { requestPasswordResetEmail } from "@/app/actions/passwordReset";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { hasSupabaseBrowserConfig, type DemoRole } from "@/lib/demo-session";
 
@@ -316,17 +317,14 @@ export function AuthExperience({
     setStatusTone("info");
 
     try {
-      if (!supabaseReady || !form.email) {
+      if (!form.email) {
         throw new Error(t("errEmailFirst"));
       }
 
-      const redirectTo = new URL("/auth/callback", window.location.origin);
-      const supabase = createSupabaseBrowserClient();
-      const { error } = await supabase.auth.resetPasswordForEmail(form.email, {
-        redirectTo: redirectTo.toString()
-      });
-
-      if (error) throw error;
+      const result = await requestPasswordResetEmail(form.email);
+      if (!result.ok) {
+        throw new Error(result.error);
+      }
 
       setStatusTone("success");
       setStatus(t("resetSent"));

@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { randomUUID } from "node:crypto";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { requestPasswordResetEmail } from "@/app/actions/passwordReset";
 
 const PROFILE_PHOTOS_BUCKET = "profile-photos";
 const MAX_PROFILE_PHOTO_BYTES = 100 * 1024 * 1024;
@@ -17,10 +18,6 @@ function getSafeReturnPath(value: FormDataEntryValue | null) {
   }
 
   return path;
-}
-
-function getAppUrl() {
-  return process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") || "http://localhost:3000";
 }
 
 function getProfilePhotoExtension(file: File) {
@@ -182,11 +179,9 @@ export async function sendPasswordResetFromSettingsAction(formData: FormData) {
     redirect(`${returnTo}?settings=reset-email-failed`);
   }
 
-  const { error } = await supabase.auth.resetPasswordForEmail(user.email, {
-    redirectTo: `${getAppUrl()}/auth/callback?next=/reset-password`
-  });
+  const result = await requestPasswordResetEmail(user.email);
 
-  if (error) {
+  if (!result.ok) {
     redirect(`${returnTo}?settings=reset-email-failed`);
   }
 

@@ -1,36 +1,10 @@
 "use server";
 
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { buildAuthCallbackEmailLink } from "@/lib/auth/build-auth-callback-link";
 import { InviteEmailError, sendMagicLinkEmail } from "@/lib/mail/nodemailer";
 
 type MagicLinkMode = "login" | "signup";
-
-function buildEmailMagicLink(
-  properties: {
-    action_link?: string | null;
-    hashed_token?: string | null;
-    verification_type?: string | null;
-  },
-  redirectTo: string,
-  mode: MagicLinkMode
-) {
-  const hashedToken = properties.hashed_token?.trim();
-  if (hashedToken) {
-    const callbackUrl = new URL(redirectTo);
-    callbackUrl.searchParams.set("token_hash", hashedToken);
-    const verificationType =
-      properties.verification_type?.trim() || (mode === "signup" ? "invite" : "magiclink");
-    callbackUrl.searchParams.set("type", verificationType);
-    return callbackUrl.toString();
-  }
-
-  const fallback = properties.action_link?.trim();
-  if (!fallback) {
-    throw new Error("We could not generate a sign-in link for that email.");
-  }
-
-  return fallback;
-}
 
 export async function requestMagicLinkEmail(input: {
   email: string;
@@ -72,7 +46,11 @@ export async function requestMagicLinkEmail(input: {
       throw error;
     }
 
-    const magicLink = buildEmailMagicLink(data.properties ?? {}, input.redirectTo, input.mode);
+    const magicLink = buildAuthCallbackEmailLink(
+      data.properties ?? {},
+      input.redirectTo,
+      input.mode === "signup" ? "invite" : "magiclink"
+    );
 
     await sendMagicLinkEmail({
       to: email,

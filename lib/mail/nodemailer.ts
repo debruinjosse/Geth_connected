@@ -9,6 +9,9 @@ import {
   getMagicLinkEmailHtml,
   getMagicLinkEmailSubject,
   getMagicLinkEmailText,
+  getPasswordResetEmailHtml,
+  getPasswordResetEmailSubject,
+  getPasswordResetEmailText,
   getRecognitionEmailHtml,
   getRecognitionEmailSubject,
   getRecognitionEmailText
@@ -149,6 +152,22 @@ export async function sendMagicLinkEmail({
     });
   } catch (error) {
     throw new InviteEmailError(classifySmtpError(error), "Magic link email could not be sent.", error);
+  }
+}
+
+export async function sendPasswordResetEmail({ to, resetLink }: { to: string; resetLink: string }) {
+  try {
+    const config = getSmtpConfig();
+    await createSmtpTransport().sendMail({
+      from: config.from,
+      replyTo: config.replyTo,
+      to,
+      subject: getPasswordResetEmailSubject(),
+      text: getPasswordResetEmailText({ recipientEmail: to, resetLink }),
+      html: getPasswordResetEmailHtml({ recipientEmail: to, resetLink })
+    });
+  } catch (error) {
+    throw new InviteEmailError(classifySmtpError(error), "Password reset email could not be sent.", error);
   }
 }
 

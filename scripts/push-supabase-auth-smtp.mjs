@@ -18,6 +18,15 @@ function parseSmtpFrom(value) {
   return { name: "GETH", email: trimmed || "info@geth.pro" };
 }
 
+function resolveProductionAppUrl() {
+  const raw = process.env.NEXT_PUBLIC_APP_URL?.trim().replace(/\/$/, "") || "";
+  if (!raw || /localhost|127\.0\.0\.1|ngrok/i.test(raw)) {
+    return "https://geth.pro";
+  }
+
+  return raw;
+}
+
 async function main() {
   await stripEnvBomIfPresent();
   await loadLocalEnv();
@@ -41,6 +50,7 @@ async function main() {
 
   const { name, email } = parseSmtpFrom(process.env.SMTP_FROM);
   const port = Number(process.env.SMTP_PORT);
+  const siteUrl = resolveProductionAppUrl();
 
   const body = {
     external_email_enabled: true,
@@ -49,7 +59,9 @@ async function main() {
     smtp_user: process.env.SMTP_USER.trim(),
     smtp_pass: process.env.SMTP_PASS,
     smtp_admin_email: email,
-    smtp_sender_name: name
+    smtp_sender_name: name,
+    site_url: siteUrl,
+    uri_allow_list: `${siteUrl}/auth/callback,${siteUrl}/auth/callback/**,${siteUrl}/**`
   };
 
   const response = await fetch(`https://api.supabase.com/v1/projects/${projectRef}/config/auth`, {
@@ -71,7 +83,9 @@ async function main() {
   console.log(`  Port: ${body.smtp_port}`);
   console.log(`  User: ${body.smtp_user}`);
   console.log(`  Sender: ${name} <${email}>`);
-  console.log("\nMagic links sent via signInWithOtp will also use this mailbox if you rely on Supabase Auth emails.");
+  console.log(`  Site URL: ${body.site_url}`);
+  console.log(`  Redirect URLs: ${body.uri_allow_list}`);
+  console.log("\nAuth emails now use info@geth.pro and redirect to geth.pro (not ngrok).");
 }
 
 main().catch((error) => {
