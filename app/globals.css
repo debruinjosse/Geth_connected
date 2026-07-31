@@ -1595,7 +1595,7 @@ img {
   place-items: center;
   width: 42px;
   height: 42px;
-  margin-bottom: 25px;
+  margin-bottom: 0;
   border-radius: 999px;
   color: var(--deck-plum);
   background: var(--deck-gold);
@@ -8051,8 +8051,12 @@ textarea.input {
 
   .site-actions .btn {
     min-height: 36px;
+    max-width: 100%;
     padding: 9px 11px;
-    white-space: nowrap;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    line-height: 1.2;
+    text-align: center;
   }
 
   .site-actions .site-primary-cta {
@@ -8882,8 +8886,9 @@ textarea.input {
   .deck-how-it-works__meta {
     flex-direction: row;
     align-items: center;
-    gap: 14px;
-    margin-bottom: 12px;
+    gap: 16px;
+    width: 100%;
+    margin-bottom: 14px;
   }
 
   .deck-how-it-works__number {
@@ -8891,14 +8896,26 @@ textarea.input {
     height: 40px;
     margin: 0;
     flex-shrink: 0;
+    font-size: 1rem;
   }
 
   .deck-how-it-works__icon {
-    width: auto;
-    height: auto;
+    width: 72px;
+    height: 72px;
     margin: 0;
-    transform: none;
     flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: visible;
+    transform: none;
+  }
+
+  .deck-how-it-works__icon > * {
+    flex-shrink: 0;
+    transform: scale(0.72);
+    transform-origin: center center;
   }
 
   .deck-how-it-works__content {
@@ -9116,6 +9133,10 @@ textarea.input {
   .public-mobile-nav-panel .public-mobile-nav-primary {
     margin-top: 4px;
     justify-content: center;
+    text-align: center;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    line-height: 1.25;
     background: linear-gradient(135deg, var(--theme-gold), var(--theme-gold-deep));
     color: #26140d;
   }
@@ -9408,34 +9429,34 @@ textarea.input {
   }
 
   .deck-card-stack-icon {
-    width: 52px;
-    height: 60px;
+    width: 90px;
+    height: 90px;
   }
 
   .deck-card-stack-icon span {
-    width: 35px;
-    height: 46px;
+    width: 56px;
+    height: 72px;
   }
 
   .deck-card-stack-icon__front img {
-    width: 22px;
+    width: 32px;
   }
 
   .deck-combined-icon,
   .deck-growth-icon,
   .deck-impact-icon {
-    width: 58px;
-    height: 58px;
+    width: auto;
+    height: auto;
   }
 
   .deck-phone-icon {
-    width: 42px;
-    height: 64px;
+    width: 66px;
+    height: 104px;
   }
 
   .deck-phone-icon > svg {
-    width: 28px;
-    height: 28px;
+    width: 42px;
+    height: 42px;
   }
 
   .deck-how-it-works__step h3 {
