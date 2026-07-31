@@ -5,8 +5,6 @@ import { PricingPlansClient, type PricingTier } from "@/components/PricingPlansC
 type PricingContent = {
   titleLine1: string;
   titleLine2: string;
-  subtitle: string;
-  heroDetail: string;
   labels: {
     monthly: string;
     monthlySubcopy: string;
@@ -24,9 +22,6 @@ const pricingContent: Record<string, PricingContent> = {
   en: {
     titleLine1: "Simple plans.",
     titleLine2: "Stronger cultures.",
-    subtitle: "Built for teams that value recognition.",
-    heroDetail:
-      "Managers often notice too late what is really happening within their team. Recognition remains invisible, talent is not fully utilised, and engagement is difficult to measure. GETH makes peer-to-peer recognition visible and turns it into actionable insights, helping managers support employees more effectively, use individual strengths more strategically, and build stronger teams.",
     labels: {
       monthly: "Monthly",
       monthlySubcopy: "Pay as you go",
@@ -94,9 +89,6 @@ const pricingContent: Record<string, PricingContent> = {
   nl: {
     titleLine1: "Eenvoudige prijzen.",
     titleLine2: "Sterkere culturen.",
-    subtitle: "Voor teams die waardering centraal stellen.",
-    heroDetail:
-      "Managers zien vaak te laat wat er echt speelt binnen hun team. Waardering blijft onzichtbaar, talent wordt niet volledig benut en betrokkenheid is moeilijk te meten. GETH maakt peer-to-peer waardering zichtbaar en zet dit om in bruikbare inzichten, zodat managers medewerkers effectiever kunnen ondersteunen, individuele sterke punten strategischer kunnen benutten en sterkere teams kunnen bouwen.",
     labels: {
       monthly: "Maandelijks",
       monthlySubcopy: "Flexibel betalen",
@@ -175,8 +167,6 @@ export default async function PricingPage({ params }: { params: Promise<{ locale
           <h1 className="section-title pricing-hero-title">
             {copy.titleLine1} <span className="pricing-hero-accent">{copy.titleLine2}</span>
           </h1>
-          <p className="pricing-hero-subtitle">{copy.subtitle}</p>
-          <p className="hero-detail-copy pricing-hero-detail">{copy.heroDetail}</p>
         </div>
         <PricingPlansClient tiers={copy.tiers} labels={copy.labels} trustItems={copy.trust} />
       </section>

@@ -635,7 +635,8 @@ img {
   min-width: 0;
 }
 
-.mobile-hero-simple {
+.mobile-hero-simple,
+.mobile-hero-phone-only {
   display: none;
 }
 
@@ -8448,92 +8449,19 @@ textarea.input {
     display: none !important;
   }
 
-  .mobile-hero-device-preview {
-    display: block;
-    position: relative;
-    width: min(100%, 430px);
-    margin: 32px auto 0;
-    overflow: visible;
-    isolation: isolate;
+  .mobile-hero-device-preview,
+  .mobile-hero-tablet-frame,
+  .mobile-hero-tablet-shell,
+  .mobile-hero-tablet-camera,
+  .mobile-hero-tablet-screen,
+  .mobile-hero-physical-card,
+  .mobile-hero-product-preview,
+  .mobile-hero-simple {
+    display: none !important;
   }
 
-  .mobile-hero-tablet-frame {
-    display: block;
-    position: relative;
-    z-index: 2;
-    min-width: 0;
-    width: calc(100% - 56px);
-    margin-left: auto;
-  }
-
-  .mobile-hero-tablet-shell {
-    display: block;
-    position: relative;
-    overflow: hidden;
-    padding: 10px;
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    border-radius: 24px;
-    background: linear-gradient(180deg, #202022 0%, #111113 100%);
-    box-shadow:
-      0 26px 56px rgba(23, 10, 33, 0.18),
-      0 10px 22px rgba(23, 10, 33, 0.14);
-  }
-
-  .mobile-hero-tablet-camera {
-    display: block;
-    position: absolute;
-    top: 5px;
-    left: 50%;
-    z-index: 3;
-    width: 34px;
-    height: 4px;
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.14);
-    transform: translateX(-50%);
-  }
-
-  .mobile-hero-tablet-screen {
-    display: block;
-    overflow: hidden;
-    border: 1px solid rgba(36, 16, 51, 0.16);
-    border-radius: 17px;
-    background: linear-gradient(180deg, #fefcf7 0%, #faf5ed 100%);
-  }
-
-  .mobile-hero-physical-card {
-    display: block;
-    position: absolute;
-    left: 12px;
-    top: 42px;
-    z-index: 1;
-    width: 83px;
-    aspect-ratio: 560 / 797;
-    overflow: hidden;
-    border: 1px solid rgba(232, 184, 75, 0.35);
-    border-radius: 8px;
-    background: #2a1036;
-    box-shadow: -8px 18px 22px rgba(28, 10, 38, 0.18);
-    transform: rotate(-12deg);
-    transform-origin: right bottom;
-  }
-
-  .mobile-hero-physical-card img {
-    display: block;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-
-  .mobile-hero-device-preview .mobile-hero-product-preview {
-    display: block;
-    width: 100%;
-    max-width: none;
-    height: auto;
-    margin: 0;
-    padding: 12px;
-    border: 0;
-    border-radius: 0;
-    box-shadow: none;
+  .mobile-hero-phone-only {
+    display: flex;
   }
 }
 
@@ -8545,7 +8473,8 @@ textarea.input {
   .mobileHeroPreview,
   .mobile-hero-device-preview,
   .mobile-hero-product-preview,
-  .mobile-hero-simple {
+  .mobile-hero-simple,
+  .mobile-hero-phone-only {
     display: none !important;
   }
 }
@@ -9288,12 +9217,12 @@ textarea.input {
     display: none !important;
   }
 
-  .mobileHeroPreview {
+  .mobileHeroPreview.landingHeroMobileVisual {
     display: block;
     width: 100%;
-    max-width: 430px;
+    max-width: 100%;
     min-width: 0;
-    margin: 0 auto;
+    margin: 4px auto 0;
     padding: 0;
   }
 
@@ -9307,94 +9236,19 @@ textarea.input {
     animation-delay: var(--reveal-delay, 0s);
   }
 
-  .mobile-hero-device-preview {
-    display: block;
-    position: relative;
-    width: 100%;
-    max-width: 430px;
-    min-width: 0;
-    margin: 0 auto;
-    overflow: visible;
-    isolation: isolate;
+  .mobile-hero-device-preview,
+  .mobile-hero-tablet-frame,
+  .mobile-hero-tablet-shell,
+  .mobile-hero-tablet-camera,
+  .mobile-hero-tablet-screen,
+  .mobile-hero-physical-card,
+  .mobile-hero-product-preview,
+  .mobile-hero-simple {
+    display: none !important;
   }
 
-  .mobile-hero-tablet-frame {
-    display: block;
-    position: relative;
-    z-index: 2;
-    width: calc(100% - 44px);
-    min-width: 260px;
-    margin-left: auto;
-  }
-
-  .mobile-hero-tablet-shell {
-    display: block;
-    position: relative;
-    overflow: hidden;
-    padding: 10px;
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    border-radius: 24px;
-    background: linear-gradient(180deg, #202022 0%, #111113 100%);
-    box-shadow:
-      0 26px 56px rgba(23, 10, 33, 0.18),
-      0 10px 22px rgba(23, 10, 33, 0.14);
-  }
-
-  .mobile-hero-tablet-camera {
-    display: block;
-    position: absolute;
-    top: 5px;
-    left: 50%;
-    z-index: 3;
-    width: 34px;
-    height: 4px;
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.14);
-    transform: translateX(-50%);
-  }
-
-  .mobile-hero-tablet-screen {
-    display: block;
-    overflow: hidden;
-    border: 1px solid rgba(36, 16, 51, 0.16);
-    border-radius: 17px;
-    background: linear-gradient(180deg, #fefcf7 0%, #faf5ed 100%);
-  }
-
-  .mobile-hero-device-preview .mobile-hero-product-preview {
-    display: block;
-    width: 100%;
-    max-width: none;
-    height: auto;
-    margin: 0;
-    padding: 12px;
-    border: 0;
-    border-radius: 0;
-    box-shadow: none;
-  }
-
-  .mobile-hero-physical-card {
-    display: block;
-    position: absolute;
-    top: 42px;
-    left: 0;
-    z-index: 1;
-    width: clamp(68px, 22vw, 88px);
-    aspect-ratio: 560 / 797;
-    overflow: hidden;
-    border: 1px solid rgba(232, 184, 75, 0.35);
-    border-radius: 8px;
-    background: #2a1036;
-    box-shadow: -8px 18px 22px rgba(28, 10, 38, 0.18);
-    transform: rotate(-9deg);
-    transform-origin: right bottom;
-  }
-
-  .mobile-hero-physical-card img {
-    display: block;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
+  .scrollToExplore.landingHeroScrollCue {
+    display: none !important;
   }
 
   .mobile-preview-kpis {

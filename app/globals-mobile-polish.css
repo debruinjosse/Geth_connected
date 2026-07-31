@@ -154,111 +154,128 @@
 
   .mobile-hero-device-preview,
   .mobile-hero-tablet-frame,
-  .mobile-hero-product-preview {
+  .mobile-hero-product-preview,
+  .mobile-hero-simple {
     display: none !important;
   }
 
-  .mobile-hero-simple {
-    display: block;
+  .mobile-hero-phone-only {
+    display: flex;
+  }
+
+  .landingHeroScrollCue {
+    display: none !important;
+  }
+
+  .audience-card.audienceCard {
+    display: grid !important;
+    grid-template-columns: 40px minmax(0, 1fr) !important;
+    column-gap: 12px;
+    align-items: start;
+    padding: 18px !important;
+    padding-right: 18px !important;
+    min-height: auto;
+  }
+
+  .audience-card .audienceCardIcon {
+    position: static !important;
+    top: auto !important;
+    right: auto !important;
+    grid-row: 1 / 5;
+    grid-column: 1;
+    margin: 0 !important;
+    width: 22px;
+    height: 22px;
+    padding: 9px;
+    box-sizing: content-box;
+  }
+
+  .audience-card .eyebrow,
+  .audience-card h3,
+  .audience-card p,
+  .audience-card .audience-demo-cta {
+    grid-column: 2;
+    max-width: 100%;
   }
 }
 
-/* Mobile hero — phone + card (replaces stretched tablet mockup) */
+/* Mobile hero — vertical phone layout (card above dashboard panel) */
 @media (max-width: 767px) {
-  .mobile-hero-simple {
+  .mobileHeroPreview.landingHeroMobileVisual {
     width: 100%;
-    max-width: min(100%, 360px);
+    max-width: min(100%, 320px);
     margin: 20px auto 0;
+  }
+
+  .mobile-hero-phone-only {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 18px;
+    width: 100%;
+    margin: 0;
     padding: 0;
   }
 
-  .mobile-hero-simple__layout {
-    display: grid;
-    grid-template-columns: minmax(72px, 28%) minmax(0, 1fr);
-    gap: 14px;
-    align-items: center;
+  .mobile-hero-phone-only__card-wrap {
+    display: flex;
     justify-content: center;
+    width: 100%;
   }
 
-  .mobile-hero-simple__card {
-    width: 100%;
-    max-width: 96px;
-    margin-left: 4px;
+  .mobile-hero-phone-only__card {
+    width: 104px;
+    max-width: 30vw;
     aspect-ratio: 560 / 797;
     overflow: hidden;
     border: 1px solid rgba(232, 184, 75, 0.35);
     border-radius: 10px;
     background: #2a1036;
-    box-shadow: -6px 16px 24px rgba(28, 10, 38, 0.2);
-    transform: rotate(-10deg);
-    transform-origin: center bottom;
+    box-shadow: 0 16px 36px rgba(28, 10, 38, 0.18);
+    transform: rotate(-5deg);
+    transform-origin: center center;
   }
 
-  .mobile-hero-simple__card img {
+  .mobile-hero-phone-only__card img {
     display: block;
     width: 100%;
     height: 100%;
     object-fit: cover;
   }
 
-  .mobile-hero-simple__phone {
-    position: relative;
+  .mobile-hero-phone-only__panel {
     width: 100%;
-    max-width: 240px;
-    margin-inline: auto;
-    padding: 9px;
-    border-radius: 28px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    background: linear-gradient(180deg, #202022 0%, #111113 100%);
-    box-shadow:
-      0 22px 48px rgba(23, 10, 33, 0.16),
-      0 8px 18px rgba(23, 10, 33, 0.12);
-  }
-
-  .mobile-hero-simple__notch {
-    position: absolute;
-    top: 6px;
-    left: 50%;
-    z-index: 2;
-    width: 28px;
-    height: 4px;
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.14);
-    transform: translateX(-50%);
-  }
-
-  .mobile-hero-simple__screen {
     display: grid;
     gap: 10px;
-    padding: 18px 12px 14px;
-    border: 1px solid rgba(36, 16, 51, 0.12);
-    border-radius: 22px;
+    padding: 16px 14px;
+    border: 1px solid rgba(36, 16, 51, 0.1);
+    border-radius: 20px;
     background: linear-gradient(180deg, #fefcf7 0%, #faf5ed 100%);
-    min-height: 0;
+    box-shadow: 0 18px 40px rgba(23, 10, 33, 0.1);
   }
 
-  .mobile-hero-simple__header strong {
+  .mobile-hero-phone-only__panel-head strong {
     display: block;
-    font-size: 13px;
+    font-size: 14px;
     line-height: 1.2;
     color: var(--theme-ink);
   }
 
-  .mobile-hero-simple__header span {
+  .mobile-hero-phone-only__panel-head span {
     display: block;
     margin-top: 2px;
     color: var(--theme-muted);
-    font-size: 10px;
+    font-size: 11px;
     line-height: 1.3;
   }
 
-  .mobile-hero-simple__kpis {
+  .mobile-hero-phone-only__kpis {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 6px;
   }
 
-  .mobile-hero-simple__kpi {
+  .mobile-hero-phone-only__kpi {
     min-width: 0;
     padding: 8px 4px;
     border-radius: 12px;
@@ -267,14 +284,14 @@
     text-align: center;
   }
 
-  .mobile-hero-simple__kpi strong {
+  .mobile-hero-phone-only__kpi strong {
     display: block;
-    font-size: 16px;
+    font-size: 17px;
     line-height: 1.1;
     color: var(--theme-ink);
   }
 
-  .mobile-hero-simple__kpi span {
+  .mobile-hero-phone-only__kpi span {
     display: block;
     margin-top: 3px;
     color: var(--theme-muted);
@@ -283,7 +300,7 @@
     overflow-wrap: anywhere;
   }
 
-  .mobile-hero-simple__qualities {
+  .mobile-hero-phone-only__qualities {
     display: grid;
     gap: 8px;
     padding: 10px;
@@ -292,7 +309,7 @@
     border: 1px solid rgba(36, 16, 51, 0.08);
   }
 
-  .mobile-hero-simple__qualities-head {
+  .mobile-hero-phone-only__qualities-head {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -301,43 +318,43 @@
     line-height: 1.2;
   }
 
-  .mobile-hero-simple__qualities-head strong {
+  .mobile-hero-phone-only__qualities-head strong {
     color: var(--theme-ink);
     font-weight: 800;
   }
 
-  .mobile-hero-simple__qualities-head span {
+  .mobile-hero-phone-only__qualities-head span {
     color: var(--theme-muted);
     font-size: 9px;
   }
 
-  .mobile-hero-simple__quality {
+  .mobile-hero-phone-only__quality {
     display: grid;
     gap: 5px;
   }
 
-  .mobile-hero-simple__quality span {
+  .mobile-hero-phone-only__quality span {
     color: var(--theme-muted);
     font-size: 8px;
     line-height: 1.15;
     font-weight: 800;
   }
 
-  .mobile-hero-simple__quality-track {
+  .mobile-hero-phone-only__quality-track {
     height: 5px;
     border-radius: 999px;
     background: rgba(36, 16, 51, 0.08);
     overflow: hidden;
   }
 
-  .mobile-hero-simple__quality-track i {
+  .mobile-hero-phone-only__quality-track i {
     display: block;
     height: 100%;
     border-radius: inherit;
     background: linear-gradient(90deg, var(--theme-gold), var(--theme-emerald));
   }
 
-  .mobile-hero-simple__insight {
+  .mobile-hero-phone-only__insight {
     margin: 0;
     padding: 8px 10px;
     border-radius: 12px;
@@ -611,10 +628,25 @@
   .deck-how-it-works__icon {
     width: 64px;
     height: 64px;
+    overflow: hidden;
   }
 
   .deck-how-it-works__icon > * {
     transform: scale(0.72);
+  }
+
+  .deck-how-it-works__meta {
+    gap: 10px;
+  }
+}
+
+@media (max-width: 359px) {
+  .deck-how-it-works__icon {
+    display: none !important;
+  }
+
+  .deck-how-it-works__meta {
+    gap: 0;
   }
 
   .dashboard-header-menu.mobile-shell-toggle {

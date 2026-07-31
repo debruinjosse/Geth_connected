@@ -87,11 +87,11 @@ export default async function LandingPage({ params }: LandingPageProps) {
           <div className="desktopHeroPreview">
             <HeroDashboardMockup locale={locale} />
           </div>
-          <Reveal className="mobileHeroPreview" delay={0.04} distance={24}>
+          <Reveal className="mobileHeroPreview landingHeroMobileVisual" delay={0.04} distance={24}>
             <MobileHeroProductPreview locale={locale} />
           </Reveal>
         </div>
-        <a className="scrollToExplore" href="#how-it-works">
+        <a className="scrollToExplore landingHeroScrollCue" href="#how-it-works">
           <span>{text("scrollExplore")}</span>
           <ArrowRight size={16} />
         </a>
