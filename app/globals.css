@@ -2263,6 +2263,14 @@ img {
   line-height: 1.58;
 }
 
+.landingHero .brand-display {
+  margin: 16px 0 22px;
+}
+
+.landingHero .hero-detail-copy {
+  margin: 0 0 28px;
+}
+
 .landingCtaDetail {
   margin-top: -8px;
 }
@@ -6111,7 +6119,7 @@ textarea.input {
 }
 
 .landingHero + .infinity-strip-below-hero {
-  margin-top: -18px;
+  margin-top: 20px;
 }
 
 @keyframes infinity-strip-scroll {
@@ -9138,7 +9146,7 @@ textarea.input {
   .landingHero {
     overflow: visible;
     padding-top: 30px;
-    padding-bottom: 38px;
+    padding-bottom: 52px;
     background:
       radial-gradient(circle at 86% 4%, rgba(216, 162, 58, 0.1), transparent 28%),
       linear-gradient(180deg, #fffdf8 0%, #fbf8f1 100%);
@@ -9167,7 +9175,7 @@ textarea.input {
 
   .landingHero .brand-display {
     max-width: 100%;
-    margin: 10px 0 16px;
+    margin: 12px 0 20px;
     font-size: clamp(42px, 13vw, 58px);
     line-height: 0.92;
     letter-spacing: -0.045em;
@@ -9187,7 +9195,7 @@ textarea.input {
   }
 
   .landingHero .hero-detail-copy {
-    margin: 0 0 18px;
+    margin: 0 0 26px;
     font-size: 13px;
     line-height: 1.52;
     color: #6a6070;
