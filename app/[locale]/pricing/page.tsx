@@ -14,9 +14,6 @@ type PricingContent = {
     yearlySubcopy: string;
     bestValue: string;
     billingPeriod: string;
-    perEmployeeMonth: string;
-    billedMonthly: string;
-    billedYearly: string;
     customPrice: string;
   };
   tiers: PricingTier[];
@@ -37,9 +34,6 @@ const pricingContent: Record<string, PricingContent> = {
       yearlySubcopy: "Save up to 20%",
       bestValue: "Best value",
       billingPeriod: "Billing period",
-      perEmployeeMonth: "/employee /month",
-      billedMonthly: "billed monthly",
-      billedYearly: "billed yearly",
       customPrice: "Custom"
     },
     tiers: [
@@ -110,9 +104,6 @@ const pricingContent: Record<string, PricingContent> = {
       yearlySubcopy: "Bespaar tot 20%",
       bestValue: "Beste prijs",
       billingPeriod: "Facturatieperiode",
-      perEmployeeMonth: "/medewerker / maand",
-      billedMonthly: "maandelijks gefactureerd",
-      billedYearly: "jaarlijks gefactureerd",
       customPrice: "Maatwerk"
     },
     tiers: [

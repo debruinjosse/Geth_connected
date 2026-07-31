@@ -23,9 +23,6 @@ export type PricingLabels = {
   yearlySubcopy: string;
   bestValue: string;
   billingPeriod: string;
-  perEmployeeMonth: string;
-  billedMonthly: string;
-  billedYearly: string;
   customPrice: string;
 };
 
@@ -84,12 +81,6 @@ export function PricingPlansClient({
               </div>
               <div className="pricing-price-block">
                 <h2>{custom ? labels.customPrice : price}</h2>
-                <p className="pricing-price-meta">
-                  {labels.perEmployeeMonth}
-                  <span className="pricing-billing-note">
-                    {cycle === "monthly" ? labels.billedMonthly : labels.billedYearly}
-                  </span>
-                </p>
               </div>
               <p className="pricing-plan-description">{tier.description}</p>
               <div className="pricing-feature-divider" />
