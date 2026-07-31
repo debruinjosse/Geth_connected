@@ -635,7 +635,7 @@ img {
   min-width: 0;
 }
 
-.mobileHeroPreview {
+.mobile-hero-simple {
   display: none;
 }
 
@@ -8544,7 +8544,8 @@ textarea.input {
 
   .mobileHeroPreview,
   .mobile-hero-device-preview,
-  .mobile-hero-product-preview {
+  .mobile-hero-product-preview,
+  .mobile-hero-simple {
     display: none !important;
   }
 }
@@ -8881,11 +8882,17 @@ textarea.input {
 
   .deck-how-it-works__step,
   .deck-how-it-works__step:nth-child(5) {
-    align-items: flex-start;
+    align-items: center;
     max-width: none;
     margin: 0;
-    padding: 0 4px 28px;
-    text-align: left;
+    padding: 0 12px 36px;
+    text-align: center;
+    border-bottom: 1px solid rgba(213, 162, 56, 0.22);
+  }
+
+  .deck-how-it-works__step:last-child {
+    border-bottom: 0;
+    padding-bottom: 0;
   }
 
   .deck-how-it-works__step:not(:last-child)::after {
@@ -8893,51 +8900,52 @@ textarea.input {
   }
 
   .deck-how-it-works__meta {
-    flex-direction: row;
+    flex-direction: column;
     align-items: center;
-    gap: 16px;
+    gap: 14px;
     width: 100%;
-    margin-bottom: 14px;
+    margin-bottom: 16px;
   }
 
   .deck-how-it-works__number {
-    width: 40px;
-    height: 40px;
+    width: 44px;
+    height: 44px;
     margin: 0;
     flex-shrink: 0;
-    font-size: 1rem;
+    font-size: 1.05rem;
   }
 
   .deck-how-it-works__icon {
-    width: 72px;
-    height: 72px;
+    width: 96px;
+    height: 80px;
     margin: 0;
     flex-shrink: 0;
     display: flex;
     align-items: center;
     justify-content: center;
     position: relative;
-    overflow: visible;
+    overflow: hidden;
     transform: none;
   }
 
   .deck-how-it-works__icon > * {
     flex-shrink: 0;
-    transform: scale(0.72);
+    transform: scale(0.8);
     transform-origin: center center;
   }
 
   .deck-how-it-works__content {
-    align-items: flex-start;
+    align-items: center;
     width: 100%;
+    min-width: 0;
   }
 
   .deck-how-it-works__step h3 {
     max-width: none;
-    margin: 0 0 8px;
+    margin: 0 0 10px;
     font-size: 1rem;
-    line-height: 1.3;
-    text-align: left;
+    line-height: 1.35;
+    text-align: center;
     overflow-wrap: anywhere;
   }
 
@@ -8945,7 +8953,7 @@ textarea.input {
     max-width: none;
     font-size: 0.92rem;
     line-height: 1.55;
-    text-align: left;
+    text-align: center;
   }
 }
 
