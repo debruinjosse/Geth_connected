@@ -2264,15 +2264,15 @@ img {
 }
 
 .landingHero .brand-display {
-  margin: 16px 0 22px;
+  margin: 16px 0 30px;
 }
 
 .landingHero .hero-detail-copy {
-  margin: 0 0 28px;
+  margin: 10px 0 30px;
 }
 
 .landingCtaDetail {
-  margin-top: -8px;
+  margin-top: 14px;
 }
 
 .landingCtaMedia {
@@ -2296,6 +2296,7 @@ img {
 
 .landingCta .section-title {
   margin-inline: 0;
+  margin-bottom: 18px;
   max-width: 850px;
 }
 
@@ -9196,7 +9197,7 @@ textarea.input {
 
   .landingHero .brand-display {
     max-width: 100%;
-    margin: 12px 0 20px;
+    margin: 12px 0 26px;
     font-size: clamp(42px, 13vw, 58px);
     line-height: 0.92;
     letter-spacing: -0.045em;
@@ -9216,7 +9217,7 @@ textarea.input {
   }
 
   .landingHero .hero-detail-copy {
-    margin: 0 0 26px;
+    margin: 10px 0 28px;
     font-size: 13px;
     line-height: 1.52;
     color: #6a6070;
@@ -9625,12 +9626,13 @@ textarea.input {
 
   .landingCta .section-title {
     width: 100%;
-    margin: 0;
+    margin: 0 0 20px;
     font-size: clamp(36px, 11vw, 50px);
     line-height: 0.94;
   }
 
   .landingCta .hero-detail-copy {
+    margin-top: 12px;
     font-size: 13px;
     line-height: 1.52;
   }
