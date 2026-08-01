@@ -71,8 +71,10 @@ export type CompanyDashboardInsights = {
   totalTeams: number;
   totalManagers: number;
   engagementScore: number;
+  engagementActiveCount: number;
   engagementDelta: ComparisonMetric;
   recognitionRate: number;
+  recognitionReceiverCount: number;
   recognitionRateDelta: ComparisonMetric;
   recognitionTrendPercent: number | null;
   recognitionTrendState: ComparisonState;
@@ -268,6 +270,8 @@ export async function fetchCompanyDashboardInsights(
   const previousReceiverIds = new Set(previousPeriodRecognitions.map((recognition) => recognition.receiver_user_id));
   const currentActiveUserIds = getActivityUserIds(currentPeriodRecognitions, workforceIds);
   const previousActiveUserIds = getActivityUserIds(previousPeriodRecognitions, workforceIds);
+  const engagementActiveCount = workforce.filter((profile) => currentActiveUserIds.has(profile.id)).length;
+  const recognitionReceiverCount = workforce.filter((profile) => currentReceiverIds.has(profile.id)).length;
   const engagementScore = getRate(currentActiveUserIds, workforce);
   const previousEngagementScore = getRate(previousActiveUserIds, workforce);
   const currentRate = getRate(currentReceiverIds, workforce);
@@ -370,8 +374,10 @@ export async function fetchCompanyDashboardInsights(
     totalTeams: companyTeams.length,
     totalManagers: managers.length,
     engagementScore,
+    engagementActiveCount,
     engagementDelta: getPointComparison(engagementScore, previousEngagementScore),
     recognitionRate: currentRate,
+    recognitionReceiverCount,
     recognitionRateDelta: getPointComparison(currentRate, previousRate),
     recognitionTrendPercent: recognitionTrend.value,
     recognitionTrendState: recognitionTrend.state,

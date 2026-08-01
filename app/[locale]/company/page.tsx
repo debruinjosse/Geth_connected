@@ -1,8 +1,9 @@
 import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
-import { Activity, Gauge, Info, Percent, Star, UserRound, UsersRound } from "lucide-react";
+import { Activity, Gauge, Percent, Star, UserRound, UsersRound } from "lucide-react";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { BarChart } from "@/components/BarChart";
+import { CompanyMetricInfoButton } from "@/components/CompanyMetricInfoButton";
 import { DashboardShell } from "@/components/DashboardShell";
 import { EmptyState } from "@/components/EmptyState";
 import { LineChart } from "@/components/LineChart";
@@ -110,11 +111,7 @@ function CompanyMetricCard({
         </span>
         <span className="company-kpi-actions">
           {badge ? <b>{badge}</b> : null}
-          {info ? (
-            <span className="company-kpi-info" title={info} aria-label={info}>
-              <Info size={13} />
-            </span>
-          ) : null}
+          {info ? <CompanyMetricInfoButton text={info} /> : null}
         </span>
       </div>
       <strong style={{ color: tone }}>{value}</strong>
@@ -146,8 +143,23 @@ function DemoCompanyDashboard({ t }: { t: Translation }) {
         <CompanyMetricCard icon={<Star size={18} />} value="458" label={t("totalRecognitions")} tone="var(--theme-gold)" iconBackground="rgba(216, 162, 58, 0.12)" />
         <CompanyMetricCard icon={<UserRound size={18} />} value="142" label={t("totalEmployees")} comparison={{ text: t("employeesDefinition"), state: "neutral" }} />
         <CompanyMetricCard icon={<UsersRound size={18} />} value="18" label={t("totalTeams")} tone="var(--theme-gold)" iconBackground="rgba(216, 162, 58, 0.12)" />
-        <CompanyMetricCard icon={<Gauge size={18} />} value="87%" label={t("engagementScore")} comparison={{ text: `+8% ${t("vsLast30Days")}`, state: "positive" }} tone="var(--theme-emerald)" iconBackground="rgba(58, 166, 95, 0.12)" />
-        <CompanyMetricCard icon={<Percent size={18} />} value="62%" label={t("recognizedEmployees")} comparison={{ text: `+6% ${t("vsLast30Days")}`, state: "positive" }} badge={t("newBadge")} info={t("recognitionRateInfo")} />
+        <CompanyMetricCard
+          icon={<Gauge size={18} />}
+          value="87%"
+          label={t("engagementScore")}
+          comparison={{ text: `+8% ${t("vsLast30Days")}`, state: "positive" }}
+          tone="var(--theme-emerald)"
+          iconBackground="rgba(58, 166, 95, 0.12)"
+          info={t("engagementScoreInfo", { active: 7, total: 8, percent: 87 })}
+        />
+        <CompanyMetricCard
+          icon={<Percent size={18} />}
+          value="62%"
+          label={t("recognizedEmployees")}
+          comparison={{ text: `+6% ${t("vsLast30Days")}`, state: "positive" }}
+          badge={t("newBadge")}
+          info={t("recognitionRateInfo", { recognized: 5, total: 8, percent: 62 })}
+        />
         <CompanyMetricCard icon={<Activity size={18} />} value="+23%" label={t("recognitionTrend")} comparison={{ text: t("vsPrevious30Days"), state: "positive" }} badge={t("newBadge")} sparkline={<RecognitionSparkline points={[8, 11, 10, 15, 18, 24]} label={t("sparklineLabel")} />} />
       </section>
 
@@ -259,14 +271,23 @@ export default async function CompanyDashboardPage({ params }: CompanyDashboardP
           comparison={{ text: getComparisonText(insights.engagementDelta, t("vsLast30Days")), state: insights.engagementDelta.state }}
           tone="var(--theme-emerald)"
           iconBackground="rgba(58, 166, 95, 0.12)"
+          info={t("engagementScoreInfo", {
+            active: insights.engagementActiveCount,
+            total: insights.totalEmployees,
+            percent: insights.engagementScore
+          })}
         />
         <CompanyMetricCard
           icon={<Percent size={18} />}
           value={`${insights.recognitionRate}%`}
           label={t("recognizedEmployees")}
           comparison={{ text: getComparisonText(insights.recognitionRateDelta, t("vsLast30Days")), state: insights.recognitionRateDelta.state }}
-          badge={t("newBadge")}
-          info={t("recognitionRateInfo")}
+          badge={insights.recognitionRateDelta.state === "new" ? t("newBadge") : undefined}
+          info={t("recognitionRateInfo", {
+            recognized: insights.recognitionReceiverCount,
+            total: insights.totalEmployees,
+            percent: insights.recognitionRate
+          })}
         />
         <CompanyMetricCard
           icon={<Activity size={18} />}
