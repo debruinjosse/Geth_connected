@@ -93,25 +93,27 @@ export function saveStoredRecognition(recognition: StoredRecognition) {
   window.localStorage.setItem(RECOGNITION_KEY, JSON.stringify([recognition, ...existing]));
 }
 
-export function formatRecognitionDate(isoString: string) {
+export function formatRecognitionDate(isoString: string, locale?: string) {
+  const normalizedLocale = locale === "nl" ? "nl" : "en";
   const diffMs = Date.now() - new Date(isoString).getTime();
   const diffMinutes = Math.max(1, Math.floor(diffMs / 60000));
+  const rtf = new Intl.RelativeTimeFormat(normalizedLocale, { numeric: "always" });
 
   if (diffMinutes < 60) {
-    return `${diffMinutes}m ago`;
+    return rtf.format(-diffMinutes, "minute");
   }
 
   const diffHours = Math.floor(diffMinutes / 60);
   if (diffHours < 24) {
-    return `${diffHours}h ago`;
+    return rtf.format(-diffHours, "hour");
   }
 
   const diffDays = Math.floor(diffHours / 24);
   if (diffDays < 7) {
-    return `${diffDays}d ago`;
+    return rtf.format(-diffDays, "day");
   }
 
-  return new Intl.DateTimeFormat("en", {
+  return new Intl.DateTimeFormat(normalizedLocale === "nl" ? "nl-NL" : "en-US", {
     month: "short",
     day: "numeric"
   }).format(new Date(isoString));

@@ -13,6 +13,7 @@ import { MetricCard } from "@/components/MetricCard";
 import { RecognitionList, type RecognitionItem } from "@/components/RecognitionList";
 import { EmployeeAiSignalsPanel } from "@/components/EmployeeAiSignalsPanel";
 import type { EmployeeSignalsContext } from "@/lib/ai/employee-recognition-signals";
+import { getLocalizedCategoryDisplayName, getLocalizedCardTitle, type CardCategory } from "@/lib/cards";
 import { currentUser, employeeCategoryBreakdown, employeeGrowthPoints, employeeTopQualities, recognitions } from "@/lib/demo-data";
 import { getStoredRecognitions, type StoredRecognition } from "@/lib/demo-session";
 
@@ -69,19 +70,41 @@ type EmployeeDashboardData = {
   unreadNotifications?: number;
 };
 
-const zeroCategoryBreakdown: CategoryBreakdown[] = [
-  { label: "Communication", value: 0, color: "var(--theme-sky)" },
-  { label: "Creativity", value: 0, color: "var(--theme-emerald)" },
-  { label: "Competence", value: 0, color: "var(--theme-gold)" },
-  { label: "Collegiality", value: 0, color: "var(--theme-purple-soft)" }
-];
+const fourCCategories: CardCategory[] = ["Communication", "Creativity", "Competence", "Collegiality"];
 
-const zeroQualityRows: QualityPill[] = [
-  { label: "Communication", tone: "var(--theme-sky)", count: 0 },
-  { label: "Creativity", tone: "var(--theme-emerald)", count: 0 },
-  { label: "Competence", tone: "var(--theme-gold)", count: 0 },
-  { label: "Collegiality", tone: "var(--theme-purple-soft)", count: 0 }
-];
+function buildZeroCategoryBreakdown(locale: string): CategoryBreakdown[] {
+  const colors = ["var(--theme-sky)", "var(--theme-emerald)", "var(--theme-gold)", "var(--theme-purple-soft)"];
+  return fourCCategories.map((category, index) => ({
+    label: getLocalizedCategoryDisplayName(category, locale),
+    value: 0,
+    color: colors[index]
+  }));
+}
+
+function buildZeroQualityRows(locale: string): QualityPill[] {
+  const tones = ["var(--theme-sky)", "var(--theme-emerald)", "var(--theme-gold)", "var(--theme-purple-soft)"];
+  return fourCCategories.map((category, index) => ({
+    label: getLocalizedCategoryDisplayName(category, locale),
+    tone: tones[index],
+    count: 0
+  }));
+}
+
+function localizeDemoCategoryBreakdown(locale: string) {
+  return employeeCategoryBreakdown.map((item, index) => ({
+    label: getLocalizedCategoryDisplayName(fourCCategories[index] ?? item.label, locale),
+    value: item.value,
+    color: item.color
+  }));
+}
+
+function localizeDemoTopQualities(locale: string) {
+  return employeeTopQualities.map((quality) => ({
+    label: getLocalizedCardTitle(quality.label, locale),
+    tone: quality.tone,
+    count: quality.count
+  }));
+}
 
 export function EmployeeDashboardClient({ data }: { data?: EmployeeDashboardData }) {
   const locale = useLocale();
@@ -91,6 +114,10 @@ export function EmployeeDashboardClient({ data }: { data?: EmployeeDashboardData
   const [approvingId, setApprovingId] = useState<string | null>(null);
   const [isApproving, startApprovalTransition] = useTransition();
   const t = useTranslations("employeeHome");
+  const zeroCategoryBreakdown = buildZeroCategoryBreakdown(locale);
+  const zeroQualityRows = buildZeroQualityRows(locale);
+  const localizedDemoCategories = localizeDemoCategoryBreakdown(locale);
+  const localizedDemoQualities = localizeDemoTopQualities(locale);
   const resolvedData = data ?? {
     mode: "demo" as const,
     user: currentUser,
@@ -111,24 +138,24 @@ export function EmployeeDashboardClient({ data }: { data?: EmployeeDashboardData
       cardsReceived: 15,
       cardsGiven: 7,
       recent30DaysCount: 4,
-      topQualities: employeeTopQualities.map((quality) => ({
+      topQualities: localizedDemoQualities.map((quality) => ({
         label: quality.label,
         count: quality.count,
         category: quality.label,
         tone: quality.tone
       })),
-      categoryBreakdown: employeeCategoryBreakdown,
+      categoryBreakdown: localizedDemoCategories,
       recentNotes: recognitions.slice(0, 6).map((item) => item.note)
     },
     pendingApprovals: [],
-    topQualities: employeeTopQualities,
-    categoryBreakdown: employeeCategoryBreakdown,
+    topQualities: localizedDemoQualities,
+    categoryBreakdown: localizedDemoCategories,
     recentRecognitions: recognitions.map((recognition) => ({
       id: recognition.id,
       from: recognition.from,
       to: recognition.to,
-      card: recognition.card,
-      category: recognition.category,
+      card: getLocalizedCardTitle(recognition.card, locale),
+      category: getLocalizedCategoryDisplayName(recognition.category, locale),
       note: recognition.note,
       date: recognition.date
     })),

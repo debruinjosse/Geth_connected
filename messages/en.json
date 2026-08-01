@@ -610,7 +610,9 @@
     "unassignedTeam": "Unassigned team",
     "companyAdminRole": "Company admin",
     "platformAdminRole": "Platform admin",
-    "workspaceFallback": "Workspace"
+    "workspaceFallback": "Workspace",
+    "recognizeToEnergize": "Recognize to energize.",
+    "cardNumberLabel": "Card {number}"
   },
   "employeeHome": {
     "headerTitle": "Hi, welcome back, {name}",
@@ -673,7 +675,9 @@
     "demoSubtitle": "Great to see your impact grow.",
     "demoQuarter": "This quarter",
     "demoStrength": "Great communicator",
-    "demoSignalDetail": "Communication cards are appearing most often in your recognition story."
+    "demoSignalDetail": "Communication cards are appearing most often in your recognition story.",
+    "signalHighlightsAria": "Top recognition cards behind this signal",
+    "signalHighlightCards": "{count, plural, one {# card} other {# cards}}"
   },
   "employeePages": {
     "scanTitle": "Scan a GETH® card",
@@ -902,7 +906,8 @@
     "signalHealthyTitle": "Recognition momentum is healthy",
     "signalHealthyDetail": "Every team member has recognition activity in the current dataset.",
     "signalGreatTitle": "Great team momentum",
-    "signalGreatDetail": "Recognition activity is flowing consistently across your managed team."
+    "signalGreatDetail": "Recognition activity is flowing consistently across your managed team.",
+    "viewAll": "View all"
   },
   "managerPages": {
     "analyticsTitle": "Analytics",
@@ -1046,6 +1051,10 @@
     "cardsTitle": "Cards & decks",
     "cardsSubtitle": "Manage your company's card library access and deck visibility.",
     "openPublicLibrary": "Open public library",
+    "cardStatusActive": "Active",
+    "cardStatusInactive": "Inactive",
+    "cardUsedCount": "{count} used",
+    "openQrRoute": "Open QR route",
     "cardLibraryEmptyTitle": "Card library is empty",
     "cardLibraryEmptyCopy": "Cards will appear here once the platform deck is available to your company.",
     "managerNotificationsTitle": "Notifications",

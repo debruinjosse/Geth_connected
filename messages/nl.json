@@ -610,7 +610,9 @@
     "unassignedTeam": "Team niet toegewezen",
     "companyAdminRole": "Bedrijfsbeheerder",
     "platformAdminRole": "Platformbeheerder",
-    "workspaceFallback": "Workspace"
+    "workspaceFallback": "Workspace",
+    "recognizeToEnergize": "Waarderen om te energiseren.",
+    "cardNumberLabel": "Kaart {number}"
   },
   "employeeHome": {
     "headerTitle": "Hoi, welkom terug, {name}",
@@ -673,7 +675,9 @@
     "demoSubtitle": "Mooi om je impact te zien groeien.",
     "demoQuarter": "Dit kwartaal",
     "demoStrength": "Sterke communicator",
-    "demoSignalDetail": "Communicatiekaarten komen het vaakst voor in je waarderingsverhaal."
+    "demoSignalDetail": "Communicatiekaarten komen het vaakst voor in je waarderingsverhaal.",
+    "signalHighlightsAria": "Top waarderingskaarten achter dit signaal",
+    "signalHighlightCards": "{count, plural, one {# kaart} other {# kaarten}}"
   },
   "employeePages": {
     "scanTitle": "Scan een GETH®-kaart",
@@ -902,7 +906,8 @@
     "signalHealthyTitle": "Het waarderingstempo is gezond",
     "signalHealthyDetail": "Elk teamlid heeft waarderingsactiviteit in de huidige gegevens.",
     "signalGreatTitle": "Sterk teammomentum",
-    "signalGreatDetail": "Waarderingsactiviteit loopt gestaag door je beheerd team."
+    "signalGreatDetail": "Waarderingsactiviteit loopt gestaag door je beheerd team.",
+    "viewAll": "Bekijk alles"
   },
   "managerPages": {
     "analyticsTitle": "Analyses",
@@ -1046,6 +1051,10 @@
     "cardsTitle": "Kaarten & sets",
     "cardsSubtitle": "Beheer toegang tot de kaartenbibliotheek en zichtbaarheid van sets.",
     "openPublicLibrary": "Open publieke bibliotheek",
+    "cardStatusActive": "Actief",
+    "cardStatusInactive": "Inactief",
+    "cardUsedCount": "{count} keer gebruikt",
+    "openQrRoute": "Open QR-route",
     "cardLibraryEmptyTitle": "Kaartenbibliotheek is leeg",
     "cardLibraryEmptyCopy": "Kaarten verschijnen hier zodra het platformdeck voor je bedrijf beschikbaar is.",
     "managerNotificationsTitle": "Meldingen",

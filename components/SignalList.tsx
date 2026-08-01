@@ -2,7 +2,7 @@
 
 import type { CSSProperties } from "react";
 import Link from "next/link";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 
 function localizeHref(href: string, locale: string) {
   if (!href.startsWith("/") || href.startsWith("/api") || href.startsWith("/auth")) {
@@ -26,6 +26,7 @@ export function SignalList({
   }>;
 }) {
   const locale = useLocale();
+  const t = useTranslations("employeeHome");
 
   return (
     <div className="signal-list">
@@ -39,7 +40,7 @@ export function SignalList({
               <strong>{signal.title}</strong>
               <p>{signal.detail}</p>
               {signal.highlights?.length ? (
-                <div className="signal-highlight-list" aria-label="Top recognition cards behind this signal">
+                <div className="signal-highlight-list" aria-label={t("signalHighlightsAria")}>
                   {signal.highlights.map((highlight) => (
                     <span
                       className="signal-highlight-pill"
@@ -47,7 +48,7 @@ export function SignalList({
                       style={{ "--signal-tone": highlight.tone } as CSSProperties}
                     >
                       <b>{highlight.label}</b>
-                      <small>{highlight.category} - {highlight.count} cards</small>
+                      <small>{highlight.category} - {t("signalHighlightCards", { count: highlight.count })}</small>
                     </span>
                   ))}
                 </div>

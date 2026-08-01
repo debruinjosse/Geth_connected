@@ -9,6 +9,7 @@ import { EmptyState } from "@/components/EmptyState";
 import { LineChart } from "@/components/LineChart";
 import { QualityBars } from "@/components/QualityBars";
 import { companyAdmin, companyCategoryShare, companyTrendThisQuarter, teamComparison } from "@/lib/demo-data";
+import { getLocalizedCardTitle, getLocalizedCategoryDisplayName } from "@/lib/cards";
 import { fetchCompanyDashboardInsights, type ComparisonMetric, type ComparisonState } from "@/lib/data/company-dashboard-insights";
 import { getUnreadNotificationCount } from "@/lib/notifications";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -44,11 +45,12 @@ function getComparisonText(metric: ComparisonMetric, suffix: string) {
   return `${metric.label} ${suffix}`;
 }
 
-function getLatestSixMonthLabels() {
+function getLatestSixMonthLabels(locale: string) {
   const now = new Date();
+  const dateLocale = locale === "nl" ? "nl-NL" : "en-US";
   return Array.from({ length: 6 }, (_, index) => {
     const date = new Date(now.getFullYear(), now.getMonth() - (5 - index), 1);
-    return new Intl.DateTimeFormat("en", { month: "short" }).format(date);
+    return new Intl.DateTimeFormat(dateLocale, { month: "short" }).format(date);
   });
 }
 
@@ -127,15 +129,22 @@ function CompanyMetricCard({
   );
 }
 
-function DemoCompanyDashboard({ t }: { t: Translation }) {
-  const demoTrendLabels = getLatestSixMonthLabels();
+function DemoCompanyDashboard({ t, locale }: { t: Translation; locale: string }) {
+  const demoTrendLabels = getLatestSixMonthLabels(locale);
   const demoTopQualities = [
-    { label: "Listener", category: "Communication", value: 32 },
-    { label: "Honest", category: "Communication", value: 22 },
-    { label: "Uniter", category: "Communication", value: 18 },
-    { label: "Clear Communicator", category: "Communication", value: 16 },
-    { label: "Empathetic", category: "Communication", value: 14 }
+    { label: getLocalizedCardTitle("Listener", locale), category: getLocalizedCategoryDisplayName("Communication", locale), value: 32 },
+    { label: getLocalizedCardTitle("Honest", locale), category: getLocalizedCategoryDisplayName("Communication", locale), value: 22 },
+    { label: getLocalizedCardTitle("Uniter", locale), category: getLocalizedCategoryDisplayName("Communication", locale), value: 18 },
+    { label: getLocalizedCardTitle("Clear Communicator", locale), category: getLocalizedCategoryDisplayName("Communication", locale), value: 16 },
+    { label: getLocalizedCardTitle("Empathetic", locale), category: getLocalizedCategoryDisplayName("Communication", locale), value: 14 }
   ];
+  const localizedCategoryShare = companyCategoryShare.map((segment, index) => {
+    const categories = ["Communication", "Competence", "Collegiality", "Creativity"];
+    return {
+      ...segment,
+      label: getLocalizedCategoryDisplayName(categories[index] ?? segment.label, locale)
+    };
+  });
 
   return (
     <DashboardShell role="company" title={t("demoCompany")} subtitle={t("subtitle")} user={companyAdmin} actions={<span className="quality-pill">{t("thisQuarter")}</span>}>
@@ -166,7 +175,7 @@ function DemoCompanyDashboard({ t }: { t: Translation }) {
       <section className="dashboard-grid two">
         <article className="panel dashboard-panel">
           <div className="panel-top"><h2>{t("categoryDistribution")}</h2></div>
-          <BarChart items={companyCategoryShare.map((segment) => ({ label: segment.label, value: segment.value, valueLabel: `${segment.value}%`, color: segment.color }))} />
+          <BarChart items={localizedCategoryShare.map((segment) => ({ label: segment.label, value: segment.value, valueLabel: `${segment.value}%`, color: segment.color }))} />
         </article>
 
         <article className="panel dashboard-panel">
@@ -207,7 +216,7 @@ export default async function CompanyDashboardPage({ params }: CompanyDashboardP
   const t = await getTranslations({ locale, namespace: "companyDashboard" });
 
   if (!hasSupabaseServerConfig()) {
-    return <DemoCompanyDashboard t={t} />;
+    return <DemoCompanyDashboard t={t} locale={locale} />;
   }
 
   const supabase = await createSupabaseServerClient();
@@ -233,7 +242,7 @@ export default async function CompanyDashboardPage({ params }: CompanyDashboardP
   const companyId = currentProfile.company_id;
   const [{ data: company, error: companyError }, insights, unreadNotifications] = await Promise.all([
     supabase.from("companies").select("id, company_name").eq("id", companyId).maybeSingle<CompanyRow>(),
-    fetchCompanyDashboardInsights(supabase, companyId, t("errLoad")),
+    fetchCompanyDashboardInsights(supabase, companyId, t("errLoad"), locale),
     getUnreadNotificationCount(supabase, user.id)
   ]);
 

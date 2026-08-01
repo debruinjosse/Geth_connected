@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { categoryMeta } from "@/lib/cards";
+import { categoryMeta, getLocalizedCardTitle, getLocalizedCategoryDisplayName, normalizeCategoryKey } from "@/lib/cards";
 import { getPercentageMix } from "@/lib/quality-percentages";
 
 type CompanyProfileRow = {
@@ -134,13 +134,13 @@ function getActivityUserIds(recognitions: CompanyRecognitionRow[], workforceIds:
   return activeIds;
 }
 
-function getComparison(current: number, previous: number): ComparisonMetric {
+function getComparison(current: number, previous: number, locale?: string): ComparisonMetric {
   if (previous === 0 && current === 0) {
     return { value: 0, label: "0%", state: "neutral" };
   }
 
   if (previous === 0) {
-    return { value: null, label: "New", state: "new" };
+    return { value: null, label: locale === "nl" ? "Nieuw" : "New", state: "new" };
   }
 
   const value = Math.round(((current - previous) / previous) * 100);
@@ -152,13 +152,13 @@ function getComparison(current: number, previous: number): ComparisonMetric {
   };
 }
 
-function getPointComparison(current: number, previous: number): ComparisonMetric {
+function getPointComparison(current: number, previous: number, locale?: string): ComparisonMetric {
   if (previous === 0 && current === 0) {
     return { value: 0, label: "0%", state: "neutral" };
   }
 
   if (previous === 0) {
-    return { value: null, label: "New", state: "new" };
+    return { value: null, label: locale === "nl" ? "Nieuw" : "New", state: "new" };
   }
 
   const value = current - previous;
@@ -174,12 +174,13 @@ function getMonthKey(date: Date) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
 }
 
-function getMonthWindows(size: number, now: Date) {
+function getMonthWindows(size: number, now: Date, locale?: string) {
+  const dateLocale = locale === "nl" ? "nl-NL" : "en-US";
   const recent = Array.from({ length: size }, (_, index) => {
     const date = new Date(now.getFullYear(), now.getMonth() - (size - 1 - index), 1);
     return {
       key: getMonthKey(date),
-      label: new Intl.DateTimeFormat("en", { month: "short" }).format(date)
+      label: new Intl.DateTimeFormat(dateLocale, { month: "short" }).format(date)
     };
   });
 
@@ -187,28 +188,11 @@ function getMonthWindows(size: number, now: Date) {
     const date = new Date(now.getFullYear(), now.getMonth() - (size * 2 - 1 - index), 1);
     return {
       key: getMonthKey(date),
-      label: new Intl.DateTimeFormat("en", { month: "short" }).format(date)
+      label: new Intl.DateTimeFormat(dateLocale, { month: "short" }).format(date)
     };
   });
 
   return { recent, previous };
-}
-
-function getCategoryKey(category: string) {
-  switch (category) {
-    case "Communicatie":
-      return "Communication";
-    case "Creativiteit":
-      return "Creativity";
-    case "Competentie":
-      return "Competence";
-    case "Collegialiteit":
-      return "Collegiality";
-    case "Open kaart":
-      return "Open Category";
-    default:
-      return category;
-  }
 }
 
 function buildSparkline(recognitions: CompanyRecognitionRow[], currentStart: Date, now: Date) {
@@ -230,7 +214,8 @@ function buildSparkline(recognitions: CompanyRecognitionRow[], currentStart: Dat
 export async function fetchCompanyDashboardInsights(
   supabase: SupabaseClient,
   companyId: string,
-  errorMessage: string
+  errorMessage: string,
+  locale?: string
 ): Promise<CompanyDashboardInsights> {
   const now = new Date();
   const currentStart = new Date(now.getTime() - 30 * DAY_MS);
@@ -286,8 +271,9 @@ export async function fetchCompanyDashboardInsights(
   for (const recognition of companyRecognitions) {
     const card = getSingleCard(recognition.card);
     if (card) {
-      const category = getCategoryKey(card.category);
-      const qualityKey = `${card.id}:${card.title}`;
+      const category = normalizeCategoryKey(card.category);
+      const displayTitle = getLocalizedCardTitle({ title: card.title, slug: card.qr_slug ?? undefined }, locale);
+      const qualityKey = `${card.id}:${displayTitle}`;
       const existingQuality = qualityCounts.get(qualityKey);
       qualityCounts.set(qualityKey, {
         count: (existingQuality?.count ?? 0) + 1,
@@ -310,7 +296,7 @@ export async function fetchCompanyDashboardInsights(
     const count = categoryCounts.get(category) ?? 0;
     const share = totalRecognitions ? (count / totalRecognitions) * 100 : 0;
     return {
-      label: meta.label,
+      label: getLocalizedCategoryDisplayName(category, locale),
       category,
       color: meta.color,
       count,
@@ -324,7 +310,7 @@ export async function fetchCompanyDashboardInsights(
     .slice(0, 5)
     .map(([key, info]) => ({
       label: key.slice(key.indexOf(":") + 1),
-      category: info.category,
+      category: getLocalizedCategoryDisplayName(info.category, locale),
       count: info.count
     }));
   const topQualityPercentages = getPercentageMix(topQualityEntries.map((entry) => entry.count));
@@ -367,10 +353,10 @@ export async function fetchCompanyDashboardInsights(
     .sort((a, b) => b.value - a.value || b.recognitionCount - a.recognitionCount)
     .slice(0, 5);
 
-  const { recent, previous } = getMonthWindows(6, now);
+  const { recent, previous } = getMonthWindows(6, now, locale);
   const trendPoints = recent.map((month) => monthlyCounts.get(month.key) ?? 0);
   const comparisonPoints = previous.map((month) => monthlyCounts.get(month.key) ?? 0);
-  const recognitionTrend = getComparison(currentPeriodRecognitions.length, previousPeriodRecognitions.length);
+  const recognitionTrend = getComparison(currentPeriodRecognitions.length, previousPeriodRecognitions.length, locale);
 
   return {
     totalRecognitions,
@@ -379,10 +365,10 @@ export async function fetchCompanyDashboardInsights(
     totalManagers: managers.length,
     engagementScore,
     engagementActiveCount,
-    engagementDelta: getPointComparison(engagementScore, previousEngagementScore),
+    engagementDelta: getPointComparison(engagementScore, previousEngagementScore, locale),
     recognitionRate: currentRate,
     recognitionReceiverCount,
-    recognitionRateDelta: getPointComparison(currentRate, previousRate),
+    recognitionRateDelta: getPointComparison(currentRate, previousRate, locale),
     recognitionTrendPercent: recognitionTrend.value,
     recognitionTrendState: recognitionTrend.state,
     recognitionTrendLabel: recognitionTrend.label,

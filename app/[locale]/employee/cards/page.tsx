@@ -18,8 +18,9 @@ function getInitials(firstName: string | null, lastName: string | null) {
   return `${firstName?.[0] ?? ""}${lastName?.[0] ?? ""}`.toUpperCase() || "GU";
 }
 
-function displayDate(value: string) {
-  return new Intl.DateTimeFormat("en", { month: "short", day: "numeric", year: "numeric" }).format(new Date(value));
+function displayDate(value: string, locale: string) {
+  const dateLocale = locale === "nl" ? "nl-NL" : "en-US";
+  return new Intl.DateTimeFormat(dateLocale, { month: "short", day: "numeric", year: "numeric" }).format(new Date(value));
 }
 
 type RecognitionRow = {
@@ -118,7 +119,7 @@ export default async function EmployeeCardsPage({ params }: { params: Promise<{ 
       card: getLocalizedCardTitle({ title: card.title, slug: card.qr_slug ?? undefined }, locale),
       category: card.category,
       note: row.personal_note ?? tc("noPersonalNote"),
-      date: displayDate(row.created_at),
+      date: displayDate(row.created_at, locale),
       createdAt: row.created_at
     }];
   });
@@ -132,7 +133,7 @@ export default async function EmployeeCardsPage({ params }: { params: Promise<{ 
       card: getLocalizedCardTitle({ title: card.title, slug: card.qr_slug ?? undefined }, locale),
       category: card.category,
       note: row.personal_note ?? tc("noPersonalNote"),
-      date: displayDate(row.created_at),
+      date: displayDate(row.created_at, locale),
       createdAt: row.created_at
     }];
   });

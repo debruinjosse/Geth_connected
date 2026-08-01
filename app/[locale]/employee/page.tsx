@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { EmployeeDashboardClient } from "@/components/EmployeeDashboardClient";
 import type { RecognitionItem } from "@/components/RecognitionList";
-import { categoryMeta, getAnalyticCategoryLabel, getCategoryDisplayName, getLocalizedCardTitle, type CardCategory } from "@/lib/cards";
+import { categoryMeta, getLocalizedAnalyticCategoryLabel, getLocalizedCategoryDisplayName, getLocalizedCardTitle, normalizeCategoryKey, type CardCategory } from "@/lib/cards";
 import { currentUser, employeeCategoryBreakdown, employeeGrowthPoints, employeeTopQualities, recognitions } from "@/lib/demo-data";
 import { getUnreadNotificationCount } from "@/lib/notifications";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -179,7 +179,7 @@ export default async function EmployeeDashboardPage({ params }: { params: Promis
           id: item.id,
           from,
           card: getLocalizedCardTitle({ title: card.title, slug: card.qr_slug ?? undefined }, locale),
-          category: card.category,
+          category: getLocalizedCategoryDisplayName(card.category, locale),
           note: item.personal_note ?? t("noPersonalNote"),
           createdAt: item.created_at
         } satisfies RecognitionItem
@@ -190,11 +190,12 @@ export default async function EmployeeDashboardPage({ params }: { params: Promis
   const qualityCounts = new Map<string, { count: number; category: string }>();
 
   for (const recognition of normalizedRecognitions) {
-    categoryCounts.set(recognition.category, (categoryCounts.get(recognition.category) ?? 0) + 1);
+    const categoryKey = normalizeCategoryKey(recognition.category);
+    categoryCounts.set(categoryKey, (categoryCounts.get(categoryKey) ?? 0) + 1);
     const existing = qualityCounts.get(recognition.card);
     qualityCounts.set(recognition.card, {
       count: (existing?.count ?? 0) + 1,
-      category: recognition.category
+      category: categoryKey
     });
   }
 
@@ -204,7 +205,7 @@ export default async function EmployeeDashboardPage({ params }: { params: Promis
     .map(([label, info]) => ({
       label,
       count: info.count,
-      category: getCategoryDisplayName(info.category),
+      category: getLocalizedCategoryDisplayName(info.category, locale),
       rawCategory: info.category,
       tone: getEmployeeCategoryColor(info.category)
     }));
@@ -215,7 +216,7 @@ export default async function EmployeeDashboardPage({ params }: { params: Promis
   const fourCCategories: CardCategory[] = ["Communication", "Creativity", "Competence", "Collegiality"];
   const categoryBreakdown = fourCCategories
     .map((category) => ({
-      label: getCategoryDisplayName(category),
+      label: getLocalizedCategoryDisplayName(category, locale),
       value: categoryCounts.get(category) ?? 0,
       color: getEmployeeCategoryColor(category)
     }))
@@ -265,7 +266,7 @@ export default async function EmployeeDashboardPage({ params }: { params: Promis
   const energyScore = normalizedRecognitions.length
     ? Math.min(96, Math.max(42, normalizedRecognitions.length * 12 + recent30DaysCount * 8))
     : 0;
-  const topStrengthLabel = topCategory ? getAnalyticCategoryLabel(topCategory[0]) : t("noSignalYet");
+  const topStrengthLabel = topCategory ? getLocalizedAnalyticCategoryLabel(topCategory[0], locale) : t("noSignalYet");
   const signalsContext = {
     locale,
     employeeId: user.id,
@@ -295,7 +296,7 @@ export default async function EmployeeDashboardPage({ params }: { params: Promis
       kind: "giver_verification" as const,
       receiverName: pendingReceiverMap.get(row.receiver_user_id) ?? t("aTeammate"),
       cardTitle: getLocalizedCardTitle({ title: card.title, slug: card.qr_slug ?? undefined }, locale),
-      category: getCategoryDisplayName(card.category),
+      category: getLocalizedCategoryDisplayName(card.category, locale),
       note: row.personal_note,
       createdAt: row.created_at
     }];
@@ -310,7 +311,7 @@ export default async function EmployeeDashboardPage({ params }: { params: Promis
       receiverName: `${profile.first_name} ${profile.last_name}`.trim() || t("you"),
       giverName: row.giver_user_id ? pendingGiverMap.get(row.giver_user_id) ?? t("aTeammate") : t("aTeammate"),
       cardTitle: getLocalizedCardTitle({ title: card.title, slug: card.qr_slug ?? undefined }, locale),
-      category: getCategoryDisplayName(card.category),
+      category: getLocalizedCategoryDisplayName(card.category, locale),
       note: row.personal_note,
       createdAt: row.created_at
     }];

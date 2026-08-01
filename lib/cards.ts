@@ -726,13 +726,31 @@ export function getCanonicalCardBySlugOrNumber(cardNumber?: number | null, slug?
   return gethCards.find((card) => card.cardNumber === cardNumber || (resolvedSlug ? card.slug === resolvedSlug : false));
 }
 
+export function normalizeCategoryKey(category: string) {
+  switch (category) {
+    case "Communicatie":
+      return "Communication";
+    case "Creativiteit":
+      return "Creativity";
+    case "Competentie":
+      return "Competence";
+    case "Collegialiteit":
+      return "Collegiality";
+    case "Open kaart":
+      return "Open Category";
+    default:
+      return category;
+  }
+}
+
 export function getCategoryDisplayName(category: string) {
   return categoryMeta[category as CardCategory]?.label ?? category;
 }
 
 export function getLocalizedCategoryDisplayName(category: string, locale?: string) {
   const normalizedLocale = normalizeLocale(locale);
-  return categoryLabelsByLocale[normalizedLocale][category as CardCategory] ?? getCategoryDisplayName(category);
+  const normalizedCategory = normalizeCategoryKey(category) as CardCategory;
+  return categoryLabelsByLocale[normalizedLocale][normalizedCategory] ?? getCategoryDisplayName(category);
 }
 
 export function getLocalizedCardTitle(cardOrTitle: Pick<GethCard, "title"> & Partial<Pick<GethCard, "slug">> | string, locale?: string) {
@@ -771,23 +789,32 @@ export function getLocalizedCardTitle(cardOrTitle: Pick<GethCard, "title"> & Par
   return title;
 }
 
-export function getAnalyticCategoryLabel(category: string) {
-  switch (category) {
-    case "Communication":
-    case "Communicatie":
-      return "Great communicator";
-    case "Creativity":
-    case "Creativiteit":
-      return "Most creative";
-    case "Competence":
-    case "Competentie":
-      return "Strong competence builder";
-    case "Collegiality":
-    case "Collegialiteit":
-      return "Great teammate";
-    default:
-      return "Recognized strength";
+const analyticCategoryLabelsByLocale: Record<SupportedCardLocale, Record<string, string>> = {
+  en: {
+    Communication: "Great communicator",
+    Creativity: "Most creative",
+    Competence: "Strong competence builder",
+    Collegiality: "Great teammate",
+    default: "Recognized strength"
+  },
+  nl: {
+    Communication: "Sterke communicator",
+    Creativity: "Meest creatief",
+    Competence: "Sterke competentiebouwer",
+    Collegiality: "Geweldige teamspeler",
+    default: "Erkende kracht"
   }
+};
+
+export function getLocalizedAnalyticCategoryLabel(category: string, locale?: string) {
+  const normalizedLocale = normalizeLocale(locale);
+  const labels = analyticCategoryLabelsByLocale[normalizedLocale];
+  const normalizedCategory = normalizeCategoryKey(category);
+  return labels[normalizedCategory] ?? labels.default;
+}
+
+export function getAnalyticCategoryLabel(category: string) {
+  return getLocalizedAnalyticCategoryLabel(category, "en");
 }
 
 export function mapCardLibraryRowToCard(row: CardLibraryRow): GethCard {

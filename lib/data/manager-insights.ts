@@ -2,7 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { QualityBarItem } from "@/components/QualityBars";
 import { getPercentageMix } from "@/lib/quality-percentages";
 import type { TeamMemberRow } from "@/components/TeamTable";
-import { categoryColors, getAnalyticCategoryLabel } from "@/lib/cards";
+import { categoryColors, getLocalizedAnalyticCategoryLabel, getLocalizedCardTitle, normalizeCategoryKey } from "@/lib/cards";
 
 export type ManagerInsights = {
   profile: {
@@ -55,21 +55,21 @@ function getEnergyBucket(totalReceived: number, recentReceived: number): TeamMem
 
 type JoinedCard = { title: string; category: string; card_number?: number | null; qr_slug?: string | null };
 
-function getDisplayCard(card: JoinedCard) {
+function getDisplayCard(card: JoinedCard, locale: string) {
   return {
-    title: card.title,
-    category: card.category
+    title: getLocalizedCardTitle({ title: card.title, slug: card.qr_slug ?? undefined }, locale),
+    category: normalizeCategoryKey(card.category)
   };
 }
 
-function countByCard(received: Array<{ card: JoinedCard | Array<JoinedCard> | null }>) {
+function countByCard(received: Array<{ card: JoinedCard | Array<JoinedCard> | null }>, locale: string) {
   const cardCounts = new Map<string, { value: number; category: string }>();
   const categoryCounts = new Map<string, number>();
 
   for (const recognition of received) {
     const card = Array.isArray(recognition.card) ? recognition.card[0] : recognition.card;
     if (!card) continue;
-    const displayCard = getDisplayCard(card);
+    const displayCard = getDisplayCard(card, locale);
     const cardEntry = cardCounts.get(displayCard.title);
     cardCounts.set(displayCard.title, { value: (cardEntry?.value ?? 0) + 1, category: displayCard.category });
     categoryCounts.set(displayCard.category, (categoryCounts.get(displayCard.category) ?? 0) + 1);
@@ -185,7 +185,7 @@ export async function getManagerInsights(
   for (const recognition of recognitions) {
     const card = Array.isArray(recognition.card) ? recognition.card[0] : recognition.card;
     if (card) {
-      const displayCard = getDisplayCard(card);
+      const displayCard = getDisplayCard(card, locale);
       const existing = qualityCounts.get(displayCard.title);
       qualityCounts.set(displayCard.title, { value: (existing?.value ?? 0) + 1, category: displayCard.category });
     }
@@ -206,10 +206,10 @@ export async function getManagerInsights(
     const received = recognitionsByReceiver.get(member.id) ?? [];
     const given = recognitionsByGiver.get(member.id) ?? [];
     const recentReceived = received.filter((recognition) => Date.now() - new Date(recognition.created_at).getTime() <= RECENT_ACTIVITY_MS).length;
-    const { topCard, topCategory } = countByCard(received);
+    const { topCard, topCategory } = countByCard(received, locale);
     const topQuality =
       topCategory && topCategory[1] >= 3
-        ? getAnalyticCategoryLabel(topCategory[0])
+        ? getLocalizedAnalyticCategoryLabel(topCategory[0], locale)
         : topCard?.[0] ?? t("noRecognitionsYet");
 
     return {
@@ -261,7 +261,7 @@ export async function getManagerInsights(
 
   for (const member of teamRows) {
     const received = recognitionsByReceiver.get(member.id) ?? [];
-    const { topCard, topCategory } = countByCard(received);
+    const { topCard, topCategory } = countByCard(received, locale);
 
     if (topCard && topCard[1].value >= 5) {
       signalItems.push({
@@ -276,8 +276,8 @@ export async function getManagerInsights(
       signalItems.push({
         id: `signal-category-${member.id}-${topCategory[0]}`,
         tone: categoryColors[topCategory[0]] ?? "var(--theme-gold)",
-        title: t("signalCategoryTitle", { name: member.name, quality: getAnalyticCategoryLabel(topCategory[0]).toLowerCase() }),
-        detail: t("signalCategoryDetail", { count: topCategory[1], category: topCategory[0].toLowerCase() })
+        title: t("signalCategoryTitle", { name: member.name, quality: getLocalizedAnalyticCategoryLabel(topCategory[0], locale).toLowerCase() }),
+        detail: t("signalCategoryDetail", { count: topCategory[1], category: getLocalizedAnalyticCategoryLabel(topCategory[0], locale).toLowerCase() })
       });
     }
 

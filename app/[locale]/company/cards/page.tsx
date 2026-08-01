@@ -3,7 +3,7 @@ import { getTranslations } from "next-intl/server";
 import { DashboardShell } from "@/components/DashboardShell";
 import { EmptyState } from "@/components/EmptyState";
 import { companyAdmin, cardManagementRows } from "@/lib/demo-data";
-import { getCategoryDisplayName } from "@/lib/cards";
+import { getLocalizedCategoryDisplayName, getLocalizedCardTitle } from "@/lib/cards";
 import { getUnreadNotificationCount } from "@/lib/notifications";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -32,15 +32,15 @@ function renderDemoCards(
           {cardManagementRows.map((card) => (
             <article className="company-card-admin-card" key={card.id}>
               <div>
-                <span className="eyebrow">{card.category}</span>
-                <h3>{card.title}</h3>
+                <span className="eyebrow">{getLocalizedCategoryDisplayName(card.category, locale)}</span>
+                <h3>{getLocalizedCardTitle({ title: card.title, slug: card.slug }, locale)}</h3>
                 <p>{card.sentence}</p>
               </div>
               <div className="company-card-admin-meta">
                 <span>#{card.number}</span>
-                <span className="energy high">{card.status}</span>
+                <span className="energy high">{card.status === "Active" ? t("cardStatusActive") : t("cardStatusInactive")}</span>
               </div>
-              <a className="btn btn-secondary" href={`/${locale}/claim-card/${card.slug}`}>Open QR route</a>
+              <a className="btn btn-secondary" href={`/${locale}/claim-card/${card.slug}`}>{t("openQrRoute")}</a>
             </article>
           ))}
         </div>
@@ -127,16 +127,16 @@ export default async function CompanyCardsPage({ params }: { params: Promise<{ l
             {cards.map((card) => (
                 <article className="company-card-admin-card" key={card.id}>
                   <div>
-                    <span className="eyebrow">{getCategoryDisplayName(card.category)}</span>
-                    <h3>{card.title}</h3>
+                    <span className="eyebrow">{getLocalizedCategoryDisplayName(card.category, locale)}</span>
+                    <h3>{getLocalizedCardTitle({ title: card.title, slug: card.qr_slug }, locale)}</h3>
                     <p>{card.recognition_sentence}</p>
                   </div>
                   <div className="company-card-admin-meta">
                     <span>#{String(card.card_number).padStart(2, "0")}</span>
-                    <span className={`energy ${card.active ? "high" : "low"}`.trim()}>{card.active ? "Active" : "Inactive"}</span>
-                    <span>{usageCounts.get(card.id) ?? 0} used</span>
+                    <span className={`energy ${card.active ? "high" : "low"}`.trim()}>{card.active ? t("cardStatusActive") : t("cardStatusInactive")}</span>
+                    <span>{t("cardUsedCount", { count: usageCounts.get(card.id) ?? 0 })}</span>
                   </div>
-                  <a className="btn btn-secondary" href={`/${locale}/claim-card/${card.qr_slug}`}>Open QR route</a>
+                  <a className="btn btn-secondary" href={`/${locale}/claim-card/${card.qr_slug}`}>{t("openQrRoute")}</a>
                 </article>
               ))}
           </div>

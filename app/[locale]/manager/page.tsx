@@ -8,7 +8,7 @@ import { MetricCard } from "@/components/MetricCard";
 import { QualityBars, type QualityBarItem } from "@/components/QualityBars";
 import { SignalList } from "@/components/SignalList";
 import { TeamTable, type TeamMemberRow } from "@/components/TeamTable";
-import { categoryMeta } from "@/lib/cards";
+import { categoryMeta, getLocalizedCardTitle } from "@/lib/cards";
 import { managerTrendPoints, managerUser, people, teamSignals, topQualities } from "@/lib/demo-data";
 import { getUnreadNotificationCount } from "@/lib/notifications";
 import { getPercentageMix } from "@/lib/quality-percentages";
@@ -98,7 +98,7 @@ export default async function ManagerDashboardPage({ params }: { params: Promise
             <div className="panel-top">
               <h2>{t("teamSignals")}</h2>
               <a href={signalsHref} style={{ color: "var(--theme-ink)", fontWeight: 700 }}>
-                View all
+                {t("viewAll")}
               </a>
             </div>
             <SignalList items={teamSignals} />
@@ -127,9 +127,9 @@ export default async function ManagerDashboardPage({ params }: { params: Promise
             <BarChart
               compact
               items={[
-                { label: "Last quarter", value: 18, color: "rgba(42, 23, 61, 0.32)" },
-                { label: "This quarter", value: 23, color: "var(--theme-emerald)" },
-                { label: "Impact change", value: 23, valueLabel: "+23%", color: "var(--theme-gold)", helper: "Increase in team recognition compared to last quarter." }
+                { label: t("lastQuarter"), value: 18, color: "rgba(42, 23, 61, 0.32)" },
+                { label: t("thisQuarter"), value: 23, color: "var(--theme-emerald)" },
+                { label: t("impactChange"), value: 23, valueLabel: "+23%", color: "var(--theme-gold)", helper: t("comparedLast") }
               ]}
             />
           </article>
@@ -171,7 +171,7 @@ export default async function ManagerDashboardPage({ params }: { params: Promise
             <div className="panel-top">
               <h2>{t("teamSignals")}</h2>
               <a href={signalsHref} style={{ color: "var(--theme-ink)", fontWeight: 700 }}>
-                View all
+                {t("viewAll")}
               </a>
             </div>
             <SignalList items={teamSignals} />
@@ -200,9 +200,9 @@ export default async function ManagerDashboardPage({ params }: { params: Promise
             <BarChart
               compact
               items={[
-                { label: "Last quarter", value: 18, color: "rgba(42, 23, 61, 0.32)" },
-                { label: "This quarter", value: 23, color: "var(--theme-emerald)" },
-                { label: "Impact change", value: 23, valueLabel: "+23%", color: "var(--theme-gold)", helper: "Increase in team recognition compared to last quarter." }
+                { label: t("lastQuarter"), value: 18, color: "rgba(42, 23, 61, 0.32)" },
+                { label: t("thisQuarter"), value: 23, color: "var(--theme-emerald)" },
+                { label: t("impactChange"), value: 23, valueLabel: "+23%", color: "var(--theme-gold)", helper: t("comparedLast") }
               ]}
             />
           </article>
@@ -337,7 +337,7 @@ export default async function ManagerDashboardPage({ params }: { params: Promise
   for (const recognition of recognitions) {
     const card = Array.isArray(recognition.card) ? recognition.card[0] : recognition.card;
     if (card) {
-      const title = card.title;
+      const title = getLocalizedCardTitle({ title: card.title, slug: card.qr_slug ?? undefined }, locale);
       const category = card.category;
       const existingQuality = qualityCounts.get(title);
       qualityCounts.set(title, {
@@ -372,7 +372,7 @@ export default async function ManagerDashboardPage({ params }: { params: Promise
     for (const recognition of receivedForMember) {
       const card = Array.isArray(recognition.card) ? recognition.card[0] : recognition.card;
       if (card) {
-        const title = card.title;
+        const title = getLocalizedCardTitle({ title: card.title, slug: card.qr_slug ?? undefined }, locale);
         topQualityCounter.set(title, (topQualityCounter.get(title) ?? 0) + 1);
       }
     }
@@ -513,7 +513,7 @@ export default async function ManagerDashboardPage({ params }: { params: Promise
           <div className="panel-top">
             <h2>{t("teamSignals")}</h2>
             <a href={signalsHref} style={{ color: "var(--theme-ink)", fontWeight: 700 }}>
-              View all
+              {t("viewAll")}
             </a>
           </div>
           {signalItems.length ? (

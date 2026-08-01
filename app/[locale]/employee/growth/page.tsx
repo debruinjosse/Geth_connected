@@ -4,7 +4,7 @@ import { BarChart } from "@/components/BarChart";
 import { DashboardShell } from "@/components/DashboardShell";
 import { EmptyState } from "@/components/EmptyState";
 import { QualityBars, type QualityBarItem } from "@/components/QualityBars";
-import { categoryMeta, getCategoryDisplayName, getLocalizedCardTitle, type CardCategory } from "@/lib/cards";
+import { categoryMeta, getLocalizedCategoryDisplayName, getLocalizedCardTitle, normalizeCategoryKey, type CardCategory } from "@/lib/cards";
 import { currentUser, employeeCategoryBreakdown, employeeGrowthPoints } from "@/lib/demo-data";
 import { getUnreadNotificationCount } from "@/lib/notifications";
 import { getPercentageMix } from "@/lib/quality-percentages";
@@ -88,7 +88,7 @@ export default async function EmployeeGrowthPage({ params }: { params: Promise<{
 
   const monthWindows = Array.from({ length: 6 }, (_, index) => {
     const date = new Date(new Date().getFullYear(), new Date().getMonth() - (5 - index), 1);
-    return { key: getMonthKey(date), label: new Intl.DateTimeFormat("en", { month: "short" }).format(date) };
+    return { key: getMonthKey(date), label: new Intl.DateTimeFormat(locale === "nl" ? "nl-NL" : "en-US", { month: "short" }).format(date) };
   });
   const monthlyCounts = new Map(monthWindows.map((month) => [month.key, 0]));
   const categoryCounts = new Map<string, number>();
@@ -99,7 +99,7 @@ export default async function EmployeeGrowthPage({ params }: { params: Promise<{
     if (!card) continue;
     const monthKey = getMonthKey(new Date(recognition.created_at));
     if (monthlyCounts.has(monthKey)) monthlyCounts.set(monthKey, (monthlyCounts.get(monthKey) ?? 0) + 1);
-    const category = card.category;
+    const category = normalizeCategoryKey(card.category);
     categoryCounts.set(category, (categoryCounts.get(category) ?? 0) + 1);
     const label = getLocalizedCardTitle({ title: card.title, slug: card.qr_slug ?? undefined }, locale);
     const existing = qualityCounts.get(label);
@@ -114,7 +114,7 @@ export default async function EmployeeGrowthPage({ params }: { params: Promise<{
   const qualityRows: QualityBarItem[] = topQualityEntries.map(([label, info], index) => ({
     label,
     value: topQualityPercentages[index] ?? 0,
-    category: info.category
+    category: getLocalizedCategoryDisplayName(info.category, locale)
   }));
 
   return (
@@ -144,7 +144,7 @@ export default async function EmployeeGrowthPage({ params }: { params: Promise<{
           {categoryRows.length ? (
             <BarChart
               items={fourCCategories.map((category) => ({
-                label: getCategoryDisplayName(category),
+                label: getLocalizedCategoryDisplayName(category, locale),
                 value: categoryCounts.get(category) ?? 0,
                 color: categoryMeta[category].color
               }))}
