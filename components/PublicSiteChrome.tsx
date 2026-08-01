@@ -4,15 +4,14 @@ import { getLocale, getTranslations } from "next-intl/server";
 import { BrandLogo } from "@/components/BrandLogo";
 import { GoogleTranslateWidget } from "@/components/GoogleTranslateWidget";
 import { PublicMobileNav } from "@/components/PublicMobileNav";
-import { getRouteForAppRole, normalizeAppRole } from "@/lib/auth/roles";
-import { localizePublicHref, publicNavLinks } from "@/lib/navigation/public-nav";
+import { getLocalizedDashboardHref, localizePublicHref, publicNavLinks } from "@/lib/navigation/public-nav";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 function localizeHref(href: string, locale: string) {
   return localizePublicHref(href, locale);
 }
 
-async function getPublicUserState() {
+async function getPublicUserState(locale: string) {
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
     return null;
   }
@@ -27,17 +26,15 @@ async function getPublicUserState() {
 
     const { data: profile } = await supabase
       .from("profiles")
-      .select("first_name, last_name, role")
+      .select("first_name, last_name")
       .eq("id", user.id)
-      .maybeSingle<{ first_name: string; last_name: string; role: string }>();
-
-    const role = normalizeAppRole(profile?.role);
+      .maybeSingle<{ first_name: string; last_name: string }>();
     const fallbackName = user.email?.split("@")[0]?.replace(/[._-]+/g, " ") ?? "there";
     const name = profile?.first_name?.trim() || fallbackName;
 
     return {
       name,
-      dashboardHref: getRouteForAppRole(role)
+      dashboardHref: getLocalizedDashboardHref(locale)
     };
   } catch {
     return null;
@@ -55,8 +52,8 @@ export async function PublicSiteChrome({
   ctaHref?: string;
   locale?: string;
 }) {
-  const signedInUser = await getPublicUserState();
   const locale = localeOverride ?? await getLocale();
+  const signedInUser = await getPublicUserState(locale);
   const nav = await getTranslations({ locale, namespace: "nav" });
   const footer = await getTranslations({ locale, namespace: "footer" });
   const localizedCtaHref = localizeHref(ctaHref, locale);
@@ -64,7 +61,12 @@ export async function PublicSiteChrome({
     href: localizeHref(link.href, locale),
     label: nav(link.labelKey)
   }));
-  const localizedDashboardHref = signedInUser ? localizeHref(signedInUser.dashboardHref, locale) : undefined;
+  const primaryNavLabel = signedInUser
+    ? nav("openDashboard")
+    : ctaLabel === "Book a demo"
+      ? nav("bookDemo")
+      : ctaLabel;
+  const primaryNavHref = signedInUser ? signedInUser.dashboardHref : localizedCtaHref;
 
   return (
     <main>
@@ -80,11 +82,11 @@ export async function PublicSiteChrome({
               </Link>
             ))}
           </nav>
-          <div className="site-actions">
+          <div className={`site-actions${signedInUser ? " signed-in" : ""}`}>
             {signedInUser ? (
               <>
-                <Link className="site-user-link" href={localizedDashboardHref ?? `/${locale}`}>{nav("hi", { name: signedInUser.name })}</Link>
-                <Link className="btn btn-primary site-primary-cta" href={localizedDashboardHref ?? `/${locale}`}>
+                <Link className="site-user-link" href={primaryNavHref}>{nav("hi", { name: signedInUser.name })}</Link>
+                <Link className="btn btn-primary site-primary-cta" href={primaryNavHref}>
                   {nav("openDashboard")}
                 </Link>
                 <GoogleTranslateWidget />
@@ -102,15 +104,13 @@ export async function PublicSiteChrome({
           </div>
           <PublicMobileNav
             links={localizedNavLinks}
-            loginLabel={nav("login")}
-            loginHref={localizeHref("/login", locale)}
-            bookDemoLabel={nav("bookDemo")}
-            bookDemoHref={localizedCtaHref}
             menuLabel={nav("menu")}
             closeLabel={nav("closeMenu")}
             signedIn={Boolean(signedInUser)}
-            dashboardLabel={nav("openDashboard")}
-            dashboardHref={localizedDashboardHref}
+            primaryLabel={primaryNavLabel}
+            primaryHref={primaryNavHref}
+            secondaryLabel={signedInUser ? undefined : nav("login")}
+            secondaryHref={signedInUser ? undefined : localizeHref("/login", locale)}
             signOutLabel={nav("signOut")}
           />
         </div>

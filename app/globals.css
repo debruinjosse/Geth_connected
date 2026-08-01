@@ -1649,6 +1649,59 @@ img {
   line-height: 1.65;
 }
 
+.deck-how-it-works__cards {
+  display: none;
+}
+
+.how-it-works-step-card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 14px;
+  align-items: start;
+  padding: 18px 16px;
+  border: 1px solid rgba(213, 162, 56, 0.28);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.04);
+  text-align: left;
+}
+
+.how-it-works-step-card__badge {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border-radius: 999px;
+  color: var(--deck-plum);
+  background: var(--deck-gold);
+  font-size: 1rem;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.how-it-works-step-card__body {
+  min-width: 0;
+}
+
+.how-it-works-step-card__body h3 {
+  margin: 0 0 8px;
+  color: var(--deck-gold);
+  font-size: 1rem;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  line-height: 1.35;
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+}
+
+.how-it-works-step-card__body p {
+  margin: 0;
+  color: rgba(248, 241, 229, 0.84);
+  font-size: 0.92rem;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
 .deck-card-stack-icon {
   position: relative;
   width: 90px;
@@ -8191,6 +8244,10 @@ textarea.input {
     display: none;
   }
 
+  .site-actions.signed-in .site-primary-cta {
+    display: inline-flex;
+  }
+
   .route-language-widget {
     flex: 0 0 auto;
     white-space: nowrap;
@@ -8909,6 +8966,28 @@ textarea.input {
   }
 }
 
+@media (max-width: 767px) {
+  .deck-how-it-works__grid--deck {
+    display: none;
+  }
+
+  .deck-how-it-works__cards {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .deck-how-it-works__inner {
+    width: min(100% - 32px, 100%);
+    padding: 48px 0 52px;
+  }
+
+  .deck-how-it-works__header {
+    margin-bottom: 24px;
+    padding-inline: 4px;
+  }
+}
+
 @media (max-width: 700px) {
   .admin-invoice-hero {
     grid-template-columns: 1fr;
@@ -9028,9 +9107,14 @@ textarea.input {
 }
 
 .public-mobile-nav-toggle,
-.public-mobile-nav-backdrop {
+.public-mobile-nav-backdrop,
+.public-mobile-dashboard-cta {
   border: 0;
   font: inherit;
+}
+
+.public-mobile-dashboard-cta {
+  display: none;
 }
 
 @media (min-width: 768px) and (max-width: 1099px) {
@@ -9068,6 +9152,19 @@ textarea.input {
 
   .site-primary-cta {
     display: none;
+  }
+
+  .site-actions.signed-in .site-primary-cta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    max-width: min(100%, 220px);
+    min-height: 36px;
+    padding: 8px 12px;
+    font-size: 12px;
+    line-height: 1.2;
+    white-space: normal;
+    overflow-wrap: anywhere;
   }
 }
 
@@ -9120,6 +9217,30 @@ textarea.input {
     margin-left: auto;
     min-width: 0;
     flex: 0 0 auto;
+  }
+
+  .public-mobile-dashboard-cta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 36px;
+    max-width: min(46vw, 168px);
+    padding: 8px 12px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, var(--theme-gold), var(--theme-gold-deep));
+    color: #26140d;
+    font-size: 12px;
+    font-weight: 800;
+    line-height: 1.2;
+    text-align: center;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    text-decoration: none;
+  }
+
+  .public-mobile-dashboard-cta:focus-visible {
+    outline: 2px solid var(--theme-gold);
+    outline-offset: 3px;
   }
 
   .public-mobile-nav > .route-language-widget {

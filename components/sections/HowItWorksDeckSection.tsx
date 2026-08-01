@@ -1,4 +1,5 @@
 import { BrandMarkIcon } from "@/components/BrandLogo";
+import { HowItWorksStepCard } from "@/components/sections/HowItWorksStepCard";
 import { Heart, MessagesSquare, QrCode, TrendingUp, User, UsersRound } from "lucide-react";
 
 function CardStackIcon() {
@@ -83,7 +84,7 @@ export function HowItWorksDeckSection({ content }: { content: HowItWorksContent 
           <h2 id="deck-how-it-works-title">{content.title}</h2>
         </header>
 
-        <div className="deck-how-it-works__grid">
+        <div className="deck-how-it-works__grid deck-how-it-works__grid--deck">
           {steps.map((step, index) => (
             <article className="deck-how-it-works__step" key={step.key}>
               <div className="deck-how-it-works__meta">
@@ -95,6 +96,17 @@ export function HowItWorksDeckSection({ content }: { content: HowItWorksContent 
                 <p>{content.steps[step.key].description}</p>
               </div>
             </article>
+          ))}
+        </div>
+
+        <div className="deck-how-it-works__cards">
+          {steps.map((step, index) => (
+            <HowItWorksStepCard
+              key={`card-${step.key}`}
+              number={index + 1}
+              title={content.steps[step.key].title}
+              description={content.steps[step.key].description}
+            />
           ))}
         </div>
       </div>

@@ -193,7 +193,7 @@ export function ClaimCardClient({
                   : t("claimedCopy")}
               </p>
               <div className="claim-success-actions">
-                <Link className="btn btn-dark" href={`${localePrefix}/employee`}>
+                <Link className="btn btn-dark" href={`${localePrefix}/dashboard`}>
                   {t("openDashboard")}
                 </Link>
                 <Link

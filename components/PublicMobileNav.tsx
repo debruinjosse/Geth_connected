@@ -11,29 +11,25 @@ type MobileLink = {
 
 export type PublicMobileNavProps = {
   links: MobileLink[];
-  loginLabel: string;
-  loginHref: string;
-  bookDemoLabel: string;
-  bookDemoHref: string;
+  primaryLabel: string;
+  primaryHref: string;
   menuLabel: string;
   closeLabel: string;
   signedIn?: boolean;
-  dashboardLabel?: string;
-  dashboardHref?: string;
+  secondaryLabel?: string;
+  secondaryHref?: string;
   signOutLabel?: string;
 };
 
 export function PublicMobileNav({
   links,
-  loginLabel,
-  loginHref,
-  bookDemoLabel,
-  bookDemoHref,
+  primaryLabel,
+  primaryHref,
   menuLabel,
   closeLabel,
   signedIn = false,
-  dashboardLabel,
-  dashboardHref,
+  secondaryLabel,
+  secondaryHref,
   signOutLabel
 }: PublicMobileNavProps) {
   const [open, setOpen] = useState(false);
@@ -59,12 +55,16 @@ export function PublicMobileNav({
     };
   }, [open]);
 
-  const appLinks = signedIn && dashboardHref && dashboardLabel
-    ? [{ href: dashboardHref, label: dashboardLabel }]
-    : [{ href: loginHref, label: loginLabel }];
+  const secondaryLinks =
+    secondaryLabel && secondaryHref ? [{ href: secondaryHref, label: secondaryLabel }] : [];
 
   return (
     <div className="public-mobile-nav">
+      {signedIn ? (
+        <a className="public-mobile-dashboard-cta" href={primaryHref}>
+          {primaryLabel}
+        </a>
+      ) : null}
       <GoogleTranslateWidget />
       <button
         aria-controls={panelId}
@@ -86,13 +86,13 @@ export function PublicMobileNav({
             type="button"
           />
           <nav className="public-mobile-nav-panel" id={panelId} aria-label={menuLabel}>
-            {[...links, ...appLinks].map((link) => (
+            {[...links, ...secondaryLinks].map((link) => (
               <a href={link.href} key={`${link.href}-${link.label}`} onClick={() => setOpen(false)}>
                 {link.label}
               </a>
             ))}
-            <a className="public-mobile-nav-primary" href={bookDemoHref} onClick={() => setOpen(false)}>
-              {bookDemoLabel}
+            <a className="public-mobile-nav-primary" href={primaryHref} onClick={() => setOpen(false)}>
+              {primaryLabel}
             </a>
             {signedIn && signOutLabel ? (
               <a href="/auth/signout" onClick={() => setOpen(false)}>

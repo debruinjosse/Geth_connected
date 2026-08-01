@@ -66,41 +66,17 @@
     padding-inline: 0;
   }
 
-  .deck-how-it-works__step {
-    padding-inline: 0;
-    padding-bottom: 32px;
-    align-items: center;
-    text-align: center;
+  .how-it-works-step-card {
+    padding: 16px 14px;
+    gap: 12px;
   }
 
-  .deck-how-it-works__meta {
-    flex-direction: column;
-    align-items: center;
-    gap: 14px;
-    min-width: 0;
+  .how-it-works-step-card__body h3 {
+    font-size: 0.95rem;
   }
 
-  .deck-how-it-works__content {
-    min-width: 0;
-    padding-right: 0;
-    align-items: center;
-    text-align: center;
-  }
-
-  .deck-how-it-works__step h3,
-  .deck-how-it-works__step p {
-    max-width: 100%;
-    text-align: center;
-  }
-
-  .deck-how-it-works__icon {
-    width: 96px;
-    height: 80px;
-    overflow: hidden;
-  }
-
-  .deck-how-it-works__icon > * {
-    transform: scale(0.78);
+  .how-it-works-step-card__body p {
+    font-size: 0.88rem;
   }
 
   .infinity-strip-below-hero {
@@ -625,30 +601,18 @@
     padding-inline: 12px;
   }
 
-  .deck-how-it-works__icon {
-    width: 64px;
-    height: 64px;
-    overflow: hidden;
+  .how-it-works-step-card {
+    padding: 14px 12px;
   }
 
-  .deck-how-it-works__icon > * {
-    transform: scale(0.72);
-  }
-
-  .deck-how-it-works__meta {
-    gap: 10px;
+  .how-it-works-step-card__badge {
+    width: 36px;
+    height: 36px;
+    font-size: 0.92rem;
   }
 }
 
 @media (max-width: 359px) {
-  .deck-how-it-works__icon {
-    display: none !important;
-  }
-
-  .deck-how-it-works__meta {
-    gap: 0;
-  }
-
   .dashboard-header-menu.mobile-shell-toggle {
     width: 38px;
     height: 38px;

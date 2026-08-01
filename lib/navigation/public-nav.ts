@@ -5,6 +5,10 @@ export const publicNavLinks = [
   { href: "/vision-mission", labelKey: "visionMission" }
 ] as const;
 
+export function getLocalizedDashboardHref(locale: string) {
+  return localizePublicHref("/dashboard", locale);
+}
+
 export function localizePublicHref(href: string, locale: string) {
   if (!href.startsWith("/") || href.startsWith("/api") || href.startsWith("/auth")) {
     return href;

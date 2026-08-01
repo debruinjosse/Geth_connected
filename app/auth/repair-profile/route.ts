@@ -2,8 +2,14 @@ import { createServerClient } from "@supabase/ssr";
 import { NextRequest, NextResponse } from "next/server";
 import { bootstrapProfile } from "@/lib/auth/bootstrap-profile";
 import { normalizeAppRole } from "@/lib/auth/roles";
+import { defaultLocale, getLocaleFromPathname, stripLocaleFromPathname } from "@/i18n/routing";
+import { localizePublicHref } from "@/lib/navigation/public-nav";
 
 function isAllowedNextPath(path: string, role: ReturnType<typeof normalizeAppRole>) {
+  if (path === "/dashboard" || path.startsWith("/dashboard/")) {
+    return true;
+  }
+
   if (role === "employee") return path === "/employee" || path.startsWith("/employee/");
   if (role === "manager") return path === "/manager" || path.startsWith("/manager/");
   if (role === "company_admin") return path === "/company" || path.startsWith("/company/");
@@ -42,6 +48,10 @@ function redirectWithCookies(base: NextResponse, url: URL) {
   return response;
 }
 
+function resolveLocale(request: NextRequest, nextPath: string) {
+  return getLocaleFromPathname(nextPath) ?? defaultLocale;
+}
+
 export async function GET(request: NextRequest) {
   const { response, supabase } = buildSupabaseResponse(request);
   const nextPath = request.nextUrl.searchParams.get("next") || "";
@@ -51,16 +61,23 @@ export async function GET(request: NextRequest) {
     error
   } = await supabase.auth.getUser();
 
+  const locale = resolveLocale(request, nextPath);
+
   if (error || !user) {
-    return redirectWithCookies(response, new URL("/login?error=auth_callback_failed", request.url));
+    return redirectWithCookies(response, new URL(localizePublicHref("/login?error=auth_callback_failed", locale), request.url));
   }
 
   try {
     const result = await bootstrapProfile(user);
     const role = normalizeAppRole(result.role);
-    const safeNext = nextPath.startsWith("/") && isAllowedNextPath(nextPath, role) ? nextPath : result.redirectTo;
-    return redirectWithCookies(response, new URL(safeNext, request.url));
+    const strippedNext = stripLocaleFromPathname(nextPath);
+    const safeNext =
+      strippedNext.startsWith("/") && isAllowedNextPath(strippedNext, role) ? strippedNext : result.redirectTo;
+    return redirectWithCookies(response, new URL(localizePublicHref(safeNext, locale), request.url));
   } catch {
-    return redirectWithCookies(response, new URL("/login?error=profile_bootstrap_failed", request.url));
+    return redirectWithCookies(
+      response,
+      new URL(localizePublicHref("/login?error=profile_bootstrap_failed", locale), request.url)
+    );
   }
 }

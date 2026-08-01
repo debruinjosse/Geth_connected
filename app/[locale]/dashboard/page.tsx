@@ -1,14 +1,23 @@
 import { redirect } from "next/navigation";
+import { setRequestLocale } from "next-intl/server";
 import { getRouteForAppRole, normalizeAppRole, type AppRole } from "@/lib/auth/roles";
+import { localizePublicHref } from "@/lib/navigation/public-nav";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 function hasSupabaseServerConfig() {
   return Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
 }
 
-export default async function DashboardGatewayPage() {
+type DashboardGatewayPageProps = {
+  params: Promise<{ locale: string }>;
+};
+
+export default async function DashboardGatewayPage({ params }: DashboardGatewayPageProps) {
+  const { locale } = await params;
+  setRequestLocale(locale);
+
   if (!hasSupabaseServerConfig()) {
-    redirect("/login");
+    redirect(localizePublicHref("/login", locale));
   }
 
   const supabase = await createSupabaseServerClient();
@@ -18,7 +27,7 @@ export default async function DashboardGatewayPage() {
   } = await supabase.auth.getUser();
 
   if (userError || !user) {
-    redirect("/login");
+    redirect(localizePublicHref("/login", locale));
   }
 
   const { data: profile, error: profileError } = await supabase
@@ -28,8 +37,8 @@ export default async function DashboardGatewayPage() {
     .maybeSingle<{ role: AppRole }>();
 
   if (profileError || !profile) {
-    redirect("/auth/repair-profile?next=/dashboard");
+    redirect(`/auth/repair-profile?next=${encodeURIComponent(localizePublicHref("/dashboard", locale))}`);
   }
 
-  redirect(getRouteForAppRole(normalizeAppRole(profile.role)));
+  redirect(localizePublicHref(getRouteForAppRole(normalizeAppRole(profile.role)), locale));
 }

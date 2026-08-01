@@ -174,7 +174,7 @@ export function AuthExperience({
   }
 
   function repairProfileAndOpenDashboard() {
-    window.location.assign("/auth/repair-profile");
+    window.location.assign(`/auth/repair-profile?next=${encodeURIComponent(`/${locale}/dashboard`)}`);
   }
 
   function getAuthErrorCopy(error?: string) {
