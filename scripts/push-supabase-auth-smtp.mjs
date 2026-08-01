@@ -61,7 +61,7 @@ async function main() {
     smtp_admin_email: email,
     smtp_sender_name: name,
     site_url: siteUrl,
-    uri_allow_list: `${siteUrl}/auth/callback,${siteUrl}/auth/callback/**,${siteUrl}/**`
+    uri_allow_list: `${siteUrl}/auth/verify,${siteUrl}/auth/verify/**,${siteUrl}/auth/callback,${siteUrl}/auth/callback/**,${siteUrl}/**`
   };
 
   const response = await fetch(`https://api.supabase.com/v1/projects/${projectRef}/config/auth`, {

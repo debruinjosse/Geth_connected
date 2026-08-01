@@ -10,7 +10,7 @@ export function getProductionAppUrl() {
 }
 
 export function getAuthCallbackUrl(nextPath?: string) {
-  const url = new URL("/auth/callback", getProductionAppUrl());
+  const url = new URL("/auth/verify", getProductionAppUrl());
   if (nextPath?.startsWith("/")) {
     url.searchParams.set("next", nextPath);
   }
