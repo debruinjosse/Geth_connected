@@ -1,6 +1,5 @@
 import { BrandMarkIcon } from "@/components/BrandLogo";
 import { Heart, MessagesSquare, QrCode, TrendingUp, User, UsersRound } from "lucide-react";
-import { useTranslations } from "next-intl";
 
 function CardStackIcon() {
   return (
@@ -52,37 +51,36 @@ function MoreImpactIcon() {
   );
 }
 
-export function HowItWorksDeckSection() {
-  const t = useTranslations("landing.howItWorks");
+export type HowItWorksStepContent = {
+  title: string;
+  description: string;
+};
 
+export type HowItWorksContent = {
+  title: string;
+  steps: {
+    pickCard: HowItWorksStepContent;
+    giveSpeak: HowItWorksStepContent;
+    scanQr: HowItWorksStepContent;
+    visibleGrowth: HowItWorksStepContent;
+    moreImpact: HowItWorksStepContent;
+  };
+};
+
+export function HowItWorksDeckSection({ content }: { content: HowItWorksContent }) {
   const steps = [
-    {
-      key: "pickCard",
-      icon: <CardStackIcon />
-    },
-    {
-      key: "giveSpeak",
-      icon: <GiveSpeakIcon />
-    },
-    {
-      key: "scanQr",
-      icon: <ScanQrIcon />
-    },
-    {
-      key: "visibleGrowth",
-      icon: <VisibleGrowthIcon />
-    },
-    {
-      key: "moreImpact",
-      icon: <MoreImpactIcon />
-    }
+    { key: "pickCard", icon: <CardStackIcon /> },
+    { key: "giveSpeak", icon: <GiveSpeakIcon /> },
+    { key: "scanQr", icon: <ScanQrIcon /> },
+    { key: "visibleGrowth", icon: <VisibleGrowthIcon /> },
+    { key: "moreImpact", icon: <MoreImpactIcon /> }
   ] as const;
 
   return (
     <section className="deck-how-it-works" id="how-it-works" aria-labelledby="deck-how-it-works-title">
       <div className="deck-how-it-works__inner">
         <header className="deck-how-it-works__header">
-          <h2 id="deck-how-it-works-title">{t("title")}</h2>
+          <h2 id="deck-how-it-works-title">{content.title}</h2>
         </header>
 
         <div className="deck-how-it-works__grid">
@@ -93,8 +91,8 @@ export function HowItWorksDeckSection() {
                 <div className="deck-how-it-works__icon">{step.icon}</div>
               </div>
               <div className="deck-how-it-works__content">
-                <h3>{t(`steps.${step.key}.title`)}</h3>
-                <p>{t(`steps.${step.key}.description`)}</p>
+                <h3>{content.steps[step.key].title}</h3>
+                <p>{content.steps[step.key].description}</p>
               </div>
             </article>
           ))}

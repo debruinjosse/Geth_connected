@@ -1,0 +1,78 @@
+import { DEFAULT_MARQUEE_SETTINGS } from "@/lib/marquee-config";
+import {
+  getDefaultMarqueeItemsSerialized,
+  getDefaultTestimonialsForLocale,
+  parseTestimonialItems
+} from "@/lib/home-cms-defaults";
+import { ALL_HOME_CONTENT_FIELDS } from "@/lib/site-content-fields";
+
+type Translator = (key: string) => string;
+
+export async function buildHomeCmsDefaults(
+  locale: "en" | "nl",
+  home: Translator,
+  landing: Translator,
+  footer: Translator
+) {
+  const defaults: Record<string, string> = {};
+
+  for (const field of ALL_HOME_CONTENT_FIELDS) {
+    if (field.key === "marqueeItems" || field.key === "testimonialsItems") continue;
+    if (field.key.startsWith("marquee") && field.key !== "marqueeItems") {
+      defaults[field.key] = DEFAULT_MARQUEE_SETTINGS[field.key] ?? "";
+      continue;
+    }
+    defaults[field.key] = home(field.key);
+  }
+
+  defaults.howItWorksTitle = landing("howItWorks.title");
+  defaults.stepPickCardTitle = landing("howItWorks.steps.pickCard.title");
+  defaults.stepPickCardDescription = landing("howItWorks.steps.pickCard.description");
+  defaults.stepGiveSpeakTitle = landing("howItWorks.steps.giveSpeak.title");
+  defaults.stepGiveSpeakDescription = landing("howItWorks.steps.giveSpeak.description");
+  defaults.stepScanQrTitle = landing("howItWorks.steps.scanQr.title");
+  defaults.stepScanQrDescription = landing("howItWorks.steps.scanQr.description");
+  defaults.stepVisibleGrowthTitle = landing("howItWorks.steps.visibleGrowth.title");
+  defaults.stepVisibleGrowthDescription = landing("howItWorks.steps.visibleGrowth.description");
+  defaults.stepMoreImpactTitle = landing("howItWorks.steps.moreImpact.title");
+  defaults.stepMoreImpactDescription = landing("howItWorks.steps.moreImpact.description");
+
+  defaults.intelligenceEyebrow = home("intelligenceEyebrow");
+  defaults.intelligenceTitle = home("intelligenceTitle");
+  defaults.intelligenceParagraph = home("intelligenceParagraph");
+  defaults.intelligenceBullet1 = home("intelligenceBullet1");
+  defaults.intelligenceBullet2 = home("intelligenceBullet2");
+  defaults.intelligenceBullet3 = home("intelligenceBullet3");
+
+  defaults.testimonialsEyebrow = home("testimonialsEyebrow");
+  defaults.testimonialsTitle = home("testimonialsTitle");
+  defaults.testimonialsCopy = home("testimonialsCopy");
+
+  defaults.finalCtaBanner = footer("banner");
+  defaults.finalCtaTitle = footer("title");
+  defaults.finalCtaCopy = footer("copy");
+  defaults.finalCtaButtonLabel = home("finalCtaButtonLabel");
+  defaults.finalCtaButtonHref = home("finalCtaButtonHref");
+
+  defaults.marqueeItems = getDefaultMarqueeItemsSerialized(locale);
+  defaults.testimonialsItems = JSON.stringify(getDefaultTestimonialsForLocale(locale));
+
+  return defaults;
+}
+
+export function buildTestimonialsFromOverrides(
+  overrides: Record<string, string>,
+  defaults: Record<string, string>,
+  locale: string
+) {
+  const stored = parseTestimonialItems(overrides.testimonialsItems);
+  if (stored.length) return stored;
+
+  const defaultSerialized = defaults.testimonialsItems;
+  if (defaultSerialized) {
+    const fromDefaults = parseTestimonialItems(defaultSerialized);
+    if (fromDefaults.length) return fromDefaults;
+  }
+
+  return getDefaultTestimonialsForLocale(locale);
+}

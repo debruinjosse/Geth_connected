@@ -11,6 +11,7 @@ import { TeamTable, type TeamMemberRow } from "@/components/TeamTable";
 import { categoryMeta } from "@/lib/cards";
 import { managerTrendPoints, managerUser, people, teamSignals, topQualities } from "@/lib/demo-data";
 import { getUnreadNotificationCount } from "@/lib/notifications";
+import { getPercentageMix } from "@/lib/quality-percentages";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 function hasSupabaseServerConfig() {
@@ -65,21 +66,6 @@ function getWeeksSince(timestamp: number) {
   return Math.max(1, Math.floor((Date.now() - timestamp) / (7 * DAY_MS)));
 }
 
-function getPercentageMix<T extends { value: number }>(items: T[]) {
-  const total = items.reduce((sum, item) => sum + item.value, 0);
-  if (!total) return items.map(() => 0);
-
-  const rounded = items.map((item) => Math.round((item.value / total) * 100));
-  const drift = 100 - rounded.reduce((sum, value) => sum + value, 0);
-  if (rounded.length) rounded[0] += drift;
-  return rounded;
-}
-
-function toPercentageQualityBars(items: QualityBarItem[]): QualityBarItem[] {
-  const percentages = getPercentageMix(items.map((item) => ({ value: item.value })));
-  return items.map((item, index) => ({ ...item, value: percentages[index] ?? 0 }));
-}
-
 export default async function ManagerDashboardPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "manager" });
@@ -131,7 +117,7 @@ export default async function ManagerDashboardPage({ params }: { params: Promise
             <div className="panel-top">
               <h2>{t("topQualitiesTitle")}</h2>
             </div>
-            <QualityBars items={toPercentageQualityBars(topQualities)} />
+            <QualityBars items={topQualities} />
           </article>
           <article className="panel dashboard-panel">
             <div className="panel-top">
@@ -204,7 +190,7 @@ export default async function ManagerDashboardPage({ params }: { params: Promise
             <div className="panel-top">
               <h2>{t("topQualitiesTitle")}</h2>
             </div>
-            <QualityBars items={toPercentageQualityBars(topQualities)} />
+            <QualityBars items={topQualities} />
           </article>
           <article className="panel dashboard-panel">
             <div className="panel-top">
@@ -455,7 +441,7 @@ export default async function ManagerDashboardPage({ params }: { params: Promise
   }
 
   const topQualityEntries = Array.from(qualityCounts.entries()).sort((a, b) => b[1].value - a[1].value).slice(0, 5);
-  const topQualityPercentages = getPercentageMix(topQualityEntries.map(([, info]) => ({ value: info.value })));
+  const topQualityPercentages = getPercentageMix(topQualityEntries.map(([, info]) => info.value));
   const topQualityBars: QualityBarItem[] = topQualityEntries.map(([label, info], index) => ({
       label,
       value: topQualityPercentages[index] ?? 0,

@@ -48,18 +48,30 @@ type SmtpConfig = {
 
 const requiredSmtpVariables = ["SMTP_HOST", "SMTP_PORT", "SMTP_USER", "SMTP_PASS", "SMTP_FROM", "SMTP_REPLY_TO"] as const;
 
+function normalizeEnvValue(value: string | undefined) {
+  const trimmed = value?.trim() ?? "";
+  if (
+    (trimmed.startsWith('"') && trimmed.endsWith('"')) ||
+    (trimmed.startsWith("'") && trimmed.endsWith("'"))
+  ) {
+    return trimmed.slice(1, -1);
+  }
+
+  return trimmed;
+}
+
 export function getSmtpConfigStatus() {
-  const missing = requiredSmtpVariables.filter((key) => !process.env[key]?.trim());
-  const port = Number(process.env.SMTP_PORT || 465);
+  const missing = requiredSmtpVariables.filter((key) => !normalizeEnvValue(process.env[key]));
+  const port = Number(normalizeEnvValue(process.env.SMTP_PORT) || 465);
 
   return {
     configured: missing.length === 0,
     missing,
-    host: process.env.SMTP_HOST || "",
+    host: normalizeEnvValue(process.env.SMTP_HOST),
     port,
-    user: process.env.SMTP_USER || "",
-    from: process.env.SMTP_FROM || "",
-    replyTo: process.env.SMTP_REPLY_TO || "",
+    user: normalizeEnvValue(process.env.SMTP_USER),
+    from: normalizeEnvValue(process.env.SMTP_FROM),
+    replyTo: normalizeEnvValue(process.env.SMTP_REPLY_TO),
     secure: port === 465
   };
 }
@@ -81,7 +93,7 @@ function getSmtpConfig(): SmtpConfig {
     host: status.host,
     port: status.port,
     user: status.user,
-    pass: process.env.SMTP_PASS!,
+    pass: normalizeEnvValue(process.env.SMTP_PASS),
     from: status.from,
     replyTo: status.replyTo,
     secure: status.secure

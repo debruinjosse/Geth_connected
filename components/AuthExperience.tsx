@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 import { ArrowRight, CheckCircle2, Eye, EyeOff } from "lucide-react";
 import { requestMagicLinkEmail } from "@/app/actions/magicLink";
-import { requestPasswordResetEmail } from "@/app/actions/passwordReset";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { hasSupabaseBrowserConfig, type DemoRole } from "@/lib/demo-session";
 
@@ -48,7 +47,6 @@ export function AuthExperience({
   const t = useTranslations("authForm");
   const [submitBusy, setSubmitBusy] = useState(false);
   const [magicLinkBusy, setMagicLinkBusy] = useState(false);
-  const [passwordResetBusy, setPasswordResetBusy] = useState(false);
   const [status, setStatus] = useState("");
   const [statusTone, setStatusTone] = useState<"success" | "error" | "info">("info");
   const [showPassword, setShowPassword] = useState(false);
@@ -61,7 +59,7 @@ export function AuthExperience({
   });
 
   const supabaseReady = useMemo(() => hasSupabaseBrowserConfig(), []);
-  const busy = submitBusy || magicLinkBusy || passwordResetBusy;
+  const busy = submitBusy || magicLinkBusy;
   const ownerLoginOnly = selectedRole === "super_admin";
   const selectedSignupRole = signupRoles.some((role) => role.value === selectedRole) ? selectedRole : "employee";
 
@@ -311,31 +309,6 @@ export function AuthExperience({
     }
   }
 
-  async function sendPasswordReset() {
-    setPasswordResetBusy(true);
-    setStatus("");
-    setStatusTone("info");
-
-    try {
-      if (!form.email) {
-        throw new Error(t("errEmailFirst"));
-      }
-
-      const result = await requestPasswordResetEmail(form.email);
-      if (!result.ok) {
-        throw new Error(result.error);
-      }
-
-      setStatusTone("success");
-      setStatus(t("resetSent"));
-    } catch (error) {
-      setStatusTone("error");
-      setStatus(getErrorMessage(error, t("errResetSend")));
-    } finally {
-      setPasswordResetBusy(false);
-    }
-  }
-
   async function sendMagicLink() {
     setMagicLinkBusy(true);
     setStatus("");
@@ -505,9 +478,9 @@ export function AuthExperience({
       ) : null}
 
       {supabaseReady && mode === "login" && !roleChoiceOnly ? (
-        <button className="btn btn-secondary btn-full auth-demo-cta" type="button" onClick={sendPasswordReset} disabled={busy}>
-          {passwordResetBusy ? t("sendingReset") : t("resetPassword")}
-        </button>
+        <Link className="btn btn-secondary btn-full auth-demo-cta" href={getLocalizedPublicPath("/forgot-password")}>
+          {t("resetPassword")}
+        </Link>
       ) : null}
 
       {status ? (

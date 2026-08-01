@@ -130,7 +130,7 @@ function CompanyMetricCard({
 function DemoCompanyDashboard({ t }: { t: Translation }) {
   const demoTrendLabels = getLatestSixMonthLabels();
   const demoTopQualities = [
-    { label: "Listener", category: "Communication", value: 26 },
+    { label: "Listener", category: "Communication", value: 32 },
     { label: "Honest", category: "Communication", value: 22 },
     { label: "Uniter", category: "Communication", value: 18 },
     { label: "Clear Communicator", category: "Communication", value: 16 },

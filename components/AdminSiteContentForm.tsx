@@ -2,7 +2,46 @@
 
 import { useState } from "react";
 import { updateSiteContentAction } from "@/app/actions/siteContent";
-import { HOME_CONTENT_FIELDS } from "@/lib/site-content-fields";
+import { AdminMarqueeSection } from "@/components/AdminMarqueeSection";
+import { AdminTestimonialsSection } from "@/components/AdminTestimonialsSection";
+import { HOME_CMS_SECTIONS, type SiteContentField } from "@/lib/site-content-fields";
+
+function SiteContentFieldGrid({
+  fields,
+  locale,
+  defaults,
+  overrides
+}: {
+  fields: SiteContentField[];
+  locale: "en" | "nl";
+  defaults: Record<string, string>;
+  overrides: Record<string, string>;
+}) {
+  return (
+    <div className="admin-site-content-grid">
+      {fields.map((field) => {
+        const defaultValue = overrides[field.key] || defaults[field.key] || "";
+        return (
+          <div className="form-field" key={field.key}>
+            <label htmlFor={`${locale}-${field.key}`}>{field.label}</label>
+            {field.multiline ? (
+              <textarea
+                id={`${locale}-${field.key}`}
+                className="input"
+                name={field.key}
+                rows={4}
+                defaultValue={defaultValue}
+              />
+            ) : (
+              <input id={`${locale}-${field.key}`} className="input" name={field.key} defaultValue={defaultValue} />
+            )}
+            <span className="field-help">Key: home.{field.key}</span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
 
 export function AdminSiteContentForm({
   locale,
@@ -37,28 +76,33 @@ export function AdminSiteContentForm({
       <input type="hidden" name="namespace" value="home" />
       <input type="hidden" name="locale" value={locale} />
 
-      <div className="admin-site-content-grid">
-        {HOME_CONTENT_FIELDS.map((field) => {
-          const defaultValue = overrides[field.key] || defaults[field.key] || "";
-          return (
-            <div className="form-field" key={field.key}>
-              <label htmlFor={`${locale}-${field.key}`}>{field.label}</label>
-              {field.multiline ? (
-                <textarea
-                  id={`${locale}-${field.key}`}
-                  className="input"
-                  name={field.key}
-                  rows={4}
-                  defaultValue={defaultValue}
-                />
-              ) : (
-                <input id={`${locale}-${field.key}`} className="input" name={field.key} defaultValue={defaultValue} />
-              )}
-              <span className="field-help">Key: home.{field.key}</span>
-            </div>
-          );
-        })}
-      </div>
+      {HOME_CMS_SECTIONS.map((section) => (
+        <div className="admin-site-content-section" key={section.id}>
+          <h3>{section.title}</h3>
+          {section.description ? <p className="section-copy">{section.description}</p> : null}
+
+          {section.id === "marquee" ? (
+            <AdminMarqueeSection
+              locale={locale}
+              defaults={defaults}
+              overrides={overrides}
+              showSettings={locale === "en"}
+            />
+          ) : section.id === "testimonials" ? (
+            <>
+              <SiteContentFieldGrid
+                fields={section.fields}
+                locale={locale}
+                defaults={defaults}
+                overrides={overrides}
+              />
+              <AdminTestimonialsSection locale={locale} defaults={defaults} overrides={overrides} />
+            </>
+          ) : (
+            <SiteContentFieldGrid fields={section.fields} locale={locale} defaults={defaults} overrides={overrides} />
+          )}
+        </div>
+      ))}
 
       <div className="admin-site-content-actions">
         <button className="btn btn-primary" type="submit" disabled={status === "saving"}>

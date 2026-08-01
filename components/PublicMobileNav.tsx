@@ -15,8 +15,6 @@ export type PublicMobileNavProps = {
   loginHref: string;
   bookDemoLabel: string;
   bookDemoHref: string;
-  registerCompanyLabel: string;
-  registerCompanyHref: string;
   menuLabel: string;
   closeLabel: string;
   signedIn?: boolean;
@@ -31,8 +29,6 @@ export function PublicMobileNav({
   loginHref,
   bookDemoLabel,
   bookDemoHref,
-  registerCompanyLabel,
-  registerCompanyHref,
   menuLabel,
   closeLabel,
   signedIn = false,
@@ -97,9 +93,6 @@ export function PublicMobileNav({
             ))}
             <a className="public-mobile-nav-primary" href={bookDemoHref} onClick={() => setOpen(false)}>
               {bookDemoLabel}
-            </a>
-            <a href={registerCompanyHref} onClick={() => setOpen(false)}>
-              {registerCompanyLabel}
             </a>
             {signedIn && signOutLabel ? (
               <a href="/auth/signout" onClick={() => setOpen(false)}>

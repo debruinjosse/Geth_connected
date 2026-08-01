@@ -6,6 +6,7 @@ import { GoogleTranslateWidget } from "@/components/GoogleTranslateWidget";
 import { PublicMobileNav } from "@/components/PublicMobileNav";
 import { getRouteForAppRole, normalizeAppRole } from "@/lib/auth/roles";
 import { localizePublicHref, publicNavLinks } from "@/lib/navigation/public-nav";
+import { getSiteContentOverrides, pickOptionalSiteContentText, pickSiteContentText } from "@/lib/site-content";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 function localizeHref(href: string, locale: string) {
@@ -60,6 +61,14 @@ export async function PublicSiteChrome({
   const nav = await getTranslations({ locale, namespace: "nav" });
   const footer = await getTranslations({ locale, namespace: "footer" });
   const home = await getTranslations({ locale, namespace: "home" });
+  const homeOverrides = await getSiteContentOverrides("home", locale);
+  const homeText = (key: string) => pickSiteContentText(homeOverrides, home(key), key);
+  const finalCtaBanner = homeText("finalCtaBanner");
+  const finalCtaTitle = homeText("finalCtaTitle");
+  const finalCtaCopy = homeText("finalCtaCopy");
+  const finalCtaButtonLabel = pickOptionalSiteContentText(homeOverrides, home("finalCtaButtonLabel"), "finalCtaButtonLabel");
+  const finalCtaButtonHref =
+    pickOptionalSiteContentText(homeOverrides, home("finalCtaButtonHref"), "finalCtaButtonHref") || localizeHref("/book-demo", locale);
   const localizedCtaHref = localizeHref(ctaHref, locale);
   const localizedNavLinks = publicNavLinks.map((link) => ({
     href: localizeHref(link.href, locale),
@@ -107,8 +116,6 @@ export async function PublicSiteChrome({
             loginHref={localizeHref("/login", locale)}
             bookDemoLabel={nav("bookDemo")}
             bookDemoHref={localizedCtaHref}
-            registerCompanyLabel={home("registerCompany")}
-            registerCompanyHref={localizeHref("/signup?role=company_admin", locale)}
             menuLabel={nav("menu")}
             closeLabel={nav("closeMenu")}
             signedIn={Boolean(signedInUser)}
@@ -124,9 +131,14 @@ export async function PublicSiteChrome({
       <section className="footer-banner landingFooter">
         <div className="pageContainer landingFooterInner">
           <div className="landingFooterCopy">
-            <div className="eyebrow">{footer("banner")}</div>
-            <h2>{footer("title")}</h2>
-            <p>{footer("copy")}</p>
+            <div className="eyebrow">{finalCtaBanner}</div>
+            <h2>{finalCtaTitle}</h2>
+            <p>{finalCtaCopy}</p>
+            {finalCtaButtonLabel ? (
+              <Link className="btn btn-primary landingFooterCta" href={finalCtaButtonHref}>
+                {finalCtaButtonLabel}
+              </Link>
+            ) : null}
           </div>
           <footer className="site-footer">
             <div>

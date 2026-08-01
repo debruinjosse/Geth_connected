@@ -7,6 +7,7 @@ import { QualityBars, type QualityBarItem } from "@/components/QualityBars";
 import { categoryMeta, getCategoryDisplayName, getLocalizedCardTitle, type CardCategory } from "@/lib/cards";
 import { currentUser, employeeCategoryBreakdown, employeeGrowthPoints } from "@/lib/demo-data";
 import { getUnreadNotificationCount } from "@/lib/notifications";
+import { getPercentageMix } from "@/lib/quality-percentages";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 function hasSupabaseServerConfig() {
@@ -106,14 +107,15 @@ export default async function EmployeeGrowthPage({ params }: { params: Promise<{
   }
 
   const categoryRows = Array.from(categoryCounts.entries()).sort((a, b) => b[1] - a[1]);
-  const qualityRows: QualityBarItem[] = Array.from(qualityCounts.entries())
+  const topQualityEntries = Array.from(qualityCounts.entries())
     .sort((a, b) => b[1].value - a[1].value)
-    .slice(0, 6)
-    .map(([label, info]) => ({
-      label,
-      value: recognitions.length ? Math.round((info.value / recognitions.length) * 100) : 0,
-      category: info.category
-    }));
+    .slice(0, 6);
+  const topQualityPercentages = getPercentageMix(topQualityEntries.map(([, info]) => info.value));
+  const qualityRows: QualityBarItem[] = topQualityEntries.map(([label, info], index) => ({
+    label,
+    value: topQualityPercentages[index] ?? 0,
+    category: info.category
+  }));
 
   return (
     <DashboardShell

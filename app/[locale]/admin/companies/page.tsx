@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { createCompanyWorkspaceAction, updateCompanyStatusAction } from "@/app/actions/adminControls";
+import { AdminCompanyDeleteButton } from "@/components/AdminCompanyDeleteButton";
 import { DashboardShell } from "@/components/DashboardShell";
 import { EmptyState } from "@/components/EmptyState";
 import { superAdminUser } from "@/lib/demo-data";
@@ -146,16 +147,19 @@ export default async function AdminCompaniesPage({ params }: { params: Promise<{
                     <td>{managerCounts.get(company.id) ?? 0}</td>
                     <td>{teamCounts.get(company.id) ?? 0}</td>
                     <td>
-                      <form action={updateCompanyStatusAction} className="admin-control-form">
-                        <input type="hidden" name="companyId" value={company.id} />
-                        <label className="sr-only" htmlFor={`status-${company.id}`}>{t("companyStatusLabel")}</label>
-                        <select id={`status-${company.id}`} name="status" defaultValue={company.status} aria-label={`Update ${company.company_name} status`}>
-                          <option value="active">{t("statusActiveOption")}</option>
-                          <option value="demo">{t("statusDemoOption")}</option>
-                          <option value="inactive">{t("statusInactiveOption")}</option>
-                        </select>
-                        <button className="btn btn-secondary compact" type="submit">{t("saveButton")}</button>
-                      </form>
+                      <div className="admin-control-form">
+                        <form action={updateCompanyStatusAction}>
+                          <input type="hidden" name="companyId" value={company.id} />
+                          <label className="sr-only" htmlFor={`status-${company.id}`}>{t("companyStatusLabel")}</label>
+                          <select id={`status-${company.id}`} name="status" defaultValue={company.status} aria-label={`Update ${company.company_name} status`}>
+                            <option value="active">{t("statusActiveOption")}</option>
+                            <option value="demo">{t("statusDemoOption")}</option>
+                            <option value="inactive">{t("statusInactiveOption")}</option>
+                          </select>
+                          <button className="btn btn-secondary compact" type="submit">{t("saveButton")}</button>
+                        </form>
+                        <AdminCompanyDeleteButton companyId={company.id} companyName={company.company_name} locale={locale} />
+                      </div>
                     </td>
                   </tr>
                 ))}

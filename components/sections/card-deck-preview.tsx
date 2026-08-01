@@ -1,33 +1,41 @@
 import { getTranslations } from "next-intl/server";
 import { RecognitionCardCarousel, type RecognitionCardData } from "@/components/ui/recognition-card-carousel";
+import { pickSiteContentText } from "@/lib/site-content";
 
-export async function CardDeckPreview({ locale }: { locale: string }) {
+export async function CardDeckPreview({
+  locale,
+  overrides = {}
+}: {
+  locale: string;
+  overrides?: Record<string, string>;
+}) {
   const t = await getTranslations({ locale, namespace: "home" });
+  const text = (key: string) => pickSiteContentText(overrides, t(key), key);
 
   const recognitionCards: RecognitionCardData[] = [
     {
       number: "01",
-      category: t("previewCommunication"),
-      title: t("previewListening"),
-      description: t("previewListeningCopy")
+      category: text("previewCommunication"),
+      title: text("previewListening"),
+      description: text("previewListeningCopy")
     },
     {
       number: "02",
-      category: t("previewCreativity"),
-      title: t("previewRenewing"),
-      description: t("previewRenewingCopy")
+      category: text("previewCreativity"),
+      title: text("previewRenewing"),
+      description: text("previewRenewingCopy")
     },
     {
       number: "03",
-      category: t("previewCompetence"),
-      title: t("previewGoalOriented"),
-      description: t("previewGoalOrientedCopy")
+      category: text("previewCompetence"),
+      title: text("previewGoalOriented"),
+      description: text("previewGoalOrientedCopy")
     },
     {
       number: "04",
-      category: t("previewCollegiality"),
-      title: t("previewCaring"),
-      description: t("previewCaringCopy")
+      category: text("previewCollegiality"),
+      title: text("previewCaring"),
+      description: text("previewCaringCopy")
     }
   ];
 
@@ -35,16 +43,16 @@ export async function CardDeckPreview({ locale }: { locale: string }) {
     <section className="card-deck-preview" aria-labelledby="card-deck-preview-title">
       <div className="card-deck-preview-head">
         <div>
-          <div className="eyebrow">{t("deckPreview")}</div>
-          <h2 id="card-deck-preview-title">{t("deckPreviewTitle")}</h2>
-          <p>{t("deckPreviewCopy")}</p>
+          <div className="eyebrow">{text("deckPreview")}</div>
+          <h2 id="card-deck-preview-title">{text("deckPreviewTitle")}</h2>
+          <p>{text("deckPreviewCopy")}</p>
         </div>
       </div>
       <RecognitionCardCarousel
         cards={recognitionCards}
         labels={{
-          previous: t("previousCards"),
-          next: t("nextCards")
+          previous: text("previousCards"),
+          next: text("nextCards")
         }}
       />
     </section>

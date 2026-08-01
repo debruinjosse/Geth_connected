@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { DashboardShell } from "@/components/DashboardShell";
 import { AdminSiteContentForm } from "@/components/AdminSiteContentForm";
+import { buildHomeCmsDefaults } from "@/lib/build-home-cms-defaults";
 import { getAllSiteContentForNamespace } from "@/lib/site-content";
 import { getUnreadNotificationCount } from "@/lib/notifications";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -16,6 +17,10 @@ export default async function AdminSiteContentPage({ params }: { params: Promise
   const tc = await getTranslations({ locale, namespace: "common" });
   const homeEn = await getTranslations({ locale: "en", namespace: "home" });
   const homeNl = await getTranslations({ locale: "nl", namespace: "home" });
+  const landingEn = await getTranslations({ locale: "en", namespace: "landing" });
+  const landingNl = await getTranslations({ locale: "nl", namespace: "landing" });
+  const footerEn = await getTranslations({ locale: "en", namespace: "footer" });
+  const footerNl = await getTranslations({ locale: "nl", namespace: "footer" });
 
   if (!hasSupabaseServerConfig()) {
     return (
@@ -50,12 +55,8 @@ export default async function AdminSiteContentPage({ params }: { params: Promise
   const overridesEn = Object.fromEntries(rows.filter((row) => row.locale === "en").map((row) => [row.key, row.value]));
   const overridesNl = Object.fromEntries(rows.filter((row) => row.locale === "nl").map((row) => [row.key, row.value]));
 
-  const defaultsEn: Record<string, string> = {};
-  const defaultsNl: Record<string, string> = {};
-  for (const field of (await import("@/lib/site-content-fields")).HOME_CONTENT_FIELDS) {
-    defaultsEn[field.key] = homeEn(field.key);
-    defaultsNl[field.key] = homeNl(field.key);
-  }
+  const defaultsEn = await buildHomeCmsDefaults("en", homeEn, landingEn, footerEn);
+  const defaultsNl = await buildHomeCmsDefaults("nl", homeNl, landingNl, footerNl);
 
   const unreadNotifications = await getUnreadNotificationCount(supabase, user.id);
   const name = `${profile.first_name ?? ""} ${profile.last_name ?? ""}`.trim() || "GETH Admin";

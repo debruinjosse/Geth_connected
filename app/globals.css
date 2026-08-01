@@ -6109,12 +6109,12 @@ textarea.input {
 
 .infinity-strip-fade-left {
   left: 0;
-  background: linear-gradient(90deg, #fffdf8 0%, transparent 100%);
+  background: linear-gradient(90deg, var(--infinity-strip-fade-color, #fffdf8) 0%, transparent 100%);
 }
 
 .infinity-strip-fade-right {
   right: 0;
-  background: linear-gradient(270deg, #fffdf8 0%, transparent 100%);
+  background: linear-gradient(270deg, var(--infinity-strip-fade-color, #fffdf8) 0%, transparent 100%);
 }
 
 .infinity-strip-track {
@@ -6122,7 +6122,7 @@ textarea.input {
   align-items: center;
   gap: 0;
   width: max-content;
-  animation: infinity-strip-scroll 42s linear infinite;
+  animation: infinity-strip-scroll var(--infinity-strip-duration, 42s) linear infinite;
 }
 
 .infinity-strip-chip {
@@ -6137,11 +6137,26 @@ textarea.input {
 }
 
 .infinity-strip-text {
-  color: var(--theme-ink);
+  color: var(--infinity-strip-text-color, var(--theme-ink));
   font-size: 13px;
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
+}
+
+.infinity-strip-divider-dot .infinity-strip-chip:not(:last-child) {
+  border-right: none;
+}
+
+.infinity-strip-divider-dot .infinity-strip-chip:not(:last-child)::after {
+  content: "•";
+  margin-left: 22px;
+  color: color-mix(in srgb, var(--infinity-strip-text-color, var(--theme-ink)) 35%, transparent);
+  font-weight: 700;
+}
+
+.infinity-strip-divider-none .infinity-strip-chip:not(:last-child) {
+  border-right: none;
 }
 
 .infinity-strip-below-hero {

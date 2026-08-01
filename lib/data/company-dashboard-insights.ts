@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { categoryMeta } from "@/lib/cards";
+import { getPercentageMix } from "@/lib/quality-percentages";
 
 type CompanyProfileRow = {
   id: string;
@@ -318,18 +319,21 @@ export async function fetchCompanyDashboardInsights(
     };
   });
 
-  const topQualities = Array.from(qualityCounts.entries())
+  const topQualityEntries = Array.from(qualityCounts.entries())
     .sort((a, b) => b[1].count - a[1].count)
     .slice(0, 5)
-    .map(([key, info]) => {
-      const label = key.slice(key.indexOf(":") + 1);
-      return {
-        label,
-        category: info.category,
-        count: info.count,
-        value: totalRecognitions ? Math.round((info.count / totalRecognitions) * 100) : 0
-      };
-    });
+    .map(([key, info]) => ({
+      label: key.slice(key.indexOf(":") + 1),
+      category: info.category,
+      count: info.count
+    }));
+  const topQualityPercentages = getPercentageMix(topQualityEntries.map((entry) => entry.count));
+  const topQualities = topQualityEntries.map((entry, index) => ({
+    label: entry.label,
+    category: entry.category,
+    count: entry.count,
+    value: topQualityPercentages[index] ?? 0
+  }));
 
   const teamComparisonRows = companyTeams
     .map((team) => {

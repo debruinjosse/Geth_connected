@@ -215,6 +215,30 @@ export async function updateCompanyStatusAction(formData: FormData) {
   revalidatePath("/admin/companies");
 }
 
+export async function deleteCompanyAction(formData: FormData) {
+  const companyId = String(formData.get("companyId") ?? "").trim();
+  const locale = getActionLocale(formData);
+
+  if (!companyId) {
+    return;
+  }
+
+  const auth = await requirePlatformAdmin();
+  if (!auth.ok) {
+    return;
+  }
+
+  const { error } = await auth.supabase.from("companies").delete().eq("id", companyId);
+
+  if (error) {
+    return;
+  }
+
+  revalidatePath("/admin");
+  revalidatePath("/admin/companies");
+  redirect(`/${locale}/admin/companies`);
+}
+
 export async function createCompanyInviteFromAdminAction(formData: FormData) {
   const companyId = String(formData.get("companyId") ?? "").trim();
   const email = normalizeEmail(formData.get("email"));

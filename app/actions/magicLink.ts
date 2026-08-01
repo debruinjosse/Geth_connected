@@ -2,9 +2,43 @@
 
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { buildAuthCallbackEmailLink } from "@/lib/auth/build-auth-callback-link";
+import { getAuthCallbackUrl } from "@/lib/app-url";
 import { InviteEmailError, sendMagicLinkEmail } from "@/lib/mail/nodemailer";
 
 type MagicLinkMode = "login" | "signup";
+
+function buildServerAuthCallbackRedirect(clientRedirect: string) {
+  try {
+    const clientUrl = new URL(clientRedirect);
+    const callbackUrl = new URL(getAuthCallbackUrl());
+
+    for (const key of ["invite", "role", "next"]) {
+      const value = clientUrl.searchParams.get(key);
+      if (value) {
+        callbackUrl.searchParams.set(key, value);
+      }
+    }
+
+    return callbackUrl.toString();
+  } catch {
+    return getAuthCallbackUrl();
+  }
+}
+
+function getSmtpErrorMessage(error: InviteEmailError) {
+  switch (error.code) {
+    case "SMTP_MISSING":
+      return "Email is not configured on the server yet. Contact support or try again later.";
+    case "SMTP_AUTH_FAILED":
+      return "Email login failed for info@geth.pro. Check SMTP username and password on the server.";
+    case "SMTP_CONNECTION_FAILED":
+      return "Could not connect to the mail server. Check SMTP host and port settings.";
+    case "SMTP_SEND_FAILED":
+      return "The mail server rejected the message. Check that info@geth.pro is allowed to send.";
+    default:
+      return error.message;
+  }
+}
 
 export async function requestMagicLinkEmail(input: {
   email: string;
@@ -24,8 +58,9 @@ export async function requestMagicLinkEmail(input: {
 
   try {
     const admin = createSupabaseAdminClient();
+    const redirectTo = buildServerAuthCallbackRedirect(input.redirectTo);
     const linkOptions = {
-      redirectTo: input.redirectTo,
+      redirectTo,
       data: input.metadata ?? undefined
     };
 
@@ -48,7 +83,7 @@ export async function requestMagicLinkEmail(input: {
 
     const magicLink = buildAuthCallbackEmailLink(
       data.properties ?? {},
-      input.redirectTo,
+      redirectTo,
       input.mode === "signup" ? "invite" : "magiclink"
     );
 
@@ -61,7 +96,7 @@ export async function requestMagicLinkEmail(input: {
     return { ok: true as const };
   } catch (error) {
     if (error instanceof InviteEmailError) {
-      return { ok: false as const, error: error.message };
+      return { ok: false as const, error: getSmtpErrorMessage(error) };
     }
 
     const authMessage =

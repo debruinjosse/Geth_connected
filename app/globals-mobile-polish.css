@@ -971,6 +971,145 @@
   gap: 14px;
 }
 
+.admin-site-content-section {
+  display: grid;
+  gap: 14px;
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid rgba(232, 223, 210, 0.85);
+}
+
+.admin-site-content-section h3 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.admin-marquee-section {
+  display: grid;
+  gap: 16px;
+}
+
+.admin-marquee-items {
+  display: grid;
+  gap: 12px;
+}
+
+.admin-marquee-items-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.admin-marquee-items-list {
+  display: grid;
+  gap: 10px;
+}
+
+.admin-marquee-item-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+}
+
+.admin-marquee-item-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.admin-color-input {
+  width: 100%;
+  min-height: 42px;
+  padding: 4px;
+}
+
+.admin-testimonials-list {
+  display: grid;
+  gap: 14px;
+}
+
+.admin-testimonial-card {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid rgba(42, 23, 61, 0.08);
+  border-radius: 16px;
+  background: rgba(255, 253, 248, 0.72);
+}
+
+.landing-intelligence-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 28px;
+}
+
+.landing-intelligence-card {
+  padding: 20px 22px;
+  border-radius: 18px;
+  background: rgba(255, 253, 248, 0.92);
+  border: 1px solid rgba(42, 23, 61, 0.08);
+  box-shadow: 0 12px 30px rgba(42, 23, 61, 0.05);
+}
+
+.landing-intelligence-card p {
+  margin: 0;
+  color: var(--theme-ink);
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+.landing-testimonials-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+  margin-top: 28px;
+}
+
+.landing-testimonial-card {
+  padding: 24px;
+  border-radius: 20px;
+  background: rgba(255, 253, 248, 0.94);
+  border: 1px solid rgba(42, 23, 61, 0.08);
+  box-shadow: 0 14px 34px rgba(42, 23, 61, 0.06);
+}
+
+.landing-testimonial-card blockquote {
+  margin: 0;
+  color: var(--theme-ink);
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+.landing-testimonial-card footer {
+  display: grid;
+  gap: 4px;
+  margin-top: 18px;
+}
+
+.landing-testimonial-card footer strong {
+  color: var(--theme-ink);
+  font-size: 14px;
+}
+
+.landing-testimonial-card footer span {
+  color: var(--theme-muted);
+  font-size: 13px;
+}
+
+.landingFooterCta {
+  margin-top: 18px;
+}
+
+@media (max-width: 920px) {
+  .landing-intelligence-grid,
+  .landing-testimonials-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 .admin-site-content-actions {
   display: flex;
   flex-wrap: wrap;

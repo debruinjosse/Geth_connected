@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { QualityBarItem } from "@/components/QualityBars";
+import { getPercentageMix } from "@/lib/quality-percentages";
 import type { TeamMemberRow } from "@/components/TeamTable";
 import { categoryColors, getAnalyticCategoryLabel } from "@/lib/cards";
 
@@ -86,16 +87,6 @@ function getLatestActivityTime(rows: Array<{ created_at: string }>) {
 
 function getWeeksSince(timestamp: number) {
   return Math.max(1, Math.floor((Date.now() - timestamp) / (7 * DAY_MS)));
-}
-
-function getPercentageMix<T extends { value: number }>(items: T[]) {
-  const total = items.reduce((sum, item) => sum + item.value, 0);
-  if (!total) return items.map(() => 0);
-
-  const rounded = items.map((item) => Math.round((item.value / total) * 100));
-  const drift = 100 - rounded.reduce((sum, value) => sum + value, 0);
-  if (rounded.length) rounded[0] += drift;
-  return rounded;
 }
 
 type ManagerTranslator = (key: string, values?: Record<string, string | number | Date>) => string;
@@ -344,7 +335,7 @@ export async function getManagerInsights(
     trendLabels: monthWindows.map((month) => month.label),
     qualityBars: (() => {
       const topEntries = Array.from(qualityCounts.entries()).sort((a, b) => b[1].value - a[1].value).slice(0, 6);
-      const percentages = getPercentageMix(topEntries.map(([, info]) => ({ value: info.value })));
+      const percentages = getPercentageMix(topEntries.map(([, info]) => info.value));
 
       return topEntries.map(([label, info], index) => ({
         label,

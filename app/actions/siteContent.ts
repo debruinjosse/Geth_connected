@@ -2,9 +2,23 @@
 
 import { revalidatePath } from "next/cache";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { HOME_CONTENT_FIELDS, type SiteContentNamespace } from "@/lib/site-content-fields";
+import { ALL_HOME_CONTENT_FIELDS, type SiteContentNamespace } from "@/lib/site-content-fields";
 
 type ActionResult = { ok: true } | { ok: false; error: string };
+
+function normalizeMarqueeFieldValue(key: string, value: string) {
+  const trimmed = value.trim();
+
+  if (key === "marqueeBackgroundColor" && trimmed.toLowerCase() === "#fffdf8") {
+    return "";
+  }
+
+  if (key === "marqueeTextColor" && trimmed.toLowerCase() === "#2a173d") {
+    return "";
+  }
+
+  return trimmed;
+}
 
 async function requireGlobalAdmin() {
   const supabase = await createSupabaseServerClient();
@@ -43,16 +57,24 @@ export async function updateSiteContentAction(formData: FormData): Promise<Actio
     return { ok: false, error: "Invalid locale." };
   }
 
-  const rows = HOME_CONTENT_FIELDS.map((field) => {
-    const value = String(formData.get(field.key) ?? "").trim();
-    return {
-      namespace,
-      key: field.key,
-      locale,
-      value,
-      updated_by: auth.userId
-    };
-  });
+  const rows = ALL_HOME_CONTENT_FIELDS
+    .filter((field) => {
+      if (locale === "nl" && field.key.startsWith("marquee") && field.key !== "marqueeItems") {
+        return false;
+      }
+      return true;
+    })
+    .map((field) => {
+      const rawValue = String(formData.get(field.key) ?? "");
+      const value = field.key.startsWith("marquee") ? normalizeMarqueeFieldValue(field.key, rawValue) : rawValue.trim();
+      return {
+        namespace,
+        key: field.key,
+        locale,
+        value,
+        updated_by: auth.userId
+      };
+    });
 
   const { error } = await auth.supabase.from("site_content").upsert(rows, {
     onConflict: "namespace,key,locale"
