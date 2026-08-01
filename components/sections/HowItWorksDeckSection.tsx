@@ -84,7 +84,7 @@ export function HowItWorksDeckSection({ content }: { content: HowItWorksContent 
           <h2 id="deck-how-it-works-title">{content.title}</h2>
         </header>
 
-        <div className="deck-how-it-works__grid deck-how-it-works__grid--deck">
+        <div className="how-it-works-deck">
           {steps.map((step, index) => (
             <article className="deck-how-it-works__step" key={step.key}>
               <div className="deck-how-it-works__meta">
@@ -99,7 +99,7 @@ export function HowItWorksDeckSection({ content }: { content: HowItWorksContent 
           ))}
         </div>
 
-        <div className="deck-how-it-works__cards">
+        <div className="how-it-works-mobile-cards">
           {steps.map((step, index) => (
             <HowItWorksStepCard
               key={`card-${step.key}`}

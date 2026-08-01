@@ -1,5 +1,21 @@
 
 /* ─── Critical mobile overlap fixes ─── */
+@media (max-width: 1024px) {
+  .how-it-works-deck,
+  .deck-how-it-works__grid,
+  .deck-how-it-works__grid--deck {
+    display: none !important;
+  }
+
+  .how-it-works-mobile-cards,
+  .deck-how-it-works__cards {
+    display: grid !important;
+    grid-template-columns: 1fr;
+    gap: 12px;
+    width: 100%;
+  }
+}
+
 @media (max-width: 767px) {
   main {
     max-width: 100%;
@@ -64,6 +80,12 @@
   .deck-how-it-works__inner {
     width: min(100% - 32px, 100%);
     padding-inline: 0;
+  }
+
+  .how-it-works-mobile-cards,
+  .how-it-works-step-card {
+    width: 100%;
+    min-width: 0;
   }
 
   .how-it-works-step-card {

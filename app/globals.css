@@ -1565,6 +1565,16 @@ img {
   align-items: stretch;
 }
 
+.how-it-works-deck {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  align-items: stretch;
+}
+
+.how-it-works-mobile-cards {
+  display: none;
+}
+
 .deck-how-it-works__step {
   position: relative;
   display: flex;
@@ -1659,10 +1669,11 @@ img {
   gap: 14px;
   align-items: start;
   padding: 18px 16px;
-  border: 1px solid rgba(213, 162, 56, 0.28);
+  border: 1px solid rgba(213, 162, 56, 0.32);
   border-radius: 20px;
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(255, 255, 255, 0.05);
   text-align: left;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.14);
 }
 
 .how-it-works-step-card__badge {
@@ -8950,31 +8961,37 @@ textarea.input {
 }
 
 @media (max-width: 1100px) {
+  .how-it-works-deck,
   .deck-how-it-works__grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 40px 24px;
   }
 
-  .deck-how-it-works__step:nth-child(5) {
+  .how-it-works-deck .deck-how-it-works__step:nth-child(5),
+  .deck-how-it-works__grid .deck-how-it-works__step:nth-child(5) {
     grid-column: 1 / -1;
     max-width: 360px;
     margin-inline: auto;
   }
 
-  .deck-how-it-works__step:not(:last-child)::after {
+  .how-it-works-deck .deck-how-it-works__step:not(:last-child)::after,
+  .deck-how-it-works__grid .deck-how-it-works__step:not(:last-child)::after {
     display: none;
   }
 }
 
-@media (max-width: 767px) {
-  .deck-how-it-works__grid--deck {
-    display: none;
+@media (max-width: 1024px) {
+  .how-it-works-deck,
+  .deck-how-it-works__grid--deck,
+  .deck-how-it-works__grid {
+    display: none !important;
   }
 
+  .how-it-works-mobile-cards,
   .deck-how-it-works__cards {
-    display: grid;
+    display: grid !important;
     grid-template-columns: 1fr;
-    gap: 14px;
+    gap: 12px;
   }
 
   .deck-how-it-works__inner {
@@ -8995,97 +9012,6 @@ textarea.input {
 
   .admin-invoice-hero-card {
     padding: 22px;
-  }
-
-  .deck-how-it-works__inner {
-    width: min(100% - 32px, 100%);
-    padding: 48px 0 52px;
-  }
-
-  .deck-how-it-works__header {
-    margin-bottom: 28px;
-    padding-inline: 4px;
-  }
-
-  .deck-how-it-works__grid {
-    grid-template-columns: 1fr;
-    gap: 0;
-  }
-
-  .deck-how-it-works__step,
-  .deck-how-it-works__step:nth-child(5) {
-    align-items: center;
-    max-width: none;
-    margin: 0;
-    padding: 0 12px 36px;
-    text-align: center;
-    border-bottom: 1px solid rgba(213, 162, 56, 0.22);
-  }
-
-  .deck-how-it-works__step:last-child {
-    border-bottom: 0;
-    padding-bottom: 0;
-  }
-
-  .deck-how-it-works__step:not(:last-child)::after {
-    display: none;
-  }
-
-  .deck-how-it-works__meta {
-    flex-direction: column;
-    align-items: center;
-    gap: 14px;
-    width: 100%;
-    margin-bottom: 16px;
-  }
-
-  .deck-how-it-works__number {
-    width: 44px;
-    height: 44px;
-    margin: 0;
-    flex-shrink: 0;
-    font-size: 1.05rem;
-  }
-
-  .deck-how-it-works__icon {
-    width: 96px;
-    height: 80px;
-    margin: 0;
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-    overflow: hidden;
-    transform: none;
-  }
-
-  .deck-how-it-works__icon > * {
-    flex-shrink: 0;
-    transform: scale(0.8);
-    transform-origin: center center;
-  }
-
-  .deck-how-it-works__content {
-    align-items: center;
-    width: 100%;
-    min-width: 0;
-  }
-
-  .deck-how-it-works__step h3 {
-    max-width: none;
-    margin: 0 0 10px;
-    font-size: 1rem;
-    line-height: 1.35;
-    text-align: center;
-    overflow-wrap: anywhere;
-  }
-
-  .deck-how-it-works__step p {
-    max-width: none;
-    font-size: 0.92rem;
-    line-height: 1.55;
-    text-align: center;
   }
 }
 
