@@ -736,7 +736,38 @@ export function getLocalizedCategoryDisplayName(category: string, locale?: strin
 }
 
 export function getLocalizedCardTitle(cardOrTitle: Pick<GethCard, "title"> & Partial<Pick<GethCard, "slug">> | string, locale?: string) {
+  const normalizedLocale = normalizeLocale(locale);
   const title = typeof cardOrTitle === "string" ? cleanText(cardOrTitle) : cleanText(cardOrTitle.title);
+
+  function titleForSlug(slug: string) {
+    const resolvedSlug = resolveCardSlug(slug);
+    const labels = cardTitleTranslations[resolvedSlug];
+    return labels?.[normalizedLocale] ?? null;
+  }
+
+  if (typeof cardOrTitle !== "string" && cardOrTitle.slug?.trim()) {
+    const localized = titleForSlug(cardOrTitle.slug);
+    if (localized) {
+      return localized;
+    }
+  }
+
+  if (normalizedLocale === "nl") {
+    const canonicalByTitle = gethCards.find((card) => cleanText(card.title) === title);
+    if (canonicalByTitle) {
+      const localized = titleForSlug(canonicalByTitle.slug);
+      if (localized) {
+        return localized;
+      }
+    }
+
+    for (const labels of Object.values(cardTitleTranslations)) {
+      if (cleanText(labels.en) === title) {
+        return labels.nl;
+      }
+    }
+  }
+
   return title;
 }
 
