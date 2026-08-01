@@ -2,11 +2,49 @@ import { createServerClient } from "@supabase/ssr";
 import type { EmailOtpType } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
 import { resolveAuthCallbackRedirect } from "@/lib/auth/complete-auth-callback";
+import { localizeAuthRedirect } from "@/lib/auth/localize-auth-redirect";
 
 function copyCookies(source: NextResponse, target: NextResponse) {
   source.cookies.getAll().forEach((cookie) => {
     target.cookies.set(cookie);
   });
+}
+
+function buildLoginFailureUrl(request: NextRequest) {
+  return new URL(localizeAuthRedirect("/login?error=auth_callback_failed"), request.url);
+}
+
+function getOtpVerificationTypes(type: string | null): EmailOtpType[] {
+  if (!type) {
+    return [];
+  }
+
+  if (type === "magiclink") {
+    return ["magiclink", "email"];
+  }
+
+  return [type as EmailOtpType];
+}
+
+async function verifyTokenHash(
+  supabase: ReturnType<typeof createServerClient>,
+  tokenHash: string,
+  type: string | null
+) {
+  const verificationTypes = getOtpVerificationTypes(type);
+
+  for (const verificationType of verificationTypes) {
+    const { error } = await supabase.auth.verifyOtp({
+      token_hash: tokenHash,
+      type: verificationType
+    });
+
+    if (!error) {
+      return;
+    }
+  }
+
+  throw new Error("Magic link verification failed.");
 }
 
 export async function GET(request: NextRequest) {
@@ -19,10 +57,10 @@ export async function GET(request: NextRequest) {
   const role = searchParams.get("role");
 
   if (!tokenHash && !code) {
-    return NextResponse.redirect(new URL("/login?error=auth_callback_failed", request.url));
+    return NextResponse.redirect(buildLoginFailureUrl(request));
   }
 
-  const redirectTarget = new URL("/login?error=auth_callback_failed", request.url);
+  const redirectTarget = buildLoginFailureUrl(request);
   const cookieCarrier = NextResponse.redirect(redirectTarget);
 
   const supabase = createServerClient(
@@ -48,14 +86,8 @@ export async function GET(request: NextRequest) {
       if (error) {
         throw error;
       }
-    } else if (tokenHash && type) {
-      const { error } = await supabase.auth.verifyOtp({
-        token_hash: tokenHash,
-        type: type as EmailOtpType
-      });
-      if (error) {
-        throw error;
-      }
+    } else if (tokenHash) {
+      await verifyTokenHash(supabase, tokenHash, type);
     }
 
     const {
@@ -68,7 +100,7 @@ export async function GET(request: NextRequest) {
     }
 
     if (type === "recovery") {
-      const resetRedirect = NextResponse.redirect(new URL("/reset-password", request.url));
+      const resetRedirect = NextResponse.redirect(new URL(localizeAuthRedirect("/reset-password"), request.url));
       copyCookies(cookieCarrier, resetRedirect);
       return resetRedirect;
     }
@@ -80,11 +112,15 @@ export async function GET(request: NextRequest) {
       origin: request.url
     });
 
-    const successRedirect = NextResponse.redirect(new URL(redirectTo, request.url));
+    const successRedirect = NextResponse.redirect(new URL(localizeAuthRedirect(redirectTo), request.url));
     copyCookies(cookieCarrier, successRedirect);
     return successRedirect;
-  } catch {
-    const failureRedirect = NextResponse.redirect(new URL("/login?error=auth_callback_failed", request.url));
+  } catch (error) {
+    if (process.env.NODE_ENV === "development") {
+      console.error("Auth verify callback failed", error);
+    }
+
+    const failureRedirect = NextResponse.redirect(buildLoginFailureUrl(request));
     copyCookies(cookieCarrier, failureRedirect);
     return failureRedirect;
   }

@@ -67,13 +67,23 @@ export function AuthCallbackStatus({ inviteToken, targetPath, expectedRole }: { 
             throw error;
           }
         } else if (tokenHash && type) {
-          const { error } = await supabase.auth.verifyOtp({
-            token_hash: tokenHash,
-            type: type as EmailOtpType
-          });
+          const verificationTypes = type === "magiclink" ? ["magiclink", "email"] : [type];
 
-          if (error) {
-            throw error;
+          let verified = false;
+          for (const verificationType of verificationTypes) {
+            const { error } = await supabase.auth.verifyOtp({
+              token_hash: tokenHash,
+              type: verificationType as EmailOtpType
+            });
+
+            if (!error) {
+              verified = true;
+              break;
+            }
+          }
+
+          if (!verified) {
+            throw new Error("Magic link verification failed.");
           }
         }
 

@@ -319,7 +319,7 @@ export function AuthExperience({
         throw new Error(t("errEmailFirst"));
       }
 
-      const redirectTo = new URL("/auth/callback", window.location.origin);
+      const redirectTo = new URL("/auth/verify", window.location.origin);
       if (mode === "signup" && ownerLoginOnly) {
         throw new Error(t("errOwnerSignup"));
       }
