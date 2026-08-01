@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Mail, MessageCircle } from "lucide-react";
 import { useEffect } from "react";
+import { BrandWordmark } from "@/components/BrandWordmark";
 
 type GlobalErrorProps = {
   error: Error & { digest?: string };
@@ -21,10 +22,10 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
       <body>
         <main className="app-error-shell">
           <section className="app-error-card">
-            <p className="eyebrow">GETH</p>
+            <p className="eyebrow"><BrandWordmark /></p>
             <h1>The app hit a temporary error.</h1>
             <p>
-              This is usually fixed by trying again. If it keeps happening, contact GETH support and include the error
+              This is usually fixed by trying again. If it keeps happening, contact GETH® support and include the error
               reference below.
             </p>
             {error.digest ? <small>Error reference: {error.digest}</small> : null}

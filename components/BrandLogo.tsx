@@ -5,6 +5,7 @@ import {
   BRAND_MARK_SRC,
   brandMarkHeightForWidth
 } from "@/lib/brand";
+import { BrandWordmark } from "@/components/BrandWordmark";
 
 /** Crest mark at any display width (same PNG as the header logo). */
 export function BrandMarkIcon({
@@ -57,7 +58,9 @@ export function BrandLogo({
   );
   const wordmark = (
     <span className="brand-copy">
-      <span className="brand-wordmark">GETH</span>
+      <span className="brand-wordmark">
+        <BrandWordmark />
+      </span>
     </span>
   );
 

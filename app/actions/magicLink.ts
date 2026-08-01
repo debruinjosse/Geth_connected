@@ -87,10 +87,14 @@ export async function requestMagicLinkEmail(input: {
       input.mode === "signup" ? "invite" : "magiclink"
     );
 
+    const displayName =
+      typeof data.user?.user_metadata?.full_name === "string" ? data.user.user_metadata.full_name : undefined;
+
     await sendMagicLinkEmail({
       to: email,
       magicLink,
-      mode: input.mode
+      mode: input.mode,
+      displayName
     });
 
     return { ok: true as const };

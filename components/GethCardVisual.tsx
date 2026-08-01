@@ -1,4 +1,5 @@
 import { BrandLogo } from "@/components/BrandLogo";
+import { BrandWordmark } from "@/components/BrandWordmark";
 import { getCategoryDisplayName, type GethCard } from "@/lib/cards";
 
 type GethCardVisualProps = {
@@ -16,7 +17,7 @@ export function GethCardVisual({ card, variant = "hero" }: GethCardVisualProps) 
         <div className="geth-card-hero-brand">
           <BrandLogo interactive={false} />
         </div>
-        <div className="geth-card-hero-word">GETH</div>
+        <div className="geth-card-hero-word"><BrandWordmark /></div>
         <div className="geth-card-hero-mark">Recognize to energize.</div>
         <div className="geth-card-hero-body">
           <div className="geth-card-hero-category">{category}</div>

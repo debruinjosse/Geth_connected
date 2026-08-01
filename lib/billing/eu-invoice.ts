@@ -173,7 +173,7 @@ export function createInvoicePdf(invoice: InvoiceDocument) {
   lines.push("1 1 1 rg");
   lines.push(textLine(59, 787, "G", 20, "F2"));
   lines.push("0.86 0.64 0.23 rg");
-  lines.push(textLine(98, 795, "GETH", 24, "F2"));
+  lines.push(textLine(98, 795, "GETH®", 24, "F2"));
   lines.push(textLine(100, 778, "RECOGNIZE TO ENERGIZE", 7, "F2"));
   lines.push("1 1 1 rg");
   lines.push(textLine(390, 792, "INVOICE", 28, "F2"));

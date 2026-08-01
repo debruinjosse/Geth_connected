@@ -1,6 +1,7 @@
 "use client";
 
 import { BrandMarkIcon } from "@/components/BrandLogo";
+import { BrandWordmark } from "@/components/BrandWordmark";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
@@ -25,7 +26,7 @@ function RecognitionCard({ card }: { card: RecognitionCardData }) {
       <div className="recognitionCardTop">
         <span className="recognitionCardLogo">
           <BrandMarkIcon size={30} />
-          <span>GETH</span>
+          <span><BrandWordmark /></span>
         </span>
         <span className="recognitionCardNumber">CARD {card.number}</span>
       </div>

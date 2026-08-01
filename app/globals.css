@@ -455,6 +455,14 @@ img {
   text-transform: uppercase;
 }
 
+.brand-reg {
+  font-size: 0.42em;
+  vertical-align: super;
+  line-height: 0;
+  letter-spacing: 0;
+  font-weight: 700;
+}
+
 .brand-logo.compact .brand-wordmark {
   font-size: 19px;
   letter-spacing: 0.07em;

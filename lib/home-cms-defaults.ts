@@ -5,7 +5,7 @@ import {
 
 export const DEFAULT_TESTIMONIALS_EN = [
   {
-    quote: "GETH helped our managers see recognition patterns we were missing.",
+    quote: "GETH® helped our managers see recognition patterns we were missing.",
     name: "Sarah van den Berg",
     role: "HR Director"
   },
@@ -23,7 +23,7 @@ export const DEFAULT_TESTIMONIALS_EN = [
 
 export const DEFAULT_TESTIMONIALS_NL = [
   {
-    quote: "GETH hielp onze managers waarderingspatronen zien die we misten.",
+    quote: "GETH® hielp onze managers waarderingspatronen zien die we misten.",
     name: "Sarah van den Berg",
     role: "HR-directeur"
   },

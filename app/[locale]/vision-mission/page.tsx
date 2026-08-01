@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { PublicSiteChrome } from "@/components/PublicSiteChrome";
+import { BrandWordmark } from "@/components/BrandWordmark";
 
 type VisionMissionPageProps = { params: Promise<{ locale: string }> };
 
@@ -24,7 +25,7 @@ export default async function VisionMissionPage({ params }: VisionMissionPagePro
       <section className="section-shell vision-page">
         <div className="pageContainer vision-page-inner">
           <div className="vision-document">
-            <div className="eyebrow">GETH</div>
+            <div className="eyebrow"><BrandWordmark /></div>
             <h1>{t("title")}</h1>
 
             <article>

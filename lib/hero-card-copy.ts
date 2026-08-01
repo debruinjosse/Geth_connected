@@ -56,5 +56,5 @@ export function getHeroPhysicalCardSrc(locale: string) {
 }
 
 export function getHeroPhysicalCardAlt(locale: string) {
-  return locale === "nl" ? "GETH verbonden kaarten" : "GETH connected cards";
+  return locale === "nl" ? "GETH® verbonden kaarten" : "GETH® connected cards";
 }

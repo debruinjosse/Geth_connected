@@ -4,6 +4,7 @@ import { CardsLibraryClient } from "@/components/CardsLibraryClient";
 import { DashboardShell } from "@/components/DashboardShell";
 import { PublicSiteChrome } from "@/components/PublicSiteChrome";
 import { Link } from "@/i18n/navigation";
+import { BrandWordmark } from "@/components/BrandWordmark";
 import { getPublicCardLibrary } from "@/lib/card-library";
 import { normalizeAppRole, type AppRole } from "@/lib/auth/roles";
 import { getUnreadNotificationCount } from "@/lib/notifications";
@@ -192,7 +193,7 @@ export default async function CardsPage({ params }: CardsPageProps) {
         </div>
         <section className="section-shell card-library-locked" style={{ paddingTop: 8 }}>
           <div className="empty-state">
-            <span className="empty-state-icon">GETH</span>
+            <span className="empty-state-icon"><BrandWordmark /></span>
             <h2>{t("lockedPanelTitle")}</h2>
             <p>{t("lockedPanelCopy")}</p>
             <div className="hero-ctas">

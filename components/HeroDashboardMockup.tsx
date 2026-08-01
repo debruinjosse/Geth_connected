@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { BrandMarkIcon } from "@/components/BrandLogo";
+import { BrandWordmark } from "@/components/BrandWordmark";
 import { BarChart3, CreditCard, House, Settings, Sparkles, TrendingUp, UsersRound } from "lucide-react";
 import type { CSSProperties } from "react";
 import { CountUp } from "@/components/CountUp";
@@ -68,7 +69,7 @@ export function HeroDashboardMockup({ locale = "en" }: { locale?: string }) {
                     <div className="hero-app-mark">
                       <BrandMarkIcon size={28} />
                     </div>
-                    <span className="hero-app-name">GETH</span>
+                    <span className="hero-app-name"><BrandWordmark /></span>
                   </div>
                   <nav className="hero-sidebar-nav" aria-label="Dashboard preview navigation">
                     {copy.sidebar.map((label, index) => {

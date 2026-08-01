@@ -146,11 +146,13 @@ export function hasSmtpConfig() {
 export async function sendMagicLinkEmail({
   to,
   magicLink,
-  mode
+  mode,
+  displayName
 }: {
   to: string;
   magicLink: string;
   mode: "login" | "signup";
+  displayName?: string | null;
 }) {
   try {
     const config = getSmtpConfig();
@@ -159,8 +161,8 @@ export async function sendMagicLinkEmail({
       replyTo: config.replyTo,
       to,
       subject: getMagicLinkEmailSubject(mode),
-      text: getMagicLinkEmailText({ recipientEmail: to, magicLink, mode }),
-      html: getMagicLinkEmailHtml({ recipientEmail: to, magicLink, mode })
+      text: getMagicLinkEmailText({ recipientEmail: to, magicLink, mode, displayName }),
+      html: getMagicLinkEmailHtml({ recipientEmail: to, magicLink, mode, displayName })
     });
   } catch (error) {
     throw new InviteEmailError(classifySmtpError(error), "Magic link email could not be sent.", error);
@@ -355,7 +357,7 @@ export async function sendDemoBookingRequestEmails({
   adminUrl: string;
 }) {
   const adminText = [
-    "New GETH demo request",
+    "New GETH® demo request",
     "",
     `Name: ${requesterName}`,
     `Email: ${requesterEmail}`,
@@ -372,7 +374,7 @@ export async function sendDemoBookingRequestEmails({
   const requesterText = [
     `Hi ${requesterName},`,
     "",
-    "Thanks for booking a GETH demo. We received your request and will confirm the time shortly.",
+    "Thanks for booking a GETH® demo. We received your request and will confirm the time shortly.",
     "",
     `Preferred slot: ${preferredSlot}`,
     `Company: ${company}`,
@@ -387,14 +389,14 @@ export async function sendDemoBookingRequestEmails({
       from: config.from,
       replyTo: requesterEmail || config.replyTo,
       to: adminEmails.join(","),
-      subject: `New GETH demo request - ${company}`,
+      subject: `New GETH® demo request - ${company}`,
       text: adminText
     });
     await transport.sendMail({
       from: config.from,
       replyTo: config.replyTo,
       to: requesterEmail,
-      subject: "GETH demo request received",
+      subject: "GETH® demo request received",
       text: requesterText
     });
   } catch (error) {
@@ -425,10 +427,10 @@ export async function sendDemoBookingDecisionEmail({
     `Hi ${requesterName},`,
     "",
     approved
-      ? `Your GETH demo for ${company} has been approved.`
+      ? `Your GETH® demo for ${company} has been approved.`
       : rescheduled
-        ? `Your GETH demo for ${company} has been rescheduled.`
-        : `Thanks for your interest in GETH. We cannot confirm the requested demo slot for ${company} yet.`,
+        ? `Your GETH® demo for ${company} has been rescheduled.`
+        : `Thanks for your interest in GETH®. We cannot confirm the requested demo slot for ${company} yet.`,
     `${rescheduled ? "New slot" : "Requested slot"}: ${preferredSlot}`,
     adminNote ? `Note: ${adminNote}` : "",
     "",
@@ -443,7 +445,7 @@ export async function sendDemoBookingDecisionEmail({
       from: config.from,
       replyTo: config.replyTo,
       to,
-      subject: approved ? "Your GETH demo is confirmed" : rescheduled ? "Your GETH demo has been rescheduled" : "GETH demo request update",
+      subject: approved ? "Your GETH® demo is confirmed" : rescheduled ? "Your GETH® demo has been rescheduled" : "GETH® demo request update",
       text,
       ...(ics
         ? {

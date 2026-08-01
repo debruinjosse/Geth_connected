@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Mail, MessageCircle } from "lucide-react";
 import { useEffect } from "react";
+import { BrandWordmark } from "@/components/BrandWordmark";
 
 type AppErrorProps = {
   error: Error & { digest?: string };
@@ -19,11 +20,11 @@ export default function AppError({ error, reset }: AppErrorProps) {
   return (
     <main className="app-error-shell">
       <section className="app-error-card">
-        <p className="eyebrow">GETH</p>
+        <p className="eyebrow"><BrandWordmark /></p>
         <h1>Something interrupted this page.</h1>
         <p>
           The app is still running. Try reloading this view, or return to the homepage and open the page again. If it
-          keeps happening, contact GETH support with the error reference below.
+          keeps happening, contact GETH® support with the error reference below.
         </p>
         {error.digest ? <small>Error reference: {error.digest}</small> : null}
         <div className="hero-actions">

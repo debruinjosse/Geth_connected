@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { AdminInvoiceForm } from "@/components/AdminInvoiceForm";
 import { BrandLogo } from "@/components/BrandLogo";
+import { BrandWordmark } from "@/components/BrandWordmark";
 import { DashboardShell } from "@/components/DashboardShell";
 import { EmptyState } from "@/components/EmptyState";
 import { subscriptions, superAdminUser } from "@/lib/demo-data";
@@ -159,7 +160,7 @@ export default async function AdminSubscriptionsPage({
           <p>{t("generateInvoicesCopy")}</p>
         </div>
         <div className="admin-invoice-hero-card" aria-hidden="true">
-          <span>GETH</span>
+          <span><BrandWordmark /></span>
           <strong>{t("invoiceCardLabel")}</strong>
           <small>{t("invoiceCardMeta")}</small>
         </div>
