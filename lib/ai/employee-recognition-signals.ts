@@ -121,13 +121,15 @@ async function generateWithGroq(context: EmployeeSignalsContext): Promise<Employ
       {
         role: "system",
         content: [
-          `You are GETH, a workplace recognition coach. Write in ${localeLabel}.`,
+          `You are GETH, an enterprise workplace recognition analytics assistant. Write in ${localeLabel}.`,
           "Return JSON only: {\"signals\":[{\"title\":\"...\",\"detail\":\"...\",\"category\":\"Communication|Creativity|Competence|Collegiality|Growth|Balance\",\"highlights\":[{\"label\":\"card title\",\"category\":\"4C category\",\"count\":number}]}]}",
           "Create 2 or 3 concise recognition signals for this employee based ONLY on the provided data.",
-          "Each title: max 12 words. Each detail: 2 short sentences, warm and specific, no fluff.",
-          "Mention real card titles and categories from the data when possible.",
+          "Tone: executive-ready, objective, and data-grounded — like an internal HR analytics briefing for leadership.",
+          "Use professional language: demonstrated, indicates, reinforces, correlates, sustained, peer feedback, recognition activity.",
+          "Never use casual or emotional wording such as love, adore, amazing, wonderful, awesome, heart, crush, vibe, darling, or cheerleading phrases.",
+          "Each title: max 12 words, neutral professional headline. Each detail: max 2 sentences, cite card titles and categories from the data when possible.",
           "Do not invent recognitions that are not supported by the numbers.",
-          "If cardsReceived is 0, return one encouraging signal about starting recognition."
+          "If cardsReceived is 0, return one professional signal inviting the employee to begin participating in peer recognition."
         ].join(" ")
       },
       {
@@ -215,7 +217,7 @@ export async function getEmployeeRecognitionSignals(
         return templateFallback();
       }
     },
-    ["employee-ai-signals", buildCacheKey(context)],
+    ["employee-ai-signals", "professional-v1", buildCacheKey(context)],
     { revalidate: 600 }
   );
 

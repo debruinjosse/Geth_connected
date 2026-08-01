@@ -9,6 +9,7 @@ import { SignalList } from "@/components/SignalList";
 
 export function EmployeeAiSignalsPanel({ context }: { context: EmployeeSignalsContext }) {
   const t = useTranslations("employeeHome");
+  const td = useTranslations("employeeDashboard");
   const tc = useTranslations("common");
   const [signals, setSignals] = useState<EmployeeRecognitionSignal[]>([]);
   const [loading, setLoading] = useState(true);
@@ -35,13 +36,13 @@ export function EmployeeAiSignalsPanel({ context }: { context: EmployeeSignalsCo
       try {
         const personaKeys = getPersonaKeys(context.topQualities[0]?.category ?? "");
         const result = await fetchEmployeeRecognitionSignals(context, {
-          emptyTitle: t("emptySignalTitle"),
-          emptyDetail: t("emptySignalDetail"),
-          personaTitle: t(personaKeys.title),
-          personaStory: t(personaKeys.story),
-          storyEvidence: t("storyEvidence"),
-          paceConsistent: t("paceConsistent"),
-          paceGrowing: t("paceGrowing"),
+          emptyTitle: td("emptySignalTitle"),
+          emptyDetail: td("emptySignalDetail"),
+          personaTitle: td(personaKeys.title),
+          personaStory: td(personaKeys.story),
+          storyEvidence: td("storyEvidence"),
+          paceConsistent: td("paceConsistent"),
+          paceGrowing: td("paceGrowing"),
           cardWordSingular: tc("card"),
           cardWordPlural: tc("cards")
         });
@@ -65,7 +66,7 @@ export function EmployeeAiSignalsPanel({ context }: { context: EmployeeSignalsCo
     return () => {
       cancelled = true;
     };
-  }, [contextKey, t, tc]);
+  }, [contextKey, t, td, tc]);
 
   return (
     <article className="panel dashboard-panel employee-ai-signals-panel">
