@@ -17,13 +17,10 @@ import { InfinityValueStrip } from "@/components/InfinityValueStrip";
 import { PublicSiteChrome } from "@/components/PublicSiteChrome";
 import { Reveal } from "@/components/Reveal";
 import { RECOGNITION_MOMENT_ALT, RECOGNITION_MOMENT_SRC } from "@/lib/brand";
-import { buildTestimonialsFromOverrides } from "@/lib/build-home-cms-defaults";
 import { buildMarqueeConfig } from "@/lib/marquee-config";
-import { getSiteContentOverrides, pickOptionalSiteContentText, pickSiteContentText } from "@/lib/site-content";
+import { getSiteContentOverrides, pickSiteContentText } from "@/lib/site-content";
 import { CardDeckPreview } from "@/components/sections/card-deck-preview";
 import { HowItWorksDeckSection } from "@/components/sections/HowItWorksDeckSection";
-import { LandingRecognitionIntelligenceSection } from "@/components/sections/LandingRecognitionIntelligenceSection";
-import { LandingTestimonialsSection } from "@/components/sections/LandingTestimonialsSection";
 
 type LandingPageProps = {
   params: Promise<{ locale: string }>;
@@ -40,14 +37,11 @@ export default async function LandingPage({ params }: LandingPageProps) {
   const marqueeConfig = buildMarqueeConfig(overrides, settingsOverrides, locale);
 
   const audiences = [
-    [text("companiesLabel"), text("companiesTitle"), text("companiesCopy"), Building2],
-    [text("managersLabel"), text("managersTitle"), text("managersCopy"), UsersRound],
-    [text("employeesLabel"), text("employeesTitle"), text("employeesCopy"), HeartHandshake]
+    [t("companiesLabel"), t("companiesTitle"), t("companiesCopy"), Building2],
+    [t("managersLabel"), t("managersTitle"), t("managersCopy"), UsersRound],
+    [t("employeesLabel"), t("employeesTitle"), t("employeesCopy"), HeartHandshake]
   ];
   const bookDemoHref = "/book-demo";
-  const valuePropCtaLabel = pickOptionalSiteContentText(overrides, t("valuePropCtaLabel"), "valuePropCtaLabel");
-  const valuePropCtaHref =
-    pickOptionalSiteContentText(overrides, t("valuePropCtaHref"), "valuePropCtaHref") || bookDemoHref;
 
   const howItWorksContent = {
     title: text("howItWorksTitle"),
@@ -59,9 +53,6 @@ export default async function LandingPage({ params }: LandingPageProps) {
       moreImpact: { title: text("stepMoreImpactTitle"), description: text("stepMoreImpactDescription") }
     }
   };
-
-  const intelligenceBullets = [text("intelligenceBullet1"), text("intelligenceBullet2"), text("intelligenceBullet3")];
-  const testimonialItems = buildTestimonialsFromOverrides(overrides, {}, locale);
 
   return (
     <PublicSiteChrome locale={locale}>
@@ -123,6 +114,14 @@ export default async function LandingPage({ params }: LandingPageProps) {
 
       <HowItWorksDeckSection content={howItWorksContent} />
 
+      <section className="section-shell section-shell-compact howPosterSection">
+        <div className="pageContainer">
+          <Reveal delay={0.12} distance={18}>
+            <CardDeckPreview locale={locale} overrides={overrides} />
+          </Reveal>
+        </div>
+      </section>
+
       <section className="section-shell section-shell-follow" id="for-companies">
         <div className="pageContainer">
           <div className="audience-grid audienceGrid">
@@ -141,44 +140,20 @@ export default async function LandingPage({ params }: LandingPageProps) {
         </div>
       </section>
 
-      <section className="section-shell section-shell-compact howPosterSection">
-        <div className="pageContainer">
-          <Reveal delay={0.12} distance={18}>
-            <CardDeckPreview locale={locale} overrides={overrides} />
-          </Reveal>
-        </div>
-      </section>
-
-      <LandingRecognitionIntelligenceSection
-        eyebrow={text("intelligenceEyebrow")}
-        title={text("intelligenceTitle")}
-        paragraph={text("intelligenceParagraph")}
-        bullets={intelligenceBullets}
-      />
-
-      <LandingTestimonialsSection
-        eyebrow={text("testimonialsEyebrow")}
-        title={text("testimonialsTitle")}
-        copy={text("testimonialsCopy")}
-        items={testimonialItems}
-      />
-
       <section className="section-shell cta-band landingCta pre-footer-recognition" id="value-proposition">
         <div className="pageContainer landingCtaInner">
           <div className="landingCtaContent">
             <Reveal className="cta-copy" distance={18}>
-              <div className="eyebrow">{text("valuePropEyebrow")}</div>
-              <h2 className="section-title">{text("valuePropHeadline")}</h2>
-              <p className="hero-detail-copy landingCtaDetail">{text("valuePropParagraph")}</p>
+              <div className="eyebrow">{t("valuePropEyebrow")}</div>
+              <h2 className="section-title">{t("valuePropHeadline")}</h2>
+              <p className="hero-detail-copy landingCtaDetail">{t("valuePropParagraph")}</p>
             </Reveal>
             <Reveal className="hero-actions landingCtaActions" delay={0.1} distance={14}>
-              {valuePropCtaLabel ? (
-                <Link className="btn btn-primary" href={valuePropCtaHref}>
-                  {valuePropCtaLabel} <Sparkles size={16} />
-                </Link>
-              ) : null}
+              <Link className="btn btn-primary" href="/book-demo">
+                {nav("bookDemo")} <Sparkles size={16} />
+              </Link>
               <Link className="btn btn-secondary" href="/pricing">
-                {text("viewPricing")}
+                {t("viewPricing")}
               </Link>
             </Reveal>
           </div>
