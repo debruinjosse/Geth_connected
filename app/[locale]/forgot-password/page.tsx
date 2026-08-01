@@ -1,6 +1,8 @@
 import { AuthShell } from "@/components/AuthShell";
 import { ForgotPasswordExperience } from "@/components/ForgotPasswordExperience";
 
+export const maxDuration = 30;
+
 export default function ForgotPasswordPage() {
   return (
     <AuthShell

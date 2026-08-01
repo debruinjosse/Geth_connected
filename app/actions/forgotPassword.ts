@@ -1,6 +1,7 @@
 "use server";
 
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { resolveAuthUserIdByEmail } from "@/lib/auth/resolve-auth-user-id";
 
 export async function setPasswordDirectAction(input: { email: string; password: string; confirmPassword: string }) {
   const email = input.email.trim().toLowerCase();
@@ -21,16 +22,13 @@ export async function setPasswordDirectAction(input: { email: string; password: 
 
   try {
     const admin = createSupabaseAdminClient();
-    const { data, error } = await admin.auth.admin.generateLink({
-      type: "magiclink",
-      email
-    });
+    const { userId, error: lookupError } = await resolveAuthUserIdByEmail(admin, email);
 
-    if (error || !data.user?.id) {
-      return { ok: false as const, error: "No GETH account was found for that email." };
+    if (!userId) {
+      return { ok: false as const, error: lookupError ?? "No GETH account was found for that email." };
     }
 
-    const { error: updateError } = await admin.auth.admin.updateUserById(data.user.id, {
+    const { error: updateError } = await admin.auth.admin.updateUserById(userId, {
       password
     });
 

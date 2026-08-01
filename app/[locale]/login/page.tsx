@@ -4,6 +4,8 @@ import { AuthShell } from "@/components/AuthShell";
 import { AuthExperience } from "@/components/AuthExperience";
 import type { DemoRole } from "@/lib/demo-session";
 
+export const maxDuration = 30;
+
 function getLoginRole(role?: string, next?: string): DemoRole {
   if (role === "manager" || role === "company_admin") {
     return role;

@@ -1,6 +1,7 @@
 "use server";
 
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { resolveAuthUserIdByEmail } from "@/lib/auth/resolve-auth-user-id";
 import { buildAuthCallbackEmailLink } from "@/lib/auth/build-auth-callback-link";
 import { getAuthCallbackUrl } from "@/lib/app-url";
 import { InviteEmailError, sendMagicLinkEmail } from "@/lib/mail/nodemailer";
@@ -64,6 +65,16 @@ export async function requestMagicLinkEmail(input: {
       data: input.metadata ?? undefined
     };
 
+    if (input.mode === "login") {
+      const { userId, error: lookupError } = await resolveAuthUserIdByEmail(admin, email);
+      if (!userId) {
+        return {
+          ok: false as const,
+          error: lookupError ?? "No account was found for that email. Check the address or sign up first."
+        };
+      }
+    }
+
     const { data, error } =
       input.mode === "signup"
         ? await admin.auth.admin.generateLink({
@@ -81,8 +92,9 @@ export async function requestMagicLinkEmail(input: {
       throw error;
     }
 
+    const properties = data.properties ?? {};
     const magicLink = buildAuthCallbackEmailLink(
-      data.properties ?? {},
+      properties,
       redirectTo,
       input.mode === "signup" ? "invite" : "magiclink"
     );

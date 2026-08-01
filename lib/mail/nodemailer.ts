@@ -126,17 +126,34 @@ function classifySmtpError(error: unknown): InviteEmailErrorCode {
   return "UNKNOWN";
 }
 
+let cachedSmtpTransport: nodemailer.Transporter | null = null;
+
 export function createSmtpTransport() {
+  if (cachedSmtpTransport) {
+    return cachedSmtpTransport;
+  }
+
   const config = getSmtpConfig();
-  return nodemailer.createTransport({
+  cachedSmtpTransport = nodemailer.createTransport({
     host: config.host,
     port: config.port,
     secure: config.secure,
     auth: {
       user: config.user,
       pass: config.pass
+    },
+    pool: true,
+    maxConnections: 1,
+    maxMessages: 10,
+    connectionTimeout: 12000,
+    greetingTimeout: 12000,
+    socketTimeout: 20000,
+    tls: {
+      minVersion: "TLSv1.2"
     }
   });
+
+  return cachedSmtpTransport;
 }
 
 export function hasSmtpConfig() {
