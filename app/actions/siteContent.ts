@@ -6,6 +6,8 @@ import { ALL_HOME_CONTENT_FIELDS, type SiteContentNamespace } from "@/lib/site-c
 
 type ActionResult = { ok: true } | { ok: false; error: string };
 
+const ALLOWED_HOME_CONTENT_KEYS = new Set(ALL_HOME_CONTENT_FIELDS.map((field) => field.key));
+
 function normalizeMarqueeFieldValue(key: string, value: string) {
   const trimmed = value.trim();
 
@@ -18,6 +20,10 @@ function normalizeMarqueeFieldValue(key: string, value: string) {
   }
 
   return trimmed;
+}
+
+function shouldSkipFieldForLocale(locale: string, key: string) {
+  return locale === "nl" && key.startsWith("marquee") && key !== "marqueeItems";
 }
 
 async function requireGlobalAdmin() {
@@ -57,24 +63,26 @@ export async function updateSiteContentAction(formData: FormData): Promise<Actio
     return { ok: false, error: "Invalid locale." };
   }
 
-  const rows = ALL_HOME_CONTENT_FIELDS
-    .filter((field) => {
-      if (locale === "nl" && field.key.startsWith("marquee") && field.key !== "marqueeItems") {
-        return false;
-      }
-      return true;
-    })
-    .map((field) => {
-      const rawValue = String(formData.get(field.key) ?? "");
-      const value = field.key.startsWith("marquee") ? normalizeMarqueeFieldValue(field.key, rawValue) : rawValue.trim();
+  const rows = Array.from(formData.entries())
+    .filter(([key]) => key !== "namespace" && key !== "locale")
+    .filter(([key]) => ALLOWED_HOME_CONTENT_KEYS.has(key))
+    .filter(([key]) => !shouldSkipFieldForLocale(locale, key))
+    .map(([key, rawValue]) => {
+      const value = String(rawValue ?? "");
+      const normalized = key.startsWith("marquee") ? normalizeMarqueeFieldValue(key, value) : value.trim();
+
       return {
         namespace,
-        key: field.key,
+        key,
         locale,
-        value,
+        value: normalized,
         updated_by: auth.userId
       };
     });
+
+  if (!rows.length) {
+    return { ok: false, error: "No homepage fields were submitted." };
+  }
 
   const { error } = await auth.supabase.from("site_content").upsert(rows, {
     onConflict: "namespace,key,locale"
@@ -84,9 +92,6 @@ export async function updateSiteContentAction(formData: FormData): Promise<Actio
     return { ok: false, error: "Could not save homepage content. Run database migrations if this is a new environment." };
   }
 
-  revalidatePath("/");
-  revalidatePath("/nl");
-  revalidatePath("/en");
   revalidatePath(`/${locale}`);
   revalidatePath(`/${locale}/admin/site-content`);
 

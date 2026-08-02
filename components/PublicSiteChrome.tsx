@@ -1,10 +1,12 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import { getLocale, getTranslations } from "next-intl/server";
 import { BrandLogo } from "@/components/BrandLogo";
 import { GoogleTranslateWidget } from "@/components/GoogleTranslateWidget";
 import { PublicMobileNav } from "@/components/PublicMobileNav";
 import { getLocalizedDashboardHref, localizePublicHref, publicNavLinks } from "@/lib/navigation/public-nav";
+import { getSiteContentOverrides, pickSiteContentText } from "@/lib/site-content";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 function localizeHref(href: string, locale: string) {
@@ -56,6 +58,14 @@ export async function PublicSiteChrome({
   const signedInUser = await getPublicUserState(locale);
   const nav = await getTranslations({ locale, namespace: "nav" });
   const footer = await getTranslations({ locale, namespace: "footer" });
+  const home = await getTranslations({ locale, namespace: "home" });
+  const overrides = await getSiteContentOverrides("home", locale);
+  const cmsText = (key: string, fallback: string) => pickSiteContentText(overrides, fallback, key);
+  const footerBanner = cmsText("finalCtaBanner", footer("banner"));
+  const footerTitle = cmsText("finalCtaTitle", footer("title"));
+  const footerCopy = cmsText("finalCtaCopy", footer("copy"));
+  const footerCtaLabel = cmsText("finalCtaButtonLabel", home("finalCtaButtonLabel"));
+  const footerCtaHref = localizeHref(cmsText("finalCtaButtonHref", home("finalCtaButtonHref")), locale);
   const localizedCtaHref = localizeHref(ctaHref, locale);
   const localizedNavLinks = publicNavLinks.map((link) => ({
     href: localizeHref(link.href, locale),
@@ -121,9 +131,14 @@ export async function PublicSiteChrome({
       <section className="footer-banner landingFooter">
         <div className="pageContainer landingFooterInner">
           <div className="landingFooterCopy">
-            <div className="eyebrow">{footer("banner")}</div>
-            <h2>{footer("title")}</h2>
-            <p>{footer("copy")}</p>
+            <div className="eyebrow">{footerBanner}</div>
+            <h2>{footerTitle}</h2>
+            <p>{footerCopy}</p>
+            {!signedInUser && footerCtaLabel ? (
+              <Link className="btn btn-primary landingFooterCta" href={footerCtaHref}>
+                {footerCtaLabel} <ArrowRight size={16} />
+              </Link>
+            ) : null}
           </div>
           <footer className="site-footer">
             <div>

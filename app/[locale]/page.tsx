@@ -23,6 +23,7 @@ import { resolveHeroHeadlineLines, splitHeadlinePhrase } from "@/lib/landing-her
 import { getSiteContentOverrides, pickSiteContentText } from "@/lib/site-content";
 import { CardDeckPreview } from "@/components/sections/card-deck-preview";
 import { HowItWorksDeckSection } from "@/components/sections/HowItWorksDeckSection";
+import { LandingRecognitionIntelligenceSection } from "@/components/sections/LandingRecognitionIntelligenceSection";
 import { LandingTestimonialsSection } from "@/components/sections/LandingTestimonialsSection";
 
 type LandingPageProps = {
@@ -44,10 +45,12 @@ export default async function LandingPage({ params }: LandingPageProps) {
     : getDefaultTestimonialsForLocale(locale);
 
   const audiences = [
-    [t("companiesLabel"), t("companiesTitle"), t("companiesCopy"), Building2],
-    [t("managersLabel"), t("managersTitle"), t("managersCopy"), UsersRound],
-    [t("employeesLabel"), t("employeesTitle"), t("employeesCopy"), HeartHandshake]
+    [text("companiesLabel"), text("companiesTitle"), text("companiesCopy"), Building2],
+    [text("managersLabel"), text("managersTitle"), text("managersCopy"), UsersRound],
+    [text("employeesLabel"), text("employeesTitle"), text("employeesCopy"), HeartHandshake]
   ];
+  const valuePropCtaHref = text("valuePropCtaHref") || "/book-demo";
+  const valuePropCtaLabel = text("valuePropCtaLabel") || nav("bookDemo");
   const bookDemoHref = "/book-demo";
 
   const howItWorksContent = {
@@ -158,20 +161,27 @@ export default async function LandingPage({ params }: LandingPageProps) {
         </div>
       </section>
 
+      <LandingRecognitionIntelligenceSection
+        eyebrow={text("intelligenceEyebrow")}
+        title={text("intelligenceTitle")}
+        paragraph={text("intelligenceParagraph")}
+        bullets={[text("intelligenceBullet1"), text("intelligenceBullet2"), text("intelligenceBullet3")]}
+      />
+
       <section className="section-shell cta-band landingCta pre-footer-recognition" id="value-proposition">
         <div className="pageContainer landingCtaInner">
           <div className="landingCtaContent">
             <Reveal className="cta-copy" distance={18}>
-              <div className="eyebrow">{t("valuePropEyebrow")}</div>
-              <h2 className="section-title">{t("valuePropHeadline")}</h2>
-              <p className="hero-detail-copy landingCtaDetail">{t("valuePropParagraph")}</p>
+              <div className="eyebrow">{text("valuePropEyebrow")}</div>
+              <h2 className="section-title">{text("valuePropHeadline")}</h2>
+              <p className="hero-detail-copy landingCtaDetail">{text("valuePropParagraph")}</p>
             </Reveal>
             <Reveal className="hero-actions landingCtaActions" delay={0.1} distance={14}>
-              <Link className="btn btn-primary" href="/book-demo">
-                {nav("bookDemo")} <Sparkles size={16} />
+              <Link className="btn btn-primary" href={valuePropCtaHref}>
+                {valuePropCtaLabel} <Sparkles size={16} />
               </Link>
               <Link className="btn btn-secondary" href="/pricing">
-                {t("viewPricing")}
+                {text("viewPricing")}
               </Link>
             </Reveal>
           </div>

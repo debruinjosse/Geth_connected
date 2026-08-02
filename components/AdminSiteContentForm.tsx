@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { updateSiteContentAction } from "@/app/actions/siteContent";
 import { AdminMarqueeSection } from "@/components/AdminMarqueeSection";
 import { AdminTestimonialsSection } from "@/components/AdminTestimonialsSection";
@@ -52,6 +53,7 @@ export function AdminSiteContentForm({
   defaults: Record<string, string>;
   overrides: Record<string, string>;
 }) {
+  const router = useRouter();
   const [status, setStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [error, setError] = useState("");
 
@@ -70,6 +72,7 @@ export function AdminSiteContentForm({
           return;
         }
         setStatus("saved");
+        router.refresh();
         window.setTimeout(() => setStatus("idle"), 2500);
       }}
     >
@@ -108,7 +111,7 @@ export function AdminSiteContentForm({
         <button className="btn btn-primary" type="submit" disabled={status === "saving"}>
           {status === "saving" ? "Saving…" : `Save ${locale.toUpperCase()} homepage`}
         </button>
-        {status === "saved" ? <span className="field-help success">Saved. Refresh the public homepage to preview.</span> : null}
+        {status === "saved" ? <span className="field-help success">Saved. Open the public homepage to preview your changes.</span> : null}
         {status === "error" ? <span className="field-help error">{error}</span> : null}
       </div>
     </form>

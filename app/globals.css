@@ -2452,6 +2452,10 @@ img {
   z-index: 1;
 }
 
+.landingFooterCta {
+  margin-top: 18px;
+}
+
 .landingFooterInner > p {
   max-width: 720px;
   color: rgba(255, 255, 255, 0.8);
