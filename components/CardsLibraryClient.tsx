@@ -1,6 +1,6 @@
 "use client";
 
-import { useDeferredValue, useState } from "react";
+import { useDeferredValue, useMemo, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { useSearchParams } from "next/navigation";
 import { ArrowRight, Gift, Search, Sparkles } from "lucide-react";
@@ -11,18 +11,19 @@ import {
   getLocalizedCardTitle,
   getLocalizedCategoryDisplayName,
   getLocalizedRecognitionSentence,
+  normalizeCategoryKey,
   type CardCategory,
   type GethCard
 } from "@/lib/cards";
 
-const categoryFilters: CardCategory[] = ["Communicatie", "Creativiteit", "Competentie", "Collegialiteit", "Open kaart"];
+const categoryFilters: CardCategory[] = ["Communication", "Creativity", "Competence", "Collegiality", "Open Category"];
 
 const categorySearchAliases: Record<string, string> = {
-  Communicatie: "communication communicatie connector listener clear helder verbinder luisteraar",
-  Creativiteit: "creativity creativiteit creative ideas maker improvisator",
-  Competentie: "competence competentie skill problem solver goal oriented doelgericht oplosser",
-  Collegialiteit: "collegiality collegialiteit caring supportive team empathy empathisch",
-  "Open kaart": "open card open kaart open categorie custom"
+  Communication: "communication communicatie connector listener clear helder verbinder luisteraar",
+  Creativity: "creativity creativiteit creative ideas maker improvisator",
+  Competence: "competence competentie skill problem solver goal oriented doelgericht oplosser",
+  Collegiality: "collegiality collegialiteit caring supportive team empathy empathisch",
+  "Open Category": "open card open kaart open categorie custom"
 };
 
 function normalizeSearchText(value: string) {
@@ -45,7 +46,7 @@ function getCardSearchText(card: GethCard, locale: string) {
       card.category,
       getCategoryDisplayName(card.category),
       getLocalizedCategoryDisplayName(card.category, locale),
-      categorySearchAliases[card.category],
+      categorySearchAliases[normalizeCategoryKey(card.category)],
       card.description,
       getLocalizedCardDescription(card, locale),
       card.recognitionSentence,
@@ -66,8 +67,20 @@ export function CardsLibraryClient({ cards }: { cards: GethCard[] }) {
   const normalizedQuery = normalizeSearchText(deferredQuery);
   const queryTokens = normalizedQuery.split(" ").filter(Boolean);
 
+  const categoryCounts = useMemo(() => {
+    const counts: Partial<Record<CardCategory, number>> = {};
+
+    for (const card of cards) {
+      const key = normalizeCategoryKey(card.category) as CardCategory;
+      counts[key] = (counts[key] ?? 0) + 1;
+    }
+
+    return counts;
+  }, [cards]);
+
   const visibleCards = cards.filter((card) => {
-    const matchesCategory = category === "all" || card.category === category;
+    const matchesCategory =
+      category === "all" || normalizeCategoryKey(card.category) === normalizeCategoryKey(category);
     const haystack = getCardSearchText(card, locale);
     const matchesQuery = queryTokens.length === 0 || queryTokens.every((token) => haystack.includes(token));
     return matchesCategory && matchesQuery;
@@ -75,6 +88,8 @@ export function CardsLibraryClient({ cards }: { cards: GethCard[] }) {
 
   const searchActive = normalizedQuery.length > 0 || category !== "all";
   const trimmedQuery = query.trim();
+  const activeCategoryLabel =
+    category === "all" ? null : getLocalizedCategoryDisplayName(category, locale);
 
   return (
     <>
@@ -85,19 +100,29 @@ export function CardsLibraryClient({ cards }: { cards: GethCard[] }) {
         </div>
       ) : null}
       <section className="cards-filter-bar">
-        <select
-          className="input"
-          aria-label={t("filterAriaLabel")}
-          value={category}
-          onChange={(event) => setCategory(event.target.value as "all" | CardCategory)}
-        >
-          <option value="all">{t("filterAllCategories")}</option>
+        <div className="cards-category-chips" role="group" aria-label={t("filterAriaLabel")}>
+          <button
+            type="button"
+            className={`cards-category-chip${category === "all" ? " active" : ""}`}
+            aria-pressed={category === "all"}
+            onClick={() => setCategory("all")}
+          >
+            {t("filterAllCategories")}
+            <span className="cards-category-chip-count">{cards.length}</span>
+          </button>
           {categoryFilters.map((value) => (
-            <option key={value} value={value}>
+            <button
+              key={value}
+              type="button"
+              className={`cards-category-chip${category === value ? " active" : ""}`}
+              aria-pressed={category === value}
+              onClick={() => setCategory(value)}
+            >
               {getLocalizedCategoryDisplayName(value, locale)}
-            </option>
+              <span className="cards-category-chip-count">{categoryCounts[value] ?? 0}</span>
+            </button>
           ))}
-        </select>
+        </div>
         <div className="input-wrap">
           <Search size={18} style={{ position: "absolute", top: 18, left: 16, color: "var(--theme-muted)" }} />
           <input
@@ -112,9 +137,11 @@ export function CardsLibraryClient({ cards }: { cards: GethCard[] }) {
       </section>
 
       <p className="cards-count">
-        {searchActive
-          ? t("showingMatching", { visible: visibleCards.length, total: cards.length })
-          : t("showingCount", { visible: visibleCards.length, total: cards.length })}
+        {category !== "all" && !trimmedQuery
+          ? t("showingInCategory", { visible: visibleCards.length, category: activeCategoryLabel ?? category })
+          : searchActive
+            ? t("showingMatching", { visible: visibleCards.length, total: cards.length })
+            : t("showingCount", { visible: visibleCards.length, total: cards.length })}
         {trimmedQuery ? ` ${t("searchFor", { query: trimmedQuery })}` : ""}
       </p>
 

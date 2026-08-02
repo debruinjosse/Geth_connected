@@ -38,6 +38,7 @@ export function ClaimCardClient({
   card,
   requestedSlug,
   giverOptions,
+  companyName,
   receiverName,
   locale,
   initialFlowMode = "claim"
@@ -45,6 +46,7 @@ export function ClaimCardClient({
   card: GethCard | null;
   requestedSlug: string;
   giverOptions?: ClaimGiverOption[];
+  companyName?: string | null;
   receiverName?: string;
   locale: string;
   initialFlowMode?: "give" | "claim";
@@ -210,7 +212,16 @@ export function ClaimCardClient({
                 {step === 1 ? (
                   <>
                     <h2>{flowMode === "give" ? t("step1GiveTitle") : t("step1ClaimTitle")}</h2>
-                    {flowMode === "give" ? <p>{t("step1GiveCopy")}</p> : null}
+                    {flowMode === "give" ? (
+                      <>
+                        <p>{t("step1GiveCopy")}</p>
+                        <div className="claim-selected-card-summary">
+                          <span className="approval-eyebrow">{t("step1GiveCardLabel")}</span>
+                          <strong>{displayCard?.title ?? card.title}</strong>
+                          <span className="claim-category-badge">{displayCard?.category ?? card.category}</span>
+                        </div>
+                      </>
+                    ) : null}
                   </>
                 ) : null}
 
@@ -222,6 +233,9 @@ export function ClaimCardClient({
                         ? t("step2GiveCopy")
                         : t("step2ClaimCopy")}
                     </p>
+                    {flowMode === "give" && companyName ? (
+                      <p className="claim-colleagues-context">{t("colleaguesAt", { companyName })}</p>
+                    ) : null}
                     <div className="form-field">
                       <label htmlFor="giver-search">{t("searchLabel")}</label>
                       <div className="input-wrap">

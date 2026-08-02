@@ -4,17 +4,9 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { BrandLogo } from "@/components/BrandLogo";
 import { ClaimCardClient } from "./ClaimCardClient";
 import { getPublicCardBySlug } from "@/lib/card-library";
+import { loadCompanyColleagues, type ColleagueOption } from "@/lib/colleagues";
 import { people } from "@/lib/demo-data";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-
-type ClaimGiverOption = {
-  id: string;
-  name: string;
-  initials: string;
-  team: string;
-  email?: string;
-  imageUrl?: string | null;
-};
 
 function hasSupabaseServerConfig() {
   return Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
@@ -38,7 +30,7 @@ export async function ClaimCardRoute({
   const tNav = await getTranslations({ locale, namespace: "nav" });
   const card = await getPublicCardBySlug(slug);
   const supabaseConfigured = hasSupabaseServerConfig();
-  let giverOptions: ClaimGiverOption[] = supabaseConfigured
+  let giverOptions: ColleagueOption[] = supabaseConfigured
     ? []
     : people.map((person) => ({
         id: person.id,
@@ -47,6 +39,7 @@ export async function ClaimCardRoute({
         team: person.team,
         email: person.email
       }));
+  let companyName: string | null = null;
   let receiverUser = {
     name: "there",
     initials: "GU",
@@ -77,27 +70,12 @@ export async function ClaimCardRoute({
           team: { name: string } | Array<{ name: string }> | null;
         }>();
 
-      if (profile?.company_id) {
-        const { data: companyProfiles } = await supabase
-          .from("profiles")
-          .select("id, first_name, last_name, email, profile_image, team_id, role, team:teams!profiles_team_id_fkey(name)")
-          .eq("company_id", profile.company_id)
-          .eq("status", "active")
-          .neq("id", profile.id)
-          .in("role", ["employee", "manager", "company_admin"])
-          .order("first_name");
-
-        giverOptions = (companyProfiles ?? []).map((person) => {
-          const team = Array.isArray(person.team) ? person.team[0] : person.team;
-          return {
-            id: person.id,
-            name: `${person.first_name} ${person.last_name}`.trim(),
-            initials: getInitials(person.first_name, person.last_name),
-            team: team?.name ?? t("unassignedTeam"),
-            email: person.email,
-            imageUrl: person.profile_image
-          };
+      if (profile) {
+        const colleagueResult = await loadCompanyColleagues(supabase, user.id, {
+          unassignedTeam: t("unassignedTeam")
         });
+        giverOptions = colleagueResult.colleagues;
+        companyName = colleagueResult.companyName;
 
         const receiverTeam = Array.isArray(profile.team) ? profile.team[0] : profile.team;
         const role = profile.role ?? "employee";
@@ -110,11 +88,7 @@ export async function ClaimCardRoute({
           team: receiverTeam?.name ?? t("yourCompany"),
           dashboardHref: `/${locale}/${dashboardRole}`
         };
-      } else {
-        giverOptions = [];
       }
-    } else {
-      giverOptions = [];
     }
   }
 
@@ -136,6 +110,7 @@ export async function ClaimCardRoute({
         card={card ?? null}
         requestedSlug={slug}
         giverOptions={giverOptions}
+        companyName={companyName}
         receiverName={receiverUser.name}
         locale={locale}
         initialFlowMode={initialFlowMode}

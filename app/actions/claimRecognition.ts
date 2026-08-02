@@ -100,6 +100,7 @@ export async function claimRecognition(input: {
     }
 
     if (insertError) {
+      console.warn("claimRecognition insert failed:", insertError.message);
       return { ok: false as const, error: "We couldn't save this recognition yet. Please try again.", code: "INSERT_FAILED" as const };
     }
 
@@ -254,6 +255,7 @@ export async function giveRecognition(input: {
     }
 
     if (insertError) {
+      console.warn("giveRecognition insert failed:", insertError.message);
       return { ok: false as const, error: "We couldn't send this recognition yet. Please try again.", code: "INSERT_FAILED" as const };
     }
 

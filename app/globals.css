@@ -4970,10 +4970,97 @@ textarea.input {
 
 .cards-filter-bar {
   display: grid;
-  grid-template-columns: 220px minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr);
   gap: 14px;
   padding: 18px;
   border-radius: var(--radius-lg);
+}
+
+.cards-category-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.cards-category-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border: 1px solid rgba(42, 23, 61, 0.12);
+  border-radius: 999px;
+  background: rgba(255, 253, 248, 0.92);
+  color: var(--theme-ink);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.2;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
+}
+
+.cards-category-chip:hover {
+  border-color: rgba(216, 162, 58, 0.45);
+}
+
+.cards-category-chip.active {
+  border-color: rgba(216, 162, 58, 0.7);
+  background: rgba(216, 162, 58, 0.14);
+  color: var(--theme-ink);
+}
+
+.cards-category-chip-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: rgba(42, 23, 61, 0.08);
+  color: var(--theme-muted);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.cards-category-chip.active .cards-category-chip-count {
+  background: rgba(42, 23, 61, 0.14);
+  color: var(--theme-ink);
+}
+
+.claim-selected-card-summary {
+  display: grid;
+  gap: 10px;
+  margin: 18px 0 8px;
+  padding: 16px;
+  border: 1px solid rgba(42, 23, 61, 0.1);
+  border-radius: 18px;
+  background: rgba(255, 253, 248, 0.86);
+}
+
+.claim-selected-card-summary strong {
+  color: var(--theme-ink);
+  font-size: 20px;
+  line-height: 1.25;
+}
+
+.claim-category-badge {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(216, 162, 58, 0.16);
+  color: var(--theme-ink);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.claim-colleagues-context {
+  margin: -4px 0 12px;
+  color: var(--theme-muted);
+  font-size: 14px;
+  font-weight: 600;
 }
 
 .card-library-card {
