@@ -24,6 +24,7 @@ export type PricingLabels = {
   bestValue: string;
   billingPeriod: string;
   customPrice: string;
+  priceSuffix: string;
 };
 
 export type PricingTrustItem = {
@@ -80,7 +81,16 @@ export function PricingPlansClient({
                 <PricingIcon icon={tier.icon} />
               </div>
               <div className="pricing-price-block">
-                <h2>{custom ? labels.customPrice : price}</h2>
+                <h2>
+                  {custom ? (
+                    labels.customPrice
+                  ) : (
+                    <>
+                      {price}
+                      <span className="pricing-price-suffix">{labels.priceSuffix}</span>
+                    </>
+                  )}
+                </h2>
               </div>
               <p className="pricing-plan-description">{tier.description}</p>
               <div className="pricing-feature-divider" />

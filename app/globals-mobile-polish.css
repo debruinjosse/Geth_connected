@@ -188,12 +188,18 @@
     box-sizing: content-box;
   }
 
-  .audience-card .eyebrow,
-  .audience-card h3,
-  .audience-card p,
-  .audience-card .audience-demo-cta {
+  .audience-card:not(.support-whatsapp-card) .eyebrow,
+  .audience-card:not(.support-whatsapp-card) h3,
+  .audience-card:not(.support-whatsapp-card) p,
+  .audience-card:not(.support-whatsapp-card) .audience-demo-cta {
     grid-column: 2;
     max-width: 100%;
+  }
+
+  .audience-card.support-whatsapp-card {
+    display: flex !important;
+    flex-direction: column;
+    column-gap: 0;
   }
 }
 

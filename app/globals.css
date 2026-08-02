@@ -3245,6 +3245,8 @@ img {
 }
 
 .support-whatsapp-card {
+  display: flex;
+  flex-direction: column;
   min-height: 100%;
 }
 
@@ -6467,12 +6469,26 @@ textarea.input {
 }
 
 .pricing-price-block h2 {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.1em 0.35em;
   margin: 0;
   color: var(--theme-ink);
   font-family: var(--font-display), var(--font-body), sans-serif;
   font-size: clamp(48px, 6vw, 64px);
   line-height: 1;
   letter-spacing: -0.04em;
+}
+
+.pricing-price-suffix {
+  color: var(--theme-muted);
+  font-family: var(--font-body), sans-serif;
+  font-size: clamp(14px, 2.2vw, 18px);
+  font-weight: 600;
+  letter-spacing: 0;
+  line-height: 1.2;
+  white-space: nowrap;
 }
 
 .pricing-price-block p {
@@ -9630,6 +9646,18 @@ textarea.input {
     border-radius: 18px;
   }
 
+  .audience-card.support-whatsapp-card {
+    display: flex;
+    flex-direction: column;
+    column-gap: 0;
+  }
+
+  .support-whatsapp-card .eyebrow,
+  .support-whatsapp-card h3,
+  .support-whatsapp-card p {
+    grid-column: auto;
+  }
+
   .audienceCardIcon {
     grid-row: 1 / 5;
     width: 22px;
@@ -9640,10 +9668,10 @@ textarea.input {
     position: static;
   }
 
-  .audience-card .eyebrow,
-  .audience-card h3,
-  .audience-card p,
-  .audience-card .audience-demo-cta {
+  .audience-card:not(.support-whatsapp-card) .eyebrow,
+  .audience-card:not(.support-whatsapp-card) h3,
+  .audience-card:not(.support-whatsapp-card) p,
+  .audience-card:not(.support-whatsapp-card) .audience-demo-cta {
     grid-column: 2;
   }
 

@@ -1,19 +1,11 @@
 import { setRequestLocale } from "next-intl/server";
 import { PublicSiteChrome } from "@/components/PublicSiteChrome";
-import { PricingPlansClient, type PricingTier } from "@/components/PricingPlansClient";
+import { PricingPlansClient, type PricingLabels, type PricingTier } from "@/components/PricingPlansClient";
 
 type PricingContent = {
   titleLine1: string;
   titleLine2: string;
-  labels: {
-    monthly: string;
-    monthlySubcopy: string;
-    yearly: string;
-    yearlySubcopy: string;
-    bestValue: string;
-    billingPeriod: string;
-    customPrice: string;
-  };
+  labels: PricingLabels;
   tiers: PricingTier[];
   trust: Array<{ title: string; copy: string }>;
 };
@@ -29,7 +21,8 @@ const pricingContent: Record<string, PricingContent> = {
       yearlySubcopy: "Save up to 20%",
       bestValue: "Best value",
       billingPeriod: "Billing period",
-      customPrice: "Custom"
+      customPrice: "Custom",
+      priceSuffix: "/employee per month"
     },
     tiers: [
       {
@@ -96,7 +89,8 @@ const pricingContent: Record<string, PricingContent> = {
       yearlySubcopy: "Bespaar tot 20%",
       bestValue: "Beste prijs",
       billingPeriod: "Facturatieperiode",
-      customPrice: "Maatwerk"
+      customPrice: "Maatwerk",
+      priceSuffix: "/medewerker per maand"
     },
     tiers: [
       {
