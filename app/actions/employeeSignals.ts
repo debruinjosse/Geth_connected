@@ -11,25 +11,10 @@ export async function fetchEmployeeRecognitionSignals(
   labels: {
     emptyTitle: string;
     emptyDetail: string;
-    personaTitle: string;
-    personaStory: string;
-    storyEvidence: string;
-    paceConsistent: string;
-    paceGrowing: string;
-    cardWordSingular: string;
-    cardWordPlural: string;
+    insightTitle: string;
+    fallbackInsight: string;
+    categoryFallbacks: Record<string, string>;
   }
 ): Promise<EmployeeRecognitionSignal[]> {
-  const cardWord = (count: number) => (count === 1 ? labels.cardWordSingular : labels.cardWordPlural);
-
-  return getEmployeeRecognitionSignals(context, {
-    emptyTitle: labels.emptyTitle,
-    emptyDetail: labels.emptyDetail,
-    personaTitle: labels.personaTitle,
-    personaStory: labels.personaStory,
-    storyEvidence: labels.storyEvidence,
-    paceConsistent: labels.paceConsistent,
-    paceGrowing: labels.paceGrowing,
-    cardWord
-  });
+  return getEmployeeRecognitionSignals(context, labels);
 }

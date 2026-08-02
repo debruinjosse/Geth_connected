@@ -13,7 +13,8 @@ function localizeHref(href: string, locale: string) {
 }
 
 export function SignalList({
-  items
+  items,
+  variant = "default"
 }: {
   items: Array<{
     id: string;
@@ -24,22 +25,24 @@ export function SignalList({
     actionHref?: string;
     highlights?: Array<{ label: string; category: string; count: number; tone: string }>;
   }>;
+  variant?: "default" | "coaching";
 }) {
   const locale = useLocale();
   const t = useTranslations("employeeHome");
+  const coaching = variant === "coaching";
 
   return (
-    <div className="signal-list">
+    <div className={`signal-list${coaching ? " signal-list-coaching" : ""}`}>
       {items.map((signal) => (
-        <div className="signal-card" key={signal.id}>
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+        <div className={`signal-card${coaching ? " signal-card-coaching" : ""}`} key={signal.id}>
+          <div style={{ display: "flex", alignItems: coaching ? "flex-start" : "center", gap: 12 }}>
             <span className="signal-icon" style={{ color: signal.tone }}>
               AI
             </span>
             <div>
-              <strong>{signal.title}</strong>
+              {!coaching && signal.title ? <strong>{signal.title}</strong> : null}
               <p>{signal.detail}</p>
-              {signal.highlights?.length ? (
+              {!coaching && signal.highlights?.length ? (
                 <div className="signal-highlight-list" aria-label={t("signalHighlightsAria")}>
                   {signal.highlights.map((highlight) => (
                     <span
@@ -60,7 +63,7 @@ export function SignalList({
               ) : null}
             </div>
           </div>
-          <strong>&rsaquo;</strong>
+          {!coaching ? <strong>&rsaquo;</strong> : null}
         </div>
       ))}
     </div>

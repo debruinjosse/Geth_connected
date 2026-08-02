@@ -2943,6 +2943,17 @@ img {
   letter-spacing: 0.05em;
 }
 
+.signal-card-coaching {
+  align-items: flex-start;
+}
+
+.signal-card-coaching p {
+  margin-top: 0;
+  color: var(--theme-ink);
+  font-size: 15px;
+  line-height: 1.65;
+}
+
 .signal-highlight-list {
   display: flex;
   flex-wrap: wrap;

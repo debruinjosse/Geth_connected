@@ -7,10 +7,21 @@ import { fetchEmployeeRecognitionSignals } from "@/app/actions/employeeSignals";
 import type { EmployeeRecognitionSignal, EmployeeSignalsContext } from "@/lib/ai/employee-recognition-signals";
 import { SignalList } from "@/components/SignalList";
 
+const CATEGORY_FALLBACK_KEYS = {
+  Communication: "coachingFallbackCommunication",
+  Communicatie: "coachingFallbackCommunication",
+  Creativity: "coachingFallbackCreativity",
+  Creativiteit: "coachingFallbackCreativity",
+  Competence: "coachingFallbackCompetence",
+  Competentie: "coachingFallbackCompetence",
+  Collegiality: "coachingFallbackCollegiality",
+  Collegialiteit: "coachingFallbackCollegiality",
+  default: "coachingFallbackDefault"
+} as const;
+
 export function EmployeeAiSignalsPanel({ context }: { context: EmployeeSignalsContext }) {
   const t = useTranslations("employeeHome");
   const td = useTranslations("employeeDashboard");
-  const tc = useTranslations("common");
   const [signals, setSignals] = useState<EmployeeRecognitionSignal[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -19,7 +30,6 @@ export function EmployeeAiSignalsPanel({ context }: { context: EmployeeSignalsCo
     context.employeeId,
     context.locale,
     context.cardsReceived,
-    context.cardsGiven,
     context.recent30DaysCount,
     context.topQualities.map((item) => `${item.label}:${item.count}`).join("|"),
     context.categoryBreakdown.map((item) => `${item.label}:${item.value}`).join("|"),
@@ -34,17 +44,16 @@ export function EmployeeAiSignalsPanel({ context }: { context: EmployeeSignalsCo
       setError("");
 
       try {
-        const personaKeys = getPersonaKeys(context.topQualities[0]?.category ?? "");
+        const categoryFallbacks = Object.fromEntries(
+          Object.entries(CATEGORY_FALLBACK_KEYS).map(([category, key]) => [category, td(key)])
+        );
+
         const result = await fetchEmployeeRecognitionSignals(context, {
           emptyTitle: td("emptySignalTitle"),
           emptyDetail: td("emptySignalDetail"),
-          personaTitle: td(personaKeys.title),
-          personaStory: td(personaKeys.story),
-          storyEvidence: td("storyEvidence"),
-          paceConsistent: td("paceConsistent"),
-          paceGrowing: td("paceGrowing"),
-          cardWordSingular: tc("card"),
-          cardWordPlural: tc("cards")
+          insightTitle: td("coachingInsightTitle"),
+          fallbackInsight: td("coachingFallbackDefault"),
+          categoryFallbacks
         });
 
         if (!cancelled) {
@@ -66,7 +75,9 @@ export function EmployeeAiSignalsPanel({ context }: { context: EmployeeSignalsCo
     return () => {
       cancelled = true;
     };
-  }, [contextKey, t, td, tc]);
+  }, [contextKey, t, td]);
+
+  const hasInsight = !loading && signals.some((signal) => signal.detail.trim());
 
   return (
     <article className="panel dashboard-panel employee-ai-signals-panel">
@@ -77,7 +88,7 @@ export function EmployeeAiSignalsPanel({ context }: { context: EmployeeSignalsCo
         </div>
         <span className="quality-pill">
           <Sparkles size={14} />
-          {loading ? t("signalsGenerating") : t("signalsActive", { count: signals.length })}
+          {loading ? t("signalsGenerating") : hasInsight ? t("signalsReady") : t("signalsWaiting")}
         </span>
       </div>
 
@@ -91,26 +102,7 @@ export function EmployeeAiSignalsPanel({ context }: { context: EmployeeSignalsCo
 
       {error ? <p className="section-copy">{error}</p> : null}
 
-      {!loading && signals.length ? <SignalList items={signals} /> : null}
+      {!loading && signals.length ? <SignalList items={signals} variant="coaching" /> : null}
     </article>
   );
-}
-
-function getPersonaKeys(category: string) {
-  switch (category) {
-    case "Communication":
-    case "Communicatie":
-      return { title: "personaCommunicationTitle", story: "personaCommunicationStory" };
-    case "Creativity":
-    case "Creativiteit":
-      return { title: "personaCreativityTitle", story: "personaCreativityStory" };
-    case "Competence":
-    case "Competentie":
-      return { title: "personaCompetenceTitle", story: "personaCompetenceStory" };
-    case "Collegiality":
-    case "Collegialiteit":
-      return { title: "personaCollegialityTitle", story: "personaCollegialityStory" };
-    default:
-      return { title: "personaDefaultTitle", story: "personaDefaultStory" };
-  }
 }
