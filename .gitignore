@@ -12,6 +12,8 @@ dist/
 # local env files
 .env
 .env.local
+.env.local.supabase-cli-bak
+.env*.bak
 .env.development.local
 .env.test.local
 .env.production.local
