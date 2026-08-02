@@ -5,6 +5,7 @@ import { DashboardShell } from "@/components/DashboardShell";
 import { EmptyState } from "@/components/EmptyState";
 import { QualityBars, type QualityBarItem } from "@/components/QualityBars";
 import { categoryMeta, getLocalizedCategoryDisplayName, getLocalizedCardTitle, normalizeCategoryKey, type CardCategory } from "@/lib/cards";
+import { getRecentMonthLabels } from "@/lib/locale-format";
 import { currentUser, employeeCategoryBreakdown, employeeGrowthPoints } from "@/lib/demo-data";
 import { getUnreadNotificationCount } from "@/lib/notifications";
 import { getPercentageMix } from "@/lib/quality-percentages";
@@ -35,11 +36,17 @@ export default async function EmployeeGrowthPage({ params }: { params: Promise<{
         <section className="dashboard-grid two">
           <article className="panel dashboard-panel">
             <div className="panel-top"><h2>{t("activityTitle")}</h2></div>
-            <BarChart items={["Jul", "Aug", "Sep"].map((label, index) => ({ label, value: employeeGrowthPoints[index] ?? 0, color: "var(--theme-emerald)" }))} />
+            <BarChart items={getRecentMonthLabels(3, locale).map((label, index) => ({ label, value: employeeGrowthPoints[index] ?? 0, color: "var(--theme-emerald)" }))} />
           </article>
           <article className="panel dashboard-panel">
             <div className="panel-top"><h2>{t("categoryTitle")}</h2></div>
-            <BarChart items={employeeCategoryBreakdown.map((item) => ({ label: item.label, value: item.value, color: item.color }))} />
+            <BarChart
+              items={fourCCategories.map((category, index) => ({
+                label: getLocalizedCategoryDisplayName(category, locale),
+                value: employeeCategoryBreakdown[index]?.value ?? 0,
+                color: employeeCategoryBreakdown[index]?.color ?? categoryMeta[category].color
+              }))}
+            />
           </article>
         </section>
       </DashboardShell>

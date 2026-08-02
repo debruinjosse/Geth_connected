@@ -152,7 +152,7 @@ export default async function AdminCompanyDetailPage({
       title={company.company_name}
       subtitle={t("companyDetailSubtitle")}
       user={{
-        name: `${adminProfile.first_name ?? ""} ${adminProfile.last_name ?? ""}`.trim() || "GETH Admin",
+        name: `${adminProfile.first_name ?? ""} ${adminProfile.last_name ?? ""}`.trim() || tc("platformAdminName"),
         initials: getInitials(adminProfile.first_name, adminProfile.last_name),
         team: tc("platformTeam")
       }}

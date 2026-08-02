@@ -6,6 +6,7 @@ import { DashboardShell } from "@/components/DashboardShell";
 import { EmptyState } from "@/components/EmptyState";
 import { RecognitionList, type RecognitionItem } from "@/components/RecognitionList";
 import { getLocalizedCardTitle } from "@/lib/cards";
+import { localizeDemoRecognitions } from "@/lib/localize-demo-content";
 import { currentUser, recognitions as demoRecognitions } from "@/lib/demo-data";
 import { getUnreadNotificationCount } from "@/lib/notifications";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -52,7 +53,7 @@ export default async function EmployeeCardsPage({ params }: { params: Promise<{ 
               <h2>{t("historyTitle")}</h2>
               <span className="quality-pill">{t("countReceived", { count: demoRecognitions.length })}</span>
             </div>
-            <RecognitionList items={demoRecognitions} />
+            <RecognitionList items={localizeDemoRecognitions(demoRecognitions, locale)} />
           </article>
           <article className="panel dashboard-panel">
             <EmptyState title={t("supabaseEmptyTitle")} copy={t("supabaseEmptyCopy")} />

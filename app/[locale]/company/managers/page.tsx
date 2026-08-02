@@ -27,7 +27,7 @@ function renderDemoManagers(t: Awaited<ReturnType<typeof getTranslations>>) {
         <article className="panel dashboard-panel">
           <div className="table-wrap">
             <table className="dashboard-table">
-              <thead><tr><th>{t("manager")}</th><th>{t("team")}</th><th>Members</th><th>Score</th><th>Report</th></tr></thead>
+              <thead><tr><th>{t("manager")}</th><th>{t("team")}</th><th>{t("tableMembers")}</th><th>{t("tableScore")}</th><th>{t("tableReport")}</th></tr></thead>
               <tbody>
                 {companyManagers.map((manager) => (
                   <tr key={manager.id}>
@@ -143,7 +143,7 @@ export default async function CompanyManagersPage({ params }: { params: Promise<
           <div className="table-wrap">
             {(managers?.length || invitations?.length) ? (
               <table className="dashboard-table">
-                <thead><tr><th>{t("manager")}</th><th>{t("team")}</th><th>Members</th><th>Score</th><th>Report</th></tr></thead>
+                <thead><tr><th>{t("manager")}</th><th>{t("team")}</th><th>{t("tableMembers")}</th><th>{t("tableScore")}</th><th>{t("tableReport")}</th></tr></thead>
                 <tbody>
                   {(managers ?? []).map((manager) => {
                     const managedTeams = teamList.filter((team) => team.manager_id === manager.id);
@@ -151,7 +151,7 @@ export default async function CompanyManagersPage({ params }: { params: Promise<
                     const memberCount = managedTeams.reduce((sum, team) => sum + (memberCountsByTeam.get(team.id) ?? 0), 0);
                     const recognitionCount = managedTeams.reduce((sum, team) => sum + (recognitionCountsByTeam.get(team.id) ?? 0), 0);
                     const score = memberCount ? `${Math.round((recognitionCount / memberCount) * 100)}%` : "0%";
-                    const report = recognitionCount >= 6 ? "Strong momentum" : recognitionCount >= 2 ? "Healthy collaboration" : "Needs more recognition";
+                    const report = recognitionCount >= 6 ? t("reportStrongMomentum") : recognitionCount >= 2 ? t("reportHealthyCollaboration") : t("reportNeedsRecognition");
 
                     return (
                       <tr key={manager.id}>
@@ -170,8 +170,8 @@ export default async function CompanyManagersPage({ params }: { params: Promise<
                         <td><strong>{invite.email}</strong></td>
                         <td>{team?.name ?? tc("assignLater")}</td>
                         <td>0</td>
-                        <td>Pending</td>
-                        <td>Awaiting acceptance</td>
+                        <td>{t("invitePending")}</td>
+                        <td>{t("awaitingAcceptance")}</td>
                       </tr>
                     );
                   })}

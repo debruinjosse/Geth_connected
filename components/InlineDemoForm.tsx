@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { CheckCircle2 } from "lucide-react";
 
 type DemoField = {
@@ -21,12 +22,13 @@ export function InlineDemoForm({
   fields: DemoField[];
 }) {
   const [submitted, setSubmitted] = useState(false);
+  const tc = useTranslations("common");
 
   if (submitted) {
     return (
       <div className="panel inline-form-success">
         <CheckCircle2 size={34} color="var(--theme-emerald)" />
-        <strong>{title} saved in demo mode</strong>
+        <strong>{title} {tc("demoSaved")}</strong>
         <p>{description}</p>
       </div>
     );

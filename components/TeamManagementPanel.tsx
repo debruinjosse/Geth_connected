@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useTranslations } from "next-intl";
 import { CheckCircle2, Pencil, Trash2, UsersRound } from "lucide-react";
 import { createTeamAction, deleteTeamAction, updateTeamAction, type TeamMutationResult } from "@/app/actions/teams";
 
@@ -31,6 +32,7 @@ function TeamEditorRow({
   team: TeamRow;
   managers: ManagerOption[];
 }) {
+  const t = useTranslations("teamManagement");
   const [pending, startTransition] = useTransition();
   const [message, setMessage] = useState<TeamMutationResult>(idleState);
   const [name, setName] = useState(team.name);
@@ -50,7 +52,7 @@ function TeamEditorRow({
   }
 
   function handleDelete() {
-    if (!window.confirm(`Delete ${team.name}? Team members and recognitions will be unassigned from this team.`)) {
+    if (!window.confirm(t("deleteConfirm", { name: team.name }))) {
       return;
     }
 
@@ -69,7 +71,7 @@ function TeamEditorRow({
         <div>
           <h3>{team.name}</h3>
           <p style={{ margin: "8px 0 0", color: "var(--theme-muted)" }}>
-            {team.memberCount} member{team.memberCount === 1 ? "" : "s"} · {team.recognitions} recognition{team.recognitions === 1 ? "" : "s"}
+            {t("memberRecognitionSummary", { members: team.memberCount, recognitions: team.recognitions })}
           </p>
         </div>
         <span className="quality-pill">{team.engagement}</span>
@@ -78,13 +80,13 @@ function TeamEditorRow({
       <form className="team-editor-form" onSubmit={handleSave}>
         <div className="form-grid">
           <div className="form-field">
-            <label htmlFor={`team-name-${team.id}`}>Team name</label>
+            <label htmlFor={`team-name-${team.id}`}>{t("teamName")}</label>
             <input id={`team-name-${team.id}`} className="input" value={name} onChange={(event) => setName(event.target.value)} />
           </div>
           <div className="form-field">
-            <label htmlFor={`team-manager-${team.id}`}>Manager</label>
+            <label htmlFor={`team-manager-${team.id}`}>{t("manager")}</label>
             <select id={`team-manager-${team.id}`} className="input" value={managerId} onChange={(event) => setManagerId(event.target.value)}>
-              <option value="">Assign later</option>
+              <option value="">{t("assignLater")}</option>
               {managers.map((manager) => (
                 <option key={manager.id} value={manager.id}>
                   {manager.name}
@@ -97,11 +99,11 @@ function TeamEditorRow({
         <div className="team-editor-actions">
           <button className="btn btn-primary" type="submit" disabled={pending}>
             <Pencil size={16} />
-            {pending ? "Saving..." : "Save team"}
+            {pending ? t("saving") : t("saveTeam")}
           </button>
           <button className="btn btn-secondary" type="button" onClick={handleDelete} disabled={pending}>
             <Trash2 size={16} />
-            Delete
+            {t("delete")}
           </button>
         </div>
       </form>
@@ -118,6 +120,7 @@ export function TeamManagementPanel({
   teams: TeamRow[];
   managers: ManagerOption[];
 }) {
+  const t = useTranslations("teamManagement");
   const [pending, startTransition] = useTransition();
   const [message, setMessage] = useState<TeamMutationResult>(idleState);
   const [name, setName] = useState("");
@@ -144,22 +147,20 @@ export function TeamManagementPanel({
       <form className="panel inline-demo-form team-create-panel" onSubmit={handleCreate}>
         <div className="panel-top">
           <div>
-            <h3>Create team</h3>
-            <p style={{ margin: "8px 0 0", color: "var(--theme-muted)" }}>
-              Create a new team and optionally connect it to an existing manager in your company.
-            </p>
+            <h3>{t("createTeam")}</h3>
+            <p style={{ margin: "8px 0 0", color: "var(--theme-muted)" }}>{t("createTeamCopy")}</p>
           </div>
         </div>
 
         <div className="form-grid">
           <div className="form-field">
-            <label htmlFor="team-name">Team name</label>
+            <label htmlFor="team-name">{t("teamName")}</label>
             <input id="team-name" className="input" placeholder="Customer Success" value={name} onChange={(event) => setName(event.target.value)} />
           </div>
           <div className="form-field">
-            <label htmlFor="team-manager">Manager</label>
+            <label htmlFor="team-manager">{t("manager")}</label>
             <select id="team-manager" className="input" value={managerId} onChange={(event) => setManagerId(event.target.value)}>
-              <option value="">Assign later</option>
+              <option value="">{t("assignLater")}</option>
               {managers.map((manager) => (
                 <option key={manager.id} value={manager.id}>
                   {manager.name}
@@ -171,7 +172,7 @@ export function TeamManagementPanel({
 
         <button className="btn btn-primary" type="submit" disabled={pending}>
           <UsersRound size={16} />
-          {pending ? "Creating..." : "Create team"}
+          {pending ? t("creating") : t("createTeam")}
         </button>
 
         {message.message ? (

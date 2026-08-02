@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import { extractLocaleFromPathname } from "@/lib/locale-format";
 import { fetchRecognitionReportRows, getRecognitionReportRange, recognitionRowsToCsv } from "@/lib/reports/recognition-report";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -27,12 +28,13 @@ export async function GET(request: NextRequest) {
     return new Response("Forbidden", { status: 403 });
   }
 
+  const locale = extractLocaleFromPathname(request.nextUrl.pathname);
   const range = getRecognitionReportRange({
     from: request.nextUrl.searchParams.get("from") ?? undefined,
     to: request.nextUrl.searchParams.get("to") ?? undefined
   });
-  const rows = await fetchRecognitionReportRows(supabase, { kind: "company", companyId: profile.company_id }, range);
-  const csv = recognitionRowsToCsv(rows);
+  const rows = await fetchRecognitionReportRows(supabase, { kind: "company", companyId: profile.company_id }, range, locale);
+  const csv = recognitionRowsToCsv(rows, locale);
 
   return new Response(csv, {
     headers: {

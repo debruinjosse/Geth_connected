@@ -187,6 +187,7 @@ export async function giveRecognition(input: {
       .select("id, company_id, team_id, first_name, last_name, email")
       .eq("id", receiverUserId)
       .eq("company_id", giverProfile.company_id)
+      .eq("status", "active")
       .maybeSingle<{ id: string; company_id: string | null; team_id: string | null; first_name: string | null; last_name: string | null; email: string | null }>();
 
     if (receiverProfileError || !receiverProfile) {

@@ -7,8 +7,10 @@ import { ArrowRight, Gift, Search, Sparkles } from "lucide-react";
 import { GethCardVisual } from "@/components/GethCardVisual";
 import {
   getCategoryDisplayName,
+  getLocalizedCardDescription,
   getLocalizedCardTitle,
   getLocalizedCategoryDisplayName,
+  getLocalizedRecognitionSentence,
   type CardCategory,
   type GethCard
 } from "@/lib/cards";
@@ -45,7 +47,9 @@ function getCardSearchText(card: GethCard, locale: string) {
       getLocalizedCategoryDisplayName(card.category, locale),
       categorySearchAliases[card.category],
       card.description,
+      getLocalizedCardDescription(card, locale),
       card.recognitionSentence,
+      getLocalizedRecognitionSentence(card, locale),
       card.slug
     ].join(" ")
   );
@@ -123,14 +127,7 @@ export function CardsLibraryClient({ cards }: { cards: GethCard[] }) {
             return (
               <a className="card-library-card" href={cardHref} key={card.slug}>
                 <div className="card-library-copy">
-                  <GethCardVisual
-                    card={{
-                      ...card,
-                      title: getLocalizedCardTitle(card, locale),
-                      category: getLocalizedCategoryDisplayName(card.category, locale)
-                    }}
-                    variant="library"
-                  />
+                  <GethCardVisual card={card} variant="library" />
                   <span className="card-library-action">
                     {giveIntent ? <Gift size={15} /> : <Sparkles size={15} />}
                     {giveIntent ? t("giveThisCard") : t("cta")} <ArrowRight size={14} />

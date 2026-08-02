@@ -40,7 +40,7 @@ export default async function ManagerSettingsPage({
           </article>
           <article className="panel dashboard-panel manager-action-panel">
             <Link className="manager-action-card" href={`${managerBase}/team`}><UsersRound size={18} /> {tp("openTeamMembers")}</Link>
-            <Link className="manager-action-card" href={`${managerBase}/signals`}><Activity size={18} /> Review signals</Link>
+            <Link className="manager-action-card" href={`${managerBase}/signals`}><Activity size={18} /> {tp("reviewSignals")}</Link>
           </article>
         </section>
       </DashboardShell>
@@ -64,7 +64,7 @@ export default async function ManagerSettingsPage({
   }
 
   const unreadNotifications = await getUnreadNotificationCount(supabase, user.id);
-  const managerName = `${insights.profile.first_name ?? ""} ${insights.profile.last_name ?? ""}`.trim() || "Manager";
+  const managerName = `${insights.profile.first_name ?? ""} ${insights.profile.last_name ?? ""}`.trim() || tc("managerRole");
 
   return (
     <DashboardShell
@@ -82,7 +82,7 @@ export default async function ManagerSettingsPage({
     >
       <section className="dashboard-grid two">
         <AccountSettingsPanel
-          email={user.email ?? "No email on session"}
+          email={user.email ?? tc("noEmailOnSession")}
           firstName={insights.profile.first_name ?? ""}
           lastName={insights.profile.last_name ?? ""}
           profileImageUrl={insights.profile.profile_image}

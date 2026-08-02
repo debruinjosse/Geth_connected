@@ -4,6 +4,7 @@ import "./fonts/stolzl.css";
 import "./globals.css";
 import "./globals-mobile-polish.css";
 import "./globals-dashboard-enterprise.css";
+import "./globals-dutch-text-wrap.css";
 import "./globals-hero-enterprise.css";
 
 export const metadata: Metadata = {

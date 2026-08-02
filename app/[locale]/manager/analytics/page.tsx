@@ -4,6 +4,8 @@ import { BarChart } from "@/components/BarChart";
 import { DashboardShell } from "@/components/DashboardShell";
 import { EmptyState } from "@/components/EmptyState";
 import { QualityBars } from "@/components/QualityBars";
+import { getRecentMonthLabels } from "@/lib/locale-format";
+import { localizeDemoQualityBars } from "@/lib/localize-demo-content";
 import { managerTrendPoints, managerUser, topQualities } from "@/lib/demo-data";
 import { getManagerInsights } from "@/lib/data/manager-insights";
 import { getUnreadNotificationCount } from "@/lib/notifications";
@@ -29,11 +31,11 @@ export default async function ManagerAnalyticsPage() {
         <section className="dashboard-grid two">
           <article className="panel dashboard-panel">
             <div className="panel-top"><h2>{tp("activityTitle")}</h2></div>
-            <BarChart items={["Jul", "Aug", "Sep"].map((label, index) => ({ label, value: managerTrendPoints[index] ?? 0, color: "var(--theme-ink)" }))} />
+            <BarChart items={getRecentMonthLabels(3, locale).map((label, index) => ({ label, value: managerTrendPoints[index] ?? 0, color: "var(--theme-emerald)" }))} />
           </article>
           <article className="panel dashboard-panel">
             <div className="panel-top"><h2>{tp("qualitiesMix")}</h2></div>
-            <QualityBars items={topQualities} />
+            <QualityBars items={localizeDemoQualityBars(topQualities, locale)} valueMode="count" />
           </article>
         </section>
       </DashboardShell>
@@ -63,7 +65,7 @@ export default async function ManagerAnalyticsPage() {
       title={tp("analyticsTitle")}
       subtitle={tp("analyticsSubtitle")}
       user={{
-        name: `${insights.profile.first_name ?? ""} ${insights.profile.last_name ?? ""}`.trim() || "Manager",
+        name: `${insights.profile.first_name ?? ""} ${insights.profile.last_name ?? ""}`.trim() || tc("managerRole"),
         initials: getInitials(insights.profile.first_name, insights.profile.last_name),
         team: insights.teamLabel,
         imageUrl: insights.profile.profile_image
@@ -75,14 +77,14 @@ export default async function ManagerAnalyticsPage() {
         <article className="panel dashboard-panel">
           <div className="panel-top"><h2>{tp("activityTitle")}</h2></div>
           {insights.recognitionCount ? (
-            <BarChart items={insights.trendLabels.map((label, index) => ({ label, value: insights.trendPoints[index] ?? 0, color: "var(--theme-ink)" }))} />
+            <BarChart items={insights.trendLabels.map((label, index) => ({ label, value: insights.trendPoints[index] ?? 0, color: "var(--theme-emerald)" }))} />
           ) : (
             <EmptyState title={tp("noTrendTitle")} copy={tp("noTrendCopy")} />
           )}
         </article>
         <article className="panel dashboard-panel">
           <div className="panel-top"><h2>{tp("qualitiesMix")}</h2></div>
-          {insights.qualityBars.length ? <QualityBars items={insights.qualityBars} /> : <EmptyState title={tp("noQualitiesTitle")} copy={tp("noQualitiesCopy")} />}
+          {insights.qualityBars.length ? <QualityBars items={insights.qualityBars} valueMode="count" /> : <EmptyState title={tp("noQualitiesTitle")} copy={tp("noQualitiesCopy")} />}
         </article>
       </section>
       <article className="panel dashboard-panel">

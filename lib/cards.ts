@@ -1,3 +1,5 @@
+import { cardContentTranslations } from "@/lib/card-content-translations";
+
 export type CardCategory =
   | "Communication"
   | "Creativity"
@@ -694,15 +696,41 @@ export const categoryColors: Record<string, string> = Object.fromEntries(
 
 export const slugAliases: Record<string, string> = {
   connector: "verbinder",
+  uniter: "verbinder",
   listener: "luisteraar",
   empathetic: "empathisch",
   clear: "helder",
+  "clear-communicator": "helder",
   "problem-solver": "oplosser",
   "goal-oriented": "doelgericht",
   supportive: "ondersteunend",
   visionary: "visionair",
-  "open-card": "open-categorie"
+  "open-card": "open-categorie",
+  hospitable: "gastvrij",
+  trustworthy: "geruststeller",
+  humorous: "humor",
+  polished: "verzorgd",
+  "decisive-in-action": "daadkrachtig",
+  "eager-to-learn": "leergierig",
+  "results-oriented": "resultaatgericht",
+  "decision-maker": "besluitvaardig",
+  "critical-thinker": "kritisch",
+  "team-player": "teamspeler",
+  "trusted-confidant": "vertrouwenspersoon"
 };
+
+function getCardContentForSlug(slug: string, locale: SupportedCardLocale) {
+  return cardContentTranslations[resolveCardSlug(slug)]?.[locale];
+}
+
+function resolveCardSlugFromInput(cardOrSlug?: Partial<Pick<GethCard, "slug">> | string) {
+  if (!cardOrSlug) return null;
+  if (typeof cardOrSlug === "string") {
+    const trimmed = cardOrSlug.trim();
+    return trimmed ? resolveCardSlug(trimmed) : null;
+  }
+  return cardOrSlug.slug?.trim() ? resolveCardSlug(cardOrSlug.slug) : null;
+}
 
 export const gethCards: GethCard[] = rawCards.map((card) => ({
   ...card,
@@ -711,6 +739,26 @@ export const gethCards: GethCard[] = rawCards.map((card) => ({
   description: cleanText(card.description),
   recognitionSentence: cleanText(card.recognitionSentence)
 }));
+
+function resolveCardContentSlug(card?: Partial<Pick<GethCard, "slug" | "title" | "cardNumber">>) {
+  if (!card) return null;
+  if (card.slug?.trim()) return resolveCardSlug(card.slug);
+  if (card.cardNumber) {
+    const canonical = gethCards.find((entry) => entry.cardNumber === card.cardNumber);
+    if (canonical) return canonical.slug;
+  }
+  if (card.title?.trim()) {
+    const title = cleanText(card.title);
+    const canonicalByTitle = gethCards.find((entry) => cleanText(entry.title) === title);
+    if (canonicalByTitle) return canonicalByTitle.slug;
+    for (const [slugKey, labels] of Object.entries(cardTitleTranslations)) {
+      if (cleanText(labels.en) === title || cleanText(labels.nl) === title) {
+        return resolveCardSlug(slugKey);
+      }
+    }
+  }
+  return null;
+}
 
 export function resolveCardSlug(slug: string) {
   return slugAliases[slug.toLowerCase()] ?? slug.toLowerCase();
@@ -787,6 +835,83 @@ export function getLocalizedCardTitle(cardOrTitle: Pick<GethCard, "title"> & Par
   }
 
   return title;
+}
+
+export function getLocalizedCardDescription(
+  cardOrDescription: Pick<GethCard, "description"> & Partial<Pick<GethCard, "slug" | "title" | "cardNumber">> | string,
+  locale?: string
+) {
+  const normalizedLocale = normalizeLocale(locale);
+  const description =
+    typeof cardOrDescription === "string" ? cleanText(cardOrDescription) : cleanText(cardOrDescription.description);
+
+  if (normalizedLocale === "en") {
+    return description;
+  }
+
+  const slug =
+    typeof cardOrDescription === "string"
+      ? resolveCardSlugFromInput(cardOrDescription)
+      : resolveCardContentSlug(cardOrDescription);
+  if (slug) {
+    const localized = getCardContentForSlug(slug, normalizedLocale)?.description;
+    if (localized) {
+      return cleanText(localized);
+    }
+  }
+
+  const canonicalByDescription = gethCards.find((card) => cleanText(card.description) === description);
+  if (canonicalByDescription) {
+    const localized = getCardContentForSlug(canonicalByDescription.slug, normalizedLocale)?.description;
+    if (localized) {
+      return cleanText(localized);
+    }
+  }
+
+  return description;
+}
+
+export function getLocalizedRecognitionSentence(
+  cardOrSentence: Pick<GethCard, "recognitionSentence"> & Partial<Pick<GethCard, "slug" | "title" | "cardNumber">> | string,
+  locale?: string
+) {
+  const normalizedLocale = normalizeLocale(locale);
+  const recognitionSentence =
+    typeof cardOrSentence === "string" ? cleanText(cardOrSentence) : cleanText(cardOrSentence.recognitionSentence);
+
+  if (normalizedLocale === "en") {
+    return recognitionSentence;
+  }
+
+  const slug =
+    typeof cardOrSentence === "string"
+      ? resolveCardSlugFromInput(cardOrSentence)
+      : resolveCardContentSlug(cardOrSentence);
+  if (slug) {
+    const localized = getCardContentForSlug(slug, normalizedLocale)?.recognitionSentence;
+    if (localized) {
+      return cleanText(localized);
+    }
+  }
+
+  const canonicalBySentence = gethCards.find((card) => cleanText(card.recognitionSentence) === recognitionSentence);
+  if (canonicalBySentence) {
+    const localized = getCardContentForSlug(canonicalBySentence.slug, normalizedLocale)?.recognitionSentence;
+    if (localized) {
+      return cleanText(localized);
+    }
+  }
+
+  return recognitionSentence;
+}
+
+export function getLocalizedGethCard(card: GethCard, locale?: string): GethCard {
+  return {
+    ...card,
+    title: getLocalizedCardTitle(card, locale),
+    description: getLocalizedCardDescription(card, locale),
+    recognitionSentence: getLocalizedRecognitionSentence(card, locale)
+  };
 }
 
 const analyticCategoryLabelsByLocale: Record<SupportedCardLocale, Record<string, string>> = {

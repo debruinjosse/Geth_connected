@@ -22,8 +22,8 @@ function formatDate(value: string | null, notSetLabel: string, dateLocale: strin
   return new Intl.DateTimeFormat(dateLocale, { dateStyle: "medium" }).format(new Date(value));
 }
 
-function formatPlanPrice(cents: number | null, currency: string, planKey: string, dateLocale: string) {
-  if (planKey === "enterprise" || !cents || cents <= 0) return "Custom";
+function formatPlanPrice(cents: number | null, currency: string, planKey: string, dateLocale: string, customLabel: string) {
+  if (planKey === "enterprise" || !cents || cents <= 0) return customLabel;
   return new Intl.NumberFormat(dateLocale, { style: "currency", currency: currency.toUpperCase() }).format(cents / 100);
 }
 
@@ -146,7 +146,7 @@ export default async function AdminSubscriptionsPage({
       title={t("subscriptionsTitle")}
       subtitle={t("subscriptionsSubtitle")}
       user={{
-        name: `${profile.first_name ?? ""} ${profile.last_name ?? ""}`.trim() || "GETH Admin",
+        name: `${profile.first_name ?? ""} ${profile.last_name ?? ""}`.trim() || tc("platformAdminName"),
         initials: getInitials(profile.first_name, profile.last_name),
         team: tc("platformTeam")
       }}
@@ -214,7 +214,7 @@ export default async function AdminSubscriptionsPage({
                   .map((plan) => (
                     <tr key={plan.id}>
                       <td><strong>{plan.name}</strong></td>
-                      <td>{formatPlanPrice(plan.price_cents, plan.currency, plan.plan_key, dateLocale)} / employee</td>
+                      <td>{formatPlanPrice(plan.price_cents, plan.currency, plan.plan_key, dateLocale, t("billingCustom"))} {t("perEmployee")}</td>
                       <td>{plan.interval === "month" ? t("billingMonthly") : plan.interval}</td>
                       <td>{plan.invoice_enabled ? t("planInvoiceEnabled") : t("planInvoiceDisabled")}</td>
                     </tr>

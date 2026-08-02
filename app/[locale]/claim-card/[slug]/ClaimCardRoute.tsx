@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { HelpCircle } from "lucide-react";
-import { getTranslations } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { BrandLogo } from "@/components/BrandLogo";
 import { ClaimCardClient } from "./ClaimCardClient";
 import { getPublicCardBySlug } from "@/lib/card-library";
@@ -33,16 +33,20 @@ export async function ClaimCardRoute({
   slug: string;
   initialFlowMode?: "give" | "claim";
 }) {
+  setRequestLocale(locale);
   const t = await getTranslations({ locale, namespace: "common" });
   const tNav = await getTranslations({ locale, namespace: "nav" });
   const card = await getPublicCardBySlug(slug);
-  let giverOptions: ClaimGiverOption[] = people.map((person) => ({
-    id: person.id,
-    name: person.name,
-    initials: person.initials,
-    team: person.team,
-    email: person.email
-  }));
+  const supabaseConfigured = hasSupabaseServerConfig();
+  let giverOptions: ClaimGiverOption[] = supabaseConfigured
+    ? []
+    : people.map((person) => ({
+        id: person.id,
+        name: person.name,
+        initials: person.initials,
+        team: person.team,
+        email: person.email
+      }));
   let receiverUser = {
     name: "there",
     initials: "GU",
@@ -50,7 +54,7 @@ export async function ClaimCardRoute({
     dashboardHref: `/${locale}/employee`
   };
 
-  if (hasSupabaseServerConfig()) {
+  if (supabaseConfigured) {
     const supabase = await createSupabaseServerClient();
     const {
       data: { user }
@@ -78,6 +82,7 @@ export async function ClaimCardRoute({
           .from("profiles")
           .select("id, first_name, last_name, email, profile_image, team_id, role, team:teams!profiles_team_id_fkey(name)")
           .eq("company_id", profile.company_id)
+          .eq("status", "active")
           .neq("id", profile.id)
           .in("role", ["employee", "manager", "company_admin"])
           .order("first_name");

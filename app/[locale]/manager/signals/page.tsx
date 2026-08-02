@@ -53,7 +53,7 @@ export default async function ManagerSignalsPage() {
       title={tp("signalsTitle")}
       subtitle={tp("signalsSubtitle")}
       user={{
-        name: `${insights.profile.first_name ?? ""} ${insights.profile.last_name ?? ""}`.trim() || "Manager",
+        name: `${insights.profile.first_name ?? ""} ${insights.profile.last_name ?? ""}`.trim() || tc("managerRole"),
         initials: getInitials(insights.profile.first_name, insights.profile.last_name),
         team: insights.teamLabel
       }}

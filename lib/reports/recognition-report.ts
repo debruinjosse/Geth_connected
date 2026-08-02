@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { getCategoryDisplayName } from "@/lib/cards";
+import { getLocalizedCardTitle, getLocalizedCategoryDisplayName } from "@/lib/cards";
 
 export type RecognitionReportRange = {
   from: string;
@@ -43,6 +43,15 @@ type ProfileNameRow = {
   email: string | null;
 };
 
+type ReportLabels = {
+  unknownReceiver: string;
+  unknownGiver: string;
+  unknownCard: string;
+  uncategorized: string;
+  unassigned: string;
+  csvHeaders: string[];
+};
+
 function toInputDate(date: Date) {
   return date.toISOString().slice(0, 10);
 }
@@ -60,6 +69,28 @@ function getProfileDisplayName(profile: ProfileNameRow | undefined) {
   if (!profile) return "";
   const name = `${profile.first_name ?? ""} ${profile.last_name ?? ""}`.trim();
   return name || profile.email || "";
+}
+
+export function getReportLabels(locale?: string): ReportLabels {
+  if (locale === "nl") {
+    return {
+      unknownReceiver: "Onbekende ontvanger",
+      unknownGiver: "Onbekende gever",
+      unknownCard: "Onbekende kaart",
+      uncategorized: "Geen categorie",
+      unassigned: "Niet toegewezen",
+      csvHeaders: ["Datum", "Ontvanger", "Gever", "Kaart", "Categorie", "Team", "Persoonlijke notitie"]
+    };
+  }
+
+  return {
+    unknownReceiver: "Unknown receiver",
+    unknownGiver: "Unknown giver",
+    unknownCard: "Unknown card",
+    uncategorized: "Uncategorized",
+    unassigned: "Unassigned",
+    csvHeaders: ["Recognition date", "Receiver", "Giver", "Card title", "Category", "Team", "Personal note"]
+  };
 }
 
 export function getRecognitionReportRange(params?: { from?: string; to?: string }): RecognitionReportRange {
@@ -85,11 +116,14 @@ export function getRecognitionReportRange(params?: { from?: string; to?: string 
 export async function fetchRecognitionReportRows(
   supabase: SupabaseClient,
   scope: RecognitionReportScope,
-  range: RecognitionReportRange
+  range: RecognitionReportRange,
+  locale?: string
 ): Promise<RecognitionReportRow[]> {
   if (scope.kind === "teams" && !scope.teamIds.length) {
     return [];
   }
+
+  const labels = getReportLabels(locale);
 
   let query = supabase
     .from("recognition_events")
@@ -141,28 +175,31 @@ export async function fetchRecognitionReportRows(
   return events.map((event) => {
     const card = getSingle(event.card);
     const team = getSingle(event.team);
-    const receiver = getProfileDisplayName(profileMap.get(event.receiver_user_id)) || "Unknown receiver";
+    const receiver = getProfileDisplayName(profileMap.get(event.receiver_user_id)) || labels.unknownReceiver;
     const giver =
       (event.giver_user_id ? getProfileDisplayName(profileMap.get(event.giver_user_id)) : "") ||
       event.giver_name ||
       event.giver_email ||
-      "Unknown giver";
+      labels.unknownGiver;
 
     return {
       id: event.id,
       recognitionDate: event.created_at,
       receiver,
       giver,
-      cardTitle: card?.title ?? "Unknown card",
-      category: card ? getCategoryDisplayName(card.category) : "Uncategorized",
-      team: team?.name ?? "Unassigned",
+      cardTitle: card
+        ? getLocalizedCardTitle({ title: card.title, slug: card.qr_slug ?? undefined }, locale)
+        : labels.unknownCard,
+      category: card ? getLocalizedCategoryDisplayName(card.category, locale) : labels.uncategorized,
+      team: team?.name ?? labels.unassigned,
       personalNote: event.personal_note ?? ""
     };
   });
 }
 
-export function formatReportDate(isoDate: string) {
-  return new Intl.DateTimeFormat("en", {
+export function formatReportDate(isoDate: string, locale?: string) {
+  const dateLocale = locale === "nl" ? "nl-NL" : "en-US";
+  return new Intl.DateTimeFormat(dateLocale, {
     year: "numeric",
     month: "short",
     day: "2-digit"
@@ -174,10 +211,10 @@ function escapeCsv(value: string | number) {
   return /[",\n\r]/.test(text) ? `"${text.replaceAll('"', '""')}"` : text;
 }
 
-export function recognitionRowsToCsv(rows: RecognitionReportRow[]) {
-  const header = ["Recognition date", "Receiver", "Giver", "Card title", "Category", "Team", "Personal note"];
+export function recognitionRowsToCsv(rows: RecognitionReportRow[], locale?: string) {
+  const header = getReportLabels(locale).csvHeaders;
   const body = rows.map((row) => [
-    formatReportDate(row.recognitionDate),
+    formatReportDate(row.recognitionDate, locale),
     row.receiver,
     row.giver,
     row.cardTitle,

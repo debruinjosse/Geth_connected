@@ -4,6 +4,7 @@ import { DashboardShell } from "@/components/DashboardShell";
 import { EmptyState } from "@/components/EmptyState";
 import { companyAdmin } from "@/lib/demo-data";
 import { getUnreadNotificationCount } from "@/lib/notifications";
+import { getDateLocale } from "@/lib/locale-format";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 type BillingSearchParams = {
@@ -21,19 +22,31 @@ function getInitials(firstName: string | null, lastName: string | null) {
   return `${firstName?.[0] ?? ""}${lastName?.[0] ?? ""}`.toUpperCase() || "CA";
 }
 
-function formatMoney(cents: number, currency: string, interval: string) {
-  if (cents === 0) return interval === "enterprise" ? "Custom" : "Free";
-  if (interval === "once") return new Intl.NumberFormat("en", { style: "currency", currency }).format(cents / 100);
-  return `${new Intl.NumberFormat("en", { style: "currency", currency }).format(cents / 100)}/${interval}`;
+function formatMoney(cents: number, currency: string, interval: string, t: BillingTranslation) {
+  if (cents === 0) return interval === "enterprise" ? t("billingCustom") : t("billingFree");
+  const dateLocale = getDateLocale();
+  if (interval === "once") return new Intl.NumberFormat(dateLocale, { style: "currency", currency }).format(cents / 100);
+  return `${new Intl.NumberFormat(dateLocale, { style: "currency", currency }).format(cents / 100)}/${interval}`;
 }
 
-function formatDate(value: string | null) {
-  if (!value) return "Not set";
-  return new Intl.DateTimeFormat("en", { dateStyle: "medium" }).format(new Date(value));
+function formatDate(value: string | null, locale: string) {
+  if (!value) return "";
+  return new Intl.DateTimeFormat(getDateLocale(locale), { dateStyle: "medium" }).format(new Date(value));
 }
 
-function formatReadableStatus(value: string | null | undefined) {
-  if (!value) return "Not set";
+function formatReadableStatus(value: string | null | undefined, t: BillingTranslation) {
+  if (!value) return t("notSet");
+  const normalized = value.toLowerCase().replace(/\s+/g, "_");
+  const known = {
+    paid: t("statusPaid"),
+    pending: t("statusPending"),
+    overdue: t("statusOverdue"),
+    cancelled: t("statusCancelled"),
+    draft: t("statusDraft"),
+    open: t("statusOpen"),
+    active: t("statusOpen")
+  } as Record<string, string>;
+  if (known[normalized]) return known[normalized];
   return value
     .split("_")
     .filter(Boolean)
@@ -41,14 +54,14 @@ function formatReadableStatus(value: string | null | undefined) {
     .join(" ");
 }
 
-function formatPaymentMethod(value: string | null | undefined) {
-  if (!value) return "Invoice";
-  if (value === "invoice") return "Invoice";
-  return formatReadableStatus(value);
+function formatPaymentMethod(value: string | null | undefined, t: BillingTranslation) {
+  if (!value) return t("billingInvoice");
+  if (value === "invoice") return t("billingInvoice");
+  return formatReadableStatus(value, t);
 }
 
-function formatBillingInterval(value: string | null | undefined) {
-  return value === "yearly" ? "Yearly" : "Monthly";
+function formatBillingInterval(value: string | null | undefined, t: BillingTranslation) {
+  return value === "yearly" ? t("billingYearly") : t("billingMonthly");
 }
 
 function getBillingMessage(code: string | undefined, t: BillingTranslation) {
@@ -113,6 +126,7 @@ export default async function CompanyBillingPage({
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations({ locale, namespace: "companyBilling" });
+  const tc = await getTranslations({ locale, namespace: "common" });
   if (!hasSupabaseServerConfig()) {
     return renderDemoBilling(t);
   }
@@ -212,7 +226,7 @@ export default async function CompanyBillingPage({
       title={t("title")}
       subtitle={t("subtitle")}
       user={{
-        name: `${profile.first_name ?? ""} ${profile.last_name ?? ""}`.trim() || "Company admin",
+        name: `${profile.first_name ?? ""} ${profile.last_name ?? ""}`.trim() || tc("companyAdminRole"),
         initials: getInitials(profile.first_name, profile.last_name),
         team: company.company_name
       }}
@@ -227,7 +241,7 @@ export default async function CompanyBillingPage({
       <section className="dashboard-grid two billing-simplified-grid">
         <article className="panel dashboard-panel report-summary-card billing-payment-card">
           <span className="eyebrow">{t("paymentEyebrow")}</span>
-          <strong>{formatPaymentMethod(billingMethod)}</strong>
+          <strong>{formatPaymentMethod(billingMethod, t)}</strong>
           <p>{billingEmail || t("billingEmailMissing")}</p>
         </article>
         <article className="panel dashboard-panel">
@@ -263,11 +277,11 @@ export default async function CompanyBillingPage({
                 {invoices.map((invoice) => (
                   <tr key={invoice.id}>
                     <td><strong>{invoice.invoice_number}</strong></td>
-                    <td>{formatReadableStatus(invoice.status)}</td>
-                    <td>{formatMoney(invoice.total_cents, invoice.currency, "once")}</td>
-                    <td>{formatBillingInterval(invoice.billing_interval)}</td>
+                    <td>{formatReadableStatus(invoice.status, t)}</td>
+                    <td>{formatMoney(invoice.total_cents, invoice.currency, "once", t)}</td>
+                    <td>{formatBillingInterval(invoice.billing_interval, t)}</td>
                     <td>{invoice.seat_count ?? 1}</td>
-                    <td>{formatDate(invoice.due_date)}</td>
+                    <td>{invoice.due_date ? formatDate(invoice.due_date, locale) : t("notSet")}</td>
                     <td>{invoice.email_sent_at ? t("emailSent") : invoice.email_error ? t("emailFailed") : t("emailPending")}</td>
                     <td>
                       <a className="panel-link" href={`/${locale}/company/billing/invoices/${invoice.id}/pdf`}>

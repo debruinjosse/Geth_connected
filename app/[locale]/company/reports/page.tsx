@@ -45,6 +45,7 @@ export default async function CompanyReportsPage({
 }) {
   const [{ locale }, queryParams] = await Promise.all([params, searchParams]);
   const t = await getTranslations({ locale, namespace: "companyPages" });
+  const tc = await getTranslations({ locale, namespace: "common" });
 
   if (!hasSupabaseServerConfig()) {
     return renderDemoReports(locale);
@@ -76,7 +77,7 @@ export default async function CompanyReportsPage({
   }
 
   const [rows, unreadNotifications] = await Promise.all([
-    fetchRecognitionReportRows(supabase, { kind: "company", companyId: profile.company_id }, range),
+    fetchRecognitionReportRows(supabase, { kind: "company", companyId: profile.company_id }, range, locale),
     getUnreadNotificationCount(supabase, user.id)
   ]);
 
@@ -96,7 +97,7 @@ export default async function CompanyReportsPage({
       }}
       actions={
         <a className="btn btn-secondary" href={exportHref}>
-          <Download size={16} /> Export CSV
+          <Download size={16} /> {t("exportCsv")}
         </a>
       }
       unreadNotifications={unreadNotifications}
@@ -104,37 +105,37 @@ export default async function CompanyReportsPage({
       <section className="panel dashboard-panel report-controls-panel">
         <form className="report-filter-form" method="get">
           <label>
-            <span>From</span>
+            <span>{t("dateFrom")}</span>
             <input type="date" name="from" defaultValue={range.from} />
           </label>
           <label>
-            <span>To</span>
+            <span>{t("dateTo")}</span>
             <input type="date" name="to" defaultValue={range.to} />
           </label>
           <button className="btn btn-primary" type="submit">
-            Apply range
+            {t("applyRange")}
           </button>
           <a className="btn btn-secondary" href={`/${locale}/company/reports`}>
-            Reset
+            {t("resetRange")}
           </a>
         </form>
       </section>
 
       <section className="dashboard-grid three report-summary-grid">
         <article className="panel dashboard-panel report-summary-card">
-          <span className="eyebrow">Recognitions</span>
+          <span className="eyebrow">{t("summaryRecognitions")}</span>
           <strong>{rows.length}</strong>
-          <p>claimed in this range</p>
+          <p>{t("claimedInRange")}</p>
         </article>
         <article className="panel dashboard-panel report-summary-card">
           <span className="eyebrow">{t("employeesTitle")}</span>
           <strong>{receiverCount}</strong>
-          <p>recognized recipients</p>
+          <p>{t("recognizedRecipients")}</p>
         </article>
         <article className="panel dashboard-panel report-summary-card">
           <span className="eyebrow">{t("teamsTitle")}</span>
           <strong>{teamCount}</strong>
-          <p>represented in the report</p>
+          <p>{t("representedInReport")}</p>
         </article>
       </section>
 
@@ -142,10 +143,10 @@ export default async function CompanyReportsPage({
         <div className="panel-top">
           <div>
             <h2>{t("companyReportTitle")}</h2>
-            <p className="section-copy">Includes receiver, giver, card, category, team, and personal note.</p>
+            <p className="section-copy">{t("reportIncludesCopy")}</p>
           </div>
           <a className="btn btn-secondary" href={exportHref}>
-            <Download size={16} /> CSV
+            <Download size={16} /> {t("downloadCsv")}
           </a>
         </div>
         {rows.length ? (
@@ -153,25 +154,25 @@ export default async function CompanyReportsPage({
             <table className="dashboard-table report-table">
               <thead>
                 <tr>
-                  <th>Date</th>
-                  <th>Receiver</th>
-                  <th>Giver</th>
-                  <th>Card</th>
-                  <th>Category</th>
+                  <th>{t("tableDate")}</th>
+                  <th>{t("tableReceiver")}</th>
+                  <th>{t("tableGiver")}</th>
+                  <th>{t("tableCard")}</th>
+                  <th>{t("tableCategory")}</th>
                   <th>{t("team")}</th>
-                  <th>Note</th>
+                  <th>{t("tableNote")}</th>
                 </tr>
               </thead>
               <tbody>
                 {rows.map((row) => (
                   <tr key={row.id}>
-                    <td>{formatReportDate(row.recognitionDate)}</td>
+                    <td>{formatReportDate(row.recognitionDate, locale)}</td>
                     <td><strong>{row.receiver}</strong></td>
                     <td>{row.giver}</td>
                     <td>{row.cardTitle}</td>
                     <td>{row.category}</td>
                     <td>{row.team}</td>
-                    <td className="report-note">{row.personalNote || "No note"}</td>
+                    <td className="report-note">{row.personalNote || tc("noNote")}</td>
                   </tr>
                 ))}
               </tbody>
@@ -179,7 +180,7 @@ export default async function CompanyReportsPage({
           </div>
         ) : (
           <EmptyState
-            eyebrow="No report rows"
+            eyebrow={t("noReportRowsEyebrow")}
             title={t("noRowsTitle")}
             copy={t("noRowsCopy")}
           />

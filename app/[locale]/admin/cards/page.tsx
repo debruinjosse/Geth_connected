@@ -3,7 +3,11 @@ import { getTranslations } from "next-intl/server";
 import { updateCardActiveAction, updateCardContentAction } from "@/app/actions/adminControls";
 import { DashboardShell } from "@/components/DashboardShell";
 import { EmptyState } from "@/components/EmptyState";
-import { getCategoryDisplayName } from "@/lib/cards";
+import {
+  getLocalizedCardTitle,
+  getLocalizedCategoryDisplayName,
+  getLocalizedRecognitionSentence
+} from "@/lib/cards";
 import { superAdminUser } from "@/lib/demo-data";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -98,10 +102,12 @@ export default async function AdminCardsPage({ params }: { params: Promise<{ loc
                 {(cards as AdminCardRow[]).map((card) => (
                   <tr key={card.id}>
                     <td>
-                      <strong>{card.title}</strong>
-                      <p className="admin-card-caption">{card.recognition_sentence}</p>
+                      <strong>{getLocalizedCardTitle({ title: card.title, slug: card.qr_slug }, locale)}</strong>
+                      <p className="admin-card-caption">
+                        {getLocalizedRecognitionSentence({ recognitionSentence: card.recognition_sentence, slug: card.qr_slug }, locale)}
+                      </p>
                     </td>
-                    <td>{getCategoryDisplayName(card.category)}</td>
+                    <td>{getLocalizedCategoryDisplayName(card.category, locale)}</td>
                     <td>{card.card_number}</td>
                     <td><span className="admin-status-pill">{card.active ? t("cardStatusActive") : t("cardStatusPaused")}</span></td>
                     <td>{usageCounts.get(card.id) ?? 0}</td>
@@ -126,11 +132,11 @@ export default async function AdminCardsPage({ params }: { params: Promise<{ loc
                             <label>
                               {t("tableCategory")}
                               <select className="input" name="category" defaultValue={card.category} required>
-                                <option value="Communication">Communication</option>
-                                <option value="Creativity">Creativity</option>
-                                <option value="Competence">Competence</option>
-                                <option value="Collegiality">Collegiality</option>
-                                <option value="Open Category">Open Category</option>
+                                <option value="Communication">{getLocalizedCategoryDisplayName("Communication", locale)}</option>
+                                <option value="Creativity">{getLocalizedCategoryDisplayName("Creativity", locale)}</option>
+                                <option value="Competence">{getLocalizedCategoryDisplayName("Competence", locale)}</option>
+                                <option value="Collegiality">{getLocalizedCategoryDisplayName("Collegiality", locale)}</option>
+                                <option value="Open Category">{getLocalizedCategoryDisplayName("Open Category", locale)}</option>
                               </select>
                             </label>
                             <label>

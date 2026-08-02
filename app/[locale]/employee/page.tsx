@@ -162,6 +162,23 @@ export default async function EmployeeDashboardPage({ params }: { params: Promis
   );
   const pendingGiverMap = new Map((pendingGivers ?? []).map((giver) => [giver.id, `${giver.first_name ?? ""} ${giver.last_name ?? ""}`.trim() || t("aTeammate")]));
 
+  const categoryCounts = new Map<string, number>();
+  const qualityCounts = new Map<string, { count: number; category: string }>();
+
+  for (const item of received) {
+    const card = Array.isArray(item.card) ? item.card[0] : item.card;
+    if (!card) continue;
+
+    const categoryKey = normalizeCategoryKey(card.category);
+    categoryCounts.set(categoryKey, (categoryCounts.get(categoryKey) ?? 0) + 1);
+    const cardTitle = getLocalizedCardTitle({ title: card.title, slug: card.qr_slug ?? undefined }, locale);
+    const existing = qualityCounts.get(cardTitle);
+    qualityCounts.set(cardTitle, {
+      count: (existing?.count ?? 0) + 1,
+      category: categoryKey
+    });
+  }
+
   const normalizedRecognitions: RecognitionItem[] = received.flatMap((item) => {
       const card = Array.isArray(item.card) ? item.card[0] : item.card;
       if (!card) {
@@ -185,19 +202,6 @@ export default async function EmployeeDashboardPage({ params }: { params: Promis
         } satisfies RecognitionItem
       ];
     });
-
-  const categoryCounts = new Map<string, number>();
-  const qualityCounts = new Map<string, { count: number; category: string }>();
-
-  for (const recognition of normalizedRecognitions) {
-    const categoryKey = normalizeCategoryKey(recognition.category);
-    categoryCounts.set(categoryKey, (categoryCounts.get(categoryKey) ?? 0) + 1);
-    const existing = qualityCounts.get(recognition.card);
-    qualityCounts.set(recognition.card, {
-      count: (existing?.count ?? 0) + 1,
-      category: categoryKey
-    });
-  }
 
   const topQualityDetails = Array.from(qualityCounts.entries())
     .sort((a, b) => b[1].count - a[1].count)

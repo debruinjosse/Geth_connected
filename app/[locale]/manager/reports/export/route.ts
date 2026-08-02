@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import { extractLocaleFromPathname } from "@/lib/locale-format";
 import { fetchRecognitionReportRows, getRecognitionReportRange, recognitionRowsToCsv } from "@/lib/reports/recognition-report";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -37,12 +38,13 @@ export async function GET(request: NextRequest) {
   }
 
   const teamIds = (teams ?? []).map((team) => team.id);
+  const locale = extractLocaleFromPathname(request.nextUrl.pathname);
   const range = getRecognitionReportRange({
     from: request.nextUrl.searchParams.get("from") ?? undefined,
     to: request.nextUrl.searchParams.get("to") ?? undefined
   });
-  const rows = await fetchRecognitionReportRows(supabase, { kind: "teams", companyId: profile.company_id, teamIds }, range);
-  const csv = `\uFEFF${recognitionRowsToCsv(rows)}`;
+  const rows = await fetchRecognitionReportRows(supabase, { kind: "teams", companyId: profile.company_id, teamIds }, range, locale);
+  const csv = `\uFEFF${recognitionRowsToCsv(rows, locale)}`;
 
   return new Response(csv, {
     headers: {

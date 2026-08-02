@@ -355,50 +355,18 @@ export async function sendCalendarInviteEmail({
 export async function sendDemoBookingRequestEmails({
   adminEmails,
   requesterEmail,
-  requesterName,
-  company,
-  teamSize,
-  role,
-  preferredSlot,
-  message,
-  adminUrl
+  requesterSubject,
+  requesterText,
+  adminSubject,
+  adminText
 }: {
   adminEmails: string[];
   requesterEmail: string;
-  requesterName: string;
-  company: string;
-  teamSize: string;
-  role: string;
-  preferredSlot: string;
-  message: string;
-  adminUrl: string;
+  requesterSubject: string;
+  requesterText: string;
+  adminSubject: string;
+  adminText: string;
 }) {
-  const adminText = [
-    "New GETH® demo request",
-    "",
-    `Name: ${requesterName}`,
-    `Email: ${requesterEmail}`,
-    `Company: ${company}`,
-    `Team size: ${teamSize}`,
-    `Role: ${role}`,
-    `Preferred slot: ${preferredSlot}`,
-    "",
-    `Message: ${message || "No message provided."}`,
-    "",
-    `Approve or decline: ${adminUrl}`
-  ].join("\n");
-
-  const requesterText = [
-    `Hi ${requesterName},`,
-    "",
-    "Thanks for booking a GETH® demo. We received your request and will confirm the time shortly.",
-    "",
-    `Preferred slot: ${preferredSlot}`,
-    `Company: ${company}`,
-    "",
-    "If anything changes, reply to this email."
-  ].join("\n");
-
   try {
     const config = getSmtpConfig();
     const transport = createSmtpTransport();
@@ -406,14 +374,14 @@ export async function sendDemoBookingRequestEmails({
       from: config.from,
       replyTo: requesterEmail || config.replyTo,
       to: adminEmails.join(","),
-      subject: `New GETH® demo request - ${company}`,
+      subject: adminSubject,
       text: adminText
     });
     await transport.sendMail({
       from: config.from,
       replyTo: config.replyTo,
       to: requesterEmail,
-      subject: "GETH® demo request received",
+      subject: requesterSubject,
       text: requesterText
     });
   } catch (error) {
@@ -423,46 +391,22 @@ export async function sendDemoBookingRequestEmails({
 
 export async function sendDemoBookingDecisionEmail({
   to,
-  requesterName,
-  company,
-  status,
-  preferredSlot,
-  adminNote,
+  subject,
+  text,
   ics
 }: {
   to: string;
-  requesterName: string;
-  company: string;
-  status: "approved" | "declined" | "rescheduled";
-  preferredSlot: string;
-  adminNote: string;
+  subject: string;
+  text: string;
   ics?: string;
 }) {
-  const approved = status === "approved";
-  const rescheduled = status === "rescheduled";
-  const text = [
-    `Hi ${requesterName},`,
-    "",
-    approved
-      ? `Your GETH® demo for ${company} has been approved.`
-      : rescheduled
-        ? `Your GETH® demo for ${company} has been rescheduled.`
-        : `Thanks for your interest in GETH®. We cannot confirm the requested demo slot for ${company} yet.`,
-    `${rescheduled ? "New slot" : "Requested slot"}: ${preferredSlot}`,
-    adminNote ? `Note: ${adminNote}` : "",
-    "",
-    approved || rescheduled
-      ? "A calendar file is attached so you can add it to Google Calendar, Outlook, or Apple Calendar."
-      : "Please reply to this email and we will find another suitable time."
-  ].filter(Boolean).join("\n");
-
   try {
     const config = getSmtpConfig();
     await createSmtpTransport().sendMail({
       from: config.from,
       replyTo: config.replyTo,
       to,
-      subject: approved ? "Your GETH® demo is confirmed" : rescheduled ? "Your GETH® demo has been rescheduled" : "GETH® demo request update",
+      subject,
       text,
       ...(ics
         ? {

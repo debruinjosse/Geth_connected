@@ -70,7 +70,7 @@ export default async function AdminSettingsPage({
       title={t("settingsTitle")}
       subtitle={t("settingsSubtitle")}
       user={{
-        name: `${profile.first_name ?? ""} ${profile.last_name ?? ""}`.trim() || "GETH Admin",
+        name: `${profile.first_name ?? ""} ${profile.last_name ?? ""}`.trim() || tc("platformAdminName"),
         initials: getInitials(profile.first_name, profile.last_name),
         team: tc("platformTeam"),
         imageUrl: profile.profile_image

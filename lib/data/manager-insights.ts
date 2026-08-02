@@ -1,6 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { QualityBarItem } from "@/components/QualityBars";
-import { getPercentageMix } from "@/lib/quality-percentages";
 import type { TeamMemberRow } from "@/components/TeamTable";
 import { categoryColors, getLocalizedAnalyticCategoryLabel, getLocalizedCardTitle, normalizeCategoryKey } from "@/lib/cards";
 
@@ -134,7 +133,11 @@ export async function getManagerInsights(
       teamRows: [],
       signalItems: [],
       trendPoints: [0, 0, 0, 0, 0, 0],
-      trendLabels: Array.from({ length: 6 }, (_, index) => new Intl.DateTimeFormat("en", { month: "short" }).format(new Date(new Date().getFullYear(), new Date().getMonth() - (5 - index), 1))),
+      trendLabels: Array.from({ length: 6 }, (_, index) =>
+        new Intl.DateTimeFormat(locale === "nl" ? "nl-NL" : "en-US", { month: "short" }).format(
+          new Date(new Date().getFullYear(), new Date().getMonth() - (5 - index), 1)
+        )
+      ),
       qualityBars: [],
       memberComparison: [],
       recognitionCount: 0,
@@ -335,11 +338,10 @@ export async function getManagerInsights(
     trendLabels: monthWindows.map((month) => month.label),
     qualityBars: (() => {
       const topEntries = Array.from(qualityCounts.entries()).sort((a, b) => b[1].value - a[1].value).slice(0, 6);
-      const percentages = getPercentageMix(topEntries.map(([, info]) => info.value));
 
-      return topEntries.map(([label, info], index) => ({
+      return topEntries.map(([label, info]) => ({
         label,
-        value: percentages[index] ?? 0,
+        value: info.value,
         category: info.category
       }));
     })(),

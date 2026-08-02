@@ -3,7 +3,7 @@ import { getTranslations } from "next-intl/server";
 import { DashboardShell } from "@/components/DashboardShell";
 import { EmptyState } from "@/components/EmptyState";
 import { getLocalizedCardTitle } from "@/lib/cards";
-import { currentUser, employeeMessages } from "@/lib/demo-data";
+import { currentUser } from "@/lib/demo-data";
 import { getUnreadNotificationCount } from "@/lib/notifications";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -25,12 +25,16 @@ export default async function EmployeeMessagesPage({ params }: { params: Promise
   const tc = await getTranslations({ locale, namespace: "common" });
 
   if (!hasSupabaseServerConfig()) {
+    const demoMessages = [
+      { id: "m1", title: t("demoMessage1Title"), excerpt: t("demoMessage1Excerpt"), time: t("demoMessage1Time") },
+      { id: "m2", title: t("demoMessage2Title"), excerpt: t("demoMessage2Excerpt"), time: t("demoMessage2Time") }
+    ];
     return (
       <DashboardShell role="employee" title={t("messagesTitle")} subtitle="" user={currentUser} actions={<span className="quality-pill">{tc("demoFallback")}</span>}>
         <section className="dashboard-grid">
           <article className="panel dashboard-panel">
             <div className="signal-list">
-              {employeeMessages.map((message) => (
+              {demoMessages.map((message) => (
                 <div className="signal-card" key={message.id}>
                   <div>
                     <strong>{message.title}</strong>

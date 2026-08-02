@@ -9,7 +9,7 @@ import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { ArrowLeft, ArrowRight, CheckCircle2, Search } from "lucide-react";
 import { claimRecognition, giveRecognition } from "@/app/actions/claimRecognition";
 import { GethCardVisual } from "@/components/GethCardVisual";
-import { getLocalizedCardTitle, getLocalizedCategoryDisplayName, type GethCard } from "@/lib/cards";
+import { getLocalizedGethCard, type GethCard } from "@/lib/cards";
 import { people } from "@/lib/demo-data";
 import { hasSupabaseBrowserConfig, saveStoredRecognition } from "@/lib/demo-session";
 
@@ -71,13 +71,7 @@ export function ClaimCardClient({
   const deferredQuery = useDeferredValue(query);
   const availablePeople = giverOptions?.length ? giverOptions : hasSupabaseBrowserConfig() ? [] : people;
   const resolvedReceiverName = receiverName ?? "Sarah van den Berg";
-  const displayCard = card
-    ? {
-        ...card,
-        title: getLocalizedCardTitle(card, locale),
-        category: getLocalizedCategoryDisplayName(card.category, locale)
-      }
-    : null;
+  const displayCard = card ? getLocalizedGethCard(card, locale) : null;
 
   if (!card) {
     return (
@@ -178,7 +172,7 @@ export function ClaimCardClient({
           })}
         </div>
 
-        <GethCardVisual card={displayCard ?? card} variant="claim" />
+        <GethCardVisual card={displayCard ?? card} variant="claim" locale={locale} />
       </div>
 
       <div className="claim-right">

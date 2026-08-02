@@ -13,7 +13,8 @@ import { MetricCard } from "@/components/MetricCard";
 import { RecognitionList, type RecognitionItem } from "@/components/RecognitionList";
 import { EmployeeAiSignalsPanel } from "@/components/EmployeeAiSignalsPanel";
 import type { EmployeeSignalsContext } from "@/lib/ai/employee-recognition-signals";
-import { getLocalizedCategoryDisplayName, getLocalizedCardTitle, type CardCategory } from "@/lib/cards";
+import { getLocalizedCategoryDisplayName, getLocalizedCardTitle, normalizeCategoryKey, type CardCategory } from "@/lib/cards";
+import { getRecentMonthLabels } from "@/lib/locale-format";
 import { currentUser, employeeCategoryBreakdown, employeeGrowthPoints, employeeTopQualities, recognitions } from "@/lib/demo-data";
 import { getStoredRecognitions, type StoredRecognition } from "@/lib/demo-session";
 
@@ -90,12 +91,27 @@ function buildZeroQualityRows(locale: string): QualityPill[] {
   }));
 }
 
-function localizeDemoCategoryBreakdown(locale: string) {
-  return employeeCategoryBreakdown.map((item, index) => ({
-    label: getLocalizedCategoryDisplayName(fourCCategories[index] ?? item.label, locale),
-    value: item.value,
-    color: item.color
-  }));
+function buildCategoryDisplayRows(
+  breakdown: CategoryBreakdown[],
+  locale: string,
+  zeroFallback: CategoryBreakdown[]
+): CategoryBreakdown[] {
+  const valueByCategory = new Map<string, number>();
+  const colorByCategory = new Map<string, string>();
+
+  for (const item of breakdown) {
+    const key = normalizeCategoryKey(item.label);
+    valueByCategory.set(key, item.value);
+    colorByCategory.set(key, item.color);
+  }
+
+  return fourCCategories
+    .map((category, index) => ({
+      label: getLocalizedCategoryDisplayName(category, locale),
+      value: valueByCategory.get(category) ?? 0,
+      color: colorByCategory.get(category) ?? zeroFallback[index]?.color ?? "var(--theme-ink)"
+    }))
+    .sort((a, b) => b.value - a.value);
 }
 
 function localizeDemoTopQualities(locale: string) {
@@ -116,7 +132,7 @@ export function EmployeeDashboardClient({ data }: { data?: EmployeeDashboardData
   const t = useTranslations("employeeHome");
   const zeroCategoryBreakdown = buildZeroCategoryBreakdown(locale);
   const zeroQualityRows = buildZeroQualityRows(locale);
-  const localizedDemoCategories = localizeDemoCategoryBreakdown(locale);
+  const localizedDemoCategories = buildCategoryDisplayRows(employeeCategoryBreakdown, locale, zeroCategoryBreakdown);
   const localizedDemoQualities = localizeDemoTopQualities(locale);
   const resolvedData = data ?? {
     mode: "demo" as const,
@@ -161,7 +177,7 @@ export function EmployeeDashboardClient({ data }: { data?: EmployeeDashboardData
     })),
     growthPoints: employeeGrowthPoints,
     givenGrowthPoints: [1, 0, 2, 1, 2, 1],
-    growthLabels: ["Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+    growthLabels: getRecentMonthLabels(6, locale),
     unreadNotifications: 0
   };
   useEffect(() => {
@@ -177,8 +193,14 @@ export function EmployeeDashboardClient({ data }: { data?: EmployeeDashboardData
   const recognitionItems = resolvedData.mode === "demo" ? [...storedRecognitions, ...resolvedData.recentRecognitions] : resolvedData.recentRecognitions;
   const hasAnyRecognitionItems = recognitionItems.length > 0;
   const firstName = resolvedData.user.name?.split(" ")[0] || "there";
-  const displayCategories = [...(resolvedData.categoryBreakdown.length ? resolvedData.categoryBreakdown : zeroCategoryBreakdown)].sort((a, b) => b.value - a.value);
-  const qualityRows = resolvedData.topQualities.length ? resolvedData.topQualities.slice(0, 3) : zeroQualityRows.slice(0, 3);
+  const displayCategories =
+    resolvedData.categoryBreakdown.length
+      ? buildCategoryDisplayRows(resolvedData.categoryBreakdown, locale, zeroCategoryBreakdown)
+      : zeroCategoryBreakdown;
+  const qualityRows = (resolvedData.topQualities.length ? resolvedData.topQualities.slice(0, 3) : zeroQualityRows.slice(0, 3)).map((quality) => ({
+    ...quality,
+    label: getLocalizedCardTitle(quality.label, locale)
+  }));
   const recognitionBalanceValue = `${resolvedData.cardsReceived} / ${resolvedData.cardsGiven}`;
   const receivedTrendPoints = resolvedData.growthPoints.length ? resolvedData.growthPoints : [0, 0, 0, 0, 0, 0];
   const givenTrendPoints = resolvedData.givenGrowthPoints.length ? resolvedData.givenGrowthPoints : [0, 0, 0, 0, 0, 0];

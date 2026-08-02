@@ -8,10 +8,11 @@ import { MetricCard } from "@/components/MetricCard";
 import { QualityBars, type QualityBarItem } from "@/components/QualityBars";
 import { SignalList } from "@/components/SignalList";
 import { TeamTable, type TeamMemberRow } from "@/components/TeamTable";
-import { categoryMeta, getLocalizedCardTitle } from "@/lib/cards";
-import { managerTrendPoints, managerUser, people, teamSignals, topQualities } from "@/lib/demo-data";
+import { getLocalizedCardTitle, getLocalizedCategoryDisplayName, normalizeCategoryKey } from "@/lib/cards";
+import { getRecentMonthLabels } from "@/lib/locale-format";
+import { localizeDemoQualityBars, localizeDemoPeople } from "@/lib/localize-demo-content";
+import { managerTrendPoints, managerUser, people, topQualities } from "@/lib/demo-data";
 import { getUnreadNotificationCount } from "@/lib/notifications";
-import { getPercentageMix } from "@/lib/quality-percentages";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 function hasSupabaseServerConfig() {
@@ -66,10 +67,45 @@ function getWeeksSince(timestamp: number) {
   return Math.max(1, Math.floor((Date.now() - timestamp) / (7 * DAY_MS)));
 }
 
+function buildLocalizedDemoManagerContent(locale: string, t: Awaited<ReturnType<typeof getTranslations>>) {
+  return {
+    monthLabels3: getRecentMonthLabels(3, locale),
+    localizedPeople: localizeDemoPeople(people, locale),
+    localizedTopQualities: localizeDemoQualityBars(topQualities, locale),
+    localizedSignals: [
+      {
+        id: "s1",
+        tone: "var(--theme-red)",
+        title: t("signalInactiveTitle", { name: "Peter Mol", weeks: 9 }),
+        detail: t("signalInactiveDetail")
+      },
+      {
+        id: "s2",
+        tone: "var(--theme-gold)",
+        title: t("signalInactiveTitle", { name: "Tom Bakker", weeks: 6 }),
+        detail: t("signalInactiveDetail")
+      },
+      {
+        id: "s3",
+        tone: "var(--theme-sky)",
+        title: t("demoTrendRisingTitle", { name: "Lisa Jansen" }),
+        detail: t("demoTrendRisingDetail")
+      },
+      {
+        id: "s4",
+        tone: "var(--theme-emerald)",
+        title: t("demoEngagementAboveTitle"),
+        detail: t("demoEngagementAboveDetail")
+      }
+    ]
+  };
+}
+
 export default async function ManagerDashboardPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "manager" });
   const signalsHref = `/${locale}/manager/signals`;
+  const demoContent = buildLocalizedDemoManagerContent(locale, t);
 
   if (!hasSupabaseServerConfig()) {
     return (
@@ -92,7 +128,7 @@ export default async function ManagerDashboardPage({ params }: { params: Promise
             <div className="panel-top">
               <h2>{t("teamTable")}</h2>
             </div>
-            <TeamTable people={people} />
+            <TeamTable people={demoContent.localizedPeople} />
           </article>
           <aside className="panel dashboard-panel">
             <div className="panel-top">
@@ -101,7 +137,7 @@ export default async function ManagerDashboardPage({ params }: { params: Promise
                 {t("viewAll")}
               </a>
             </div>
-            <SignalList items={teamSignals} />
+            <SignalList items={demoContent.localizedSignals} />
           </aside>
         </section>
 
@@ -111,13 +147,13 @@ export default async function ManagerDashboardPage({ params }: { params: Promise
               <h2>{t("activityTitle")}</h2>
               <span className="quality-pill">{t("thisQuarter")}</span>
             </div>
-            <BarChart items={["Jul", "Aug", "Sep"].map((label, index) => ({ label, value: managerTrendPoints[index] ?? 0, color: "var(--theme-ink)" }))} />
+            <BarChart items={demoContent.monthLabels3.map((label, index) => ({ label, value: managerTrendPoints[index] ?? 0, color: "var(--theme-emerald)" }))} />
           </article>
           <article className="panel dashboard-panel">
             <div className="panel-top">
               <h2>{t("topQualitiesTitle")}</h2>
             </div>
-            <QualityBars items={topQualities} />
+            <QualityBars items={demoContent.localizedTopQualities} valueMode="count" />
           </article>
           <article className="panel dashboard-panel">
             <div className="panel-top">
@@ -165,7 +201,7 @@ export default async function ManagerDashboardPage({ params }: { params: Promise
             <div className="panel-top">
               <h2>{t("teamTable")}</h2>
             </div>
-            <TeamTable people={people} />
+            <TeamTable people={demoContent.localizedPeople} />
           </article>
           <aside className="panel dashboard-panel">
             <div className="panel-top">
@@ -174,7 +210,7 @@ export default async function ManagerDashboardPage({ params }: { params: Promise
                 {t("viewAll")}
               </a>
             </div>
-            <SignalList items={teamSignals} />
+            <SignalList items={demoContent.localizedSignals} />
           </aside>
         </section>
 
@@ -184,13 +220,13 @@ export default async function ManagerDashboardPage({ params }: { params: Promise
               <h2>{t("activityTitle")}</h2>
               <span className="quality-pill">{t("thisQuarter")}</span>
             </div>
-            <BarChart items={["Jul", "Aug", "Sep"].map((label, index) => ({ label, value: managerTrendPoints[index] ?? 0, color: "var(--theme-ink)" }))} />
+            <BarChart items={demoContent.monthLabels3.map((label, index) => ({ label, value: managerTrendPoints[index] ?? 0, color: "var(--theme-emerald)" }))} />
           </article>
           <article className="panel dashboard-panel">
             <div className="panel-top">
               <h2>{t("topQualitiesTitle")}</h2>
             </div>
-            <QualityBars items={topQualities} />
+            <QualityBars items={demoContent.localizedTopQualities} valueMode="count" />
           </article>
           <article className="panel dashboard-panel">
             <div className="panel-top">
@@ -338,7 +374,7 @@ export default async function ManagerDashboardPage({ params }: { params: Promise
     const card = Array.isArray(recognition.card) ? recognition.card[0] : recognition.card;
     if (card) {
       const title = getLocalizedCardTitle({ title: card.title, slug: card.qr_slug ?? undefined }, locale);
-      const category = card.category;
+      const category = normalizeCategoryKey(card.category);
       const existingQuality = qualityCounts.get(title);
       qualityCounts.set(title, {
         value: (existingQuality?.value ?? 0) + 1,
@@ -441,12 +477,11 @@ export default async function ManagerDashboardPage({ params }: { params: Promise
   }
 
   const topQualityEntries = Array.from(qualityCounts.entries()).sort((a, b) => b[1].value - a[1].value).slice(0, 5);
-  const topQualityPercentages = getPercentageMix(topQualityEntries.map(([, info]) => info.value));
-  const topQualityBars: QualityBarItem[] = topQualityEntries.map(([label, info], index) => ({
-      label,
-      value: topQualityPercentages[index] ?? 0,
-      category: info.category
-    }));
+  const topQualityBars: QualityBarItem[] = topQualityEntries.map(([label, info]) => ({
+    label,
+    value: info.value,
+    category: info.category
+  }));
 
   const growthMonths = Array.from({ length: 3 }, (_, index) => {
     const date = new Date(new Date().getFullYear(), new Date().getMonth() - (2 - index), 1);
@@ -531,7 +566,7 @@ export default async function ManagerDashboardPage({ params }: { params: Promise
             <span className="quality-pill">{t("thisQuarter")}</span>
           </div>
           {recognitions.length ? (
-            <BarChart items={trendLabels.map((label, index) => ({ label, value: trendPoints[index] ?? 0, color: "var(--theme-ink)" }))} />
+            <BarChart items={trendLabels.map((label, index) => ({ label, value: trendPoints[index] ?? 0, color: "var(--theme-emerald)" }))} />
           ) : (
             <EmptyState eyebrow={t("emptyActivityYetEyebrow")} title={t("emptyActivityTitle")} copy={t("emptyActivityYetCopy")} />
           )}
@@ -541,7 +576,7 @@ export default async function ManagerDashboardPage({ params }: { params: Promise
             <h2>{t("topQualitiesTitle")}</h2>
           </div>
           {topQualityBars.length ? (
-            <QualityBars items={topQualityBars} />
+            <QualityBars items={topQualityBars} valueMode="count" />
           ) : (
             <EmptyState eyebrow={t("emptyQualitiesYetEyebrow")} title={t("emptyQualitiesYetTitle")} copy={t("emptyQualitiesYetCopy")} />
           )}

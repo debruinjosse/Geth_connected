@@ -5,6 +5,7 @@ import { localizedLoginPath } from "@/lib/auth/paths";
 import { DashboardShell } from "@/components/DashboardShell";
 import { EmptyState } from "@/components/EmptyState";
 import { TeamTable } from "@/components/TeamTable";
+import { localizeDemoPeople } from "@/lib/localize-demo-content";
 import { managerUser, people } from "@/lib/demo-data";
 import { getManagerInsights } from "@/lib/data/manager-insights";
 import { getUnreadNotificationCount } from "@/lib/notifications";
@@ -33,7 +34,7 @@ export default async function ManagerTeamPage({
   if (!hasSupabaseServerConfig()) {
     return (
       <DashboardShell role="manager" title={tp("teamTitle")} subtitle={tp("teamSubtitle")} user={managerUser} actions={<span className="quality-pill">{tc("demoFallback")}</span>}>
-        <article className="panel dashboard-panel"><TeamTable people={people} /></article>
+        <article className="panel dashboard-panel"><TeamTable people={localizeDemoPeople(people, locale)} /></article>
       </DashboardShell>
     );
   }
@@ -57,7 +58,7 @@ export default async function ManagerTeamPage({
         title={tp("teamTitle")}
         subtitle={tp("teamSubtitle")}
         user={{
-          name: "Manager",
+          name: tc("managerRole"),
           initials: "MG",
           team: tc("noTeam")
         }}
@@ -76,7 +77,7 @@ export default async function ManagerTeamPage({
       title={tp("teamTitle")}
       subtitle={tp("teamSubtitle")}
       user={{
-        name: `${insights.profile.first_name ?? ""} ${insights.profile.last_name ?? ""}`.trim() || "Manager",
+        name: `${insights.profile.first_name ?? ""} ${insights.profile.last_name ?? ""}`.trim() || tc("managerRole"),
         initials: getInitials(insights.profile.first_name, insights.profile.last_name),
         team: insights.teamLabel
       }}

@@ -3,7 +3,7 @@ import { getTranslations } from "next-intl/server";
 import { DashboardShell } from "@/components/DashboardShell";
 import { EmptyState } from "@/components/EmptyState";
 import { companyAdmin, cardManagementRows } from "@/lib/demo-data";
-import { getLocalizedCategoryDisplayName, getLocalizedCardTitle } from "@/lib/cards";
+import { getLocalizedCategoryDisplayName, getLocalizedCardTitle, getLocalizedRecognitionSentence } from "@/lib/cards";
 import { getUnreadNotificationCount } from "@/lib/notifications";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -129,7 +129,7 @@ export default async function CompanyCardsPage({ params }: { params: Promise<{ l
                   <div>
                     <span className="eyebrow">{getLocalizedCategoryDisplayName(card.category, locale)}</span>
                     <h3>{getLocalizedCardTitle({ title: card.title, slug: card.qr_slug }, locale)}</h3>
-                    <p>{card.recognition_sentence}</p>
+                    <p>{getLocalizedRecognitionSentence({ recognitionSentence: card.recognition_sentence, slug: card.qr_slug }, locale)}</p>
                   </div>
                   <div className="company-card-admin-meta">
                     <span>#{String(card.card_number).padStart(2, "0")}</span>

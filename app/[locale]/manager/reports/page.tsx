@@ -49,6 +49,8 @@ export default async function ManagerReportsPage({
 }) {
   const [{ locale }, queryParams] = await Promise.all([params, searchParams]);
   const tp = await getTranslations({ locale, namespace: "managerPages" });
+  const tm = await getTranslations({ locale, namespace: "manager" });
+  const tc = await getTranslations({ locale, namespace: "common" });
 
   if (!hasSupabaseServerConfig()) {
     return renderDemoReports(locale);
@@ -91,13 +93,18 @@ export default async function ManagerReportsPage({
 
   const teamIds = (teams ?? []).map((team) => team.id);
   const [rows, unreadNotifications] = await Promise.all([
-    fetchRecognitionReportRows(supabase, { kind: "teams", companyId: profile.company_id, teamIds }, range),
+    fetchRecognitionReportRows(supabase, { kind: "teams", companyId: profile.company_id, teamIds }, range, locale),
     getUnreadNotificationCount(supabase, user.id)
   ]);
 
   const exportHref = `/${locale}/manager/reports/export?from=${encodeURIComponent(range.from)}&to=${encodeURIComponent(range.to)}`;
   const receiverCount = new Set(rows.map((row) => row.receiver)).size;
-  const teamLabel = teams?.length === 1 ? teams[0]?.name ?? "Managed team" : teams?.length ? `${teams.length} managed teams` : "No team assigned";
+  const teamLabel =
+    teams?.length === 1
+      ? teams[0]?.name ?? tm("assignedTeam")
+      : teams?.length
+        ? tm("managedTeams", { count: teams.length })
+        : tm("noTeam");
 
   return (
     <DashboardShell
@@ -105,13 +112,13 @@ export default async function ManagerReportsPage({
       title={tp("reportsTitle")}
       subtitle={tp("reportsSubtitle")}
       user={{
-        name: `${profile.first_name ?? ""} ${profile.last_name ?? ""}`.trim() || "Manager",
+        name: `${profile.first_name ?? ""} ${profile.last_name ?? ""}`.trim() || tc("managerRole"),
         initials: getInitials(profile.first_name, profile.last_name),
         team: teamLabel
       }}
       actions={
         <a className={`btn btn-secondary ${teamIds.length ? "" : "disabled-link"}`.trim()} href={teamIds.length ? exportHref : "#"} aria-disabled={!teamIds.length}>
-          <Download size={16} /> Export CSV
+          <Download size={16} /> {tp("exportCsv")}
         </a>
       }
       unreadNotifications={unreadNotifications}
@@ -119,18 +126,18 @@ export default async function ManagerReportsPage({
       <section className="panel dashboard-panel report-controls-panel">
         <form className="report-filter-form" method="get">
           <label>
-            <span>From</span>
+            <span>{tp("dateFrom")}</span>
             <input type="date" name="from" defaultValue={range.from} />
           </label>
           <label>
-            <span>To</span>
+            <span>{tp("dateTo")}</span>
             <input type="date" name="to" defaultValue={range.to} />
           </label>
           <button className="btn btn-primary" type="submit">
-            Apply range
+            {tp("applyRange")}
           </button>
           <a className="btn btn-secondary" href={`/${locale}/manager/reports`}>
-            Reset
+            {tp("resetRange")}
           </a>
         </form>
       </section>
@@ -139,17 +146,17 @@ export default async function ManagerReportsPage({
         <article className="panel dashboard-panel report-summary-card">
           <span className="eyebrow">{tp("recognitions")}</span>
           <strong>{rows.length}</strong>
-          <p>claimed by managed teams</p>
+          <p>{tp("claimedByManagedTeams")}</p>
         </article>
         <article className="panel dashboard-panel report-summary-card">
           <span className="eyebrow">{tp("recipients")}</span>
           <strong>{receiverCount}</strong>
-          <p>team members recognized</p>
+          <p>{tp("teamMembersRecognized")}</p>
         </article>
         <article className="panel dashboard-panel report-summary-card">
-          <span className="eyebrow">Teams</span>
+          <span className="eyebrow">{tp("teamsEyebrow")}</span>
           <strong>{teamIds.length}</strong>
-          <p>inside your scope</p>
+          <p>{tp("insideYourScope")}</p>
         </article>
       </section>
 
@@ -157,10 +164,10 @@ export default async function ManagerReportsPage({
         <div className="panel-top">
           <div>
             <h2>{tp("reportTitle")}</h2>
-            <p className="section-copy">Only recognitions from teams assigned to you are included.</p>
+            <p className="section-copy">{tp("reportScopeCopy")}</p>
           </div>
           <a className={`btn btn-secondary ${teamIds.length ? "" : "disabled-link"}`.trim()} href={teamIds.length ? exportHref : "#"} aria-disabled={!teamIds.length}>
-            <Download size={16} /> CSV
+            <Download size={16} /> {tp("downloadCsv")}
           </a>
         </div>
         {!teamIds.length ? (
@@ -174,25 +181,25 @@ export default async function ManagerReportsPage({
             <table className="dashboard-table report-table">
               <thead>
                 <tr>
-                  <th>Date</th>
+                  <th>{tp("tableDate")}</th>
                   <th>{tp("receiver")}</th>
-                  <th>Giver</th>
-                  <th>Card</th>
+                  <th>{tp("tableGiver")}</th>
+                  <th>{tp("tableCard")}</th>
                   <th>{tp("category")}</th>
-                  <th>Team</th>
-                  <th>Note</th>
+                  <th>{tp("tableTeam")}</th>
+                  <th>{tp("tableNote")}</th>
                 </tr>
               </thead>
               <tbody>
                 {rows.map((row) => (
                   <tr key={row.id}>
-                    <td>{formatReportDate(row.recognitionDate)}</td>
+                    <td>{formatReportDate(row.recognitionDate, locale)}</td>
                     <td><strong>{row.receiver}</strong></td>
                     <td>{row.giver}</td>
                     <td>{row.cardTitle}</td>
                     <td>{row.category}</td>
                     <td>{row.team}</td>
-                    <td className="report-note">{row.personalNote || "No note"}</td>
+                    <td className="report-note">{row.personalNote || tc("noNote")}</td>
                   </tr>
                 ))}
               </tbody>

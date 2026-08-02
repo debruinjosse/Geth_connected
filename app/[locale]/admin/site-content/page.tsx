@@ -24,7 +24,7 @@ export default async function AdminSiteContentPage({ params }: { params: Promise
 
   if (!hasSupabaseServerConfig()) {
     return (
-      <DashboardShell role="admin" title={t("siteContentTitle")} subtitle={t("siteContentSubtitle")} user={{ name: "GETH Admin", initials: "GA", team: tc("platformTeam") }}>
+      <DashboardShell role="admin" title={t("siteContentTitle")} subtitle={t("siteContentSubtitle")} user={{ name: tc("platformAdminName"), initials: "GA", team: tc("platformTeam") }}>
         <article className="panel dashboard-panel">
           <p className="section-copy">{t("siteContentDemoCopy")}</p>
         </article>
@@ -59,7 +59,7 @@ export default async function AdminSiteContentPage({ params }: { params: Promise
   const defaultsNl = await buildHomeCmsDefaults("nl", homeNl, landingNl, footerNl);
 
   const unreadNotifications = await getUnreadNotificationCount(supabase, user.id);
-  const name = `${profile.first_name ?? ""} ${profile.last_name ?? ""}`.trim() || "GETH Admin";
+  const name = `${profile.first_name ?? ""} ${profile.last_name ?? ""}`.trim() || tc("platformAdminName");
 
   return (
     <DashboardShell

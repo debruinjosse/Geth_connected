@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
-import { getCategoryDisplayName } from "@/lib/cards";
+import { getLocalizedCategoryDisplayName, getLocalizedCardTitle } from "@/lib/cards";
+import { extractLocaleFromPathname } from "@/lib/locale-format";
 import { getRecognitionReportRange } from "@/lib/reports/recognition-report";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -36,7 +37,7 @@ function escapeCsv(value: string | number) {
   return /[",\n\r]/.test(text) ? `"${text.replaceAll('"', '""')}"` : text;
 }
 
-function toCsv(rows: ExportGroup[]) {
+function toCsv(rows: ExportGroup[], locale: string, privacyNote: string) {
   const header = [
     "company_id",
     "company_name",
@@ -62,7 +63,7 @@ function toCsv(rows: ExportGroup[]) {
     row.count,
     row.firstRecognitionAt,
     row.lastRecognitionAt,
-    "GDPR-safe export: no names, emails, or personal notes included"
+    privacyNote
   ]);
 
   return [header, ...body].map((line) => line.map(escapeCsv).join(",")).join("\n");
@@ -88,6 +89,12 @@ export async function GET(request: NextRequest) {
   if (profileError || !profile || !["platform_admin", "super_admin"].includes(profile.role)) {
     return new Response("Forbidden", { status: 403 });
   }
+
+  const locale = extractLocaleFromPathname(request.nextUrl.pathname);
+  const unknownCompany = locale === "nl" ? "Onbekend bedrijf" : "Unknown company";
+  const unknownCard = locale === "nl" ? "Onbekende kaart" : "Unknown card";
+  const uncategorized = locale === "nl" ? "Geen categorie" : "Uncategorized";
+  const privacyNote = locale === "nl" ? "AVG-veilige export: geen namen, e-mails of persoonlijke notities" : "GDPR-safe export: no names, emails, or personal notes included";
 
   const range = getRecognitionReportRange({
     from: request.nextUrl.searchParams.get("from") ?? undefined,
@@ -133,12 +140,12 @@ export async function GET(request: NextRequest) {
 
     grouped.set(key, {
       companyId: event.company_id,
-      companyName: companyMap.get(event.company_id) ?? "Unknown company",
+      companyName: companyMap.get(event.company_id) ?? unknownCompany,
       giverUserId,
       receiverUserId: event.receiver_user_id,
       cardId: event.card_id,
-      cardTitle: card?.title ?? "Unknown card",
-      category: card ? getCategoryDisplayName(card.category) : "Uncategorized",
+      cardTitle: card ? getLocalizedCardTitle({ title: card.title, slug: card.qr_slug ?? undefined }, locale) : unknownCard,
+      category: card ? getLocalizedCategoryDisplayName(card.category, locale) : uncategorized,
       count: 1,
       firstRecognitionAt: event.created_at,
       lastRecognitionAt: event.created_at
@@ -150,7 +157,7 @@ export async function GET(request: NextRequest) {
     a.receiverUserId.localeCompare(b.receiverUserId) ||
     a.cardTitle.localeCompare(b.cardTitle)
   );
-  const csv = toCsv(rows);
+  const csv = toCsv(rows, locale, privacyNote);
 
   return new Response(csv, {
     headers: {

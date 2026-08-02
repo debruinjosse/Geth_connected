@@ -1702,7 +1702,7 @@ img {
   letter-spacing: 0.02em;
   line-height: 1.35;
   text-transform: uppercase;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
 }
 
 .how-it-works-step-card__body p {
@@ -1710,7 +1710,7 @@ img {
   color: rgba(248, 241, 229, 0.84);
   font-size: 0.92rem;
   line-height: 1.55;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
 }
 
 .deck-card-stack-icon {
@@ -2012,7 +2012,7 @@ img {
   position: relative;
   z-index: 1;
   display: grid;
-  grid-template-rows: 28px 48px minmax(72px, 1fr);
+  grid-template-rows: 28px auto minmax(72px, 1fr);
   align-items: start;
   align-self: end;
   max-width: 96%;
@@ -2030,17 +2030,16 @@ img {
 }
 
 .recognitionCardBody h3 {
-  display: flex;
-  align-items: center;
+  display: block;
   max-width: 100%;
   margin: 0;
-  overflow: hidden;
   color: #fffdf8;
   font-family: var(--font-editorial), sans-serif;
   font-size: clamp(22px, 1.9vw, 30px);
-  line-height: 1;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  line-height: 1.08;
+  overflow-wrap: break-word;
+  word-break: normal;
+  white-space: normal;
 }
 
 .recognitionCardBody p {
@@ -2439,7 +2438,9 @@ img {
 .site-footer small {
   display: block;
   margin-top: 0;
-  white-space: nowrap;
+  white-space: normal;
+  overflow-wrap: break-word;
+  word-break: normal;
 }
 
 .site-footer small,
@@ -2584,9 +2585,10 @@ img {
 }
 
 .side-links a span {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  min-width: 0;
+  overflow-wrap: break-word;
+  word-break: normal;
+  white-space: normal;
 }
 
 .side-links a.active,
@@ -2952,7 +2954,7 @@ img {
   --signal-tone: var(--theme-gold);
   display: inline-grid;
   gap: 2px;
-  max-width: 220px;
+  max-width: min(220px, 100%);
   padding: 8px 11px;
   border: 1px solid color-mix(in srgb, var(--signal-tone), transparent 58%);
   border-radius: 999px;
@@ -2960,13 +2962,13 @@ img {
 }
 
 .signal-highlight-pill b {
-  overflow: hidden;
   color: var(--theme-ink);
   font-size: 12px;
   font-weight: 900;
   line-height: 1.1;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: break-word;
+  word-break: normal;
+  white-space: normal;
 }
 
 .signal-highlight-pill small {
@@ -3168,10 +3170,10 @@ img {
 }
 
 .compact-metrics-grid .metric-card b {
-  max-width: 150px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  max-width: 100%;
+  overflow-wrap: break-word;
+  word-break: normal;
+  white-space: normal;
 }
 
 .top-qualities-card {
@@ -3211,13 +3213,13 @@ img {
 }
 
 .metric-card .top-quality-button strong {
-  max-width: 112px;
-  overflow: hidden;
+  max-width: 100%;
   color: var(--theme-ink);
   font-size: 12px;
   font-weight: 850;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: break-word;
+  word-break: normal;
+  white-space: normal;
 }
 
 .metric-card .top-quality-button small {
@@ -4620,10 +4622,10 @@ textarea.input {
 }
 
 .site-user-link {
-  max-width: 220px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  max-width: min(220px, 100%);
+  overflow-wrap: break-word;
+  word-break: normal;
+  white-space: normal;
   font-weight: 800;
 }
 
@@ -4790,9 +4792,9 @@ textarea.input {
 .claim-person-mini strong,
 .claim-person-mini p {
   display: block;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: break-word;
+  word-break: normal;
+  white-space: normal;
 }
 
 .claim-empty {
@@ -5528,7 +5530,7 @@ textarea.input {
   letter-spacing: 0.14em;
   line-height: 1.45;
   white-space: normal;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
 }
 
 .auth-story h1 {
@@ -5538,14 +5540,14 @@ textarea.input {
   letter-spacing: -0.03em;
   text-transform: none;
   text-wrap: balance;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
 }
 
 .auth-story p {
   max-width: 520px;
   color: rgba(255, 255, 255, 0.8);
   line-height: 1.65;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
 }
 
 .auth-bullets {
@@ -5556,7 +5558,7 @@ textarea.input {
 
 .auth-bullets span {
   line-height: 1.45;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
 }
 
 .auth-bullets span::before {
@@ -5585,11 +5587,11 @@ textarea.input {
   margin: 0 0 8px;
   font-size: 34px;
   text-wrap: balance;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
 }
 
 .auth-card .section-copy {
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
   text-wrap: balance;
   line-height: 1.55;
 }
@@ -5613,7 +5615,7 @@ textarea.input {
   color: var(--theme-muted);
   font-size: 13px;
   font-weight: 700;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
   line-height: 1.45;
 }
 
@@ -5621,7 +5623,7 @@ textarea.input {
   color: var(--theme-ink);
   font-size: 15px;
   text-align: center;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
   line-height: 1.45;
 }
 
@@ -5649,7 +5651,7 @@ textarea.input {
   line-height: 1.35;
   text-align: center;
   white-space: normal;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
   hyphens: auto;
   transition: border-color 180ms ease, background 180ms ease, transform 180ms ease;
 }
@@ -5678,7 +5680,7 @@ textarea.input {
   color: var(--theme-muted);
   font-size: 12px;
   line-height: 1.45;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
 }
 
 .auth-mode-tabs {
@@ -5705,7 +5707,7 @@ textarea.input {
   line-height: 1.3;
   text-align: center;
   white-space: normal;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
 }
 
 .auth-mode-tabs a.active {
@@ -7539,11 +7541,25 @@ textarea.input {
   overflow: hidden;
 }
 
-.bar-chart-track span {
+.bar-chart-track span,
+.bar-track span,
+.bar-track .bar-fill {
   border-radius: inherit;
   display: block;
   height: 100%;
   min-width: 0;
+}
+
+.bar-track {
+  background: rgba(36, 16, 51, 0.08);
+  border-radius: 999px;
+  height: 11px;
+  overflow: hidden;
+}
+
+.bar-track .bar-fill,
+.bar-track span {
+  box-shadow: 0 3px 10px rgba(42, 23, 61, 0.12);
 }
 
 .inline-code {
@@ -8246,7 +8262,7 @@ textarea.input {
     max-width: 100%;
     padding: 9px 11px;
     white-space: normal;
-    overflow-wrap: anywhere;
+    overflow-wrap: break-word;
     line-height: 1.2;
     text-align: center;
   }
@@ -8808,9 +8824,11 @@ textarea.input {
   }
 
   .hero-impact-pill span {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    overflow: visible;
+    text-overflow: clip;
+    white-space: normal;
+    overflow-wrap: break-word;
+    word-break: normal;
   }
 }
 
@@ -9090,7 +9108,7 @@ textarea.input {
     font-size: 12px;
     line-height: 1.2;
     white-space: normal;
-    overflow-wrap: anywhere;
+    overflow-wrap: break-word;
   }
 }
 
@@ -9160,7 +9178,7 @@ textarea.input {
     line-height: 1.2;
     text-align: center;
     white-space: normal;
-    overflow-wrap: anywhere;
+    overflow-wrap: break-word;
     text-decoration: none;
   }
 
@@ -9252,7 +9270,7 @@ textarea.input {
     justify-content: center;
     text-align: center;
     white-space: normal;
-    overflow-wrap: anywhere;
+    overflow-wrap: break-word;
     line-height: 1.25;
     background: linear-gradient(135deg, var(--theme-gold), var(--theme-gold-deep));
     color: #26140d;

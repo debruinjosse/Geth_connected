@@ -31,14 +31,14 @@
   label,
   .section-title,
   .brand-display {
-    overflow-wrap: anywhere;
-    word-break: break-word;
+    overflow-wrap: break-word;
+    word-break: normal;
   }
 
   .btn {
     max-width: 100%;
     white-space: normal;
-    overflow-wrap: anywhere;
+    overflow-wrap: break-word;
     line-height: 1.25;
     text-align: center;
     touch-action: manipulation;
@@ -107,12 +107,12 @@
 
   .infinity-strip-text {
     white-space: normal;
-    overflow-wrap: anywhere;
+    overflow-wrap: break-word;
   }
 
   .public-mobile-nav-panel a {
     white-space: normal;
-    overflow-wrap: anywhere;
+    overflow-wrap: break-word;
     line-height: 1.3;
     text-align: left;
   }
@@ -138,7 +138,7 @@
   .pricing-toggle button span,
   .pricing-toggle button small {
     white-space: normal;
-    overflow-wrap: anywhere;
+    overflow-wrap: break-word;
   }
 
   .section-head,
@@ -295,7 +295,7 @@
     color: var(--theme-muted);
     font-size: 8px;
     line-height: 1.2;
-    overflow-wrap: anywhere;
+    overflow-wrap: break-word;
   }
 
   .mobile-hero-phone-only__qualities {
@@ -386,9 +386,9 @@
   }
 
   .site-header-brand .brand-wordmark {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    overflow-wrap: break-word;
+    word-break: normal;
+    white-space: normal;
     max-width: 100%;
   }
 
@@ -437,14 +437,14 @@
   }
 
   .dashboard-header h1 {
-    overflow-wrap: anywhere;
-    word-break: break-word;
+    overflow-wrap: break-word;
+    word-break: normal;
     line-height: 1.08;
   }
 
   .dashboard-header p {
-    overflow-wrap: anywhere;
-    word-break: break-word;
+    overflow-wrap: break-word;
+    word-break: normal;
   }
 
   .dashboard-header-actions {
@@ -546,7 +546,7 @@
   .audience-card h3,
   .audience-card p {
     max-width: 100%;
-    overflow-wrap: anywhere;
+    overflow-wrap: break-word;
   }
 
   .landingCtaActions {

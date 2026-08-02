@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { AccountSettingsPanel } from "@/components/AccountSettingsPanel";
 import { DashboardShell } from "@/components/DashboardShell";
+import { localizeDemoTopQualities } from "@/lib/localize-demo-content";
 import { currentUser, employeeTopQualities } from "@/lib/demo-data";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -37,7 +38,7 @@ export default async function EmployeeProfilePage({
     return (
       <DashboardShell role="employee" title={t("profileTitle")} subtitle={t("profileSubtitle")} user={currentUser}>
         <section className="dashboard-grid two">
-          <ProfilePanels labels={panelLabels} name={currentUser.name} email={currentUser.email} team={currentUser.team} company={t("demoCompany")} role={t("demoRole")} status={t("demoStatus")} />
+          <ProfilePanels labels={panelLabels} name={currentUser.name} email={currentUser.email} team={currentUser.team} company={t("demoCompany")} role={t("demoRole")} status={t("demoStatus")} qualities={localizeDemoTopQualities(employeeTopQualities, locale)} />
         </section>
       </DashboardShell>
     );
@@ -53,7 +54,7 @@ export default async function EmployeeProfilePage({
     return (
       <DashboardShell role="employee" title={t("profileTitle")} subtitle={t("profileSubtitle")} user={currentUser}>
         <section className="dashboard-grid two">
-          <ProfilePanels labels={panelLabels} name={currentUser.name} email={currentUser.email} team={currentUser.team} company={t("demoCompany")} role={t("demoRole")} status={t("demoStatus")} />
+          <ProfilePanels labels={panelLabels} name={currentUser.name} email={currentUser.email} team={currentUser.team} company={t("demoCompany")} role={t("demoRole")} status={t("demoStatus")} qualities={localizeDemoTopQualities(employeeTopQualities, locale)} />
         </section>
       </DashboardShell>
     );
@@ -126,7 +127,8 @@ function ProfilePanels({
   team,
   company,
   role,
-  status
+  status,
+  qualities = employeeTopQualities
 }: {
   labels: ProfilePanelLabels;
   name: string;
@@ -135,6 +137,7 @@ function ProfilePanels({
   company: string;
   role: string;
   status: string;
+  qualities?: Array<{ label: string; tone: string; count: number }>;
 }) {
   return (
     <>
@@ -156,7 +159,7 @@ function ProfilePanels({
           <h2>{labels.strengths}</h2>
         </div>
         <div className="quality-pills">
-          {employeeTopQualities.map((quality) => (
+          {qualities.map((quality) => (
             <span className="quality-pill" key={quality.label} style={{ color: quality.tone }}>
               {quality.label}
             </span>

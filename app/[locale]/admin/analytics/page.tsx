@@ -7,7 +7,8 @@ import { EmptyState } from "@/components/EmptyState";
 import { LineChart } from "@/components/LineChart";
 import { MetricCard } from "@/components/MetricCard";
 import { SignalList } from "@/components/SignalList";
-import { getCategoryDisplayName } from "@/lib/cards";
+import { getLocalizedCategoryDisplayName } from "@/lib/cards";
+import { getRecentMonthLabels } from "@/lib/locale-format";
 import { platformGrowthPoints, superAdminUser, teamComparison } from "@/lib/demo-data";
 import { getUnreadNotificationCount } from "@/lib/notifications";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -74,7 +75,7 @@ export default async function AdminAnalyticsPage({ params }: { params: Promise<{
         <section className="dashboard-grid two">
           <article className="panel dashboard-panel">
             <div className="panel-top"><h2>{t("monthlyRecognitions")}</h2></div>
-            <BarChart items={["Apr", "May", "Jun", "Jul"].map((label, index) => ({ label, value: platformGrowthPoints[index] ?? 0, color: "var(--theme-ink)" }))} />
+            <BarChart items={getRecentMonthLabels(4, locale).map((label, index) => ({ label, value: platformGrowthPoints[index] ?? 0, color: "var(--theme-ink)" }))} />
           </article>
           <article className="panel dashboard-panel">
             <div className="panel-top"><h2>{t("topCompanyVolume")}</h2></div>
@@ -290,7 +291,7 @@ export default async function AdminAnalyticsPage({ params }: { params: Promise<{
       title={t("analyticsTitle")}
       subtitle={t("analyticsSubtitle")}
       user={{
-        name: `${profile.first_name ?? ""} ${profile.last_name ?? ""}`.trim() || "GETH Admin",
+        name: `${profile.first_name ?? ""} ${profile.last_name ?? ""}`.trim() || tc("platformAdminName"),
         initials: getInitials(profile.first_name, profile.last_name),
         team: tc("platformTeam")
       }}
@@ -387,7 +388,7 @@ export default async function AdminAnalyticsPage({ params }: { params: Promise<{
         <article className="panel dashboard-panel">
           <div className="panel-top"><h2>{t("categoryDistributionTitle")}</h2></div>
           {categoryCounts.size ? (
-            <BarChart items={Array.from(categoryCounts.entries()).sort((a, b) => b[1] - a[1]).map(([label, value]) => ({ label: getCategoryDisplayName(label), value, color: "var(--theme-emerald)" }))} />
+            <BarChart items={Array.from(categoryCounts.entries()).sort((a, b) => b[1] - a[1]).map(([label, value]) => ({ label: getLocalizedCategoryDisplayName(label, locale), value, color: "var(--theme-emerald)" }))} />
           ) : (
             <EmptyState title={t("emptyCategoryTitle")} copy={t("emptyCategoryCopy")} />
           )}
@@ -471,7 +472,7 @@ export default async function AdminAnalyticsPage({ params }: { params: Promise<{
                 {cardRatings.map((card) => (
                   <tr key={card.id}>
                     <td><strong>{card.label}</strong></td>
-                    <td>{getCategoryDisplayName(card.category)}</td>
+                    <td>{getLocalizedCategoryDisplayName(card.category, locale)}</td>
                     <td>{card.count}</td>
                     <td>{card.rating}/100</td>
                     <td>{card.active ? t("cardStatusActive") : t("cardStatusInactive")}</td>

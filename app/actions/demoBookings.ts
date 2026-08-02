@@ -1,8 +1,10 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { getTranslations } from "next-intl/server";
 import { createDemoBookingIcs } from "@/lib/calendar/demo-booking";
 import { sendDemoBookingDecisionEmail, sendDemoBookingRequestEmails } from "@/lib/mail/nodemailer";
+import { isAppLocale, type AppLocale } from "@/i18n/routing";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -23,6 +25,7 @@ type DemoBookingRow = {
   timezone: string | null;
   duration_minutes: number | null;
   message: string | null;
+  locale: string | null;
 };
 
 const initialState: DemoBookingState = {
@@ -34,6 +37,10 @@ function getValue(formData: FormData, key: string) {
   return String(formData.get(key) ?? "").trim();
 }
 
+function getBookingLocale(raw: string): AppLocale {
+  return isAppLocale(raw) ? raw : "en";
+}
+
 function getAdminEmails() {
   const configured = process.env.DEMO_BOOKING_ADMIN_EMAILS || process.env.BOOK_DEMO_ADMIN_EMAILS || process.env.SMTP_REPLY_TO || process.env.SMTP_USER || "";
   return configured
@@ -42,15 +49,23 @@ function getAdminEmails() {
     .filter(Boolean);
 }
 
-function getPreferredSlot(date: string, time: string, timezone: string) {
-  return `${date} at ${time} (${timezone})`;
-}
-
 function getAppOrigin() {
   return process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 }
 
+function formatPreferredSlot(
+  date: string,
+  time: string,
+  timezone: string,
+  t: Awaited<ReturnType<typeof getTranslations<"bookDemoPage">>>
+) {
+  return t("preferredSlot", { date, time, timezone });
+}
+
 export async function createDemoBookingAction(_previousState: DemoBookingState = initialState, formData: FormData): Promise<DemoBookingState> {
+  const locale = getBookingLocale(getValue(formData, "locale"));
+  const t = await getTranslations({ locale, namespace: "bookDemoPage" });
+
   const name = getValue(formData, "name");
   const email = getValue(formData, "email");
   const company = getValue(formData, "company");
@@ -64,20 +79,49 @@ export async function createDemoBookingAction(_previousState: DemoBookingState =
   const adminEmails = getAdminEmails();
 
   if (!name || !email || !company || !teamSize || !role || !preferredDate || !preferredTime || !timezone || !message) {
-    return { ok: false, message: "Please complete every field before booking a demo." };
+    return { ok: false, message: t("errorIncomplete") };
   }
 
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    return { ok: false, message: "Please enter a valid work email address." };
+    return { ok: false, message: t("errorInvalidEmail") };
   }
 
   if (!Number.isFinite(durationMinutes) || ![30, 45, 60].includes(durationMinutes)) {
-    return { ok: false, message: "Please choose a valid demo duration." };
+    return { ok: false, message: t("errorInvalidDuration") };
   }
 
   if (!adminEmails.length) {
-    return { ok: false, message: "Demo booking admin email is not configured. Add DEMO_BOOKING_ADMIN_EMAILS or SMTP_REPLY_TO." };
+    return { ok: false, message: t("errorAdminNotConfigured") };
   }
+
+  const preferredSlot = formatPreferredSlot(preferredDate, preferredTime, timezone, t);
+  const adminUrl = `${getAppOrigin().replace(/\/$/, "")}/${locale}/admin/demo-bookings`;
+
+  const requesterText = [
+    t("emailRequesterGreeting", { name }),
+    "",
+    t("emailRequesterThanks"),
+    "",
+    t("emailRequesterPreferredSlot", { slot: preferredSlot }),
+    t("emailRequesterCompany", { company }),
+    "",
+    t("emailRequesterFooter")
+  ].join("\n");
+
+  const adminText = [
+    t("emailAdminTitle"),
+    "",
+    t("emailAdminName", { name }),
+    t("emailAdminEmail", { email }),
+    t("emailAdminCompany", { company }),
+    t("emailAdminTeamSize", { teamSize }),
+    t("emailAdminRole", { role }),
+    t("emailAdminPreferredSlot", { slot: preferredSlot }),
+    "",
+    t("emailAdminMessage", { message: message || t("emailAdminNoMessage") }),
+    "",
+    t("emailAdminApprove", { url: adminUrl })
+  ].join("\n");
 
   try {
     const supabase = createSupabaseAdminClient();
@@ -94,31 +138,29 @@ export async function createDemoBookingAction(_previousState: DemoBookingState =
         timezone,
         duration_minutes: durationMinutes,
         message,
+        locale,
         status: "pending"
       })
       .select("id")
       .single<{ id: string }>();
 
     if (error || !data) {
-      throw new Error(error?.message || "Could not save demo request.");
+      throw new Error(error?.message || t("errorCouldNotSave"));
     }
 
     await sendDemoBookingRequestEmails({
       adminEmails,
       requesterEmail: email,
-      requesterName: name,
-      company,
-      teamSize,
-      role,
-      preferredSlot: getPreferredSlot(preferredDate, preferredTime, timezone),
-      message,
-      adminUrl: `${getAppOrigin().replace(/\/$/, "")}/en/admin/demo-bookings`
+      requesterSubject: t("emailRequesterSubject"),
+      requesterText,
+      adminSubject: t("emailAdminSubject", { company }),
+      adminText
     });
 
     revalidatePath("/admin/demo-bookings");
-    return { ok: true, message: `Demo request sent successfully to ${email}. We will confirm the time shortly.` };
+    return { ok: true, message: t("successMessage", { email }) };
   } catch (error) {
-    const messageText = error instanceof Error ? error.message : "Could not submit demo request.";
+    const messageText = error instanceof Error ? error.message : t("errorCouldNotSubmit");
     return { ok: false, message: messageText };
   }
 }
@@ -166,13 +208,16 @@ export async function updateDemoBookingStatusAction(formData: FormData) {
   const supabase = createSupabaseAdminClient();
   const { data: booking, error: readError } = await supabase
     .from("demo_bookings")
-    .select("id, name, email, company, team_size, role, preferred_date, preferred_time, timezone, duration_minutes, message")
+    .select("id, name, email, company, team_size, role, preferred_date, preferred_time, timezone, duration_minutes, message, locale")
     .eq("id", bookingId)
     .single<DemoBookingRow>();
 
   if (readError || !booking) {
     throw new Error(readError?.message || "Demo booking was not found.");
   }
+
+  const locale = getBookingLocale(booking.locale ?? "en");
+  const t = await getTranslations({ locale, namespace: "bookDemoPage" });
 
   const { error } = await supabase
     .from("demo_bookings")
@@ -192,11 +237,9 @@ export async function updateDemoBookingStatusAction(formData: FormData) {
     throw new Error(error.message);
   }
 
-  const preferredSlot = getPreferredSlot(
-    status === "rescheduled" ? rescheduleDate : booking.preferred_date ?? "",
-    status === "rescheduled" ? rescheduleTime : booking.preferred_time ?? "",
-    booking.timezone ?? ""
-  );
+  const slotDate = status === "rescheduled" ? rescheduleDate : booking.preferred_date ?? "";
+  const slotTime = status === "rescheduled" ? rescheduleTime : booking.preferred_time ?? "";
+  const preferredSlot = formatPreferredSlot(slotDate, slotTime, booking.timezone ?? "", t);
   const ics =
     status === "approved" || status === "rescheduled"
       ? createDemoBookingIcs({
@@ -212,13 +255,34 @@ export async function updateDemoBookingStatusAction(formData: FormData) {
         })
       : undefined;
 
+  const approved = status === "approved";
+  const rescheduled = status === "rescheduled";
+  const decisionText = [
+    t("emailRequesterGreeting", { name: booking.name }),
+    "",
+    approved
+      ? t("emailDecisionApproved", { company: booking.company })
+      : rescheduled
+        ? t("emailDecisionRescheduled", { company: booking.company })
+        : t("emailDecisionDeclined", { company: booking.company }),
+    rescheduled
+      ? t("emailDecisionNewSlot", { slot: preferredSlot })
+      : t("emailDecisionRequestedSlot", { slot: preferredSlot }),
+    adminNote ? t("emailDecisionNote", { note: adminNote }) : "",
+    "",
+    approved || rescheduled ? t("emailDecisionCalendar") : t("emailDecisionReply")
+  ].filter(Boolean).join("\n");
+
+  const decisionSubject = approved
+    ? t("emailDecisionSubjectApproved")
+    : rescheduled
+      ? t("emailDecisionSubjectRescheduled")
+      : t("emailDecisionSubjectDeclined");
+
   await sendDemoBookingDecisionEmail({
     to: booking.email,
-    requesterName: booking.name,
-    company: booking.company,
-    status,
-    preferredSlot,
-    adminNote,
+    subject: decisionSubject,
+    text: decisionText,
     ics
   });
 

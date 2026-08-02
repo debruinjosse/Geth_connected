@@ -49,7 +49,7 @@ export default async function AdminDemoBookingsPage({ params }: { params: Promis
 
   if (!hasSupabaseServerConfig()) {
     return (
-      <DashboardShell role="admin" title={t("demoBookingsTitle")} subtitle={t("demoBookingsNoSupabaseSubtitle")} user={{ name: "GETH Admin", initials: "GA", team: tc("platformTeam") }}>
+      <DashboardShell role="admin" title={t("demoBookingsTitle")} subtitle={t("demoBookingsNoSupabaseSubtitle")} user={{ name: tc("platformAdminName"), initials: "GA", team: tc("platformTeam") }}>
         <EmptyState title={t("cardsLibraryNoSupabaseTitle")} copy={t("demoBookingsNoSupabaseCopy")} />
       </DashboardShell>
     );
