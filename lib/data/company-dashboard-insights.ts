@@ -291,17 +291,20 @@ export async function fetchCompanyDashboardInsights(
   }
 
   const totalRecognitions = companyRecognitions.length;
-  const categorySegments = FOUR_C_CATEGORIES.map((category) => {
+  const fourCCounts = FOUR_C_CATEGORIES.map((category) => categoryCounts.get(category) ?? 0);
+  const fourCTotal = fourCCounts.reduce((sum, count) => sum + count, 0);
+  const roundedShares = getPercentageMix(fourCCounts);
+  const categorySegments = FOUR_C_CATEGORIES.map((category, index) => {
     const meta = categoryMeta[category];
     const count = categoryCounts.get(category) ?? 0;
-    const share = totalRecognitions ? (count / totalRecognitions) * 100 : 0;
+    const share = fourCTotal ? (count / fourCTotal) * 100 : 0;
     return {
       label: getLocalizedCategoryDisplayName(category, locale),
       category,
       color: meta.color,
       count,
       share,
-      roundedShare: totalRecognitions ? Math.round(share) : 0
+      roundedShare: roundedShares[index] ?? 0
     };
   });
 
