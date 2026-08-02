@@ -2341,6 +2341,16 @@ img {
   margin: 16px 0 30px;
 }
 
+.landingHeroHeadline {
+  hyphens: none;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+
+.landingHeroHeadlineLine {
+  display: block;
+}
+
 .landingHero .hero-detail-copy {
   margin: 10px 0 30px;
 }
@@ -9403,13 +9413,15 @@ textarea.input {
     white-space: normal;
   }
 
-  .landingHero .brand-display {
+  .landingHero .brand-display,
+  .landingHero .landingHeroHeadline {
     max-width: 100%;
     margin: 12px 0 26px;
     font-size: clamp(42px, 13vw, 58px);
     line-height: 0.92;
     letter-spacing: -0.045em;
     overflow-wrap: normal;
+    hyphens: none;
     transform: none;
     white-space: normal;
     word-break: normal;

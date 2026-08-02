@@ -4,6 +4,10 @@ html[lang="nl"] {
   hyphens: auto;
 }
 
+html[lang="nl"] .landingHeroHeadline {
+  hyphens: none;
+}
+
 body {
   overflow-x: clip;
 }

@@ -19,6 +19,7 @@ import { Reveal } from "@/components/Reveal";
 import { RECOGNITION_MOMENT_ALT, RECOGNITION_MOMENT_SRC } from "@/lib/brand";
 import { buildMarqueeConfig } from "@/lib/marquee-config";
 import { getDefaultTestimonialsForLocale, parseTestimonialItems } from "@/lib/home-cms-defaults";
+import { resolveHeroHeadlineLines, splitHeadlinePhrase } from "@/lib/landing-hero-headline";
 import { getSiteContentOverrides, pickSiteContentText } from "@/lib/site-content";
 import { CardDeckPreview } from "@/components/sections/card-deck-preview";
 import { HowItWorksDeckSection } from "@/components/sections/HowItWorksDeckSection";
@@ -59,6 +60,11 @@ export default async function LandingPage({ params }: LandingPageProps) {
       moreImpact: { title: text("stepMoreImpactTitle"), description: text("stepMoreImpactDescription") }
     }
   };
+  const heroHeadline = resolveHeroHeadlineLines(overrides, text);
+  const heroHeadlineLines = [
+    splitHeadlinePhrase(heroHeadline.line1),
+    splitHeadlinePhrase(heroHeadline.line2)
+  ].flatMap((part) => [part.lead, part.rest].filter(Boolean));
 
   return (
     <PublicSiteChrome locale={locale}>
@@ -69,7 +75,13 @@ export default async function LandingPage({ params }: LandingPageProps) {
               <div className="eyebrow">{text("ctaEyebrow")}</div>
             </Reveal>
             <Reveal delay={0.1}>
-              <h1 className="brand-display">{text("ctaTitle")}</h1>
+              <h1 className="brand-display landingHeroHeadline">
+                {heroHeadlineLines.map((line) => (
+                  <span className="landingHeroHeadlineLine" key={line}>
+                    {line}
+                  </span>
+                ))}
+              </h1>
             </Reveal>
             <Reveal delay={0.18}>
               <p className="hero-detail-copy">{text("heroDetail")}</p>
