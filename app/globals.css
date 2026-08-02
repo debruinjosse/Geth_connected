@@ -2378,6 +2378,53 @@ img {
   justify-content: flex-start;
 }
 
+.landing-testimonials-copy {
+  max-width: 720px;
+  margin-bottom: 8px;
+}
+
+.landing-testimonials-copy .hero-detail-copy {
+  max-width: 62ch;
+}
+
+.landing-testimonials-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+  margin-top: 28px;
+}
+
+.landing-testimonial-card {
+  padding: 24px;
+  border-radius: 20px;
+  background: rgba(255, 253, 248, 0.94);
+  border: 1px solid rgba(42, 23, 61, 0.08);
+  box-shadow: 0 14px 34px rgba(42, 23, 61, 0.06);
+}
+
+.landing-testimonial-card blockquote {
+  margin: 0;
+  color: var(--theme-ink);
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+.landing-testimonial-card footer {
+  display: grid;
+  gap: 4px;
+  margin-top: 18px;
+}
+
+.landing-testimonial-card footer strong {
+  color: var(--theme-ink);
+  font-size: 14px;
+}
+
+.landing-testimonial-card footer span {
+  color: var(--theme-muted);
+  font-size: 13px;
+}
+
 .footer-banner {
   position: relative;
   padding: clamp(46px, 5vw, 68px) 0 32px;

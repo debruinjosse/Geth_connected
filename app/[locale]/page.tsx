@@ -18,9 +18,11 @@ import { PublicSiteChrome } from "@/components/PublicSiteChrome";
 import { Reveal } from "@/components/Reveal";
 import { RECOGNITION_MOMENT_ALT, RECOGNITION_MOMENT_SRC } from "@/lib/brand";
 import { buildMarqueeConfig } from "@/lib/marquee-config";
+import { getDefaultTestimonialsForLocale, parseTestimonialItems } from "@/lib/home-cms-defaults";
 import { getSiteContentOverrides, pickSiteContentText } from "@/lib/site-content";
 import { CardDeckPreview } from "@/components/sections/card-deck-preview";
 import { HowItWorksDeckSection } from "@/components/sections/HowItWorksDeckSection";
+import { LandingTestimonialsSection } from "@/components/sections/LandingTestimonialsSection";
 
 type LandingPageProps = {
   params: Promise<{ locale: string }>;
@@ -35,6 +37,10 @@ export default async function LandingPage({ params }: LandingPageProps) {
   const settingsOverrides = locale === "en" ? overrides : await getSiteContentOverrides("home", "en");
   const text = (key: string) => pickSiteContentText(overrides, t(key), key);
   const marqueeConfig = buildMarqueeConfig(overrides, settingsOverrides, locale);
+  const storedTestimonials = parseTestimonialItems(overrides.testimonialsItems);
+  const testimonialItems = storedTestimonials.length
+    ? storedTestimonials
+    : getDefaultTestimonialsForLocale(locale);
 
   const audiences = [
     [t("companiesLabel"), t("companiesTitle"), t("companiesCopy"), Building2],
@@ -169,6 +175,13 @@ export default async function LandingPage({ params }: LandingPageProps) {
           </Reveal>
         </div>
       </section>
+
+      <LandingTestimonialsSection
+        eyebrow={text("testimonialsEyebrow")}
+        title={text("testimonialsTitle")}
+        copy={text("testimonialsCopy")}
+        items={testimonialItems}
+      />
     </PublicSiteChrome>
   );
 }
