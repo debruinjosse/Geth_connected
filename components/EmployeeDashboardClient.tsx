@@ -15,7 +15,7 @@ import { EmployeeAiSignalsPanel } from "@/components/EmployeeAiSignalsPanel";
 import type { EmployeeSignalsContext } from "@/lib/ai/employee-recognition-signals";
 import { getLocalizedCategoryDisplayName, getLocalizedCardTitle, normalizeCategoryKey, type CardCategory } from "@/lib/cards";
 import { getRecentMonthLabels } from "@/lib/locale-format";
-import { currentUser, employeeCategoryBreakdown, employeeGrowthPoints, employeeTopQualities, recognitions } from "@/lib/demo-data";
+import { currentUser, employeeCategoryBreakdown, employeeGrowthPoints, employeeTopQualities, recognitions, topQualities } from "@/lib/demo-data";
 import { getStoredRecognitions, type StoredRecognition } from "@/lib/demo-session";
 
 type QualityPill = {
@@ -134,6 +134,22 @@ export function EmployeeDashboardClient({ data }: { data?: EmployeeDashboardData
   const zeroQualityRows = buildZeroQualityRows(locale);
   const localizedDemoCategories = buildCategoryDisplayRows(employeeCategoryBreakdown, locale, zeroCategoryBreakdown);
   const localizedDemoQualities = localizeDemoTopQualities(locale);
+  const demoRecentReceivedCards = recognitions.slice(0, 8).map((recognition) => ({
+    title: getLocalizedCardTitle(recognition.card, locale),
+    category: getLocalizedCategoryDisplayName(recognition.category, locale),
+    receivedAt: recognition.date,
+    note: recognition.note
+  }));
+  const demoSignalsTopQualities = employeeTopQualities.slice(0, 6).map((quality) => {
+    const match = topQualities.find((entry) => entry.label === quality.label);
+    const categoryKey = normalizeCategoryKey(match?.category ?? "Communication") as CardCategory;
+    return {
+      label: getLocalizedCardTitle(quality.label, locale),
+      count: quality.count,
+      category: getLocalizedCategoryDisplayName(categoryKey, locale),
+      tone: quality.tone
+    };
+  });
   const resolvedData = data ?? {
     mode: "demo" as const,
     user: currentUser,
@@ -154,12 +170,8 @@ export function EmployeeDashboardClient({ data }: { data?: EmployeeDashboardData
       cardsReceived: 15,
       cardsGiven: 7,
       recent30DaysCount: 4,
-      topQualities: localizedDemoQualities.map((quality) => ({
-        label: quality.label,
-        count: quality.count,
-        category: quality.label,
-        tone: quality.tone
-      })),
+      recentReceivedCards: demoRecentReceivedCards,
+      topQualities: demoSignalsTopQualities,
       categoryBreakdown: localizedDemoCategories,
       recentNotes: recognitions.slice(0, 6).map((item) => item.note)
     },

@@ -23,7 +23,6 @@ import { resolveHeroHeadlineLines, splitHeadlinePhrase } from "@/lib/landing-her
 import { getSiteContentOverrides, pickSiteContentText } from "@/lib/site-content";
 import { CardDeckPreview } from "@/components/sections/card-deck-preview";
 import { HowItWorksDeckSection } from "@/components/sections/HowItWorksDeckSection";
-import { LandingRecognitionIntelligenceSection } from "@/components/sections/LandingRecognitionIntelligenceSection";
 import { LandingTestimonialsSection } from "@/components/sections/LandingTestimonialsSection";
 
 type LandingPageProps = {
@@ -160,13 +159,6 @@ export default async function LandingPage({ params }: LandingPageProps) {
           </div>
         </div>
       </section>
-
-      <LandingRecognitionIntelligenceSection
-        eyebrow={text("intelligenceEyebrow")}
-        title={text("intelligenceTitle")}
-        paragraph={text("intelligenceParagraph")}
-        bullets={[text("intelligenceBullet1"), text("intelligenceBullet2"), text("intelligenceBullet3")]}
-      />
 
       <section className="section-shell cta-band landingCta pre-footer-recognition" id="value-proposition">
         <div className="pageContainer landingCtaInner">

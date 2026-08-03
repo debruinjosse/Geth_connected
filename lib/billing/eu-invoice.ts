@@ -142,6 +142,22 @@ function wrapText(text: string, maxLength: number) {
   return lines.length ? lines : [""];
 }
 
+function wrapAddressLines(text: string, maxLength: number) {
+  const paragraphs = text.split(/\r?\n/);
+  const lines: string[] = [];
+
+  for (const paragraph of paragraphs) {
+    const trimmed = paragraph.trim();
+    if (!trimmed) {
+      continue;
+    }
+
+    lines.push(...wrapText(trimmed, maxLength));
+  }
+
+  return lines.length ? lines : [""];
+}
+
 function textLine(x: number, y: number, text: string | number, size = 10, font = "F1") {
   return `BT /${font} ${size} Tf ${x} ${y} Td (${pdfEscape(text)}) Tj ET`;
 }
@@ -184,7 +200,7 @@ export function createInvoicePdf(invoice: InvoiceDocument) {
   lines.push(textLine(48, 688, "Seller", 12, "F2"));
   lines.push(textLine(48, 672, invoice.seller_legal_name, 10));
   let y = 658;
-  for (const line of wrapText(invoice.seller_billing_address, 52)) {
+  for (const line of wrapAddressLines(invoice.seller_billing_address, 52)) {
     lines.push(textLine(48, y, line, 9));
     y -= 12;
   }
@@ -197,7 +213,7 @@ export function createInvoicePdf(invoice: InvoiceDocument) {
   lines.push(textLine(310, 688, "Bill to", 12, "F2"));
   lines.push(textLine(310, 672, invoice.buyer_name || company?.company_name || "Customer", 10));
   y = 658;
-  for (const line of wrapText(invoice.buyer_billing_address || "Billing address not provided", 42)) {
+  for (const line of wrapAddressLines(invoice.buyer_billing_address || "Billing address not provided", 42)) {
     lines.push(textLine(310, y, line, 9));
     y -= 12;
   }
@@ -215,6 +231,7 @@ export function createInvoicePdf(invoice: InvoiceDocument) {
   lines.push(textLine(465, 598, invoice.payment_reference, 10));
 
   lines.push("0.95 0.93 0.89 rg 48 545 500 28 re f");
+  lines.push("0 0 0 rg");
   lines.push(textLine(60, 555, "Description", 10, "F2"));
   lines.push(textLine(455, 555, "Amount", 10, "F2"));
   lines.push(textLine(60, 520, description, 10));

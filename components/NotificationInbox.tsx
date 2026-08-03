@@ -120,22 +120,22 @@ export function NotificationInbox({
     <div className="signal-list">
       {localNotifications.map((notification) => (
         <div className={`signal-card notification-card ${notification.read_at ? "" : "unread"}`.trim()} key={notification.id}>
-          <div className="signal-icon" style={{ color: notification.read_at ? "var(--theme-muted)" : "var(--theme-gold)" }}>
+          <div className="signal-icon notification-card-icon" style={{ color: notification.read_at ? "var(--theme-muted)" : "var(--theme-gold)" }}>
             <Bell size={18} />
           </div>
-          <div style={{ flex: 1 }}>
+          <div className="notification-card-content">
             <div className="notification-meta-row">
               <strong>{notification.title}</strong>
               <span className="quality-pill">{notification.type.replaceAll("_", " ")}</span>
             </div>
-            <p>{notification.body}</p>
+            <p className="notification-card-body">{notification.body}</p>
             {notification.href ? (
-              <Link href={getLocalizedHref(notification.href, locale) ?? notification.href} style={{ color: "var(--theme-ink)", fontWeight: 800 }}>
+              <Link href={getLocalizedHref(notification.href, locale) ?? notification.href} className="notification-card-link">
                 {t("openUpdate")}
               </Link>
             ) : null}
           </div>
-          <div style={{ display: "grid", gap: 10, justifyItems: "end" }}>
+          <div className="notification-card-side">
             <span className="quality-pill">{formatNotificationTime(notification.created_at, t, locale)}</span>
             {!notification.read_at ? (
               <button className="btn btn-secondary" type="button" disabled={pendingId === notification.id} onClick={() => markRead(notification.id)}>

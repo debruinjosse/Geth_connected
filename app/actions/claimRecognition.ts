@@ -1,5 +1,7 @@
 "use server";
 
+import { revalidateTag } from "next/cache";
+import { getEmployeeAiSignalsCacheTag } from "@/lib/ai/employee-recognition-signals";
 import { getCardBySlug, resolveCardSlug } from "@/lib/cards";
 import { createNotification } from "@/lib/notifications";
 import { hasSmtpConfig, sendRecognitionReceivedEmail } from "@/lib/mail/nodemailer";
@@ -128,6 +130,8 @@ export async function claimRecognition(input: {
         });
       }
     }
+
+    revalidateTag(getEmployeeAiSignalsCacheTag(user.id), "max");
 
     return { ok: true as const, cardTitle: cardRecord.title, mode: "supabase" as const };
   } catch {
@@ -298,6 +302,8 @@ export async function giveRecognition(input: {
         }
       }
     }
+
+    revalidateTag(getEmployeeAiSignalsCacheTag(receiverProfile.id), "max");
 
     return { ok: true as const, cardTitle: cardRecord.title, receiverName, mode: "supabase" as const, acknowledgementPending };
   } catch {

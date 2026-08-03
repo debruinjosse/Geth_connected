@@ -646,7 +646,11 @@
     height: 38px;
   }
 
-  .notification-icon-button,
+  .notification-icon-button {
+    width: 44px;
+    height: 44px;
+  }
+
   .dashboard-avatar-chip {
     width: 36px;
     height: 36px;
@@ -715,6 +719,12 @@
   .notification-icon-button,
   .dashboard-avatar-chip {
     flex: 0 0 auto;
+  }
+
+  .notification-icon-button {
+    width: 44px;
+    height: 44px;
+    touch-action: manipulation;
   }
 
   .cards-grid {
@@ -1031,28 +1041,6 @@
   background: rgba(255, 253, 248, 0.72);
 }
 
-.landing-intelligence-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 16px;
-  margin-top: 28px;
-}
-
-.landing-intelligence-card {
-  padding: 20px 22px;
-  border-radius: 18px;
-  background: rgba(255, 253, 248, 0.92);
-  border: 1px solid rgba(42, 23, 61, 0.08);
-  box-shadow: 0 12px 30px rgba(42, 23, 61, 0.05);
-}
-
-.landing-intelligence-card p {
-  margin: 0;
-  color: var(--theme-ink);
-  font-size: 15px;
-  line-height: 1.55;
-}
-
 .landing-testimonials-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1096,7 +1084,6 @@
 }
 
 @media (max-width: 920px) {
-  .landing-intelligence-grid,
   .landing-testimonials-grid {
     grid-template-columns: 1fr;
   }
@@ -1143,4 +1130,30 @@
   color: var(--theme-muted);
   font-size: 14px;
   line-height: 1.45;
+}
+
+@media (max-width: 1099px) {
+  .signal-card.notification-card {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 14px;
+  }
+
+  .notification-card-content,
+  .notification-card-side {
+    width: 100%;
+  }
+
+  .notification-card-side {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .notification-meta-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 }

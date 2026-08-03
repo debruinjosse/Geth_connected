@@ -42,8 +42,9 @@ export default async function AdminNotificationsPage({ params }: { params: Promi
 
   const data = await getNotificationInboxPageData({
     allowedRoles: ["platform_admin", "super_admin"],
-    redirectTo: "/admin",
-    fallbackInitials: "SA"
+    redirectTo: "/admin/notifications",
+    fallbackInitials: "SA",
+    locale: locale as "en" | "nl"
   });
 
   return (

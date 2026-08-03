@@ -1,6 +1,7 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
+import { getEmployeeAiSignalsCacheTag } from "@/lib/ai/employee-recognition-signals";
 import { createNotification } from "@/lib/notifications";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -76,6 +77,7 @@ export async function approveRecognitionVerification(recognitionId: string): Pro
   revalidatePath("/employee");
   revalidatePath("/employee/cards");
   revalidatePath("/employee/notifications");
+  revalidateTag(getEmployeeAiSignalsCacheTag(recognition.receiver_user_id), "max");
 
   return { ok: true, message: "Recognition approved. Thank you for verifying it." };
 }
@@ -149,6 +151,7 @@ export async function acknowledgeReceivedRecognition(recognitionId: string): Pro
   revalidatePath("/employee");
   revalidatePath("/employee/cards");
   revalidatePath("/employee/notifications");
+  revalidateTag(getEmployeeAiSignalsCacheTag(user.id), "max");
 
   return { ok: true, message: "Recognition acknowledged. It is now verified on both dashboards." };
 }

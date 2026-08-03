@@ -37,13 +37,6 @@ export async function buildHomeCmsDefaults(
   defaults.stepMoreImpactTitle = landing("howItWorks.steps.moreImpact.title");
   defaults.stepMoreImpactDescription = landing("howItWorks.steps.moreImpact.description");
 
-  defaults.intelligenceEyebrow = home("intelligenceEyebrow");
-  defaults.intelligenceTitle = home("intelligenceTitle");
-  defaults.intelligenceParagraph = home("intelligenceParagraph");
-  defaults.intelligenceBullet1 = home("intelligenceBullet1");
-  defaults.intelligenceBullet2 = home("intelligenceBullet2");
-  defaults.intelligenceBullet3 = home("intelligenceBullet3");
-
   defaults.testimonialsEyebrow = home("testimonialsEyebrow");
   defaults.testimonialsTitle = home("testimonialsTitle");
   defaults.testimonialsCopy = home("testimonialsCopy");

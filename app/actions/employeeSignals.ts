@@ -1,7 +1,9 @@
 "use server";
 
+import { revalidateTag } from "next/cache";
 import {
   getEmployeeRecognitionSignals,
+  getEmployeeAiSignalsCacheTag,
   type EmployeeRecognitionSignal,
   type EmployeeSignalsContext
 } from "@/lib/ai/employee-recognition-signals";
@@ -17,4 +19,8 @@ export async function fetchEmployeeRecognitionSignals(
   }
 ): Promise<EmployeeRecognitionSignal[]> {
   return getEmployeeRecognitionSignals(context, labels);
+}
+
+export async function refreshEmployeeRecognitionSignals(employeeId: string) {
+  revalidateTag(getEmployeeAiSignalsCacheTag(employeeId), "max");
 }

@@ -80,15 +80,6 @@ export const HOME_RECOGNITION_CARDS_FIELDS: SiteContentField[] = [
   { key: "previewCaringCopy", label: "Card 4 description", multiline: true }
 ];
 
-export const HOME_RECOGNITION_INTELLIGENCE_FIELDS: SiteContentField[] = [
-  { key: "intelligenceEyebrow", label: "Eyebrow" },
-  { key: "intelligenceTitle", label: "Headline" },
-  { key: "intelligenceParagraph", label: "Supporting paragraph", multiline: true },
-  { key: "intelligenceBullet1", label: "Highlight 1" },
-  { key: "intelligenceBullet2", label: "Highlight 2" },
-  { key: "intelligenceBullet3", label: "Highlight 3" }
-];
-
 export const HOME_TESTIMONIALS_HEADER_FIELDS: SiteContentField[] = [
   { key: "testimonialsEyebrow", label: "Eyebrow" },
   { key: "testimonialsTitle", label: "Headline" },
@@ -125,8 +116,8 @@ export const HOME_CMS_SECTIONS: HomeContentSection[] = [
   },
   {
     id: "value-proposition",
-    title: "Value Proposition Section",
-    description: "Mid-page value proposition band with optional CTA.",
+    title: "Pre-footer CTA Band",
+    description: "Large photo CTA on the homepage before testimonials. Controls the valueProp* headline, copy, and button.",
     fields: HOME_VALUE_PROPOSITION_FIELDS
   },
   {
@@ -148,12 +139,6 @@ export const HOME_CMS_SECTIONS: HomeContentSection[] = [
     fields: HOME_RECOGNITION_CARDS_FIELDS
   },
   {
-    id: "recognition-intelligence",
-    title: "Recognition Intelligence Section",
-    description: "Culture intelligence messaging with three supporting highlights.",
-    fields: HOME_RECOGNITION_INTELLIGENCE_FIELDS
-  },
-  {
     id: "testimonials",
     title: "Testimonials Section",
     description: "Customer quotes shown in a responsive testimonial grid.",
@@ -161,8 +146,8 @@ export const HOME_CMS_SECTIONS: HomeContentSection[] = [
   },
   {
     id: "final-cta",
-    title: "Final CTA Section",
-    description: "Footer banner call-to-action above the site footer on public pages.",
+    title: "Footer CTA Banner",
+    description: "Footer strip call-to-action above the site footer on public pages. Uses finalCta* keys.",
     fields: HOME_FINAL_CTA_FIELDS
   }
 ];
@@ -174,7 +159,6 @@ export const ALL_HOME_CONTENT_FIELDS: SiteContentField[] = [
   ...HOME_HOW_IT_WORKS_FIELDS,
   ...HOME_AUDIENCE_FIELDS,
   ...HOME_RECOGNITION_CARDS_FIELDS,
-  ...HOME_RECOGNITION_INTELLIGENCE_FIELDS,
   ...HOME_TESTIMONIALS_HEADER_FIELDS,
   ...HOME_FINAL_CTA_FIELDS,
   { key: "marqueeItems", label: "Marquee items (JSON)" },

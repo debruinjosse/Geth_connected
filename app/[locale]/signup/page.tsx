@@ -1,6 +1,7 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { AuthShell } from "@/components/AuthShell";
 import { AuthExperience } from "@/components/AuthExperience";
+import { loadInviteSignupPrefill } from "@/lib/auth/invite-signup-prefill";
 import type { DemoRole } from "@/lib/demo-session";
 
 function getSignupRole(role?: string): DemoRole {
@@ -36,7 +37,8 @@ export default async function SignUpPage({
 }) {
   const { locale } = await params;
   const { invite, error, role, next } = await searchParams;
-  const initialRole = getSignupRole(role);
+  const invitePrefill = invite ? await loadInviteSignupPrefill(invite) : null;
+  const initialRole = invitePrefill?.role ?? getSignupRole(role);
   const copyKey = getSignupCopyKey(role, invite);
   setRequestLocale(locale);
   const t = await getTranslations({ locale, namespace: `auth.signup.${copyKey}` });
@@ -51,6 +53,7 @@ export default async function SignUpPage({
       <AuthExperience
         authError={error}
         initialRole={initialRole}
+        invitePrefill={invitePrefill ?? undefined}
         inviteToken={invite}
         key={`signup-${initialRole}-${invite ?? ""}-${next ?? ""}`}
         mode="signup"

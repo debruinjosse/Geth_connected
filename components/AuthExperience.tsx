@@ -7,6 +7,7 @@ import { ArrowRight, CheckCircle2, Eye, EyeOff } from "lucide-react";
 import { requestMagicLinkEmail } from "@/app/actions/magicLink";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { hasSupabaseBrowserConfig, type DemoRole } from "@/lib/demo-session";
+import type { InviteSignupPrefill } from "@/lib/auth/invite-signup-prefill";
 
 // Labels are translation keys under the `authForm` namespace.
 const signupRoles: Array<{ value: DemoRole; labelKey: string }> = [
@@ -31,6 +32,7 @@ function getRoleTargetPath(role: DemoRole) {
 export function AuthExperience({
   mode,
   inviteToken,
+  invitePrefill,
   authError,
   initialRole = "employee",
   targetPath,
@@ -38,6 +40,7 @@ export function AuthExperience({
 }: {
   mode: "login" | "signup";
   inviteToken?: string;
+  invitePrefill?: InviteSignupPrefill;
   authError?: string;
   initialRole?: DemoRole;
   targetPath?: string;
@@ -62,6 +65,20 @@ export function AuthExperience({
   const busy = submitBusy || magicLinkBusy;
   const ownerLoginOnly = selectedRole === "super_admin";
   const selectedSignupRole = signupRoles.some((role) => role.value === selectedRole) ? selectedRole : "employee";
+  const inviteSignupLocked = Boolean(mode === "signup" && invitePrefill);
+
+  useEffect(() => {
+    if (!invitePrefill) {
+      return;
+    }
+
+    setForm((current) => ({
+      ...current,
+      email: invitePrefill.email,
+      company: invitePrefill.companyName
+    }));
+    setSelectedRole(invitePrefill.role);
+  }, [invitePrefill]);
 
   function getLocalizedPublicPath(path: string) {
     if (!path.startsWith("/") || path.startsWith("/auth")) {
@@ -394,7 +411,7 @@ export function AuthExperience({
           </Link>
         </div>
       ) : null}
-      {!roleChoiceOnly && !ownerLoginOnly ? (
+      {!roleChoiceOnly && !ownerLoginOnly && !inviteSignupLocked ? (
         <div className="auth-role-shortcuts" aria-label={mode === "signup" ? t("roleAriaSignup") : t("roleAriaLogin")}>
           <p>{t("switchEntry")}</p>
         <div className="auth-role-shortcut-list">
@@ -429,13 +446,13 @@ export function AuthExperience({
             </div>
             <div className="form-field">
               <label htmlFor="company">{t("company")}</label>
-              <input id="company" className="input" placeholder={t("companyPlaceholder")} value={form.company} onChange={(event) => updateField("company", event.target.value)} autoComplete="organization" required />
+              <input id="company" className="input" placeholder={t("companyPlaceholder")} value={form.company} onChange={(event) => updateField("company", event.target.value)} autoComplete="organization" readOnly={inviteSignupLocked} required />
             </div>
           </>
         ) : null}
         <div className="form-field">
           <label htmlFor="auth-email">{t("workEmail")}</label>
-          <input id="auth-email" className="input" type="email" placeholder={t("emailPlaceholder")} value={form.email} onChange={(event) => updateField("email", event.target.value)} autoComplete="email" required />
+          <input id="auth-email" className="input" type="email" placeholder={t("emailPlaceholder")} value={form.email} onChange={(event) => updateField("email", event.target.value)} autoComplete="email" readOnly={inviteSignupLocked} required />
         </div>
         <div className="form-field">
           <label htmlFor="auth-password">{t("password")}</label>
@@ -449,7 +466,7 @@ export function AuthExperience({
         {mode === "signup" && !ownerLoginOnly ? (
           <div className="form-field">
             <label htmlFor="role">{t("accountType")}</label>
-            <select id="role" className="input" value={selectedSignupRole} onChange={(event) => setSelectedRole(event.target.value as DemoRole)}>
+            <select id="role" className="input" value={selectedSignupRole} onChange={(event) => setSelectedRole(event.target.value as DemoRole)} disabled={inviteSignupLocked}>
               {signupRoles.map((role) => (
                 <option value={role.value} key={role.value}>
                   {t(role.labelKey)}

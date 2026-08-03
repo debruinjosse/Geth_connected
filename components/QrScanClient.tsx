@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Camera, CheckCircle2, ImageUp, Keyboard, QrCode, Send, XCircle } from "lucide-react";
-import { gethCards, resolveCardSlug } from "@/lib/cards";
+import { gethCards, getLocalizedCardTitle, resolveCardSlug } from "@/lib/cards";
 
 type BarcodeResult = {
   rawValue: string;
@@ -72,6 +72,14 @@ function normalizeSearchValue(value: string) {
     .replace(/[^a-z0-9]+/g, "");
 }
 
+function getCardSearchValues(card: (typeof gethCards)[number]) {
+  return [
+    card.title,
+    getLocalizedCardTitle(card, "en"),
+    getLocalizedCardTitle(card, "nl")
+  ].map((value) => normalizeSearchValue(value));
+}
+
 function resolveCardSearch(value: string) {
   const candidate = getSlugCandidate(value);
   const normalizedInput = normalizeSearchValue(value);
@@ -88,11 +96,11 @@ function resolveCardSearch(value: string) {
   const activeCards = gethCards.filter((card) => card.active);
   const exactMatch = activeCards.find((card) => {
     const slug = normalizeSearchValue(card.slug);
-    const title = normalizeSearchValue(card.title);
+    const searchValues = getCardSearchValues(card);
     const number = String(card.cardNumber).padStart(2, "0");
     return (
       slug === normalizedInput ||
-      title === normalizedInput ||
+      searchValues.includes(normalizedInput) ||
       String(card.cardNumber) === normalizedInput ||
       String(card.cardNumber) === normalizedCardNumber ||
       number === normalizedInput ||
@@ -104,16 +112,16 @@ function resolveCardSearch(value: string) {
 
   const startsWithMatch = activeCards.find((card) => {
     const slug = normalizeSearchValue(card.slug);
-    const title = normalizeSearchValue(card.title);
-    return slug.startsWith(normalizedInput) || title.startsWith(normalizedInput);
+    const searchValues = getCardSearchValues(card);
+    return slug.startsWith(normalizedInput) || searchValues.some((title) => title.startsWith(normalizedInput));
   });
 
   if (startsWithMatch) return startsWithMatch.slug;
 
   return activeCards.find((card) => {
     const slug = normalizeSearchValue(card.slug);
-    const title = normalizeSearchValue(card.title);
-    return slug.includes(normalizedInput) || title.includes(normalizedInput);
+    const searchValues = getCardSearchValues(card);
+    return slug.includes(normalizedInput) || searchValues.some((title) => title.includes(normalizedInput));
   })?.slug ?? "";
 }
 
@@ -675,7 +683,7 @@ export function QrScanClient() {
               <CheckCircle2 size={18} />
               <span>{t("cardReady")}</span>
             </div>
-            <strong>{detectedCard?.title ?? detectedSlug}</strong>
+            <strong>{detectedCard ? getLocalizedCardTitle(detectedCard, locale) : detectedSlug}</strong>
             <p>{t("chooseHow")}</p>
             <div className="qr-detected-actions">
               <button className="btn btn-primary" type="button" onClick={() => goToClaim()}>

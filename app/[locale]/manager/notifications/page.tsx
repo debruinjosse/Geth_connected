@@ -42,8 +42,9 @@ export default async function ManagerNotificationsPage({ params }: { params: Pro
 
   const data = await getNotificationInboxPageData({
     allowedRoles: ["manager"],
-    redirectTo: "/manager",
-    fallbackInitials: "MG"
+    redirectTo: "/manager/notifications",
+    fallbackInitials: "MG",
+    locale: locale as "en" | "nl"
   });
 
   return (

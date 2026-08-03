@@ -271,6 +271,12 @@ export default async function EmployeeDashboardPage({ params }: { params: Promis
     ? Math.min(96, Math.max(42, normalizedRecognitions.length * 12 + recent30DaysCount * 8))
     : 0;
   const topStrengthLabel = topCategory ? getLocalizedAnalyticCategoryLabel(topCategory[0], locale) : t("noSignalYet");
+  const recentReceivedCards = normalizedRecognitions.slice(0, 8).map((item) => ({
+    title: item.card,
+    category: item.category,
+    receivedAt: item.createdAt ?? "",
+    note: item.note && item.note !== t("noPersonalNote") ? item.note : undefined
+  }));
   const signalsContext = {
     locale,
     employeeId: user.id,
@@ -279,6 +285,7 @@ export default async function EmployeeDashboardPage({ params }: { params: Promis
     cardsReceived: normalizedRecognitions.length,
     cardsGiven: givenCount ?? 0,
     recent30DaysCount,
+    recentReceivedCards,
     topQualities: topQualityDetails.map((card) => ({
       label: card.label,
       count: card.count,

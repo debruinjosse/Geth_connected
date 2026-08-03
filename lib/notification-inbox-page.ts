@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { NotificationInboxRow } from "@/components/NotificationInbox";
 import { localizedLoginPath } from "@/lib/auth/paths";
-import { defaultLocale } from "@/i18n/routing";
+import { defaultLocale, type AppLocale } from "@/i18n/routing";
 import { getUnreadNotificationCount } from "@/lib/notifications";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -33,11 +33,13 @@ function normalizeTeamLabel(role: DashboardNotificationRole, value?: string | nu
 export async function getNotificationInboxPageData({
   allowedRoles,
   redirectTo,
-  fallbackInitials
+  fallbackInitials,
+  locale = defaultLocale
 }: {
   allowedRoles: DashboardNotificationRole[];
   redirectTo: string;
   fallbackInitials: string;
+  locale?: AppLocale;
 }): Promise<NotificationInboxPageData> {
   const supabase = await createSupabaseServerClient();
   const {
@@ -46,46 +48,53 @@ export async function getNotificationInboxPageData({
   } = await supabase.auth.getUser();
 
   if (userError || !user) {
-    redirect(localizedLoginPath(defaultLocale));
+    redirect(localizedLoginPath(locale));
   }
+
+  const repairNext = encodeURIComponent(`/${locale}${redirectTo}`);
 
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
-    .select("id, first_name, last_name, role, company:companies(company_name), team:teams(name)")
+    .select("id, first_name, last_name, role, company_id, team_id")
     .eq("id", user.id)
     .maybeSingle<{
       id: string;
       first_name: string | null;
       last_name: string | null;
       role: DashboardNotificationRole;
-      company: { company_name: string } | Array<{ company_name: string }> | null;
-      team: { name: string } | Array<{ name: string }> | null;
+      company_id: string | null;
+      team_id: string | null;
     }>();
 
   if (profileError || !profile) {
-    redirect("/auth/repair-profile");
+    redirect(`/auth/repair-profile?next=${repairNext}`);
   }
 
   if (!allowedRoles.includes(profile.role)) {
-    redirect(redirectTo);
+    redirect(`/${locale}${redirectTo}`);
   }
 
-  const [{ data: notifications, error: notificationsError }, unreadCount] = await Promise.all([
-    supabase
-      .from("notifications")
-      .select("id, type, title, body, href, read_at, created_at")
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: false })
-      .limit(50),
-    getUnreadNotificationCount(supabase as SupabaseClient, user.id)
-  ]);
+  const [{ data: company }, { data: team }, { data: notifications, error: notificationsError }, unreadCount] =
+    await Promise.all([
+      profile.company_id
+        ? supabase.from("companies").select("company_name").eq("id", profile.company_id).maybeSingle<{ company_name: string }>()
+        : Promise.resolve({ data: null }),
+      profile.team_id
+        ? supabase.from("teams").select("name").eq("id", profile.team_id).maybeSingle<{ name: string }>()
+        : Promise.resolve({ data: null }),
+      supabase
+        .from("notifications")
+        .select("id, type, title, body, href, read_at, created_at")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(50),
+      getUnreadNotificationCount(supabase as SupabaseClient, user.id)
+    ]);
 
   if (notificationsError) {
     throw new Error("Failed to load notifications.");
   }
 
-  const company = Array.isArray(profile.company) ? profile.company[0] : profile.company;
-  const team = Array.isArray(profile.team) ? profile.team[0] : profile.team;
   const teamLabel = profile.role === "manager" ? team?.name : company?.company_name;
 
   return {

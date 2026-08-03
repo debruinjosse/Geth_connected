@@ -10,6 +10,13 @@ export type EmployeeRecognitionSignal = {
   highlights?: Array<{ label: string; category: string; count: number; tone: string }>;
 };
 
+export type EmployeeRecentReceivedCard = {
+  title: string;
+  category: string;
+  receivedAt: string;
+  note?: string;
+};
+
 export type EmployeeSignalsContext = {
   locale: string;
   employeeId: string;
@@ -18,10 +25,15 @@ export type EmployeeSignalsContext = {
   cardsReceived: number;
   cardsGiven: number;
   recent30DaysCount: number;
+  recentReceivedCards: EmployeeRecentReceivedCard[];
   topQualities: Array<{ label: string; count: number; category: string; tone: string }>;
   categoryBreakdown: Array<{ label: string; value: number; color: string }>;
   recentNotes: string[];
 };
+
+export function getEmployeeAiSignalsCacheTag(employeeId: string) {
+  return `employee-ai-signals:${employeeId}`;
+}
 
 function toneForCategory(category: string) {
   switch (category) {
@@ -46,6 +58,10 @@ function firstName(fullName: string) {
   return fullName.trim().split(/\s+/)[0] || fullName.trim();
 }
 
+function resolvePrimaryCategory(context: EmployeeSignalsContext) {
+  return context.recentReceivedCards[0]?.category ?? context.topQualities[0]?.category ?? "default";
+}
+
 function buildTemplateSignals(
   context: EmployeeSignalsContext,
   labels: {
@@ -68,7 +84,7 @@ function buildTemplateSignals(
   }
 
   const name = firstName(context.employeeName);
-  const primaryCategory = context.topQualities[0]?.category ?? "default";
+  const primaryCategory = resolvePrimaryCategory(context);
   const fallbackTemplate = labels.categoryFallbacks[primaryCategory] ?? labels.fallbackInsight;
   const detail = fallbackTemplate.replaceAll("{name}", name);
 
@@ -88,7 +104,9 @@ type GroqInsightResponse = {
 
 async function generateWithGroq(context: EmployeeSignalsContext): Promise<EmployeeRecognitionSignal[]> {
   const locale = context.locale === "nl" ? "nl" : "en";
-  const receivedCards = context.topQualities.slice(0, 8).map((card) => ({
+  const recentReceivedCards = context.recentReceivedCards.slice(0, 8);
+  const topRecognizedCardTitles = context.topQualities.slice(0, 6).map((card) => card.label);
+  const recognitionFrequencyByCard = context.topQualities.slice(0, 6).map((card) => ({
     title: card.label,
     category: card.category,
     frequency: card.count
@@ -97,7 +115,9 @@ async function generateWithGroq(context: EmployeeSignalsContext): Promise<Employ
   const prompt = {
     employeeFirstName: firstName(context.employeeName),
     teamName: context.teamName,
-    receivedRecognitionCards: receivedCards,
+    recentReceivedCards,
+    topRecognizedCardTitles,
+    recognitionFrequencyByCard,
     recognitionCategories: context.categoryBreakdown.filter((item) => item.value > 0).slice(0, 4),
     recentRecognitionNotes: context.recentNotes.slice(0, 6)
   };
@@ -120,7 +140,7 @@ async function generateWithGroq(context: EmployeeSignalsContext): Promise<Employ
     throw new Error("Groq returned no usable coaching insight.");
   }
 
-  const primaryCategory = context.topQualities[0]?.category ?? "Growth";
+  const primaryCategory = resolvePrimaryCategory(context);
 
   return [
     {
@@ -138,6 +158,7 @@ function buildCacheKey(context: EmployeeSignalsContext) {
     context.locale,
     context.cardsReceived,
     context.recent30DaysCount,
+    context.recentReceivedCards.map((item) => `${item.title}:${item.category}:${item.receivedAt}`).join("|"),
     context.topQualities.map((item) => `${item.label}:${item.count}`).join("|"),
     context.categoryBreakdown.map((item) => `${item.label}:${item.value}`).join("|"),
     context.recentNotes.join("|")
@@ -156,6 +177,10 @@ export async function getEmployeeRecognitionSignals(
     categoryFallbacks: Record<string, string>;
   }
 ): Promise<EmployeeRecognitionSignal[]> {
+  if (!context.cardsReceived || !context.recentReceivedCards.length) {
+    return buildTemplateSignals(context, labels);
+  }
+
   const templateFallback = () => buildTemplateSignals(context, labels);
 
   if (!process.env.GROQ_API_KEY?.trim()) {
@@ -171,8 +196,11 @@ export async function getEmployeeRecognitionSignals(
         return templateFallback();
       }
     },
-    ["employee-ai-signals", "coaching-v1", buildCacheKey(context)],
-    { revalidate: 600 }
+    ["employee-ai-signals", "coaching-v2", buildCacheKey(context)],
+    {
+      revalidate: 60,
+      tags: ["employee-ai-signals", getEmployeeAiSignalsCacheTag(context.employeeId)]
+    }
   );
 
   return cached();

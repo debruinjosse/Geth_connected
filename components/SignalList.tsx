@@ -3,6 +3,7 @@
 import type { CSSProperties } from "react";
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
+import { Sparkles } from "lucide-react";
 
 function localizeHref(href: string, locale: string) {
   if (!href.startsWith("/") || href.startsWith("/api") || href.startsWith("/auth")) {
@@ -29,6 +30,7 @@ export function SignalList({
 }) {
   const locale = useLocale();
   const t = useTranslations("employeeHome");
+  const tm = useTranslations("manager");
   const coaching = variant === "coaching";
 
   return (
@@ -36,8 +38,8 @@ export function SignalList({
       {items.map((signal) => (
         <div className={`signal-card${coaching ? " signal-card-coaching" : ""}`} key={signal.id}>
           <div style={{ display: "flex", alignItems: coaching ? "flex-start" : "center", gap: 12 }}>
-            <span className="signal-icon" style={{ color: signal.tone }}>
-              AI
+            <span className="signal-icon" style={{ color: signal.tone }} aria-hidden="true">
+              {coaching ? <Sparkles size={16} /> : <span className="signal-icon-label">{tm("signalBadge")}</span>}
             </span>
             <div>
               {!coaching && signal.title ? <strong>{signal.title}</strong> : null}

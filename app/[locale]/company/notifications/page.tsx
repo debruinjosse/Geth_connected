@@ -42,8 +42,9 @@ export default async function CompanyNotificationsPage({ params }: { params: Pro
 
   const data = await getNotificationInboxPageData({
     allowedRoles: ["company_admin"],
-    redirectTo: "/company",
-    fallbackInitials: "CA"
+    redirectTo: "/company/notifications",
+    fallbackInitials: "CA",
+    locale: locale as "en" | "nl"
   });
 
   return (
