@@ -4,7 +4,8 @@ import { revalidatePath } from "next/cache";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { ALL_HOME_CONTENT_FIELDS, type SiteContentNamespace } from "@/lib/site-content-fields";
 
-type ActionResult = { ok: true } | { ok: false; error: string };
+type ActionErrorCode = "AUTH_EXPIRED" | "FORBIDDEN" | "INVALID_INPUT" | "NO_FIELDS" | "DATABASE_ERROR";
+type ActionResult = { ok: true } | { ok: false; error: string; code: ActionErrorCode };
 
 const ALLOWED_HOME_CONTENT_KEYS = new Set(ALL_HOME_CONTENT_FIELDS.map((field) => field.key));
 
@@ -34,17 +35,35 @@ async function requireGlobalAdmin() {
   } = await supabase.auth.getUser();
 
   if (userError || !user) {
-    return { ok: false as const, error: "You must be signed in as a platform admin." };
+    if (userError) {
+      console.error("[site-content] auth.getUser failed", {
+        message: userError.message,
+        status: userError.status,
+        code: userError.code
+      });
+    }
+    return { ok: false as const, code: "AUTH_EXPIRED" as const, error: "Your session expired. Please sign in again." };
   }
 
-  const { data: profile } = await supabase
+  const { data: profile, error: profileError } = await supabase
     .from("profiles")
     .select("role")
     .eq("id", user.id)
     .maybeSingle<{ role: string | null }>();
 
+  if (profileError) {
+    console.error("[site-content] profile lookup failed", {
+      userId: user.id,
+      message: profileError.message,
+      code: profileError.code,
+      details: profileError.details,
+      hint: profileError.hint
+    });
+    return { ok: false as const, code: "DATABASE_ERROR" as const, error: "Could not verify admin access. Please try again." };
+  }
+
   if (!profile || (profile.role !== "platform_admin" && profile.role !== "super_admin")) {
-    return { ok: false as const, error: "Only platform admins can edit site content." };
+    return { ok: false as const, code: "FORBIDDEN" as const, error: "Only platform admins can edit site content." };
   }
 
   return { ok: true as const, supabase, userId: user.id };
@@ -53,14 +72,14 @@ async function requireGlobalAdmin() {
 export async function updateSiteContentAction(formData: FormData): Promise<ActionResult> {
   const auth = await requireGlobalAdmin();
   if (!auth.ok) {
-    return { ok: false, error: auth.error };
+    return { ok: false, code: auth.code, error: auth.error };
   }
 
   const namespace = String(formData.get("namespace") ?? "home").trim() as SiteContentNamespace;
   const locale = String(formData.get("locale") ?? "en").trim();
 
   if (locale !== "en" && locale !== "nl") {
-    return { ok: false, error: "Invalid locale." };
+    return { ok: false, code: "INVALID_INPUT", error: "Invalid locale." };
   }
 
   const rows = Array.from(formData.entries())
@@ -81,7 +100,7 @@ export async function updateSiteContentAction(formData: FormData): Promise<Actio
     });
 
   if (!rows.length) {
-    return { ok: false, error: "No homepage fields were submitted." };
+    return { ok: false, code: "NO_FIELDS", error: "No homepage fields were submitted." };
   }
 
   const { error } = await auth.supabase.from("site_content").upsert(rows, {
@@ -89,7 +108,20 @@ export async function updateSiteContentAction(formData: FormData): Promise<Actio
   });
 
   if (error) {
-    return { ok: false, error: "Could not save homepage content. Run database migrations if this is a new environment." };
+    console.error("[site-content] upsert failed", {
+      namespace,
+      locale,
+      rowCount: rows.length,
+      message: error.message,
+      code: error.code,
+      details: error.details,
+      hint: error.hint
+    });
+    return {
+      ok: false,
+      code: "DATABASE_ERROR",
+      error: "Could not save homepage content. Please retry. If this continues, contact support."
+    };
   }
 
   revalidatePath(`/${locale}`);

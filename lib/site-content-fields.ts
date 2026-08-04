@@ -80,12 +80,6 @@ export const HOME_RECOGNITION_CARDS_FIELDS: SiteContentField[] = [
   { key: "previewCaringCopy", label: "Card 4 description", multiline: true }
 ];
 
-export const HOME_TESTIMONIALS_HEADER_FIELDS: SiteContentField[] = [
-  { key: "testimonialsEyebrow", label: "Eyebrow" },
-  { key: "testimonialsTitle", label: "Headline" },
-  { key: "testimonialsCopy", label: "Supporting paragraph", multiline: true }
-];
-
 export const HOME_FINAL_CTA_FIELDS: SiteContentField[] = [
   { key: "finalCtaBanner", label: "Banner eyebrow" },
   { key: "finalCtaTitle", label: "Headline" },
@@ -117,7 +111,7 @@ export const HOME_CMS_SECTIONS: HomeContentSection[] = [
   {
     id: "value-proposition",
     title: "Pre-footer CTA Band",
-    description: "Large photo CTA on the homepage before testimonials. Controls the valueProp* headline, copy, and button.",
+    description: "Large photo CTA on the homepage before the footer. Controls the valueProp* headline, copy, and button.",
     fields: HOME_VALUE_PROPOSITION_FIELDS
   },
   {
@@ -139,12 +133,6 @@ export const HOME_CMS_SECTIONS: HomeContentSection[] = [
     fields: HOME_RECOGNITION_CARDS_FIELDS
   },
   {
-    id: "testimonials",
-    title: "Testimonials Section",
-    description: "Customer quotes shown in a responsive testimonial grid.",
-    fields: HOME_TESTIMONIALS_HEADER_FIELDS
-  },
-  {
     id: "final-cta",
     title: "Footer CTA Banner",
     description: "Footer strip call-to-action above the site footer on public pages. Uses finalCta* keys.",
@@ -159,10 +147,8 @@ export const ALL_HOME_CONTENT_FIELDS: SiteContentField[] = [
   ...HOME_HOW_IT_WORKS_FIELDS,
   ...HOME_AUDIENCE_FIELDS,
   ...HOME_RECOGNITION_CARDS_FIELDS,
-  ...HOME_TESTIMONIALS_HEADER_FIELDS,
   ...HOME_FINAL_CTA_FIELDS,
   { key: "marqueeItems", label: "Marquee items (JSON)" },
-  { key: "testimonialsItems", label: "Testimonials (JSON)" },
   { key: "previewCommunication", label: "Card category: Communication" },
   { key: "previewCreativity", label: "Card category: Creativity" },
   { key: "previewCompetence", label: "Card category: Competence" },

@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { updateSiteContentAction } from "@/app/actions/siteContent";
 import { AdminMarqueeSection } from "@/components/AdminMarqueeSection";
-import { AdminTestimonialsSection } from "@/components/AdminTestimonialsSection";
 import { HOME_CMS_SECTIONS, type SiteContentField } from "@/lib/site-content-fields";
 
 function SiteContentFieldGrid({
@@ -56,6 +55,7 @@ export function AdminSiteContentForm({
   const router = useRouter();
   const [status, setStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [error, setError] = useState("");
+  const [errorCode, setErrorCode] = useState<string | null>(null);
 
   return (
     <form
@@ -64,11 +64,13 @@ export function AdminSiteContentForm({
         event.preventDefault();
         setStatus("saving");
         setError("");
+        setErrorCode(null);
         const formData = new FormData(event.currentTarget);
         const result = await updateSiteContentAction(formData);
         if (!result.ok) {
           setStatus("error");
           setError(result.error);
+          setErrorCode(result.code);
           return;
         }
         setStatus("saved");
@@ -91,16 +93,6 @@ export function AdminSiteContentForm({
               overrides={overrides}
               showSettings={locale === "en"}
             />
-          ) : section.id === "testimonials" ? (
-            <>
-              <SiteContentFieldGrid
-                fields={section.fields}
-                locale={locale}
-                defaults={defaults}
-                overrides={overrides}
-              />
-              <AdminTestimonialsSection locale={locale} defaults={defaults} overrides={overrides} />
-            </>
           ) : (
             <SiteContentFieldGrid fields={section.fields} locale={locale} defaults={defaults} overrides={overrides} />
           )}
@@ -112,7 +104,17 @@ export function AdminSiteContentForm({
           {status === "saving" ? "Saving…" : `Save ${locale.toUpperCase()} homepage`}
         </button>
         {status === "saved" ? <span className="field-help success">Saved. Open the public homepage to preview your changes.</span> : null}
-        {status === "error" ? <span className="field-help error">{error}</span> : null}
+        {status === "error" ? (
+          <span className="field-help error">
+            {error}
+            {errorCode === "AUTH_EXPIRED" ? (
+              <>
+                {" "}
+                <a href={`/${locale}/login?next=/${locale}/admin/site-content`}>Sign in again</a>.
+              </>
+            ) : null}
+          </span>
+        ) : null}
       </div>
     </form>
   );

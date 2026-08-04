@@ -105,9 +105,6 @@
     "stepVisibleGrowthDescription": "Waardering wordt zichtbaar in het persoonlijke profiel en in het teamoverzicht.",
     "stepMoreImpactTitle": "MEER IMPACT",
     "stepMoreImpactDescription": "Meer waardering zorgt voor meer verbinding, energie en groei.",
-    "testimonialsEyebrow": "Vertrouwd door cultuurbouwers",
-    "testimonialsTitle": "Teams gebruiken GETH® om waardering zichtbaar te maken.",
-    "testimonialsCopy": "Leiders, managers en medewerkers delen hoe verbonden kaarten en dashboards de dagelijkse cultuur versterken.",
     "finalCtaButtonLabel": "Boek een demo",
     "finalCtaButtonHref": "/book-demo"
   },
@@ -1362,7 +1359,7 @@
     "demoAccountsSubtitle": "Demoportals zijn uitgeschakeld voor productietesten in fase 1.",
     "demoAccountsCopy": "Gebruik echte Supabase-accounts en geseedde UAT-credentials in plaats van publieke demoportals.",
     "siteContentTitle": "Homepage-inhoud",
-    "siteContentSubtitle": "Bewerk elke homepage-sectie in EN en NL: hero, marquee, value proposition, how it works, audience, cards, testimonials en final CTA.",
+    "siteContentSubtitle": "Bewerk elke homepage-sectie in EN en NL: hero, marquee, value proposition, how it works, audience, cards en final CTA.",
     "siteContentDemoCopy": "Koppel Supabase en voer migratie 022_site_content.sql uit om live homepage-bewerking te activeren.",
     "siteContentHeroTitle": "Homepage-secties",
     "siteContentHeroCopy": "Laat een veld leeg om terug te vallen op de standaardvertaling. Opgeslagen tekst verschijnt direct op de homepage.",

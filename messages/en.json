@@ -234,9 +234,6 @@
     "stepVisibleGrowthDescription": "Appreciation becomes visible in the personal profile and in the team overview.",
     "stepMoreImpactTitle": "MORE IMPACT",
     "stepMoreImpactDescription": "More appreciation creates more connection, energy and growth.",
-    "testimonialsEyebrow": "Trusted by culture builders",
-    "testimonialsTitle": "Teams use GETH® to make appreciation visible.",
-    "testimonialsCopy": "Leaders, managers, and employees share how connected cards and dashboards strengthen everyday culture.",
     "finalCtaButtonLabel": "Book a demo",
     "finalCtaButtonHref": "/book-demo"
   },
@@ -1362,7 +1359,7 @@
     "demoAccountsSubtitle": "Demo portals have been disabled for Phase 1 production testing.",
     "demoAccountsCopy": "Use real Supabase accounts and seeded UAT credentials instead of public demo portals.",
     "siteContentTitle": "Homepage content",
-    "siteContentSubtitle": "Edit every homepage section in EN and NL: hero, marquee, value proposition, how it works, audience, cards, testimonials, and final CTA.",
+    "siteContentSubtitle": "Edit every homepage section in EN and NL: hero, marquee, value proposition, how it works, audience, cards, and final CTA.",
     "siteContentDemoCopy": "Connect Supabase and run migration 022_site_content.sql to enable live homepage editing.",
     "siteContentHeroTitle": "Homepage sections",
     "siteContentHeroCopy": "Leave a field empty to fall back to the default translation. Saved text appears on the homepage immediately after save.",

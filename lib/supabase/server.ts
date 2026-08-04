@@ -15,7 +15,11 @@ export async function createSupabaseServerClient() {
         setAll(cookiesToSet: Array<{ name: string; value: string; options?: Parameters<typeof cookieStore.set>[2] }>) {
           try {
             cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options));
-          } catch {
+          } catch (error) {
+            console.warn("[supabase-server] cookie write skipped", {
+              cookieNames: cookiesToSet.map((cookie) => cookie.name),
+              error: error instanceof Error ? error.message : "unknown"
+            });
             // Server Components cannot write cookies; middleware/server actions handle refresh writes.
           }
         }

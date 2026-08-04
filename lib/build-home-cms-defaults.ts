@@ -1,9 +1,5 @@
 import { DEFAULT_MARQUEE_SETTINGS } from "@/lib/marquee-config";
-import {
-  getDefaultMarqueeItemsSerialized,
-  getDefaultTestimonialsForLocale,
-  parseTestimonialItems
-} from "@/lib/home-cms-defaults";
+import { getDefaultMarqueeItemsSerialized } from "@/lib/home-cms-defaults";
 import { ALL_HOME_CONTENT_FIELDS } from "@/lib/site-content-fields";
 
 type Translator = (key: string) => string;
@@ -17,7 +13,7 @@ export async function buildHomeCmsDefaults(
   const defaults: Record<string, string> = {};
 
   for (const field of ALL_HOME_CONTENT_FIELDS) {
-    if (field.key === "marqueeItems" || field.key === "testimonialsItems") continue;
+    if (field.key === "marqueeItems") continue;
     if (field.key.startsWith("marquee") && field.key !== "marqueeItems") {
       defaults[field.key] = DEFAULT_MARQUEE_SETTINGS[field.key] ?? "";
       continue;
@@ -37,10 +33,6 @@ export async function buildHomeCmsDefaults(
   defaults.stepMoreImpactTitle = landing("howItWorks.steps.moreImpact.title");
   defaults.stepMoreImpactDescription = landing("howItWorks.steps.moreImpact.description");
 
-  defaults.testimonialsEyebrow = home("testimonialsEyebrow");
-  defaults.testimonialsTitle = home("testimonialsTitle");
-  defaults.testimonialsCopy = home("testimonialsCopy");
-
   defaults.finalCtaBanner = footer("banner");
   defaults.finalCtaTitle = footer("title");
   defaults.finalCtaCopy = footer("copy");
@@ -48,24 +40,6 @@ export async function buildHomeCmsDefaults(
   defaults.finalCtaButtonHref = home("finalCtaButtonHref");
 
   defaults.marqueeItems = getDefaultMarqueeItemsSerialized(locale);
-  defaults.testimonialsItems = JSON.stringify(getDefaultTestimonialsForLocale(locale));
 
   return defaults;
-}
-
-export function buildTestimonialsFromOverrides(
-  overrides: Record<string, string>,
-  defaults: Record<string, string>,
-  locale: string
-) {
-  const stored = parseTestimonialItems(overrides.testimonialsItems);
-  if (stored.length) return stored;
-
-  const defaultSerialized = defaults.testimonialsItems;
-  if (defaultSerialized) {
-    const fromDefaults = parseTestimonialItems(defaultSerialized);
-    if (fromDefaults.length) return fromDefaults;
-  }
-
-  return getDefaultTestimonialsForLocale(locale);
 }
