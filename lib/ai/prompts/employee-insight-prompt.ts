@@ -54,6 +54,24 @@ export function buildEmployeeInsightSystemPrompt(locale: "en" | "nl") {
     "- If there is limited data, be transparent without sounding negative.",
     "- Always remain positive, authentic, and constructive.",
     "- Use only recognition cards the employee received. Ignore cards they gave to others.",
+    "- Each card in the payload may include cardMeaning and recognitionExample. Treat cardMeaning as the authoritative GETH definition of that card title.",
+    "",
+    locale === "nl"
+      ? [
+          "Dutch card interpretation (critical)",
+          "- Use natural je/jij, not stiff formal 'uw'.",
+          "- Short Dutch card titles are fixed labels — follow cardMeaning, never guess from the word alone.",
+          '- "Kritisch" = kritisch denker (analytisch, constructief), NOT kritisch zijn op mensen.',
+          '- "Gastvrij" = mensen welkom en op hun gemak laten voelen.',
+          '- "Helder" = helder communiceren, NOT fysiek licht of helderheid.',
+          '- "Verbinder" = mensen bij elkaar brengen en verbinding creëren.',
+          "- Write the full insight in Dutch."
+        ].join("\n")
+      : [
+          "English card interpretation",
+          '- "Critical thinker" = analytical, constructive thinking — not being negative toward people.',
+          "- Use cardMeaning to interpret short titles such as Welcoming, Clear, or Patient."
+        ].join("\n"),
     "",
     "Desired Output Example",
     '"What a wonderful strength, Jamie! You communicate with clarity and naturally bring people together. The recognitions you\'ve received suggest that colleagues value not only how clearly you express ideas, but also how you create understanding and connection within the team. This combination builds trust, improves collaboration, and helps others feel heard and supported. Keep leaning into these strengths—they are becoming part of what people remember and appreciate most about working with you."'

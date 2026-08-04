@@ -1,6 +1,7 @@
 import { unstable_cache } from "next/cache";
 import { callGroqJson } from "@/lib/ai/groq-client";
 import { buildEmployeeInsightSystemPrompt } from "@/lib/ai/prompts/employee-insight-prompt";
+import { getLocalizedCardDescription, getLocalizedRecognitionSentence } from "@/lib/cards";
 
 export type EmployeeRecognitionSignal = {
   id: string;
@@ -102,14 +103,26 @@ type GroqInsightResponse = {
   insight?: string;
 };
 
+function buildCardMeaningFields(title: string, locale: string) {
+  const cardRef = { title, description: "", recognitionSentence: "" };
+  return {
+    cardMeaning: getLocalizedCardDescription(cardRef, locale),
+    recognitionExample: getLocalizedRecognitionSentence(cardRef, locale)
+  };
+}
+
 async function generateWithGroq(context: EmployeeSignalsContext): Promise<EmployeeRecognitionSignal[]> {
   const locale = context.locale === "nl" ? "nl" : "en";
-  const recentReceivedCards = context.recentReceivedCards.slice(0, 8);
+  const recentReceivedCards = context.recentReceivedCards.slice(0, 8).map((card) => ({
+    ...card,
+    ...buildCardMeaningFields(card.title, locale)
+  }));
   const topRecognizedCardTitles = context.topQualities.slice(0, 6).map((card) => card.label);
   const recognitionFrequencyByCard = context.topQualities.slice(0, 6).map((card) => ({
     title: card.label,
     category: card.category,
-    frequency: card.count
+    frequency: card.count,
+    ...buildCardMeaningFields(card.label, locale)
   }));
 
   const prompt = {
@@ -196,7 +209,7 @@ export async function getEmployeeRecognitionSignals(
         return templateFallback();
       }
     },
-    ["employee-ai-signals", "coaching-v2", buildCacheKey(context)],
+    ["employee-ai-signals", "coaching-v3", buildCacheKey(context)],
     {
       revalidate: 60,
       tags: ["employee-ai-signals", getEmployeeAiSignalsCacheTag(context.employeeId)]
