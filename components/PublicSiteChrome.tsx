@@ -79,7 +79,7 @@ export async function PublicSiteChrome({
   const primaryNavHref = signedInUser ? signedInUser.dashboardHref : localizedCtaHref;
 
   return (
-    <main>
+    <>
       <header className="site-header">
         <div className="pageContainer site-header-inner">
           <div className="site-header-brand">
@@ -126,6 +126,7 @@ export async function PublicSiteChrome({
         </div>
       </header>
 
+      <main>
       {children}
 
       <section className="footer-banner landingFooter">
@@ -161,6 +162,7 @@ export async function PublicSiteChrome({
           </footer>
         </div>
       </section>
-    </main>
+      </main>
+    </>
   );
 }

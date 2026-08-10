@@ -2,7 +2,8 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { Building2, Shield, Star, UserRound, UsersRound } from "lucide-react";
-import { createCompanyInviteFromAdminAction, updateCompanyStatusAction } from "@/app/actions/adminControls";
+import { createCompanyInviteFromAdminAction, updateCompanyContactAction, updateCompanyStatusAction } from "@/app/actions/adminControls";
+import { AdminTeamDeleteButton } from "@/components/AdminTeamDeleteButton";
 import { DashboardShell } from "@/components/DashboardShell";
 import { EmptyState } from "@/components/EmptyState";
 import { MetricCard } from "@/components/MetricCard";
@@ -24,6 +25,9 @@ type Company = {
   subscription_status: string | null;
   status: string | null;
   created_at: string;
+  contact_name: string | null;
+  contact_phone: string | null;
+  contact_email: string | null;
 };
 
 type ProfileRow = {
@@ -68,9 +72,9 @@ export default async function AdminCompanyDetailPage({
   searchParams
 }: {
   params: Promise<{ companyId: string }>;
-  searchParams: Promise<{ invite?: string }>;
+  searchParams: Promise<{ invite?: string; contact?: string; team?: string; created?: string }>;
 }) {
-  const [{ companyId }, { invite }, locale] = await Promise.all([params, searchParams, getLocale()]);
+  const [{ companyId }, { invite, contact, team, created }, locale] = await Promise.all([params, searchParams, getLocale()]);
   const t = await getTranslations({ locale, namespace: "adminPages" });
   const tc = await getTranslations({ locale, namespace: "common" });
   const dateLocale = locale === "nl" ? "nl-NL" : "en";
@@ -110,7 +114,7 @@ export default async function AdminCompanyDetailPage({
   ] = await Promise.all([
     supabase
       .from("companies")
-      .select("id, company_name, slug, industry, subscription_plan, subscription_status, status, created_at")
+      .select("id, company_name, slug, industry, subscription_plan, subscription_status, status, created_at, contact_name, contact_phone, contact_email")
       .eq("id", companyId)
       .maybeSingle<Company>(),
     supabase
@@ -159,6 +163,22 @@ export default async function AdminCompanyDetailPage({
       actions={<Link className="btn btn-secondary" href={`/${locale}/admin/companies`}>{t("backToCompanies")}</Link>}
       unreadNotifications={unreadNotifications}
     >
+      {created ? (
+        <p className="settings-feedback success">{t("companyCreatedSuccess")}</p>
+      ) : null}
+      {contact === "updated" ? (
+        <p className="settings-feedback success">{t("contactUpdatedSuccess")}</p>
+      ) : null}
+      {contact === "failed" ? (
+        <p className="settings-feedback error">{t("contactUpdateFailed")}</p>
+      ) : null}
+      {team === "deleted" ? (
+        <p className="settings-feedback success">{t("teamDeletedSuccess")}</p>
+      ) : null}
+      {team === "failed" ? (
+        <p className="settings-feedback error">{t("teamDeleteFailed")}</p>
+      ) : null}
+
       <section className="metrics-grid">
         <MetricCard icon={<Shield />} value={companyAdmins.length} label={t("metricCompanyAdmins")} helper={t("metricCompanyAdminsHelper")} />
         <MetricCard icon={<UsersRound />} value={managers.length} label={t("metricManagers")} helper={t("metricManagersHelper")} tone="var(--theme-gold)" iconBackground="rgba(216, 162, 58, 0.12)" />
@@ -242,6 +262,33 @@ export default async function AdminCompanyDetailPage({
             <button className="btn btn-primary compact" type="submit">{t("sendInviteButton")}</button>
           </form>
         </article>
+
+        <article className="panel dashboard-panel">
+          <div className="panel-top">
+            <div>
+              <h2>{t("companyContactTitle")}</h2>
+              <p className="section-copy">{t("companyContactCopy")}</p>
+            </div>
+          </div>
+          <form action={updateCompanyContactAction} className="admin-invite-form">
+            <input type="hidden" name="companyId" value={company.id} />
+            <input type="hidden" name="returnTo" value={returnTo} />
+            <input type="hidden" name="locale" value={locale} />
+            <label>
+              {t("formContactNameLabel")}
+              <input className="input" name="contactName" value={company.contact_name ?? ""} placeholder="Tim Schobbe" />
+            </label>
+            <label>
+              {t("formContactPhoneLabel")}
+              <input className="input" name="contactPhone" type="tel" value={company.contact_phone ?? ""} placeholder="+31 6 12345678" />
+            </label>
+            <label>
+              {t("formContactEmailLabel")}
+              <input className="input" name="contactEmail" type="email" value={company.contact_email ?? ""} placeholder="admin@company.com" />
+            </label>
+            <button className="btn btn-secondary compact" type="submit">{t("saveContactButton")}</button>
+          </form>
+        </article>
       </section>
 
       <section className="dashboard-grid two">
@@ -255,12 +302,22 @@ export default async function AdminCompanyDetailPage({
           {companyTeams.length ? (
             <div className="table-wrap">
               <table className="dashboard-table">
-                <thead><tr><th>{t("tableTeam")}</th><th>{t("tableManager")}</th></tr></thead>
+                <thead><tr><th>{t("tableTeam")}</th><th>{t("tableManager")}</th><th>{t("tableActions")}</th></tr></thead>
                 <tbody>
                   {companyTeams.map((team) => (
                     <tr key={team.id}>
                       <td><strong>{team.name}</strong></td>
                       <td>{team.manager_id ? managerMap.get(team.manager_id) ?? t("assignedManager") : tc("unassigned")}</td>
+                      <td>
+                        <AdminTeamDeleteButton
+                          teamId={team.id}
+                          companyId={company.id}
+                          locale={locale}
+                          returnTo={returnTo}
+                          confirmMessage={t("deleteTeamConfirm", { teamName: team.name })}
+                          deleteLabel={t("deleteTeamButton")}
+                        />
+                      </td>
                     </tr>
                   ))}
                 </tbody>

@@ -12,8 +12,26 @@ function getInitials(firstName: string, lastName: string) {
   return `${firstName[0] ?? ""}${lastName[0] ?? ""}`.toUpperCase() || "GA";
 }
 
-export default async function AdminCompaniesPage({ params }: { params: Promise<{ locale: string }> }) {
-  const { locale } = await params;
+type CompanyRow = {
+  id: string;
+  company_name: string;
+  subscription_plan: string | null;
+  status: string | null;
+  industry: string | null;
+  created_at: string;
+  contact_name: string | null;
+  contact_phone: string | null;
+  contact_email: string | null;
+};
+
+export default async function AdminCompaniesPage({
+  params,
+  searchParams
+}: {
+  params: Promise<{ locale: string }>;
+  searchParams: Promise<{ delete?: string }>;
+}) {
+  const [{ locale }, { delete: deleteStatus }] = await Promise.all([params, searchParams]);
   const t = await getTranslations({ locale, namespace: "adminPages" });
   const tc = await getTranslations({ locale, namespace: "common" });
 
@@ -43,19 +61,30 @@ export default async function AdminCompaniesPage({ params }: { params: Promise<{
     redirect("/auth/repair-profile");
   }
 
-  const [{ data: companies, error: companiesError }, { data: profiles, error: profilesError }, { data: teams, error: teamsError }] = await Promise.all([
-    supabase.from("companies").select("id, company_name, subscription_plan, status, industry, created_at").order("created_at", { ascending: false }),
-    supabase.from("profiles").select("id, company_id, role"),
-    supabase.from("teams").select("id, company_id")
+  const [
+    { data: companies, error: companiesError },
+    { data: profiles, error: profilesError },
+    { data: teams, error: teamsError },
+    { data: invitations, error: invitationsError }
+  ] = await Promise.all([
+    supabase
+      .from("companies")
+      .select("id, company_name, subscription_plan, status, industry, created_at, contact_name, contact_phone, contact_email")
+      .order("created_at", { ascending: false }),
+    supabase.from("profiles").select("id, company_id, role, email"),
+    supabase.from("teams").select("id, company_id"),
+    supabase.from("invitations").select("company_id, email, role, created_at").eq("role", "company_admin").order("created_at", { ascending: false })
   ]);
 
-  if (companiesError || profilesError || teamsError) {
+  if (companiesError || profilesError || teamsError || invitationsError) {
     throw new Error(t("errLoadCompanies"));
   }
 
   const profileCounts = new Map<string, number>();
   const managerCounts = new Map<string, number>();
   const teamCounts = new Map<string, number>();
+  const adminProfileEmails = new Map<string, string>();
+  const adminInviteEmails = new Map<string, string>();
 
   for (const item of profiles ?? []) {
     if (!item.company_id) continue;
@@ -63,11 +92,23 @@ export default async function AdminCompaniesPage({ params }: { params: Promise<{
     if (item.role === "manager") {
       managerCounts.set(item.company_id, (managerCounts.get(item.company_id) ?? 0) + 1);
     }
+    if (item.role === "company_admin" && item.email && !adminProfileEmails.has(item.company_id)) {
+      adminProfileEmails.set(item.company_id, item.email);
+    }
   }
 
   for (const team of teams ?? []) {
     teamCounts.set(team.company_id, (teamCounts.get(team.company_id) ?? 0) + 1);
   }
+
+  for (const invitation of invitations ?? []) {
+    if (!invitation.company_id || !invitation.email || adminInviteEmails.has(invitation.company_id)) {
+      continue;
+    }
+    adminInviteEmails.set(invitation.company_id, invitation.email);
+  }
+
+  const companyRows = (companies ?? []) as CompanyRow[];
 
   return (
     <DashboardShell
@@ -81,6 +122,13 @@ export default async function AdminCompaniesPage({ params }: { params: Promise<{
       }}
       actions={<span className="quality-pill">{tc("liveData")}</span>}
     >
+      {deleteStatus === "success" ? (
+        <p className="settings-feedback success">{t("deleteCompanySuccess")}</p>
+      ) : null}
+      {deleteStatus === "failed" ? (
+        <p className="settings-feedback error">{t("deleteCompanyFailed")}</p>
+      ) : null}
+
       <article className="panel dashboard-panel">
         <div className="panel-top">
           <div>
@@ -110,6 +158,14 @@ export default async function AdminCompaniesPage({ params }: { params: Promise<{
             </select>
           </div>
           <div className="form-field">
+            <label htmlFor="contactName">{t("formContactNameLabel")}</label>
+            <input id="contactName" className="input" name="contactName" placeholder="Tim Schobbe" />
+          </div>
+          <div className="form-field">
+            <label htmlFor="contactPhone">{t("formContactPhoneLabel")}</label>
+            <input id="contactPhone" className="input" name="contactPhone" type="tel" placeholder="+31 6 12345678" />
+          </div>
+          <div className="form-field">
             <label htmlFor="companyAdminEmail">{t("formCompanyAdminEmailLabel")}</label>
             <input id="companyAdminEmail" className="input" name="companyAdminEmail" type="email" placeholder="admin@company.com" required />
           </div>
@@ -130,39 +186,65 @@ export default async function AdminCompaniesPage({ params }: { params: Promise<{
 
       <article className="panel dashboard-panel">
         <div className="table-wrap">
-          {companies?.length ? (
+          {companyRows.length ? (
             <table className="dashboard-table">
-              <thead><tr><th>{t("tableCompany")}</th><th>{t("tablePlan")}</th><th>{t("tableStatus")}</th><th>{t("tableUsers")}</th><th>{t("tableManagers")}</th><th>{t("tableTeams")}</th><th>{t("tableControl")}</th></tr></thead>
+              <thead>
+                <tr>
+                  <th>{t("tableCompany")}</th>
+                  <th>{t("tableInviteEmail")}</th>
+                  <th>{t("tableContactName")}</th>
+                  <th>{t("tableContactPhone")}</th>
+                  <th>{t("tablePlan")}</th>
+                  <th>{t("tableStatus")}</th>
+                  <th>{t("tableUsers")}</th>
+                  <th>{t("tableManagers")}</th>
+                  <th>{t("tableTeams")}</th>
+                  <th>{t("tableControl")}</th>
+                </tr>
+              </thead>
               <tbody>
-                {companies.map((company) => (
-                  <tr key={company.id}>
-                    <td>
-                      <strong>{company.company_name}</strong>
-                      <p style={{ margin: "4px 0 0", color: "var(--theme-muted)" }}>{company.industry ?? t("noIndustrySet")}</p>
-                      <Link className="panel-link" href={`/${locale}/admin/companies/${company.id}`}>{t("openHierarchy")}</Link>
-                    </td>
-                    <td>{company.subscription_plan}</td>
-                    <td><span className="admin-status-pill">{company.status}</span></td>
-                    <td>{profileCounts.get(company.id) ?? 0}</td>
-                    <td>{managerCounts.get(company.id) ?? 0}</td>
-                    <td>{teamCounts.get(company.id) ?? 0}</td>
-                    <td>
-                      <div className="admin-control-form">
-                        <form action={updateCompanyStatusAction}>
-                          <input type="hidden" name="companyId" value={company.id} />
-                          <label className="sr-only" htmlFor={`status-${company.id}`}>{t("companyStatusLabel")}</label>
-                          <select id={`status-${company.id}`} name="status" defaultValue={company.status} aria-label={`Update ${company.company_name} status`}>
-                            <option value="active">{t("statusActiveOption")}</option>
-                            <option value="demo">{t("statusDemoOption")}</option>
-                            <option value="inactive">{t("statusInactiveOption")}</option>
-                          </select>
-                          <button className="btn btn-secondary compact" type="submit">{t("saveButton")}</button>
-                        </form>
-                        <AdminCompanyDeleteButton companyId={company.id} companyName={company.company_name} locale={locale} />
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                {companyRows.map((company) => {
+                  const inviteEmail =
+                    company.contact_email ?? adminInviteEmails.get(company.id) ?? adminProfileEmails.get(company.id) ?? t("contactNotSet");
+
+                  return (
+                    <tr key={company.id}>
+                      <td>
+                        <strong>{company.company_name}</strong>
+                        <p style={{ margin: "4px 0 0", color: "var(--theme-muted)" }}>{company.industry ?? t("noIndustrySet")}</p>
+                        <Link className="panel-link" href={`/${locale}/admin/companies/${company.id}`}>{t("openHierarchy")}</Link>
+                      </td>
+                      <td>{inviteEmail}</td>
+                      <td>{company.contact_name ?? t("contactNotSet")}</td>
+                      <td>{company.contact_phone ?? t("contactNotSet")}</td>
+                      <td>{company.subscription_plan}</td>
+                      <td><span className="admin-status-pill">{company.status}</span></td>
+                      <td>{profileCounts.get(company.id) ?? 0}</td>
+                      <td>{managerCounts.get(company.id) ?? 0}</td>
+                      <td>{teamCounts.get(company.id) ?? 0}</td>
+                      <td>
+                        <div className="admin-control-form">
+                          <form action={updateCompanyStatusAction}>
+                            <input type="hidden" name="companyId" value={company.id} />
+                            <label className="sr-only" htmlFor={`status-${company.id}`}>{t("companyStatusLabel")}</label>
+                            <select id={`status-${company.id}`} name="status" defaultValue={company.status ?? "active"} aria-label={`Update ${company.company_name} status`}>
+                              <option value="active">{t("statusActiveOption")}</option>
+                              <option value="demo">{t("statusDemoOption")}</option>
+                              <option value="inactive">{t("statusInactiveOption")}</option>
+                            </select>
+                            <button className="btn btn-secondary compact" type="submit">{t("saveButton")}</button>
+                          </form>
+                          <AdminCompanyDeleteButton
+                            companyId={company.id}
+                            locale={locale}
+                            confirmMessage={t("deleteCompanyConfirm", { companyName: company.company_name })}
+                            deleteLabel={t("deleteCompanyButton")}
+                          />
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           ) : (

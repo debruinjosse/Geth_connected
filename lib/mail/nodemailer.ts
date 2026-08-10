@@ -207,23 +207,26 @@ export async function sendInviteEmail({
   inviteLink,
   companyName,
   roleLabel,
-  expiresAt
+  expiresAt,
+  locale = "en"
 }: {
   to: string;
   inviteLink: string;
   companyName: string;
   roleLabel: string;
   expiresAt: string;
+  locale?: string;
 }) {
   try {
     const config = getSmtpConfig();
+    const mailLocale = locale === "nl" ? "nl" : "en";
     await createSmtpTransport().sendMail({
       from: config.from,
       replyTo: config.replyTo,
       to,
-      subject: getInviteEmailSubject(companyName),
-      text: getInviteEmailText({ recipientEmail: to, inviteLink, companyName, roleLabel, expiresAt }),
-      html: getInviteEmailHtml({ recipientEmail: to, inviteLink, companyName, roleLabel, expiresAt })
+      subject: getInviteEmailSubject(companyName, mailLocale),
+      text: getInviteEmailText({ recipientEmail: to, inviteLink, companyName, roleLabel, expiresAt, locale: mailLocale }),
+      html: getInviteEmailHtml({ recipientEmail: to, inviteLink, companyName, roleLabel, expiresAt, locale: mailLocale })
     });
   } catch (error) {
     throw new InviteEmailError(classifySmtpError(error), "Invitation email could not be sent.", error);

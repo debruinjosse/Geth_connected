@@ -19,6 +19,11 @@
 @media (max-width: 767px) {
   main {
     max-width: 100%;
+  }
+
+  .pageContainer,
+  .section-shell,
+  .page-shell {
     overflow-x: clip;
   }
 
@@ -371,6 +376,10 @@
 }
 
 @media (max-width: 1099px) {
+  :root {
+    --site-header-height: 64px;
+  }
+
   .site-header-inner {
     display: flex !important;
     grid-template-columns: none !important;

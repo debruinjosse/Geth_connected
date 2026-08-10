@@ -4,6 +4,7 @@ type InviteEmailInput = {
   companyName: string;
   roleLabel: string;
   expiresAt: string;
+  locale?: string;
 };
 
 type InvoiceEmailInput = {
@@ -27,8 +28,8 @@ const emailColors = {
   header: "#16091f"
 };
 
-function formatExpiry(value: string) {
-  return new Intl.DateTimeFormat("en", {
+function formatExpiry(value: string, locale = "en") {
+  return new Intl.DateTimeFormat(locale === "nl" ? "nl-NL" : "en", {
     month: "long",
     day: "numeric",
     year: "numeric"
@@ -124,33 +125,59 @@ function emailShell({
   `;
 }
 
-export function getInviteEmailSubject(companyName: string) {
-  return `You're invited to join ${companyName} on GETH®`;
+export function getInviteEmailSubject(companyName: string, locale = "en") {
+  return locale === "nl"
+    ? `Je bent uitgenodigd voor ${companyName} op GETH®`
+    : `You're invited to join ${companyName} on GETH®`;
 }
 
-export function getInviteEmailHtml({ recipientEmail, inviteLink, companyName, roleLabel, expiresAt }: InviteEmailInput) {
-  const expiryLabel = formatExpiry(expiresAt);
+export function getInviteEmailHtml({
+  recipientEmail,
+  inviteLink,
+  companyName,
+  roleLabel,
+  expiresAt,
+  locale = "en"
+}: InviteEmailInput) {
+  const expiryLabel = formatExpiry(expiresAt, locale);
+  const isNl = locale === "nl";
 
   return emailShell({
-    subtitle: "Recognize to energize",
+    subtitle: isNl ? "Erken om te energiseren" : "Recognize to energize",
     bodyHtml: `
-      <p style="margin:0 0 10px;color:#b98325;font-size:12px;font-weight:800;letter-spacing:0.24em;text-transform:uppercase;">Workspace invitation</p>
-      <h1 style="margin:0 0 14px;font-size:34px;line-height:1.05;color:${emailColors.ink};">Join ${companyName} on GETH®</h1>
+      <p style="margin:0 0 10px;color:#b98325;font-size:12px;font-weight:800;letter-spacing:0.24em;text-transform:uppercase;">${isNl ? "Werkplekuitnodiging" : "Workspace invitation"}</p>
+      <h1 style="margin:0 0 14px;font-size:34px;line-height:1.05;color:${emailColors.ink};">${isNl ? `Word lid van ${companyName} op GETH®` : `Join ${companyName} on GETH®`}</h1>
       <p style="margin:0 0 18px;font-size:16px;line-height:1.7;color:${emailColors.muted};">
-        You have been invited as <strong>${roleLabel}</strong> for <strong>${companyName}</strong>.
-        Create your account to claim recognition cards, see team insights, and help build a stronger recognition culture.
+        ${isNl
+          ? `Je bent uitgenodigd als <strong>${roleLabel}</strong> voor <strong>${companyName}</strong>. Maak je account aan om waarderingskaarten te claimen, teaminzichten te zien en een sterkere erkenningscultuur te bouwen.`
+          : `You have been invited as <strong>${roleLabel}</strong> for <strong>${companyName}</strong>. Create your account to claim recognition cards, see team insights, and help build a stronger recognition culture.`}
       </p>
       ${emailAccountCard(recipientEmail)}
-      ${emailPrimaryButton(inviteLink, "Accept invitation")}
-      <p style="margin:18px 0 0;font-size:13px;line-height:1.6;color:${emailColors.muted};">This invitation expires on <strong>${expiryLabel}</strong>.</p>
+      ${emailPrimaryButton(inviteLink, isNl ? "Uitnodiging accepteren" : "Accept invitation")}
+      <p style="margin:18px 0 0;font-size:13px;line-height:1.6;color:${emailColors.muted};">${isNl ? "Deze uitnodiging verloopt op" : "This invitation expires on"} <strong>${expiryLabel}</strong>.</p>
       ${emailFallbackLink(inviteLink)}
     `,
-    footerHtml: "This invitation is private to your email address. If you were not expecting it, you can ignore this message."
+    footerHtml: isNl
+      ? "Deze uitnodiging is privé voor je e-mailadres. Als je deze niet verwachtte, kun je dit bericht negeren."
+      : "This invitation is private to your email address. If you were not expecting it, you can ignore this message."
   });
 }
 
-export function getInviteEmailText({ recipientEmail, inviteLink, companyName, roleLabel, expiresAt }: InviteEmailInput) {
-  return `Join ${companyName} on GETH® as ${roleLabel}.\n\nThis invitation was sent to ${recipientEmail} and expires on ${formatExpiry(expiresAt)}.\n\nAccept your invitation:\n${inviteLink}\n\nIf you were not expecting this invitation, you can ignore this message.`;
+export function getInviteEmailText({
+  recipientEmail,
+  inviteLink,
+  companyName,
+  roleLabel,
+  expiresAt,
+  locale = "en"
+}: InviteEmailInput) {
+  const expiryLabel = formatExpiry(expiresAt, locale);
+
+  if (locale === "nl") {
+    return `Word lid van ${companyName} op GETH® als ${roleLabel}.\n\nDeze uitnodiging werd verstuurd naar ${recipientEmail} en verloopt op ${expiryLabel}.\n\nAccepteer je uitnodiging:\n${inviteLink}\n\nAls je deze uitnodiging niet verwachtte, kun je dit bericht negeren.`;
+  }
+
+  return `Join ${companyName} on GETH® as ${roleLabel}.\n\nThis invitation was sent to ${recipientEmail} and expires on ${expiryLabel}.\n\nAccept your invitation:\n${inviteLink}\n\nIf you were not expecting this invitation, you can ignore this message.`;
 }
 
 export function getInvoiceEmailSubject(invoiceNumber: string) {

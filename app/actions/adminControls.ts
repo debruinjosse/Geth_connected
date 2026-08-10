@@ -2,8 +2,10 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { findAuthUserIdByEmail } from "@/lib/auth/find-auth-user-by-email";
 import { sendInviteEmail } from "@/lib/mail/nodemailer";
 import { createPlatformAdminNotifications } from "@/lib/notifications";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 async function requirePlatformAdmin() {
@@ -98,8 +100,76 @@ function getInviteBaseUrl() {
   return process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") || "http://localhost:3000";
 }
 
-function getRoleLabel(role: string) {
-  return role.replace("_", " ");
+function getLocalizedRoleLabel(role: string, locale: string) {
+  const labels: Record<string, Record<string, string>> = {
+    en: {
+      company_admin: "company admin",
+      manager: "manager",
+      employee: "employee"
+    },
+    nl: {
+      company_admin: "bedrijfsbeheerder",
+      manager: "manager",
+      employee: "medewerker"
+    }
+  };
+
+  return labels[locale]?.[role] ?? role.replace("_", " ");
+}
+
+async function deleteAuthUsersForCompany(
+  supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>,
+  companyId: string
+) {
+  const admin = createSupabaseAdminClient();
+  const userIdsToDelete = new Set<string>();
+
+  const { data: profiles } = await supabase
+    .from("profiles")
+    .select("id")
+    .eq("company_id", companyId);
+
+  for (const profile of profiles ?? []) {
+    if (profile.id) {
+      userIdsToDelete.add(profile.id);
+    }
+  }
+
+  const { data: invitations } = await supabase.from("invitations").select("email").eq("company_id", companyId);
+  const inviteEmails = [...new Set((invitations ?? []).map((invite) => invite.email.trim().toLowerCase()).filter(Boolean))];
+
+  for (const email of inviteEmails) {
+    try {
+      const authUserId = await findAuthUserIdByEmail(admin, email);
+      if (!authUserId) {
+        continue;
+      }
+
+      const { data: profile } = await admin
+        .from("profiles")
+        .select("company_id")
+        .eq("id", authUserId)
+        .maybeSingle<{ company_id: string | null }>();
+
+      if (!profile || profile.company_id === companyId) {
+        userIdsToDelete.add(authUserId);
+      }
+    } catch (error) {
+      console.error("[deleteCompanyAction] failed to resolve auth user for invite email", email, error);
+    }
+  }
+
+  const errors: string[] = [];
+
+  for (const userId of userIdsToDelete) {
+    const { error } = await admin.auth.admin.deleteUser(userId);
+    if (error) {
+      errors.push(error.message);
+      console.error("[deleteCompanyAction] auth user delete failed", userId, error);
+    }
+  }
+
+  return errors;
 }
 
 function getActionLocale(formData: FormData) {
@@ -120,6 +190,8 @@ export async function createCompanyWorkspaceAction(formData: FormData) {
   const companyAdminEmail = normalizeEmail(formData.get("companyAdminEmail"));
   const managerEmail = normalizeEmail(formData.get("managerEmail"));
   const teamName = String(formData.get("teamName") ?? "").trim();
+  const contactName = String(formData.get("contactName") ?? "").trim() || null;
+  const contactPhone = String(formData.get("contactPhone") ?? "").trim() || null;
   const locale = getActionLocale(formData);
 
   if (!companyName || !companyAdminEmail) {
@@ -134,7 +206,10 @@ export async function createCompanyWorkspaceAction(formData: FormData) {
       slug,
       industry,
       subscription_plan: subscriptionPlan,
-      status: "active"
+      status: "active",
+      contact_name: contactName,
+      contact_phone: contactPhone,
+      contact_email: companyAdminEmail
     })
     .select("id")
     .single<{ id: string }>();
@@ -159,7 +234,7 @@ export async function createCompanyWorkspaceAction(formData: FormData) {
     }
   }
 
-  await createInvite({
+  const companyAdminInvitation = await createInvite({
     supabase: auth.supabase,
     companyId: company.id,
     teamId: null,
@@ -168,8 +243,25 @@ export async function createCompanyWorkspaceAction(formData: FormData) {
     invitedBy: auth.user.id
   });
 
+  if (companyAdminInvitation) {
+    try {
+      await sendInviteEmail({
+        to: companyAdminEmail,
+        inviteLink: `${getInviteBaseUrl()}/${locale}/invite/${companyAdminInvitation.token}`,
+        companyName: companyName,
+        roleLabel: getLocalizedRoleLabel("company_admin", locale),
+        expiresAt: companyAdminInvitation.expires_at,
+        locale
+      });
+    } catch (error) {
+      console.error("[createCompanyWorkspaceAction] company admin invite email failed", error);
+      revalidatePath("/admin/companies");
+      redirect(`/${locale}/admin/companies/${company.id}?created=1&invite=created-email-failed`);
+    }
+  }
+
   if (managerEmail) {
-    await createInvite({
+    const managerInvitation = await createInvite({
       supabase: auth.supabase,
       companyId: company.id,
       teamId: managerTeamId,
@@ -177,6 +269,23 @@ export async function createCompanyWorkspaceAction(formData: FormData) {
       role: "manager",
       invitedBy: auth.user.id
     });
+
+    if (managerInvitation) {
+      try {
+        await sendInviteEmail({
+          to: managerEmail,
+          inviteLink: `${getInviteBaseUrl()}/${locale}/invite/${managerInvitation.token}`,
+          companyName: companyName,
+          roleLabel: getLocalizedRoleLabel("manager", locale),
+          expiresAt: managerInvitation.expires_at,
+          locale
+        });
+      } catch (error) {
+        console.error("[createCompanyWorkspaceAction] manager invite email failed", error);
+        revalidatePath("/admin/companies");
+        redirect(`/${locale}/admin/companies/${company.id}?created=1&invite=created-email-failed`);
+      }
+    }
   }
 
   await createPlatformAdminNotifications(auth.supabase, {
@@ -228,15 +337,80 @@ export async function deleteCompanyAction(formData: FormData) {
     return;
   }
 
+  const authDeleteErrors = await deleteAuthUsersForCompany(auth.supabase, companyId);
   const { error } = await auth.supabase.from("companies").delete().eq("id", companyId);
 
-  if (error) {
-    return;
+  if (error || authDeleteErrors.length) {
+    console.error("[deleteCompanyAction] company delete failed", error, authDeleteErrors);
+    redirect(`/${locale}/admin/companies?delete=failed`);
   }
 
   revalidatePath("/admin");
   revalidatePath("/admin/companies");
-  redirect(`/${locale}/admin/companies`);
+  redirect(`/${locale}/admin/companies?delete=success`);
+}
+
+export async function updateCompanyContactAction(formData: FormData) {
+  const companyId = String(formData.get("companyId") ?? "").trim();
+  const contactName = String(formData.get("contactName") ?? "").trim() || null;
+  const contactPhone = String(formData.get("contactPhone") ?? "").trim() || null;
+  const contactEmail = normalizeEmail(formData.get("contactEmail"));
+  const locale = getActionLocale(formData);
+  const returnTo = String(formData.get("returnTo") ?? `/${locale}/admin/companies/${companyId}`);
+
+  if (!companyId) {
+    return;
+  }
+
+  const auth = await requirePlatformAdmin();
+  if (!auth.ok) {
+    redirect(`${returnTo}?contact=unauthorized`);
+  }
+
+  const { error } = await auth.supabase
+    .from("companies")
+    .update({
+      contact_name: contactName,
+      contact_phone: contactPhone,
+      contact_email: contactEmail || null
+    })
+    .eq("id", companyId);
+
+  if (error) {
+    console.error("[updateCompanyContactAction] update failed", error);
+    redirect(`${returnTo}?contact=failed`);
+  }
+
+  revalidatePath("/admin/companies");
+  revalidatePath(`/admin/companies/${companyId}`);
+  redirect(`${returnTo}?contact=updated`);
+}
+
+export async function deleteCompanyTeamAction(formData: FormData) {
+  const teamId = String(formData.get("teamId") ?? "").trim();
+  const companyId = String(formData.get("companyId") ?? "").trim();
+  const locale = getActionLocale(formData);
+  const returnTo = String(formData.get("returnTo") ?? `/${locale}/admin/companies/${companyId}`);
+
+  if (!teamId || !companyId) {
+    return;
+  }
+
+  const auth = await requirePlatformAdmin();
+  if (!auth.ok) {
+    redirect(`${returnTo}?team=unauthorized`);
+  }
+
+  const { error } = await auth.supabase.from("teams").delete().eq("id", teamId).eq("company_id", companyId);
+
+  if (error) {
+    console.error("[deleteCompanyTeamAction] delete failed", error);
+    redirect(`${returnTo}?team=failed`);
+  }
+
+  revalidatePath("/admin/companies");
+  revalidatePath(`/admin/companies/${companyId}`);
+  redirect(`${returnTo}?team=deleted`);
 }
 
 export async function createCompanyInviteFromAdminAction(formData: FormData) {
@@ -276,8 +450,9 @@ export async function createCompanyInviteFromAdminAction(formData: FormData) {
         to: email,
         inviteLink: `${getInviteBaseUrl()}/${locale}/invite/${invitation.token}`,
         companyName: company?.company_name ?? "this company",
-        roleLabel: getRoleLabel(role),
-        expiresAt: invitation.expires_at
+        roleLabel: getLocalizedRoleLabel(role, locale),
+        expiresAt: invitation.expires_at,
+        locale
       });
     } catch {
       revalidatePath("/admin/companies");
