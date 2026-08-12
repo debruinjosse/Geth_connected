@@ -9,7 +9,7 @@ export type ColleagueOption = {
   imageUrl?: string | null;
 };
 
-const COLLEAGUE_ROLES = ["employee", "manager", "company_admin"] as const;
+const COLLEAGUE_ROLES = ["employee"] as const;
 
 function getInitials(firstName: string, lastName: string) {
   return `${firstName[0] ?? ""}${lastName[0] ?? ""}`.toUpperCase() || "GC";

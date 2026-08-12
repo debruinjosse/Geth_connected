@@ -28,7 +28,7 @@ const IMAGE_DECODE_SCALES = [1, 1.35, 0.75, 1.75, 2];
 const DECODE_ROTATIONS = [0, 90, 180, 270];
 const VALID_LOCALES = new Set(["nl", "en"]);
 const SLUG_PATTERN = /^[a-z0-9][a-z0-9-]{1,80}$/i;
-const CAMERA_CONSTRAINTS: MediaStreamConstraints[] = [
+const MOBILE_CAMERA_CONSTRAINTS: MediaStreamConstraints[] = [
   {
     video: {
       facingMode: { exact: "environment" },
@@ -50,6 +50,41 @@ const CAMERA_CONSTRAINTS: MediaStreamConstraints[] = [
     audio: false
   }
 ];
+
+const DESKTOP_CAMERA_CONSTRAINTS: MediaStreamConstraints[] = [
+  {
+    video: {
+      facingMode: { ideal: "user" },
+      height: { ideal: 720 },
+      width: { ideal: 1280 }
+    },
+    audio: false
+  },
+  {
+    video: {
+      height: { ideal: 720 },
+      width: { ideal: 1280 }
+    },
+    audio: false
+  },
+  {
+    video: true,
+    audio: false
+  }
+];
+
+const VIDEO_READY_TIMEOUT_MS = 10000;
+
+function isLikelyMobileDevice() {
+  if (typeof navigator === "undefined") return false;
+
+  const ua = navigator.userAgent || "";
+  return /Android|iPhone|iPad|iPod|Mobile/i.test(ua);
+}
+
+function getCameraConstraints() {
+  return isLikelyMobileDevice() ? MOBILE_CAMERA_CONSTRAINTS : DESKTOP_CAMERA_CONSTRAINTS;
+}
 
 function getSlugCandidate(value: string | null | undefined) {
   let decoded = value ?? "";
@@ -225,7 +260,7 @@ export function QrScanClient() {
 
     let lastError: unknown = null;
 
-    for (const constraints of CAMERA_CONSTRAINTS) {
+    for (const constraints of getCameraConstraints()) {
       try {
         return await navigator.mediaDevices.getUserMedia(constraints);
       } catch (error) {
@@ -245,7 +280,7 @@ export function QrScanClient() {
       const timeout = window.setTimeout(() => {
         cleanup();
         reject(new Error("video_timeout"));
-      }, 5000);
+      }, VIDEO_READY_TIMEOUT_MS);
 
       const cleanup = () => {
         window.clearTimeout(timeout);

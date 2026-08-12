@@ -18,7 +18,7 @@ export type DashboardRole = "employee" | "manager" | "company" | "admin";
 export type DashboardNavItem = {
   labelKey: string;
   href: string;
-  icon: LucideIcon | "brand-mark" | "vertical-card" | "calendar" | "geth-bird";
+  icon: LucideIcon | "brand-mark" | "vertical-card" | "calendar" | "geth-bird" | "profile-avatar";
 };
 
 export const dashboardNavByRole: Record<DashboardRole, DashboardNavItem[]> = {
@@ -26,7 +26,8 @@ export const dashboardNavByRole: Record<DashboardRole, DashboardNavItem[]> = {
     { labelKey: "navHome", href: "/employee", icon: Home },
     { labelKey: "navScanCard", href: "/employee/scan", icon: QrCode },
     { labelKey: "navMyCards", href: "/employee/cards", icon: "vertical-card" },
-    { labelKey: "navMessages", href: "/employee/messages", icon: "geth-bird" }
+    { labelKey: "navMessages", href: "/employee/messages", icon: "geth-bird" },
+    { labelKey: "navProfile", href: "/employee/profile", icon: "profile-avatar" }
   ],
   manager: [
     { labelKey: "navOverview", href: "/manager", icon: Home },

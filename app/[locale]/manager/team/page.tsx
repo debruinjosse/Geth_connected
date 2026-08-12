@@ -71,6 +71,17 @@ export default async function ManagerTeamPage({
 
   const unreadNotifications = await getUnreadNotificationCount(supabase, user.id);
 
+  const { data: sentNotes } = await supabase
+    .from("manager_notes")
+    .select("id, body, created_at, recipient:profiles!manager_notes_recipient_user_id_fkey(first_name, last_name)")
+    .eq("manager_user_id", user.id)
+    .order("created_at", { ascending: false })
+    .limit(20);
+
+  const dateLocale = locale === "nl" ? "nl-NL" : "en";
+  const formatNoteDate = (value: string) =>
+    new Intl.DateTimeFormat(dateLocale, { dateStyle: "medium", timeStyle: "short" }).format(new Date(value));
+
   return (
     <DashboardShell
       role="manager"
@@ -123,6 +134,31 @@ export default async function ManagerTeamPage({
               {tp("sendNote")}
             </button>
           </form>
+          <div className="manager-notes-history">
+            <h3>{tp("sentNotesTitle")}</h3>
+            <p className="section-copy">{tp("sentNotesCopy")}</p>
+            {sentNotes?.length ? (
+              <div className="signal-list">
+                {sentNotes.map((note) => {
+                  const recipient = Array.isArray(note.recipient) ? note.recipient[0] : note.recipient;
+                  const recipientName =
+                    `${recipient?.first_name ?? ""} ${recipient?.last_name ?? ""}`.trim() || tp("employee");
+
+                  return (
+                    <div className="signal-card" key={note.id}>
+                      <div>
+                        <strong>{recipientName}</strong>
+                        <p>{note.body}</p>
+                      </div>
+                      <span className="quality-pill">{formatNoteDate(note.created_at)}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <EmptyState title={tp("sentNotesEmptyTitle")} copy={tp("sentNotesEmptyCopy")} />
+            )}
+          </div>
         </article>
       ) : null}
     </DashboardShell>

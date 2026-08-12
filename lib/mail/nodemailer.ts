@@ -1,5 +1,8 @@
 import nodemailer from "nodemailer";
 import {
+  getCompanyAdminWelcomeEmailHtml,
+  getCompanyAdminWelcomeEmailSubject,
+  getCompanyAdminWelcomeEmailText,
   getInviteEmailHtml,
   getInviteEmailSubject,
   getInviteEmailText,
@@ -233,6 +236,35 @@ export async function sendInviteEmail({
   }
 }
 
+export async function sendCompanyAdminWelcomeEmail({
+  to,
+  inviteLink,
+  companyName,
+  expiresAt,
+  locale = "en"
+}: {
+  to: string;
+  inviteLink: string;
+  companyName: string;
+  expiresAt: string;
+  locale?: string;
+}) {
+  try {
+    const config = getSmtpConfig();
+    const mailLocale = locale === "nl" ? "nl" : "en";
+    await createSmtpTransport().sendMail({
+      from: config.from,
+      replyTo: config.replyTo,
+      to,
+      subject: getCompanyAdminWelcomeEmailSubject(mailLocale),
+      text: getCompanyAdminWelcomeEmailText({ recipientEmail: to, inviteLink, companyName, expiresAt, locale: mailLocale }),
+      html: getCompanyAdminWelcomeEmailHtml({ recipientEmail: to, inviteLink, companyName, expiresAt, locale: mailLocale })
+    });
+  } catch (error) {
+    throw new InviteEmailError(classifySmtpError(error), "Company admin welcome email could not be sent.", error);
+  }
+}
+
 export async function sendInvoiceEmail({
   to,
   companyName,
@@ -252,10 +284,12 @@ export async function sendInvoiceEmail({
 }) {
   try {
     const config = getSmtpConfig();
+    const invoiceBcc = process.env.GETH_INVOICE_BCC?.trim() || "info@geth.pro";
     await createSmtpTransport().sendMail({
       from: config.from,
       replyTo: config.replyTo,
       to,
+      bcc: invoiceBcc,
       subject: getInvoiceEmailSubject(invoiceNumber),
       text: getInvoiceEmailText({ companyName, invoiceNumber, totalLabel, dueDate, invoiceUrl }),
       html: getInvoiceEmailHtml({ companyName, invoiceNumber, totalLabel, dueDate, invoiceUrl }),

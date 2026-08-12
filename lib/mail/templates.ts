@@ -180,6 +180,101 @@ export function getInviteEmailText({
   return `Join ${companyName} on GETH® as ${roleLabel}.\n\nThis invitation was sent to ${recipientEmail} and expires on ${expiryLabel}.\n\nAccept your invitation:\n${inviteLink}\n\nIf you were not expecting this invitation, you can ignore this message.`;
 }
 
+type CompanyAdminWelcomeEmailInput = {
+  recipientEmail: string;
+  inviteLink: string;
+  companyName: string;
+  expiresAt: string;
+  locale?: string;
+};
+
+function companyAdminBulletList(isNl: boolean) {
+  const items = isNl
+    ? [
+        "Managers en medewerkers uitnodigen",
+        "Teams aanmaken",
+        "Je organisatie beheren",
+        "Je erkenningscultuur volgen via betekenisvolle inzichten",
+        "Een werkplek bouwen waar mensen zich gezien en gewaardeerd voelen"
+      ]
+    : [
+        "Invite managers and employees",
+        "Create teams",
+        "Manage your organisation",
+        "Monitor your recognition culture through meaningful insights",
+        "Help build a workplace where people feel seen and appreciated"
+      ];
+
+  return `<ul style="margin:0 0 18px;padding-left:22px;font-size:16px;line-height:1.7;color:${emailColors.muted};">${items.map((item) => `<li style="margin-bottom:8px;">${item}</li>`).join("")}</ul>`;
+}
+
+export function getCompanyAdminWelcomeEmailSubject(locale = "en") {
+  return locale === "nl"
+    ? "Welkom bij GETH® – Je bedrijfsomgeving is klaar"
+    : "Welcome to GETH® – Your company workspace is ready";
+}
+
+export function getCompanyAdminWelcomeEmailHtml({
+  recipientEmail,
+  inviteLink,
+  companyName,
+  expiresAt,
+  locale = "en"
+}: CompanyAdminWelcomeEmailInput) {
+  const expiryLabel = formatExpiry(expiresAt, locale);
+  const isNl = locale === "nl";
+
+  return emailShell({
+    subtitle: isNl ? "Erken om te energiseren" : "Recognize to energize",
+    bodyHtml: `
+      <p style="margin:0 0 10px;color:#b98325;font-size:12px;font-weight:800;letter-spacing:0.24em;text-transform:uppercase;">${isNl ? "Bedrijfsbeheerder" : "Company administrator"}</p>
+      <h1 style="margin:0 0 14px;font-size:34px;line-height:1.05;color:${emailColors.ink};">${isNl ? "Welkom bij GETH® – Je bedrijfsomgeving is klaar" : "Welcome to GETH® – Your company workspace is ready"}</h1>
+      <p style="margin:0 0 18px;font-size:16px;line-height:1.7;color:${emailColors.muted};">
+        ${isNl ? "Welkom bij GETH®." : "Welcome to GETH®."}
+      </p>
+      <p style="margin:0 0 18px;font-size:16px;line-height:1.7;color:${emailColors.muted};">
+        ${isNl
+          ? `Er is een privé GETH®-bedrijfsomgeving aangemaakt voor <strong>${companyName}</strong>, en jij bent aangewezen als bedrijfsbeheerder.`
+          : `A private GETH® Company Workspace has been created for <strong>${companyName}</strong>, and you have been assigned as the Company Administrator.`}
+      </p>
+      <p style="margin:0 0 10px;font-size:16px;line-height:1.7;color:${emailColors.ink};font-weight:700;">
+        ${isNl ? "Als bedrijfsbeheerder kun je:" : "As Company Admin, you can:"}
+      </p>
+      ${companyAdminBulletList(isNl)}
+      <p style="margin:0 0 22px;font-size:16px;line-height:1.7;color:${emailColors.muted};">
+        ${isNl ? "Aan de slag gaan duurt maar een minuut." : "Getting started only takes a minute."}
+      </p>
+      ${emailAccountCard(recipientEmail)}
+      ${emailPrimaryButton(inviteLink, isNl ? "Activeer je GETH®-bedrijfsomgeving" : "Activate your GETH® Company Workspace")}
+      <p style="margin:18px 0 0;font-size:13px;line-height:1.6;color:${emailColors.muted};">${isNl ? "Deze uitnodiging verloopt op" : "This invitation expires on"} <strong>${expiryLabel}</strong>.</p>
+      <p style="margin:18px 0 0;font-size:14px;line-height:1.6;color:${emailColors.muted};">
+        ${isNl ? "Heb je vragen? We helpen je graag." : "If you have any questions, we're here to help."}
+      </p>
+      <p style="margin:18px 0 0;font-size:16px;line-height:1.7;color:${emailColors.ink};font-weight:700;">${isNl ? "Welkom bij GETH®." : "Welcome to GETH®."}</p>
+      ${emailFallbackLink(inviteLink)}
+    `,
+    footerHtml: isNl
+      ? "Deze uitnodiging is privé voor je e-mailadres. Als je deze niet verwachtte, kun je dit bericht negeren."
+      : "This invitation is private to your email address. If you were not expecting it, you can ignore this message."
+  });
+}
+
+export function getCompanyAdminWelcomeEmailText({
+  recipientEmail,
+  inviteLink,
+  companyName,
+  expiresAt,
+  locale = "en"
+}: CompanyAdminWelcomeEmailInput) {
+  const expiryLabel = formatExpiry(expiresAt, locale);
+
+  if (locale === "nl") {
+    return `Welkom bij GETH® – Je bedrijfsomgeving is klaar\n\nWelkom bij GETH®.\n\nEr is een privé GETH®-bedrijfsomgeving aangemaakt voor ${companyName}, en jij bent aangewezen als bedrijfsbeheerder.\n\nAls bedrijfsbeheerder kun je:\n- Managers en medewerkers uitnodigen\n- Teams aanmaken\n- Je organisatie beheren\n- Je erkenningscultuur volgen via betekenisvolle inzichten\n- Een werkplek bouwen waar mensen zich gezien en gewaardeerd voelen\n\nAan de slag gaan duurt maar een minuut.\n\nDeze uitnodiging werd verstuurd naar ${recipientEmail} en verloopt op ${expiryLabel}.\n\nActiveer je GETH®-bedrijfsomgeving:\n${inviteLink}\n\nHeb je vragen? We helpen je graag.\n\nWelkom bij GETH®.`;
+  }
+
+  return `Welcome to GETH® – Your company workspace is ready\n\nWelcome to GETH®.\n\nA private GETH® Company Workspace has been created for ${companyName}, and you have been assigned as the Company Administrator.\n\nAs Company Admin, you can:\n- Invite managers and employees\n- Create teams\n- Manage your organisation\n- Monitor your recognition culture through meaningful insights\n- Help build a workplace where people feel seen and appreciated\n\nGetting started only takes a minute.\n\nThis invitation was sent to ${recipientEmail} and expires on ${expiryLabel}.\n\nActivate your GETH® Company Workspace:\n${inviteLink}\n\nIf you have any questions, we're here to help.\n\nWelcome to GETH®.`;
+}
+
 export function getInvoiceEmailSubject(invoiceNumber: string) {
   return `GETH® invoice ${invoiceNumber}`;
 }

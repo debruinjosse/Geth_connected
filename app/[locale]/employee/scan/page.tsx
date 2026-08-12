@@ -3,6 +3,7 @@ import { getTranslations } from "next-intl/server";
 import { redirect } from "next/navigation";
 import { QrScanClientLazy } from "@/components/QrScanClientLazy";
 import { DashboardShell } from "@/components/DashboardShell";
+import { EmptyState } from "@/components/EmptyState";
 import { getUnreadNotificationCount } from "@/lib/notifications";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -28,9 +29,15 @@ export default async function EmployeeScanPage({ params }: EmployeeScanPageProps
 
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
-    .select("first_name, last_name, team_id, profile_image")
+    .select("first_name, last_name, team_id, profile_image, role")
     .eq("id", user.id)
-    .maybeSingle<{ first_name: string | null; last_name: string | null; team_id: string | null; profile_image: string | null }>();
+    .maybeSingle<{
+      first_name: string | null;
+      last_name: string | null;
+      team_id: string | null;
+      profile_image: string | null;
+      role: string;
+    }>();
 
   if (profileError || !profile) redirect("/auth/repair-profile");
 
@@ -54,12 +61,18 @@ export default async function EmployeeScanPage({ params }: EmployeeScanPageProps
       }}
       unreadNotifications={unreadNotifications}
     >
-      <div className="button-row dashboard-action-row">
-        <Link className="btn btn-secondary" href={`/${locale}/cards`}>
-          {tc("openCardLibrary")}
-        </Link>
-      </div>
-      <QrScanClientLazy />
+      {profile.role !== "employee" ? (
+        <EmptyState title={t("scanEmployeesOnlyTitle")} copy={t("scanEmployeesOnlyCopy")} />
+      ) : (
+        <>
+          <div className="button-row dashboard-action-row">
+            <Link className="btn btn-secondary" href={`/${locale}/cards`}>
+              {tc("openCardLibrary")}
+            </Link>
+          </div>
+          <QrScanClientLazy />
+        </>
+      )}
     </DashboardShell>
   );
 }

@@ -7,10 +7,9 @@ import {
   createInvoiceNumber,
   createInvoicePdf,
   formatMoney,
-  getInvoiceConfig,
-  getMissingInvoiceConfig,
   toDateOnly
 } from "@/lib/billing/eu-invoice";
+import { getInvoiceConfig, getMissingInvoiceConfig } from "@/lib/billing/platform-settings";
 import { sendInvoiceEmail } from "@/lib/mail/nodemailer";
 import { createPlatformAdminNotifications } from "@/lib/notifications";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
@@ -216,7 +215,8 @@ export async function requestInvoicePaymentAction(formData: FormData) {
     redirect(`${returnUrl}?billing=invalid_invoice_inputs`);
   }
 
-  const missingInvoiceConfig = getMissingInvoiceConfig();
+  const adminSupabase = createSupabaseAdminClient();
+  const missingInvoiceConfig = await getMissingInvoiceConfig(adminSupabase);
   if (missingInvoiceConfig.length) {
     redirect(`${returnUrl}?billing=invoice_config_missing`);
   }
@@ -251,9 +251,8 @@ export async function requestInvoicePaymentAction(formData: FormData) {
   }
 
   const contactEmail = billingEmail || context.adminEmail;
-  const adminSupabase = createSupabaseAdminClient();
   const now = new Date().toISOString();
-  const invoiceConfig = getInvoiceConfig();
+  const invoiceConfig = await getInvoiceConfig(adminSupabase);
   const issueDate = new Date();
   const dueDate = addDays(issueDate, invoiceConfig.paymentTermsDays);
   const subtotalCents = calculateInvoiceSubtotalCents({
@@ -512,4 +511,82 @@ export async function openBillingPortalAction() {
   });
 
   redirect(session.url);
+}
+
+async function requirePlatformAdminForBilling() {
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+    error: userError
+  } = await supabase.auth.getUser();
+
+  if (userError || !user) {
+    redirect("/login");
+  }
+
+  const { data: profile, error: profileError } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .maybeSingle<{ role: string }>();
+
+  if (profileError || !profile || !["platform_admin", "super_admin"].includes(profile.role)) {
+    redirect("/auth/repair-profile");
+  }
+
+  return { supabase, user };
+}
+
+export async function updatePlatformBillingSettingsAction(formData: FormData) {
+  const locale = String(formData.get("locale") ?? "en").trim() || "en";
+  const returnTo = `/${locale}/admin/settings`;
+  const { user } = await requirePlatformAdminForBilling();
+  const adminSupabase = createSupabaseAdminClient();
+
+  const sellerLegalName = String(formData.get("sellerLegalName") ?? "").trim();
+  const sellerVatNumber = String(formData.get("sellerVatNumber") ?? "").trim();
+  const sellerBillingAddress = String(formData.get("sellerBillingAddress") ?? "").trim();
+  const sellerEmail = String(formData.get("sellerEmail") ?? "").trim();
+  const paymentIban = String(formData.get("paymentIban") ?? "").trim();
+  const paymentBic = String(formData.get("paymentBic") ?? "").trim();
+  const paymentBankName = String(formData.get("paymentBankName") ?? "").trim();
+  const paymentReferencePrefix = String(formData.get("paymentReferencePrefix") ?? "GETH").trim() || "GETH";
+  const paymentTerms = String(formData.get("paymentTerms") ?? "").trim();
+  const paymentTermsDays = Number.parseInt(String(formData.get("paymentTermsDays") ?? "14"), 10);
+  const vatRatePercent = Number.parseFloat(String(formData.get("vatRatePercent") ?? "21").replace(",", "."));
+
+  if (!sellerLegalName || !sellerBillingAddress || !sellerEmail || !paymentIban) {
+    redirect(`${returnTo}?settings=billing-missing-required`);
+  }
+
+  const payload = {
+    seller_legal_name: sellerLegalName,
+    seller_vat_number: sellerVatNumber || null,
+    seller_billing_address: sellerBillingAddress,
+    seller_email: sellerEmail,
+    payment_iban: paymentIban,
+    payment_bic: paymentBic || null,
+    payment_bank_name: paymentBankName || null,
+    payment_reference_prefix: paymentReferencePrefix,
+    payment_terms: paymentTerms || `Payment due within ${paymentTermsDays} days by bank transfer.`,
+    payment_terms_days: Number.isFinite(paymentTermsDays) && paymentTermsDays > 0 ? paymentTermsDays : 14,
+    vat_rate_percent: Number.isFinite(vatRatePercent) && vatRatePercent >= 0 ? vatRatePercent : 21,
+    updated_by: user.id
+  };
+
+  const { data: existing } = await adminSupabase.from("platform_billing_settings").select("id").limit(1).maybeSingle<{ id: string }>();
+
+  if (existing?.id) {
+    const { error } = await adminSupabase.from("platform_billing_settings").update(payload).eq("id", existing.id);
+    if (error) {
+      redirect(`${returnTo}?settings=billing-save-failed`);
+    }
+  } else {
+    const { error } = await adminSupabase.from("platform_billing_settings").insert(payload);
+    if (error) {
+      redirect(`${returnTo}?settings=billing-save-failed`);
+    }
+  }
+
+  redirect(`${returnTo}?settings=billing-saved`);
 }

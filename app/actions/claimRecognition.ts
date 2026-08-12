@@ -42,12 +42,42 @@ export async function claimRecognition(input: {
 
     const { data: receiverProfile, error: receiverProfileError } = await supabase
       .from("profiles")
-      .select("id, company_id, team_id")
+      .select("id, company_id, team_id, role")
       .eq("id", user.id)
-      .maybeSingle<{ id: string; company_id: string | null; team_id: string | null }>();
+      .maybeSingle<{ id: string; company_id: string | null; team_id: string | null; role: string }>();
 
     if (receiverProfileError || !receiverProfile?.company_id) {
       return { ok: false as const, error: "Your profile is missing company information.", code: "PROFILE_MISSING" as const };
+    }
+
+    if (receiverProfile.role !== "employee") {
+      return {
+        ok: false as const,
+        error: "Only employees can claim recognition cards.",
+        code: "EMPLOYEE_ONLY" as const
+      };
+    }
+
+    if (input.giverUserId) {
+      const { data: giverProfile, error: giverError } = await supabase
+        .from("profiles")
+        .select("id, role, company_id, status")
+        .eq("id", input.giverUserId)
+        .maybeSingle<{ id: string; role: string; company_id: string | null; status: string }>();
+
+      if (
+        giverError ||
+        !giverProfile ||
+        giverProfile.role !== "employee" ||
+        giverProfile.status !== "active" ||
+        giverProfile.company_id !== receiverProfile.company_id
+      ) {
+        return {
+          ok: false as const,
+          error: "Choose an active employee from your company as the giver.",
+          code: "GIVER_NOT_FOUND" as const
+        };
+      }
     }
 
     const { data: cardRecord, error: cardError } = await supabase
@@ -175,12 +205,27 @@ export async function giveRecognition(input: {
 
     const { data: giverProfile, error: giverProfileError } = await supabase
       .from("profiles")
-      .select("id, company_id, first_name, last_name, email")
+      .select("id, company_id, first_name, last_name, email, role")
       .eq("id", user.id)
-      .maybeSingle<{ id: string; company_id: string | null; first_name: string | null; last_name: string | null; email: string | null }>();
+      .maybeSingle<{
+        id: string;
+        company_id: string | null;
+        first_name: string | null;
+        last_name: string | null;
+        email: string | null;
+        role: string;
+      }>();
 
     if (giverProfileError || !giverProfile?.company_id) {
       return { ok: false as const, error: "Your profile is missing company information.", code: "PROFILE_MISSING" as const };
+    }
+
+    if (giverProfile.role !== "employee") {
+      return {
+        ok: false as const,
+        error: "Only employees can give recognition cards.",
+        code: "EMPLOYEE_ONLY" as const
+      };
     }
 
     if (receiverUserId === user.id) {
@@ -189,14 +234,23 @@ export async function giveRecognition(input: {
 
     const { data: receiverProfile, error: receiverProfileError } = await supabase
       .from("profiles")
-      .select("id, company_id, team_id, first_name, last_name, email")
+      .select("id, company_id, team_id, first_name, last_name, email, role")
       .eq("id", receiverUserId)
       .eq("company_id", giverProfile.company_id)
       .eq("status", "active")
-      .maybeSingle<{ id: string; company_id: string | null; team_id: string | null; first_name: string | null; last_name: string | null; email: string | null }>();
+      .eq("role", "employee")
+      .maybeSingle<{
+        id: string;
+        company_id: string | null;
+        team_id: string | null;
+        first_name: string | null;
+        last_name: string | null;
+        email: string | null;
+        role: string;
+      }>();
 
     if (receiverProfileError || !receiverProfile) {
-      return { ok: false as const, error: "We could not find that teammate in your company.", code: "RECEIVER_NOT_FOUND" as const };
+      return { ok: false as const, error: "We could not find that employee in your company.", code: "RECEIVER_NOT_FOUND" as const };
     }
 
     const { data: cardRecord, error: cardError } = await supabase

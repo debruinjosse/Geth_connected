@@ -73,6 +73,18 @@ export async function sendManagerNoteAction(formData: FormData) {
 
   const managerName = `${managerProfile.first_name ?? ""} ${managerProfile.last_name ?? ""}`.trim() || "Your manager";
 
+  const { error: noteError } = await supabase.from("manager_notes").insert({
+    company_id: managerProfile.company_id,
+    manager_user_id: user.id,
+    recipient_user_id: recipient.id,
+    body: body.slice(0, 500)
+  });
+
+  if (noteError) {
+    console.warn("manager note insert failed:", noteError.message);
+    redirect(withStatus(returnTo, "error"));
+  }
+
   await createNotification(supabase, {
     userId: recipient.id,
     companyId: recipient.company_id,

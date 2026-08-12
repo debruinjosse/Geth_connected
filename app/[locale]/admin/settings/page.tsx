@@ -1,8 +1,15 @@
 import { redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { AccountSettingsPanel } from "@/components/AccountSettingsPanel";
+import { AdminBillingSettingsForm } from "@/components/AdminBillingSettingsForm";
 import { DashboardShell } from "@/components/DashboardShell";
 import { EmptyState } from "@/components/EmptyState";
+import {
+  getEnvInvoiceConfig,
+  getMissingInvoiceConfig,
+  loadPlatformBillingSettings,
+  platformBillingSettingsToFormValues
+} from "@/lib/billing/platform-settings";
 import { superAdminUser } from "@/lib/demo-data";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -49,6 +56,10 @@ export default async function AdminSettingsPage({
     redirect("/auth/repair-profile");
   }
 
+  const billingSettingsRow = await loadPlatformBillingSettings(supabase);
+  const billingFormValues = platformBillingSettingsToFormValues(billingSettingsRow, getEnvInvoiceConfig());
+  const missingInvoiceFields = await getMissingInvoiceConfig(supabase);
+
   const checks = [
     { label: t("checkSupabaseUrl"), ok: Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL), detail: t("checkSupabaseUrlDetail") },
     { label: t("checkSupabaseAnonKey"), ok: Boolean(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY), detail: t("checkSupabaseAnonKeyDetail") },
@@ -61,7 +72,14 @@ export default async function AdminSettingsPage({
     },
     { label: t("checkStripeSecret"), ok: Boolean(process.env.STRIPE_SECRET_KEY), detail: t("checkStripeSecretDetail") },
     { label: t("checkStripeWebhook"), ok: Boolean(process.env.STRIPE_WEBHOOK_SECRET), detail: t("checkStripeWebhookDetail") },
-    { label: t("checkAppUrl"), ok: Boolean(process.env.NEXT_PUBLIC_APP_URL), detail: t("checkAppUrlDetail") }
+    { label: t("checkAppUrl"), ok: Boolean(process.env.NEXT_PUBLIC_APP_URL), detail: t("checkAppUrlDetail") },
+    {
+      label: t("checkInvoiceSeller"),
+      ok: missingInvoiceFields.length === 0,
+      detail: missingInvoiceFields.length
+        ? t("checkInvoiceSellerMissing", { fields: missingInvoiceFields.join(", ") })
+        : t("checkInvoiceSellerDetail")
+    }
   ];
 
   return (
@@ -105,6 +123,7 @@ export default async function AdminSettingsPage({
             ))}
           </div>
         </article>
+        <AdminBillingSettingsForm locale={locale} values={billingFormValues} statusCode={settings} />
         <article className="panel dashboard-panel">
           <div className="panel-top">
             <div>

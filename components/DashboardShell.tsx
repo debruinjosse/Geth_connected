@@ -58,7 +58,18 @@ function GethBirdIcon({ size = 19 }: { size?: number }) {
   return <BrandMarkIcon alt="" aria-hidden="true" className="side-link-brand-icon" size={size} />;
 }
 
-function renderNavIcon(icon: DashboardNavItem["icon"]) {
+function renderNavIcon(icon: DashboardNavItem["icon"], profileUser?: { name: string; initials: string; imageUrl?: string | null }) {
+  if (icon === "profile-avatar") {
+    return (
+      <div className="side-link-avatar">
+        {profileUser?.imageUrl ? (
+          <Image src={profileUser.imageUrl} alt="" width={22} height={22} unoptimized />
+        ) : (
+          <span>{profileUser?.initials || <CircleUserRound size={16} />}</span>
+        )}
+      </div>
+    );
+  }
   if (icon === "vertical-card") return <VerticalCardIcon size={19} />;
   if (icon === "calendar") return <CalendarIcon size={19} />;
   if (icon === "geth-bird" || icon === "brand-mark") return <GethBirdIcon size={19} />;
@@ -186,7 +197,7 @@ export function DashboardShell({
                   title={label}
                   onClick={() => setMobileOpen(false)}
                 >
-                  {renderNavIcon(item.icon)}
+                  {renderNavIcon(item.icon, item.icon === "profile-avatar" ? user : undefined)}
                   <span>{label}</span>
                 </Link>
               );

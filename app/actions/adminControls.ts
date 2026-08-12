@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { findAuthUserIdByEmail } from "@/lib/auth/find-auth-user-by-email";
-import { sendInviteEmail } from "@/lib/mail/nodemailer";
+import { sendCompanyAdminWelcomeEmail, sendInviteEmail } from "@/lib/mail/nodemailer";
 import { createPlatformAdminNotifications } from "@/lib/notifications";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -245,11 +245,10 @@ export async function createCompanyWorkspaceAction(formData: FormData) {
 
   if (companyAdminInvitation) {
     try {
-      await sendInviteEmail({
+      await sendCompanyAdminWelcomeEmail({
         to: companyAdminEmail,
         inviteLink: `${getInviteBaseUrl()}/${locale}/invite/${companyAdminInvitation.token}`,
         companyName: companyName,
-        roleLabel: getLocalizedRoleLabel("company_admin", locale),
         expiresAt: companyAdminInvitation.expires_at,
         locale
       });

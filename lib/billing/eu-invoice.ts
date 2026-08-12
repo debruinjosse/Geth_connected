@@ -55,12 +55,14 @@ function getEnv(name: string) {
   return process.env[name]?.trim() ?? "";
 }
 
-export function getMissingInvoiceConfig() {
+/** @deprecated Use async helpers from `@/lib/billing/platform-settings`. */
+export function getMissingInvoiceConfigFromEnv() {
   return requiredInvoiceEnv.filter((name) => !getEnv(name));
 }
 
-export function getInvoiceConfig(): InvoiceConfig {
-  const missing = getMissingInvoiceConfig();
+/** @deprecated Use `getInvoiceConfig` from `@/lib/billing/platform-settings`. */
+export function getInvoiceConfigFromEnv(): InvoiceConfig {
+  const missing = getMissingInvoiceConfigFromEnv();
   if (missing.length) {
     throw new Error(`Missing invoice configuration: ${missing.join(", ")}`);
   }
