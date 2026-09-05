@@ -175,6 +175,7 @@ async function sendInvitationEmailSafely({
   }
 }
 
+/** Role: `company_admin` only. Creates and emails one employee/manager invitation for the caller's company. */
 export async function createInvitationAction(
   _previousState: InvitationActionState = initialState,
   formData: FormData
@@ -291,6 +292,10 @@ export async function createInvitationAction(
   }
 }
 
+/**
+ * Role: `company_admin` only. Parses an uploaded CSV (email/role/department/manager columns),
+ * creating any missing departments/teams and one invitation per new row, optionally emailing each.
+ */
 export async function bulkImportEmployeesAction(
   _previousState: BulkEmployeeImportState = bulkInitialState,
   formData: FormData
@@ -547,6 +552,7 @@ export async function bulkImportEmployeesAction(
   }
 }
 
+/** Role: `company_admin` only. Resends a still-pending invitation's email, or expires it in place if its deadline has passed. */
 export async function resendInvitationEmailAction(formData: FormData): Promise<InvitationActionState> {
   if (!hasSupabaseServerConfig()) {
     return { ok: false, message: "Supabase must be configured before invitation emails can be resent." };

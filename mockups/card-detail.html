@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GETH Connected — Card detail</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="phone-frame">
+  <div class="phone-screen" id="screen">
+
+    <div class="dynamic-island"></div>
+
+    <div class="status-bar">
+      <span class="status-bar__time">9:41</span>
+      <span class="status-bar__icons">
+        <svg width="18" height="12" viewBox="0 0 18 12" fill="none"><rect x="0" y="7" width="3" height="5" rx="0.5" fill="currentColor"/><rect x="5" y="5" width="3" height="7" rx="0.5" fill="currentColor"/><rect x="10" y="3" width="3" height="9" rx="0.5" fill="currentColor"/><rect x="15" y="0" width="3" height="12" rx="0.5" fill="currentColor"/></svg>
+        <svg width="16" height="12" viewBox="0 0 16 12" fill="none"><path d="M8 10.5C6.5 10.5 5.1 9.9 4 8.9L4.9 7.9C5.8 8.7 6.9 9.1 8 9.1C9.1 9.1 10.2 8.7 11.1 7.9L12 8.9C10.9 9.9 9.5 10.5 8 10.5ZM2.4 6.2L1.5 5.2C3.2 3.6 5.5 2.7 8 2.7C10.5 2.7 12.8 3.6 14.5 5.2L13.6 6.2C12.1 4.8 10.1 4.1 8 4.1C5.9 4.1 3.9 4.8 2.4 6.2Z" fill="currentColor"/></svg>
+        <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x="1" y="1" width="20" height="10" rx="2.5" stroke="currentColor" stroke-opacity="0.5"/><rect x="2.5" y="2.5" width="16" height="7" rx="1.5" fill="currentColor"/><rect x="22" y="4" width="1.5" height="4" rx="0.75" fill="currentColor" fill-opacity="0.5"/></svg>
+      </span>
+    </div>
+
+    <div class="app-main" id="main" data-state="pending">
+
+      <div class="top-nav">
+        <a class="back-btn" href="my-cards.html" aria-label="Back to my cards">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M12.5 4.5 6 10l6.5 5.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+      </div>
+
+      <article class="rec-card rec-card--detail">
+        <div class="rec-card__brand">
+          <span class="brand-lockup">
+            <img src="../public/assets/geth-crest-mark.png" alt="GETH">
+            <span>GETH</span>
+          </span>
+          <span class="rec-card__code">CARD 042</span>
+        </div>
+        <span class="pill pill--collegiality" style="align-self:flex-start;">Collegiality</span>
+        <h1 class="rec-card__title" style="font-size:18px;font-weight:500;">Supportive</h1>
+        <p class="rec-card__quote">You show up for your team and lift others up.</p>
+      </article>
+
+      <div class="card-meta-row">
+        <div class="avatar avatar--sm" aria-hidden="true">AV</div>
+        <div>
+          <p class="card-meta-row__name">From Aisha Verma</p>
+          <p class="card-meta-row__sub">Marketing Team</p>
+        </div>
+      </div>
+
+      <div class="card-meta-row" style="justify-content:space-between;">
+        <span class="card-meta-row__sub">Aug 19, 2026</span>
+        <span class="pill pill--collegiality">Collegiality</span>
+      </div>
+
+      <button class="btn-primary only-pending" type="button" id="ack-btn">Acknowledge</button>
+      <div class="success-panel only-acknowledged" style="display:none;">
+        <div class="success-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M4 12.5l5 5L20 7" stroke="var(--gold-deep)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <p><strong>Acknowledged.</strong><br>This recognition is confirmed in your history.</p>
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+<div class="review-strip" aria-label="Mockup state switcher (not part of the app UI)">
+  <span class="review-strip__label">Preview state</span>
+  <button type="button" class="is-active" data-set-state="pending">Pending acknowledgement</button>
+  <button type="button" data-set-state="acknowledged">Acknowledged</button>
+</div>
+<p class="mockup-caption">Screen 11 of 16 — Card detail. Back to <a href="my-cards.html">My cards</a>.</p>
+
+<style>
+  #main[data-state="pending"] .only-acknowledged { display: none !important; }
+  #main[data-state="pending"] .only-pending { display: block; }
+  #main[data-state="acknowledged"] .only-pending { display: none !important; }
+  #main[data-state="acknowledged"] .only-acknowledged { display: flex !important; }
+</style>
+
+<script>
+  const main = document.getElementById('main');
+  const strip = document.querySelector('.review-strip');
+
+  function setState(state) {
+    main.dataset.state = state;
+    strip.querySelectorAll('button').forEach(b => b.classList.toggle('is-active', b.dataset.setState === state));
+  }
+
+  strip.querySelectorAll('button').forEach(b => {
+    b.addEventListener('click', () => setState(b.dataset.setState));
+  });
+
+  document.getElementById('ack-btn').addEventListener('click', () => setState('acknowledged'));
+</script>
+
+</body>
+</html>

@@ -5,13 +5,18 @@ import { getEmployeeAiSignalsCacheTag } from "@/lib/ai/employee-recognition-sign
 import { createNotification } from "@/lib/notifications";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import type { ActionOutcome } from "@/lib/actions/types";
 
-type VerificationResult = {
-  ok: boolean;
-  message: string;
-};
-
-export async function approveRecognitionVerification(recognitionId: string): Promise<VerificationResult> {
+/**
+ * The named giver approves a recognition an employee claimed against them
+ * (see `claimRecognition`'s `pending_verification` path).
+ *
+ * Role: any authenticated user, but only the row's `giver_user_id` may approve it (checked here,
+ * not just by RLS, since the update runs through the admin client). Side effects: flips the
+ * recognition to `approved`, notifies the receiver, revalidates the employee dashboard/cards/
+ * notifications pages, invalidates the receiver's cached growth/AI-signals tag.
+ */
+export async function approveRecognitionVerification(recognitionId: string): Promise<ActionOutcome> {
   const cleanRecognitionId = recognitionId.trim();
 
   if (!cleanRecognitionId) {
@@ -82,7 +87,16 @@ export async function approveRecognitionVerification(recognitionId: string): Pro
   return { ok: true, message: "Recognition approved. Thank you for verifying it." };
 }
 
-export async function acknowledgeReceivedRecognition(recognitionId: string): Promise<VerificationResult> {
+/**
+ * The receiver acknowledges a card a colleague gave them digitally
+ * (see `giveRecognition`'s `pending_acknowledgement` path).
+ *
+ * Role: any authenticated user, but only the row's `receiver_user_id` may acknowledge it (checked
+ * here, not just by RLS, since the update runs through the admin client). Side effects: flips the
+ * recognition to `approved`, notifies the giver, revalidates the employee dashboard/cards/
+ * notifications pages, invalidates the receiver's cached growth/AI-signals tag.
+ */
+export async function acknowledgeReceivedRecognition(recognitionId: string): Promise<ActionOutcome> {
   const cleanRecognitionId = recognitionId.trim();
 
   if (!cleanRecognitionId) {

@@ -67,6 +67,7 @@ function revalidateTeamSurfaces() {
   revalidatePath("/company/managers");
 }
 
+/** Role: `company_admin` only (via `getCompanyAdminContext`). Creates a new team, optionally assigning a manager. */
 export async function createTeamAction(formData: FormData): Promise<TeamMutationResult> {
   if (!hasSupabaseServerConfig()) {
     return { ok: false, message: "Supabase must be configured before live teams can be created." };
@@ -107,6 +108,7 @@ export async function createTeamAction(formData: FormData): Promise<TeamMutation
   return { ok: true, message: "Team created successfully." };
 }
 
+/** Role: `company_admin` only. Renames a team and/or reassigns its manager. */
 export async function updateTeamAction(formData: FormData): Promise<TeamMutationResult> {
   if (!hasSupabaseServerConfig()) {
     return { ok: false, message: "Supabase must be configured before live teams can be updated." };
@@ -166,6 +168,7 @@ export async function updateTeamAction(formData: FormData): Promise<TeamMutation
   return { ok: true, message: "Team updated successfully." };
 }
 
+/** Role: `company_admin` only. Deletes a team from the caller's company. */
 export async function deleteTeamAction(formData: FormData): Promise<TeamMutationResult> {
   if (!hasSupabaseServerConfig()) {
     return { ok: false, message: "Supabase must be configured before live teams can be deleted." };

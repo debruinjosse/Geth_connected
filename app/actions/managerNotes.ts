@@ -18,6 +18,10 @@ function withStatus(returnTo: string, status: "sent" | "error" | "not_allowed") 
   return `${returnTo}${separator}note=${status}`;
 }
 
+/**
+ * Role: `manager` only, and only for an employee on a team the manager leads (both checked here).
+ * Sends a private note to that employee and notifies them.
+ */
 export async function sendManagerNoteAction(formData: FormData) {
   const returnTo = safeReturnTo(formData.get("return_to"));
   const recipientId = String(formData.get("recipient_id") ?? "");

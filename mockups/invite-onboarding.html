@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GETH Connected — Invitation</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="phone-frame">
+  <div class="phone-screen" data-state="default" id="screen">
+
+    <div class="dynamic-island"></div>
+
+    <div class="status-bar">
+      <span class="status-bar__time">9:41</span>
+      <span class="status-bar__icons">
+        <svg width="18" height="12" viewBox="0 0 18 12" fill="none"><rect x="0" y="7" width="3" height="5" rx="0.5" fill="currentColor"/><rect x="5" y="5" width="3" height="7" rx="0.5" fill="currentColor"/><rect x="10" y="3" width="3" height="9" rx="0.5" fill="currentColor"/><rect x="15" y="0" width="3" height="12" rx="0.5" fill="currentColor"/></svg>
+        <svg width="16" height="12" viewBox="0 0 16 12" fill="none"><path d="M8 10.5C6.5 10.5 5.1 9.9 4 8.9L4.9 7.9C5.8 8.7 6.9 9.1 8 9.1C9.1 9.1 10.2 8.7 11.1 7.9L12 8.9C10.9 9.9 9.5 10.5 8 10.5ZM2.4 6.2L1.5 5.2C3.2 3.6 5.5 2.7 8 2.7C10.5 2.7 12.8 3.6 14.5 5.2L13.6 6.2C12.1 4.8 10.1 4.1 8 4.1C5.9 4.1 3.9 4.8 2.4 6.2Z" fill="currentColor"/></svg>
+        <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x="1" y="1" width="20" height="10" rx="2.5" stroke="currentColor" stroke-opacity="0.5"/><rect x="2.5" y="2.5" width="16" height="7" rx="1.5" fill="currentColor"/><rect x="22" y="4" width="1.5" height="4" rx="0.75" fill="currentColor" fill-opacity="0.5"/></svg>
+      </span>
+    </div>
+
+    <div class="screen-content">
+
+      <div class="brand-mark">
+        <img src="../public/assets/geth-crest-mark.png" alt="GETH">
+      </div>
+
+      <div class="auth-copy">
+        <p class="eyebrow">Invitation onboarding</p>
+        <h1 class="auth-title only-default">You've been invited to GETH</h1>
+        <h1 class="auth-title only-accepted" style="display:none;">Invitation accepted</h1>
+        <p class="auth-subtitle only-default">Join your company workspace, claim recognitions, and keep appreciation visible across your team.</p>
+        <p class="auth-subtitle only-accepted" style="display:none;">Your company access is ready. Open your workspace whenever you're ready.</p>
+      </div>
+
+      <div class="card only-default">
+        <div class="detail-rows">
+          <div class="detail-row">
+            <span class="detail-row__label">Company</span>
+            <span class="detail-row__value">ABC Company</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-row__label">Role</span>
+            <span class="detail-row__value">Employee</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-row__label">Team</span>
+            <span class="detail-row__value">Marketing Team</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-row__label">Invited by</span>
+            <span class="detail-row__value">Sarah Manager</span>
+          </div>
+        </div>
+      </div>
+
+      <button class="btn-primary only-default" type="button" id="activate-btn" style="margin-top:24px;">Activate your workspace</button>
+      <button class="btn-primary only-accepted" type="button" style="display:none;margin-top:24px;" onclick="location.href='home.html'">Go to Home</button>
+
+      <div class="link-row">
+        <a class="text-link" href="login.html">Back to login</a>
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+<div class="review-strip" aria-label="Mockup state switcher (not part of the app UI)">
+  <span class="review-strip__label">Preview state</span>
+  <button type="button" class="is-active" data-set-state="default">Default</button>
+  <button type="button" data-set-state="accepted">Accepted</button>
+</div>
+<p class="mockup-caption">Screen 14 of 16 — Invitation onboarding.</p>
+
+<style>
+  #screen[data-state="accepted"] .only-default { display: none !important; }
+  #screen[data-state="accepted"] .only-accepted { display: block !important; }
+  #screen[data-state="accepted"] button.only-accepted { display: block !important; }
+</style>
+
+<script>
+  const screen = document.getElementById('screen');
+  const strip = document.querySelector('.review-strip');
+
+  function setState(state) {
+    screen.dataset.state = state;
+    strip.querySelectorAll('button').forEach(b => b.classList.toggle('is-active', b.dataset.setState === state));
+  }
+
+  strip.querySelectorAll('button').forEach(b => {
+    b.addEventListener('click', () => setState(b.dataset.setState));
+  });
+
+  document.getElementById('activate-btn').addEventListener('click', () => setState('accepted'));
+</script>
+
+</body>
+</html>

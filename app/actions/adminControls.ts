@@ -177,6 +177,11 @@ function getActionLocale(formData: FormData) {
   return ["nl", "en"].includes(locale) ? locale : "nl";
 }
 
+/**
+ * Role: `platform_admin`/`super_admin` only (via `requirePlatformAdmin`).
+ * Creates a new company, an optional first team, and sends company_admin/manager invite emails;
+ * notifies other platform admins.
+ */
 export async function createCompanyWorkspaceAction(formData: FormData) {
   const auth = await requirePlatformAdmin();
   if (!auth.ok) {
@@ -300,6 +305,7 @@ export async function createCompanyWorkspaceAction(formData: FormData) {
   redirect(`/${locale}/admin/companies/${company.id}?created=1`);
 }
 
+/** Role: `platform_admin`/`super_admin` only. Sets a company's status (active/inactive/demo). */
 export async function updateCompanyStatusAction(formData: FormData) {
   const companyId = String(formData.get("companyId") ?? "");
   const status = String(formData.get("status") ?? "");
@@ -323,6 +329,10 @@ export async function updateCompanyStatusAction(formData: FormData) {
   revalidatePath("/admin/companies");
 }
 
+/**
+ * Role: `platform_admin`/`super_admin` only. Irreversibly deletes a company row and every Supabase
+ * Auth user tied to it (via its profiles and any pending invitations). Destructive — no undo.
+ */
 export async function deleteCompanyAction(formData: FormData) {
   const companyId = String(formData.get("companyId") ?? "").trim();
   const locale = getActionLocale(formData);
@@ -349,6 +359,7 @@ export async function deleteCompanyAction(formData: FormData) {
   redirect(`/${locale}/admin/companies?delete=success`);
 }
 
+/** Role: `platform_admin`/`super_admin` only. Updates a company's contact name/phone/email. */
 export async function updateCompanyContactAction(formData: FormData) {
   const companyId = String(formData.get("companyId") ?? "").trim();
   const contactName = String(formData.get("contactName") ?? "").trim() || null;
@@ -385,6 +396,7 @@ export async function updateCompanyContactAction(formData: FormData) {
   redirect(`${returnTo}?contact=updated`);
 }
 
+/** Role: `platform_admin`/`super_admin` only. Deletes one team belonging to a company. */
 export async function deleteCompanyTeamAction(formData: FormData) {
   const teamId = String(formData.get("teamId") ?? "").trim();
   const companyId = String(formData.get("companyId") ?? "").trim();
@@ -412,6 +424,7 @@ export async function deleteCompanyTeamAction(formData: FormData) {
   redirect(`${returnTo}?team=deleted`);
 }
 
+/** Role: `platform_admin`/`super_admin` only. Creates and emails an invitation on behalf of a company. */
 export async function createCompanyInviteFromAdminAction(formData: FormData) {
   const companyId = String(formData.get("companyId") ?? "").trim();
   const email = normalizeEmail(formData.get("email"));
@@ -465,6 +478,7 @@ export async function createCompanyInviteFromAdminAction(formData: FormData) {
   redirect(`${returnTo}?invite=created`);
 }
 
+/** Role: `platform_admin`/`super_admin` only. Toggles a `card_library` entry active/inactive. */
 export async function updateCardActiveAction(formData: FormData) {
   const cardId = String(formData.get("cardId") ?? "");
   const active = String(formData.get("active") ?? "") === "true";
@@ -489,6 +503,7 @@ export async function updateCardActiveAction(formData: FormData) {
   revalidatePath("/cards");
 }
 
+/** Role: `platform_admin`/`super_admin` only. Edits a `card_library` entry's title/category/description/recognition sentence. */
 export async function updateCardContentAction(formData: FormData) {
   const cardId = String(formData.get("cardId") ?? "").trim();
   const title = String(formData.get("title") ?? "").trim();
