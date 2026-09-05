@@ -8,7 +8,25 @@ import { hasSmtpConfig, sendRecognitionReceivedEmail } from "@/lib/mail/nodemail
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getAppUrl } from "@/lib/stripe/server";
+import type { ActionResult } from "@/lib/actions/types";
 
+type ClaimRecognitionSuccess = { cardTitle: string; mode: "demo" | "supabase" };
+type GiveRecognitionSuccess = {
+  cardTitle: string;
+  receiverName: string;
+  mode: "demo" | "supabase";
+  acknowledgementPending?: boolean;
+};
+
+/**
+ * Employee self-serve claim of a physical card they received in person.
+ *
+ * Role: `employee` only (enforced here and by RLS). If `giverUserId` is supplied, the
+ * recognition is inserted as `pending_verification` and the named giver is notified to approve
+ * it via `approveRecognitionVerification`; otherwise it's inserted as `claimed` immediately.
+ * Side effects: inserts into `recognition_events` and `notifications`, invalidates the
+ * employee's cached growth/AI-signals tag.
+ */
 export async function claimRecognition(input: {
   cardSlug: string;
   giverUserId?: string;
@@ -16,7 +34,7 @@ export async function claimRecognition(input: {
   giverEmail?: string;
   personalNote?: string;
   claimOrigin?: "qr_scan" | "direct_link" | "card_library" | "manual_entry";
-}) {
+}): Promise<ActionResult<ClaimRecognitionSuccess>> {
   const resolvedCardSlug = resolveCardSlug(input.cardSlug);
   const hasSupabaseConfig = Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
 
@@ -169,12 +187,21 @@ export async function claimRecognition(input: {
   }
 }
 
+/**
+ * Employee sends a card digitally to a named colleague in the same company.
+ *
+ * Role: `employee` only (enforced here and by RLS); the receiver must be an active employee in
+ * the same company. Inserted as `pending_acknowledgement` until the receiver confirms via
+ * `acknowledgeReceivedRecognition`. Side effects: inserts into `recognition_events` and
+ * `notifications` (both parties), sends a "recognition received" email if SMTP is configured,
+ * invalidates the receiver's cached growth/AI-signals tag.
+ */
 export async function giveRecognition(input: {
   cardSlug: string;
   receiverUserId: string;
   personalNote?: string;
   claimOrigin?: "card_library" | "direct_link" | "manual_entry";
-}) {
+}): Promise<ActionResult<GiveRecognitionSuccess>> {
   const resolvedCardSlug = resolveCardSlug(input.cardSlug);
   const receiverUserId = input.receiverUserId.trim();
   const hasSupabaseConfig = Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);

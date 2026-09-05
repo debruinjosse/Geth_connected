@@ -57,6 +57,7 @@ async function ensureProfilePhotosBucket() {
   return admin;
 }
 
+/** Any authenticated user updates their own first/last name via the `update_own_profile_name` RPC. */
 export async function updateOwnProfileNameAction(formData: FormData) {
   const firstName = String(formData.get("firstName") ?? "").trim();
   const lastName = String(formData.get("lastName") ?? "").trim();
@@ -89,6 +90,11 @@ export async function updateOwnProfileNameAction(formData: FormData) {
   redirect(`${returnTo}?settings=profile-updated`);
 }
 
+/**
+ * Any authenticated user uploads a new profile photo to the `profile-photos` Storage bucket and
+ * saves its public URL via the `update_own_profile_photo` RPC (falls back to the admin client if
+ * the RPC or the RLS-scoped upload fails, e.g. before the bucket exists).
+ */
 export async function updateOwnProfilePhotoAction(formData: FormData) {
   const returnTo = getSafeReturnPath(formData.get("returnTo"));
   const photo = formData.get("profilePhoto");
@@ -167,6 +173,7 @@ export async function updateOwnProfilePhotoAction(formData: FormData) {
   redirect(`${returnTo}?settings=profile-photo-updated`);
 }
 
+/** Any authenticated user triggers a password-reset email to their own address (delegates to `requestPasswordResetEmail`). */
 export async function sendPasswordResetFromSettingsAction(formData: FormData) {
   const returnTo = getSafeReturnPath(formData.get("returnTo"));
   const supabase = await createSupabaseServerClient();

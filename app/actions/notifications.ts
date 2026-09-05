@@ -31,6 +31,7 @@ async function getNotificationSession() {
   }
 }
 
+/** Any authenticated user marks one of their own notifications as read. */
 export async function markNotificationReadAction(formData: FormData): Promise<void> {
   const notificationId = String(formData.get("notification_id") || "").trim();
 
@@ -65,6 +66,7 @@ export async function markNotificationReadAction(formData: FormData): Promise<vo
   revalidatePath("/admin");
 }
 
+/** Any authenticated user marks all of their own unread notifications as read. */
 export async function markAllNotificationsReadAction(): Promise<void> {
   const session = await getNotificationSession();
   if (!session) {

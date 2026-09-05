@@ -69,6 +69,14 @@ async function requireGlobalAdmin() {
   return { ok: true as const, supabase, userId: user.id };
 }
 
+/**
+ * Role: `platform_admin`/`super_admin` only (via `requireGlobalAdmin`). Upserts marketing
+ * homepage CMS content fields (`site_content` table) for one locale.
+ *
+ * Note: this file's local `ActionResult` type (below) is intentionally separate from the shared
+ * `lib/actions/types.ts` one — it already carries a specific `ActionErrorCode` union, which is
+ * more precise than the generic shared type for this action's callers.
+ */
 export async function updateSiteContentAction(formData: FormData): Promise<ActionResult> {
   const auth = await requireGlobalAdmin();
   if (!auth.ok) {

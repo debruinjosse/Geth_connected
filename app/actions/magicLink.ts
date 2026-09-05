@@ -5,6 +5,7 @@ import { resolveAuthUserIdByEmail } from "@/lib/auth/resolve-auth-user-id";
 import { buildAuthCallbackEmailLink } from "@/lib/auth/build-auth-callback-link";
 import { getAuthCallbackUrl } from "@/lib/app-url";
 import { InviteEmailError, sendMagicLinkEmail } from "@/lib/mail/nodemailer";
+import type { ActionResult } from "@/lib/actions/types";
 
 type MagicLinkMode = "login" | "signup";
 
@@ -41,6 +42,13 @@ function getSmtpErrorMessage(error: InviteEmailError) {
   }
 }
 
+/**
+ * Sends a Supabase-issued login (magic link) or signup (invite) email via the admin API,
+ * delivered through the app's own SMTP instead of Supabase's built-in mailer.
+ *
+ * Public — no auth required to call (that's the point: it's how a user gets authenticated).
+ * For `mode: "login"` the email must already belong to a known account.
+ */
 export async function requestMagicLinkEmail(input: {
   email: string;
   mode: MagicLinkMode;
@@ -50,7 +58,7 @@ export async function requestMagicLinkEmail(input: {
     company?: string;
     role?: string;
   };
-}) {
+}): Promise<ActionResult> {
   const email = input.email.trim().toLowerCase();
 
   if (!email) {

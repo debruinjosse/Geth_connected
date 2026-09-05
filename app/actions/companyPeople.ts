@@ -60,6 +60,7 @@ async function validateCompanyTeam(
   return { ok: true as const };
 }
 
+/** Role: `company_admin` only (via `getCompanyAdminContext`). Reassigns an employee/manager profile to a different team in the same company. */
 export async function updateProfileTeamAction(formData: FormData): Promise<CompanyPeopleMutationResult> {
   const profileId = String(formData.get("profile_id") || "").trim();
   const teamId = String(formData.get("team_id") || "").trim() || null;
@@ -90,6 +91,7 @@ export async function updateProfileTeamAction(formData: FormData): Promise<Compa
   return { ok: true, message: "Team assignment updated." };
 }
 
+/** Role: `company_admin` only. Activates or disables an employee/manager profile in the same company. */
 export async function updateProfileStatusAction(formData: FormData): Promise<CompanyPeopleMutationResult> {
   const profileId = String(formData.get("profile_id") || "").trim();
   const role = String(formData.get("role") || "").trim();
@@ -117,6 +119,7 @@ export async function updateProfileStatusAction(formData: FormData): Promise<Com
   return { ok: true, message: status === "active" ? "Profile reactivated." : "Profile disabled." };
 }
 
+/** Role: `company_admin` only. Assigns a manager (from the same company) to lead a team. */
 export async function assignManagerToTeamAction(formData: FormData): Promise<CompanyPeopleMutationResult> {
   const managerId = String(formData.get("manager_id") || "").trim();
   const teamId = String(formData.get("team_id") || "").trim();
@@ -159,6 +162,7 @@ export async function assignManagerToTeamAction(formData: FormData): Promise<Com
   return { ok: true, message: "Manager assigned to team." };
 }
 
+/** Role: `company_admin` only. Clears a team's assigned manager. */
 export async function removeManagerFromTeamAction(formData: FormData): Promise<CompanyPeopleMutationResult> {
   const teamId = String(formData.get("team_id") || "").trim();
 
@@ -183,6 +187,7 @@ export async function removeManagerFromTeamAction(formData: FormData): Promise<C
   return { ok: true, message: "Manager removed from team." };
 }
 
+/** Role: `company_admin` only. Revokes one still-pending invitation for the same company. */
 export async function revokeInvitationAction(formData: FormData): Promise<CompanyPeopleMutationResult> {
   const invitationId = String(formData.get("invitation_id") || "").trim();
 

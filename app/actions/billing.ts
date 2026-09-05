@@ -185,6 +185,12 @@ async function getPlatformBillingContext(companyId: string): Promise<CompanyBill
   };
 }
 
+/**
+ * Role: `company_admin` for their own company, or `platform_admin`/`super_admin` acting on a
+ * company's behalf via `companyId`. Generates a manual EU invoice (VAT calculation, PDF, invoice
+ * number), emails it to the billing contact, and marks the company/subscription as invoice-issued.
+ * Notifies platform admins on success or if the invoice email fails to send.
+ */
 export async function requestInvoicePaymentAction(formData: FormData) {
   const planId = String(formData.get("planId") ?? "");
   const companyId = String(formData.get("companyId") ?? "").trim();
@@ -420,6 +426,7 @@ export async function requestInvoicePaymentAction(formData: FormData) {
   redirect(`${returnUrl}?billing=invoice_generated&invoice=${invoice.id}`);
 }
 
+/** Role: `company_admin`. Creates (or reuses) a Stripe customer and starts a Stripe Checkout subscription session. */
 export async function startCheckoutSessionAction(formData: FormData) {
   if (!hasStripeBillingConfig()) {
     redirect("/company/billing?billing=stripe_not_configured");
@@ -492,6 +499,7 @@ export async function startCheckoutSessionAction(formData: FormData) {
   redirect(session.url);
 }
 
+/** Role: `company_admin`. Opens the Stripe customer billing portal for the caller's company. */
 export async function openBillingPortalAction() {
   if (!hasStripeBillingConfig()) {
     redirect("/company/billing?billing=stripe_not_configured");
@@ -537,6 +545,10 @@ async function requirePlatformAdminForBilling() {
   return { supabase, user };
 }
 
+/**
+ * Role: `platform_admin`/`super_admin` only. Updates the platform-wide invoicing details (seller
+ * legal/VAT info, IBAN/BIC, payment terms, VAT rate) that `requestInvoicePaymentAction` reads.
+ */
 export async function updatePlatformBillingSettingsAction(formData: FormData) {
   const locale = String(formData.get("locale") ?? "en").trim() || "en";
   const returnTo = `/${locale}/admin/settings`;

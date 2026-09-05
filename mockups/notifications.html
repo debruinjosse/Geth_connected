@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GETH Connected — Notifications</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="phone-frame">
+  <div class="phone-screen" id="screen">
+
+    <div class="dynamic-island"></div>
+
+    <div class="status-bar">
+      <span class="status-bar__time">9:41</span>
+      <span class="status-bar__icons">
+        <svg width="18" height="12" viewBox="0 0 18 12" fill="none"><rect x="0" y="7" width="3" height="5" rx="0.5" fill="currentColor"/><rect x="5" y="5" width="3" height="7" rx="0.5" fill="currentColor"/><rect x="10" y="3" width="3" height="9" rx="0.5" fill="currentColor"/><rect x="15" y="0" width="3" height="12" rx="0.5" fill="currentColor"/></svg>
+        <svg width="16" height="12" viewBox="0 0 16 12" fill="none"><path d="M8 10.5C6.5 10.5 5.1 9.9 4 8.9L4.9 7.9C5.8 8.7 6.9 9.1 8 9.1C9.1 9.1 10.2 8.7 11.1 7.9L12 8.9C10.9 9.9 9.5 10.5 8 10.5ZM2.4 6.2L1.5 5.2C3.2 3.6 5.5 2.7 8 2.7C10.5 2.7 12.8 3.6 14.5 5.2L13.6 6.2C12.1 4.8 10.1 4.1 8 4.1C5.9 4.1 3.9 4.8 2.4 6.2Z" fill="currentColor"/></svg>
+        <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x="1" y="1" width="20" height="10" rx="2.5" stroke="currentColor" stroke-opacity="0.5"/><rect x="2.5" y="2.5" width="16" height="7" rx="1.5" fill="currentColor"/><rect x="22" y="4" width="1.5" height="4" rx="0.75" fill="currentColor" fill-opacity="0.5"/></svg>
+      </span>
+    </div>
+
+    <div class="app-main" id="main" data-state="default">
+
+      <div class="top-nav">
+        <a class="back-btn" href="home.html" aria-label="Close notifications">
+          <svg width="20" height="20" viewBox="0 0 22 22" fill="none"><path d="M5 5l12 12M17 5 5 17" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        </a>
+      </div>
+
+      <div class="default-view">
+
+        <section>
+          <h1 style="font-size:25px;font-weight:700;color:var(--ink);margin:0 0 8px;">Notifications</h1>
+          <p style="font-size:15px;line-height:1.5;color:var(--muted);margin:0;max-width:34ch;">Important recognition updates in one place.</p>
+        </section>
+
+        <section class="list-rows">
+          <div class="list-row list-row--unread" tabindex="0">
+            <span class="unread-dot"></span>
+            <div class="list-row__body">
+              <p class="list-row__title">Recognition — New recognition received</p>
+              <p class="list-row__note">Jamie Miller gave you Uniter</p>
+            </div>
+            <span class="list-row__meta">2h ago</span>
+          </div>
+          <div class="list-row list-row--unread" tabindex="0">
+            <span class="unread-dot"></span>
+            <div class="list-row__body">
+              <p class="list-row__title">Approval — Pending approval</p>
+              <p class="list-row__note">Acknowledge Clear Communicator from James Chen</p>
+            </div>
+            <span class="list-row__meta">1d ago</span>
+          </div>
+          <div class="list-row" tabindex="0">
+            <span class="unread-dot unread-dot--read"></span>
+            <div class="list-row__body">
+              <p class="list-row__title">Welcome — Welcome to GETH Connected</p>
+              <p class="list-row__note">Your workspace is ready</p>
+            </div>
+            <span class="list-row__meta">3d ago</span>
+          </div>
+          <div class="list-row" tabindex="0">
+            <span class="unread-dot unread-dot--read"></span>
+            <div class="list-row__body">
+              <p class="list-row__title">Team — Team update</p>
+              <p class="list-row__note">Recognition momentum is building in Marketing Team</p>
+            </div>
+            <span class="list-row__meta">5d ago</span>
+          </div>
+        </section>
+
+      </div>
+
+      <div class="empty-state">
+        <div class="empty-state__icon">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M4 12.5l5 5L20 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <h2>You are all caught up</h2>
+        <p>Recognition updates, invite activity, and important workspace events will appear here.</p>
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+<div class="review-strip" aria-label="Mockup state switcher (not part of the app UI)">
+  <span class="review-strip__label">Preview state</span>
+  <button type="button" class="is-active" data-set-state="default">Default</button>
+  <button type="button" data-set-state="empty">Empty</button>
+</div>
+<p class="mockup-caption">Screen 10 of 16 — Notifications. Back to <a href="home.html">Home</a>.</p>
+
+<script>
+  const main = document.getElementById('main');
+  const strip = document.querySelector('.review-strip');
+  strip.querySelectorAll('button').forEach(b => {
+    b.addEventListener('click', () => {
+      main.dataset.state = b.dataset.setState;
+      strip.querySelectorAll('button').forEach(x => x.classList.toggle('is-active', x === b));
+    });
+  });
+</script>
+
+</body>
+</html>

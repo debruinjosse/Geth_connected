@@ -4,8 +4,16 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { buildAuthCallbackEmailLink } from "@/lib/auth/build-auth-callback-link";
 import { getAuthCallbackUrl } from "@/lib/app-url";
 import { InviteEmailError, sendPasswordResetEmail } from "@/lib/mail/nodemailer";
+import type { ActionResult } from "@/lib/actions/types";
 
-export async function requestPasswordResetEmail(email: string) {
+/**
+ * Sends a Supabase recovery-link email for the given address via the admin API, delivered
+ * through the app's own SMTP. The recovery link itself (verified in `app/auth/verify`) is what
+ * proves ownership of the mailbox — this function only issues the email.
+ *
+ * Public — no auth required to call (that's the point: it's the "forgot password" entry point).
+ */
+export async function requestPasswordResetEmail(email: string): Promise<ActionResult> {
   const normalized = email.trim().toLowerCase();
 
   if (!normalized) {

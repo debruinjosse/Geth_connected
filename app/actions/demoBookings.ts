@@ -62,6 +62,10 @@ function formatPreferredSlot(
   return t("preferredSlot", { date, time, timezone });
 }
 
+/**
+ * Public marketing "book a demo" form handler — no auth required. Inserts a `demo_bookings` row
+ * and emails both the requester and the configured admin address(es).
+ */
 export async function createDemoBookingAction(_previousState: DemoBookingState = initialState, formData: FormData): Promise<DemoBookingState> {
   const locale = getBookingLocale(getValue(formData, "locale"));
   const t = await getTranslations({ locale, namespace: "bookDemoPage" });
@@ -188,6 +192,11 @@ async function requirePlatformAdmin() {
   return user.id;
 }
 
+/**
+ * Role: `platform_admin`/`super_admin` only (via `requirePlatformAdmin`). Approves, declines, or
+ * reschedules a demo booking, then emails the requester a decision email with a calendar (.ics)
+ * attachment when approved/rescheduled.
+ */
 export async function updateDemoBookingStatusAction(formData: FormData) {
   const bookingId = getValue(formData, "bookingId");
   const status = getValue(formData, "status") as "approved" | "declined" | "rescheduled";
