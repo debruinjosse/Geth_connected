@@ -5,7 +5,7 @@ type GroqChatMessage = {
 
 export async function callGroqJson<T>({
   messages,
-  model = "llama-3.1-8b-instant",
+  model = "openai/gpt-oss-120b",
   temperature = 0.35,
   timeoutMs = 12000
 }: {
