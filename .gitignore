@@ -54,3 +54,8 @@ design specs/
 
 # TypeScript incremental build cache
 *.tsbuildinfo
+
+# Flutter mobile app (developed here, not tracked in this repo)
+/mobile/
+/Stolzl/
+/cards/

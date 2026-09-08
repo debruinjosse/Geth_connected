@@ -7,7 +7,20 @@ export type EmployeeRecognitionSignal = {
   id: string;
   tone: string;
   title: string;
+  /** Kept for backward compatibility with the web dashboard's existing render (a flowing
+   * narrative combining the sections below); the mobile app renders the structured fields
+   * directly instead. */
   detail: string;
+  /** Structured sections per the employee-app brief — populated for real Groq-generated
+   * insights; the template fallback (limited data / Groq unavailable) only sets headline +
+   * compliment, leaving the rest undefined so the UI can skip sections that aren't available. */
+  headline?: string;
+  compliment?: string;
+  strengths?: string;
+  behaviorExplanation?: string;
+  pattern?: string | null;
+  teamContribution?: string;
+  suggestion?: string;
   highlights?: Array<{ label: string; category: string; count: number; tone: string }>;
 };
 
@@ -94,13 +107,21 @@ function buildTemplateSignals(
       id: "employee-ai-coaching-insight",
       tone: toneForCategory(primaryCategory),
       title: labels.insightTitle,
-      detail
+      detail,
+      headline: labels.insightTitle,
+      compliment: detail
     }
   ];
 }
 
 type GroqInsightResponse = {
-  insight?: string;
+  headline?: string;
+  compliment?: string;
+  strengths?: string;
+  behaviorExplanation?: string;
+  pattern?: string | null;
+  teamContribution?: string;
+  suggestion?: string;
 };
 
 function buildCardMeaningFields(title: string, locale: string) {
@@ -148,10 +169,23 @@ async function generateWithGroq(context: EmployeeSignalsContext): Promise<Employ
     ]
   });
 
-  const insight = parsed.insight?.trim();
-  if (!insight) {
-    throw new Error("Groq returned no usable coaching insight.");
+  const headline = parsed.headline?.trim();
+  const compliment = parsed.compliment?.trim();
+  const strengths = parsed.strengths?.trim();
+  const behaviorExplanation = parsed.behaviorExplanation?.trim();
+  const pattern = parsed.pattern?.trim() || null;
+  const teamContribution = parsed.teamContribution?.trim();
+  const suggestion = parsed.suggestion?.trim();
+
+  if (!headline || !compliment || !strengths || !behaviorExplanation || !teamContribution || !suggestion) {
+    throw new Error("Groq returned an incomplete structured coaching insight.");
   }
+
+  // Synthesized narrative, kept so the existing web dashboard panel (which renders `detail`
+  // as one flowing paragraph) needs no changes — the mobile app renders the sections directly.
+  const detail = [compliment, strengths, behaviorExplanation, pattern, teamContribution, suggestion]
+    .filter(Boolean)
+    .join(" ");
 
   const primaryCategory = resolvePrimaryCategory(context);
 
@@ -160,7 +194,14 @@ async function generateWithGroq(context: EmployeeSignalsContext): Promise<Employ
       id: "employee-ai-coaching-insight",
       tone: toneForCategory(primaryCategory),
       title: "",
-      detail: insight
+      detail,
+      headline,
+      compliment,
+      strengths,
+      behaviorExplanation,
+      pattern,
+      teamContribution,
+      suggestion
     }
   ];
 }

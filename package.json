@@ -17,6 +17,7 @@
     "start:prod": "npm run build:fresh && npm run start",
     "seed:uat": "node ./scripts/seed-uat-accounts.mjs",
     "test:uat-auth": "node ./scripts/uat-auth-check.mjs",
+    "test:mobile-api": "node ./scripts/test-mobile-api.mjs",
     "test:smtp": "node scripts/test-smtp.mjs",
     "test:post-deploy": "node scripts/post-deploy-smoke.mjs",
     "supabase:migration:auto": "node scripts/supabase-new-migration.mjs",

@@ -6,6 +6,7 @@ import { categoryMeta, getLocalizedAnalyticCategoryLabel, getLocalizedCategoryDi
 import { currentUser, employeeCategoryBreakdown, employeeGrowthPoints, employeeTopQualities, recognitions } from "@/lib/demo-data";
 import { getUnreadNotificationCount } from "@/lib/notifications";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { buildEmployeeSignalsContext } from "@/lib/ai/build-employee-signals-context";
 
 function hasSupabaseServerConfig() {
   return Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
@@ -277,27 +278,10 @@ export default async function EmployeeDashboardPage({ params }: { params: Promis
     receivedAt: item.createdAt ?? "",
     note: item.note && item.note !== t("noPersonalNote") ? item.note : undefined
   }));
-  const signalsContext = {
-    locale,
-    employeeId: user.id,
-    employeeName: `${profile.first_name} ${profile.last_name}`.trim(),
-    teamName: team?.name ?? t("noTeam"),
-    cardsReceived: normalizedRecognitions.length,
-    cardsGiven: givenCount ?? 0,
-    recent30DaysCount,
-    recentReceivedCards,
-    topQualities: topQualityDetails.map((card) => ({
-      label: card.label,
-      count: card.count,
-      category: card.category,
-      tone: card.tone
-    })),
-    categoryBreakdown,
-    recentNotes: normalizedRecognitions
-      .slice(0, 8)
-      .map((item) => item.note)
-      .filter((note) => note && note !== t("noPersonalNote"))
-  };
+  // Shared with the mobile growth-insights API route — see lib/ai/build-employee-signals-context.ts
+  // for why this runs its own (slightly redundant) queries rather than reusing the intermediate
+  // values computed above for this page's other panels.
+  const signalsContext = await buildEmployeeSignalsContext(supabase, user.id, locale);
   const pendingApprovals = pendingVerificationRows.flatMap((row) => {
     const card = Array.isArray(row.card) ? row.card[0] : row.card;
     if (!card) return [];
