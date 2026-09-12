@@ -162,6 +162,16 @@ Deno.serve(async (req) => {
           message: {
             token: row.fcm_token,
             notification: { title, body },
+            // Android's small status-bar icon (ic_stat_notify) is forced to a flat white/tinted
+            // silhouette by the OS on every app — that's a platform rule, not something any app
+            // can override. The "logo" people actually recognize in the notification list is the
+            // large icon/avatar circle, which is blank by default unless supplied explicitly here.
+            android: {
+              notification: {
+                color: "#2B1A2D",
+                image: "https://geth.pro/assets/geth-logo-official-256.png"
+              }
+            },
             data: {
               type,
               route: payload.route ?? "",
