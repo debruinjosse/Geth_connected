@@ -1,0 +1,14 @@
+- generic [active] [ref=f8e1]:
+  - main [ref=f8e2]:
+    - generic [ref=f8e3]:
+      - generic [ref=f8e4]:
+        - link "Back to home" [ref=f8e5] [cursor=pointer]:
+          - /url: /
+          - img "GETH® crest" [ref=f8e6]
+        - link "Back to home" [ref=f8e7] [cursor=pointer]:
+          - /url: /
+          - generic [ref=f8e10]:
+            - text: GETH
+            - superscript [aria-hidden] [ref=f8e11]: ®
+      - paragraph [ref=f8e13]: Preparing your recognition experience
+  - alert [ref=f8e18]

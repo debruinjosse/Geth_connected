@@ -1,0 +1,40 @@
+- generic [active] [ref=e1]:
+  - main [ref=e2]:
+    - generic [ref=e3]:
+      - generic [ref=e4]:
+        - link "Back to home" [ref=e5] [cursor=pointer]:
+          - /url: /
+          - img "GETH® crest" [ref=e6]
+        - link "Back to home" [ref=e7] [cursor=pointer]:
+          - /url: /
+          - generic [ref=e10]:
+            - text: GETH
+            - superscript [aria-hidden] [ref=e11]: ®
+      - generic [ref=e12]: Owner access
+      - heading "Log in to the GETH® owner console" [level=1] [ref=e13]
+      - paragraph [ref=e14]: Control companies, card routes, platform analytics, and super admin operations.
+      - generic [ref=e15]:
+        - generic [ref=e16]: •Physical recognition, digital insight
+        - generic [ref=e17]: •Private, thoughtful, measurable
+        - generic [ref=e18]: •Designed for modern teams
+    - generic [ref=e20]:
+      - heading "Log in" [level=2] [ref=e21]
+      - paragraph [ref=e22]: Use your work email and password to access your workspace.
+      - generic [ref=e23]:
+        - generic [ref=e24]:
+          - generic [ref=e25]: Work email
+          - textbox "Work email" [ref=e26]:
+            - /placeholder: sarah@company.com
+        - generic [ref=e27]:
+          - generic [ref=e28]: Password
+          - generic [ref=e29]:
+            - textbox "Password" [ref=e30]:
+              - /placeholder: At least 6 characters
+            - button "Show password" [ref=e31] [cursor=pointer]
+        - button "Log in" [ref=e35] [cursor=pointer]
+      - button "Email me a magic link instead" [ref=e38] [cursor=pointer]
+      - link "Reset password" [ref=e39] [cursor=pointer]:
+        - /url: /en/forgot-password
+      - link "Back to site" [ref=e41] [cursor=pointer]:
+        - /url: /en
+  - alert [ref=e42]

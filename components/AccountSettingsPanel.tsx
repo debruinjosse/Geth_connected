@@ -86,20 +86,20 @@ export function AccountSettingsPanel({
         </div>
       </form>
 
-      <form action={updateOwnProfileNameAction} className="settings-name-form">
+      <form action={updateOwnProfileNameAction} className="settings-form">
         <input type="hidden" name="returnTo" value={returnTo} />
         <div className="settings-field-grid">
           <label>
             {t("firstName")}
-            <input name="firstName" value={firstName} required />
+            <input className="input" name="firstName" defaultValue={firstName} required />
           </label>
           <label>
             {t("lastName")}
-            <input name="lastName" value={lastName} required />
+            <input className="input" name="lastName" defaultValue={lastName} required />
           </label>
         </div>
         <div className="settings-action-row">
-          <button className="btn btn-dark" type="submit">
+          <button className="btn btn-primary" type="submit">
             <Save size={16} /> {t("saveName")}
           </button>
         </div>

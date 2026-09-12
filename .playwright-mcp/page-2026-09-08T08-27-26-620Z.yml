@@ -1,0 +1,44 @@
+- generic [active] [ref=f18e1]:
+  - generic [ref=f18e3]:
+    - banner [ref=f18e4]:
+      - link "Terug" [ref=f18e5] [cursor=pointer]:
+        - /url: /inzichten
+      - heading "Groeitijdlijn" [level=1] [ref=f18e8]
+      - 'button "Developer info: Growth timeline" [ref=f18e9]'
+      - link "Developer overview of the whole app" [ref=f18e12] [cursor=pointer]:
+        - /url: /dev
+      - button "Licht" [ref=f18e16]
+    - main [ref=f18e23]:
+      - paragraph [ref=f18e24]: Hoe de kwaliteiten die collega's in je zien zich ontwikkelen.
+      - generic [ref=f18e26]:
+        - generic [ref=f18e27]:
+          - generic [ref=f18e28]: GETH® AI-inzicht
+          - button "Inzicht genereren" [ref=f18e32] [cursor=pointer]
+        - heading "Groeitijdlijn" [level=2] [ref=f18e33]
+        - paragraph
+      - heading "Maand voor maand" [level=2] [ref=f18e35]
+      - paragraph [ref=f18e37]: Nog geen maanden met waardering — scan een kaart om je tijdlijn te starten.
+      - paragraph [ref=f18e38]: Demogegevens — er worden nog geen echte collega's of kaarten gebruikt.
+    - navigation [ref=f18e39]:
+      - list [ref=f18e40]:
+        - listitem [ref=f18e41]:
+          - link "Home" [ref=f18e42] [cursor=pointer]:
+            - /url: /
+        - listitem [ref=f18e46]:
+          - link "Geven" [ref=f18e47] [cursor=pointer]:
+            - /url: /geven
+        - listitem [ref=f18e52]:
+          - link "Scannen" [ref=f18e53] [cursor=pointer]:
+            - /url: /scannen
+        - listitem [ref=f18e59]:
+          - link "Inzichten" [ref=f18e60] [cursor=pointer]:
+            - /url: /inzichten
+        - listitem [ref=f18e63]:
+          - link "Profiel" [ref=f18e64] [cursor=pointer]:
+            - /url: /profiel
+  - region "Notifications alt+T"
+  - complementary "Edit with Lovable" [ref=f18e68]:
+    - link "Edit with Lovable" [ref=f18e69] [cursor=pointer]:
+      - /url: https://lovable.dev/projects/lovp_2367m9w8xz93cvn1z0fs8e5n9j?utm_source=lovable-badge
+      - generic [ref=f18e70]: Edit with
+    - button "Dismiss" [ref=f18e76] [cursor=pointer]

@@ -2,8 +2,10 @@ import { redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { AccountSettingsPanel } from "@/components/AccountSettingsPanel";
 import { AdminBillingSettingsForm } from "@/components/AdminBillingSettingsForm";
+import { AiMasterPromptSettingsForm } from "@/components/AiMasterPromptSettingsForm";
 import { DashboardShell } from "@/components/DashboardShell";
 import { EmptyState } from "@/components/EmptyState";
+import { loadAiMasterPromptSettings } from "@/lib/ai/master-prompt-settings";
 import {
   getEnvInvoiceConfig,
   getMissingInvoiceConfig,
@@ -59,6 +61,17 @@ export default async function AdminSettingsPage({
   const billingSettingsRow = await loadPlatformBillingSettings(supabase);
   const billingFormValues = platformBillingSettingsToFormValues(billingSettingsRow, getEnvInvoiceConfig());
   const missingInvoiceFields = await getMissingInvoiceConfig(supabase);
+
+  const aiPromptSettingsRow = await loadAiMasterPromptSettings(supabase);
+  let aiPromptUpdatedByLabel: string | null = null;
+  if (aiPromptSettingsRow?.updated_by) {
+    const { data: updatedByProfile } = await supabase
+      .from("profiles")
+      .select("first_name, last_name")
+      .eq("id", aiPromptSettingsRow.updated_by)
+      .maybeSingle<{ first_name: string | null; last_name: string | null }>();
+    aiPromptUpdatedByLabel = `${updatedByProfile?.first_name ?? ""} ${updatedByProfile?.last_name ?? ""}`.trim() || null;
+  }
 
   const checks = [
     { label: t("checkSupabaseUrl"), ok: Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL), detail: t("checkSupabaseUrlDetail") },
@@ -124,18 +137,35 @@ export default async function AdminSettingsPage({
           </div>
         </article>
         <AdminBillingSettingsForm locale={locale} values={billingFormValues} statusCode={settings} />
-        <article className="panel dashboard-panel">
+        <AiMasterPromptSettingsForm
+          locale={locale}
+          toneGuidance={aiPromptSettingsRow?.tone_guidance ?? ""}
+          isDefault={!aiPromptSettingsRow?.tone_guidance}
+          updatedByLabel={aiPromptUpdatedByLabel}
+          updatedAt={aiPromptSettingsRow?.updated_at ?? null}
+          statusCode={settings}
+        />
+        <article className="panel dashboard-panel full-span">
           <div className="panel-top">
             <div>
               <h2>{t("productionNotesTitle")}</h2>
               <p>{t("productionNotesTableCopy")}</p>
             </div>
           </div>
-          <div className="settings-list">
-            <p className="section-copy">{t("productionNotesReadOnly")}</p>
-            <p className="section-copy">{t("productionNotesSmtp")}</p>
-            <p className="section-copy">{t("productionNotesMailbox")}</p>
-            <p className="section-copy">{t("productionNotesConcurrent")}</p>
+          <div className="signal-list">
+            {[
+              { title: t("productionNotesReadOnlyTitle"), detail: t("productionNotesReadOnly") },
+              { title: t("productionNotesSmtpTitle"), detail: t("productionNotesSmtp") },
+              { title: t("productionNotesMailboxTitle"), detail: t("productionNotesMailbox") },
+              { title: t("productionNotesConcurrentTitle"), detail: t("productionNotesConcurrent") }
+            ].map((note) => (
+              <div className="signal-card" key={note.title}>
+                <div>
+                  <strong>{note.title}</strong>
+                  <p>{note.detail}</p>
+                </div>
+              </div>
+            ))}
           </div>
         </article>
       </section>

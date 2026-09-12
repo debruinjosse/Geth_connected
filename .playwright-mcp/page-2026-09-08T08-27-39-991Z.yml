@@ -1,0 +1,88 @@
+- generic [active] [ref=f20e1]:
+  - generic [ref=f20e3]:
+    - banner [ref=f20e4]:
+      - button "Terug" [ref=f20e5]
+      - heading "AI-managercoach" [level=1] [ref=f20e8]
+      - 'button "Developer info: AI manager coach (unlinked)" [ref=f20e9]'
+      - link "Developer overview of the whole app" [ref=f20e12] [cursor=pointer]:
+        - /url: /dev
+      - button "Licht" [ref=f20e16]
+    - main [ref=f20e23]:
+      - paragraph [ref=f20e24]: Coachsignalen voor je team, alleen op basis van waardering.
+      - generic [ref=f20e26]:
+        - generic [ref=f20e27]:
+          - generic [ref=f20e28]: GETH® AI-inzicht
+          - button "Inzicht genereren" [ref=f20e32] [cursor=pointer]
+        - heading "AI-managercoach" [level=2] [ref=f20e33]
+        - paragraph
+      - heading "Team deze maand" [level=2] [ref=f20e35]
+      - generic [ref=f20e36]:
+        - paragraph [ref=f20e37]: Klantenservice
+        - generic [ref=f20e38]:
+          - generic [ref=f20e39]:
+            - paragraph [ref=f20e40]: "11"
+            - paragraph [ref=f20e41]: Leden
+          - generic [ref=f20e42]:
+            - paragraph [ref=f20e43]: "38"
+            - paragraph [ref=f20e44]: Kaarten
+          - generic [ref=f20e45]:
+            - paragraph [ref=f20e46]: Waardering is gezond
+            - paragraph [ref=f20e47]: Deelname
+      - heading "Per collega" [level=2] [ref=f20e49]
+      - generic [ref=f20e50]:
+        - generic [ref=f20e51]:
+          - generic [ref=f20e52]:
+            - img "Tim Schobbe" [ref=f20e53]
+            - generic [ref=f20e54]:
+              - paragraph [ref=f20e55]: Tim Schobbe
+              - paragraph [ref=f20e56]: Collega
+            - generic [ref=f20e57]: Geeft veel
+          - generic [ref=f20e59]:
+            - generic [ref=f20e60]: "Gewaardeerd: Heel vaak herkend"
+            - generic [ref=f20e61]: "Geeft waardering: Heel vaak herkend"
+        - generic [ref=f20e64]:
+          - generic [ref=f20e65]:
+            - img "Meij Vos" [ref=f20e66]
+            - generic [ref=f20e67]:
+              - paragraph [ref=f20e68]: Meij Vos
+              - paragraph [ref=f20e69]: Collega
+            - generic [ref=f20e70]: Verborgen talent
+          - generic [ref=f20e72]:
+            - generic [ref=f20e73]: "Gewaardeerd: Af en toe herkend"
+            - generic [ref=f20e74]: "Geeft waardering: Vaak herkend"
+        - generic [ref=f20e77]:
+          - generic [ref=f20e78]:
+            - img "Marco Deckers" [ref=f20e79]
+            - generic [ref=f20e80]:
+              - paragraph [ref=f20e81]: Marco Deckers
+              - paragraph [ref=f20e82]: Collega
+            - generic [ref=f20e83]: Te weinig gewaardeerd
+          - generic [ref=f20e85]:
+            - generic [ref=f20e86]: "Gewaardeerd: Af en toe herkend"
+            - generic [ref=f20e87]: "Geeft waardering: Af en toe herkend"
+      - paragraph [ref=f20e90]: Demogegevens — er worden nog geen echte collega's of kaarten gebruikt.
+      - link "Terug naar mijn inzichten" [ref=f20e91] [cursor=pointer]:
+        - /url: /inzichten
+    - navigation [ref=f20e92]:
+      - list [ref=f20e93]:
+        - listitem [ref=f20e94]:
+          - link "Home" [ref=f20e95] [cursor=pointer]:
+            - /url: /
+        - listitem [ref=f20e99]:
+          - link "Geven" [ref=f20e100] [cursor=pointer]:
+            - /url: /geven
+        - listitem [ref=f20e105]:
+          - link "Scannen" [ref=f20e106] [cursor=pointer]:
+            - /url: /scannen
+        - listitem [ref=f20e112]:
+          - link "Inzichten" [ref=f20e113] [cursor=pointer]:
+            - /url: /inzichten
+        - listitem [ref=f20e116]:
+          - link "Profiel" [ref=f20e117] [cursor=pointer]:
+            - /url: /profiel
+  - region "Notifications alt+T"
+  - complementary "Edit with Lovable" [ref=f20e121]:
+    - link "Edit with Lovable" [ref=f20e122] [cursor=pointer]:
+      - /url: https://lovable.dev/projects/lovp_2367m9w8xz93cvn1z0fs8e5n9j?utm_source=lovable-badge
+      - generic [ref=f20e123]: Edit with
+    - button "Dismiss" [ref=f20e129] [cursor=pointer]

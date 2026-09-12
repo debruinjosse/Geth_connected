@@ -7,5 +7,19 @@
 alter table notifications replica identity full;
 alter table recognition_events replica identity full;
 
-alter publication supabase_realtime add table if not exists notifications;
-alter publication supabase_realtime add table if not exists recognition_events;
+-- `alter publication ... add table if not exists` is not valid Postgres syntax (ADD TABLE has no
+-- IF NOT EXISTS clause) — guard idempotency explicitly instead so this can be re-run safely.
+do $$
+begin
+  if not exists (
+    select 1 from pg_publication_tables where pubname = 'supabase_realtime' and tablename = 'notifications'
+  ) then
+    alter publication supabase_realtime add table notifications;
+  end if;
+
+  if not exists (
+    select 1 from pg_publication_tables where pubname = 'supabase_realtime' and tablename = 'recognition_events'
+  ) then
+    alter publication supabase_realtime add table recognition_events;
+  end if;
+end $$;

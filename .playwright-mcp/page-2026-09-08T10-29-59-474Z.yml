@@ -1,0 +1,84 @@
+- generic [active] [ref=f30e1]:
+  - generic [ref=f30e3]:
+    - banner [ref=f30e4]:
+      - img "GETH" [ref=f30e6]
+      - generic [ref=f30e8]:
+        - button "nl" [ref=f30e9]
+        - button "en" [ref=f30e10]
+      - 'button "Developer info: Home dashboard" [ref=f30e15]'
+      - link "Developer overview of the whole app" [ref=f30e18] [cursor=pointer]:
+        - /url: /dev
+      - button "Licht" [ref=f30e22]
+    - main [ref=f30e29]:
+      - generic [ref=f30e30]:
+        - generic [ref=f30e31]: JB
+        - generic [ref=f30e32]:
+          - heading "Goedemiddag, Josse" [level=1] [ref=f30e33]
+          - paragraph [ref=f30e34]: Neem even een moment voor wat collega's in je zien.
+      - link [ref=f30e35] [cursor=pointer]:
+        - /url: /inzichten
+        - generic [ref=f30e38]:
+          - generic [ref=f30e39]: GETH® AI-inzicht
+          - heading "Je betrouwbaarheid wordt duidelijk gewaardeerd" [level=2] [ref=f30e44]
+          - paragraph
+          - generic [ref=f30e45]: Bekijk mijn inzicht
+      - generic [ref=f30e49]:
+        - heading "Jouw profiel groeit" [level=2] [ref=f30e50]
+        - img "Nieuw · Zichtbaar · Erkend · Groeiend · Verbindend · Inspirerend" [ref=f30e52]
+        - paragraph [ref=f30e55]: Nieuw · Onderweg naar 'Zichtbaar'
+        - link "Reeksen die je groei voeden Gevende reeks · 4 Ontvangende reeks · 6" [ref=f30e56] [cursor=pointer]:
+          - /url: /prestaties
+          - generic [ref=f30e57]:
+            - paragraph [ref=f30e58]: Reeksen die je groei voeden
+            - generic [ref=f30e59]:
+              - generic [ref=f30e60]: Gevende reeks · 4
+              - generic [ref=f30e61]: Ontvangende reeks · 6
+      - heading "Jouw waardering in het kort" [level=2] [ref=f30e65]
+      - generic [ref=f30e66]:
+        - generic [ref=f30e67]:
+          - paragraph [ref=f30e71]: "0"
+          - paragraph [ref=f30e72]: Ontvangen kaarten
+        - generic [ref=f30e73]:
+          - paragraph [ref=f30e78]: "1"
+          - paragraph [ref=f30e79]: Kaarten die je gaf
+        - generic [ref=f30e80]:
+          - paragraph [ref=f30e84]: "0"
+          - paragraph [ref=f30e85]: Kwaliteiten herkend
+        - link [ref=f30e86] [cursor=pointer]:
+          - /url: /prestaties
+          - paragraph [ref=f30e97]: Bruggenbouwer
+          - paragraph [ref=f30e98]: Badges
+      - heading "Top 3 ontvangen kwaliteiten" [level=2] [ref=f30e100]
+      - paragraph [ref=f30e102]: Je sterke punten verschijnen hier zodra collega's je gaan waarderen.
+      - generic [ref=f30e103]:
+        - heading "Recent ontvangen" [level=2] [ref=f30e104]
+        - link "Bekijk alles" [ref=f30e105] [cursor=pointer]:
+          - /url: /ontvangen
+      - generic [ref=f30e106]:
+        - paragraph [ref=f30e107]: Je eerste kaart is onderweg
+        - paragraph [ref=f30e108]: Waardering begint vaak bij het geven ervan. Geef een collega een kaart en je zult merken hoe snel het terugkomt.
+        - link "Waardering geven" [ref=f30e109] [cursor=pointer]:
+          - /url: /geven
+    - navigation [ref=f30e110]:
+      - list [ref=f30e111]:
+        - listitem [ref=f30e112]:
+          - link "Home" [ref=f30e113] [cursor=pointer]:
+            - /url: /
+        - listitem [ref=f30e117]:
+          - link "Geven" [ref=f30e118] [cursor=pointer]:
+            - /url: /geven
+        - listitem [ref=f30e123]:
+          - link "Scannen" [ref=f30e124] [cursor=pointer]:
+            - /url: /scannen
+        - listitem [ref=f30e130]:
+          - link "Inzichten" [ref=f30e131] [cursor=pointer]:
+            - /url: /inzichten
+        - listitem [ref=f30e134]:
+          - link "Profiel" [ref=f30e135] [cursor=pointer]:
+            - /url: /profiel
+  - region "Notifications alt+T"
+  - complementary "Edit with Lovable" [ref=f30e139]:
+    - link "Edit with Lovable" [ref=f30e140] [cursor=pointer]:
+      - /url: https://lovable.dev/projects/lovp_2367m9w8xz93cvn1z0fs8e5n9j?utm_source=lovable-badge
+      - generic [ref=f30e141]: Edit with
+    - button "Dismiss" [ref=f30e147] [cursor=pointer]

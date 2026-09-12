@@ -1,0 +1,84 @@
+- generic [active] [ref=f25e1]:
+  - generic [ref=f25e3]:
+    - banner [ref=f25e4]:
+      - img "GETH" [ref=f25e6]
+      - generic [ref=f25e8]:
+        - button "nl" [ref=f25e9]
+        - button "en" [ref=f25e10]
+      - 'button "Developer info: Home dashboard" [ref=f25e15]'
+      - link "Developer overview of the whole app" [ref=f25e18] [cursor=pointer]:
+        - /url: /dev
+      - button "Donker" [ref=f25e22]
+    - main [ref=f25e25]:
+      - generic [ref=f25e26]:
+        - generic [ref=f25e27]: JB
+        - generic [ref=f25e28]:
+          - heading "Goedemiddag, Josse" [level=1] [ref=f25e29]
+          - paragraph [ref=f25e30]: Neem even een moment voor wat collega's in je zien.
+      - link [ref=f25e31] [cursor=pointer]:
+        - /url: /inzichten
+        - generic [ref=f25e34]:
+          - generic [ref=f25e35]: GETH® AI-inzicht
+          - heading "Je betrouwbaarheid wordt duidelijk gewaardeerd" [level=2] [ref=f25e40]
+          - paragraph
+          - generic [ref=f25e41]: Bekijk mijn inzicht
+      - generic [ref=f25e45]:
+        - heading "Jouw profiel groeit" [level=2] [ref=f25e46]
+        - img "Nieuw · Zichtbaar · Erkend · Groeiend · Verbindend · Inspirerend" [ref=f25e48]
+        - paragraph [ref=f25e51]: Nieuw · Onderweg naar 'Zichtbaar'
+        - link "Reeksen die je groei voeden Gevende reeks · 4 Ontvangende reeks · 6" [ref=f25e52] [cursor=pointer]:
+          - /url: /prestaties
+          - generic [ref=f25e53]:
+            - paragraph [ref=f25e54]: Reeksen die je groei voeden
+            - generic [ref=f25e55]:
+              - generic [ref=f25e56]: Gevende reeks · 4
+              - generic [ref=f25e57]: Ontvangende reeks · 6
+      - heading "Jouw waardering in het kort" [level=2] [ref=f25e61]
+      - generic [ref=f25e62]:
+        - generic [ref=f25e63]:
+          - paragraph [ref=f25e67]: "0"
+          - paragraph [ref=f25e68]: Ontvangen kaarten
+        - generic [ref=f25e69]:
+          - paragraph [ref=f25e74]: "0"
+          - paragraph [ref=f25e75]: Kaarten die je gaf
+        - generic [ref=f25e76]:
+          - paragraph [ref=f25e80]: "0"
+          - paragraph [ref=f25e81]: Kwaliteiten herkend
+        - link [ref=f25e82] [cursor=pointer]:
+          - /url: /prestaties
+          - paragraph [ref=f25e93]: Bruggenbouwer
+          - paragraph [ref=f25e94]: Badges
+      - heading "Top 3 ontvangen kwaliteiten" [level=2] [ref=f25e96]
+      - paragraph [ref=f25e98]: Je sterke punten verschijnen hier zodra collega's je gaan waarderen.
+      - generic [ref=f25e99]:
+        - heading "Recent ontvangen" [level=2] [ref=f25e100]
+        - link "Bekijk alles" [ref=f25e101] [cursor=pointer]:
+          - /url: /ontvangen
+      - generic [ref=f25e102]:
+        - paragraph [ref=f25e103]: Je eerste kaart is onderweg
+        - paragraph [ref=f25e104]: Waardering begint vaak bij het geven ervan. Geef een collega een kaart en je zult merken hoe snel het terugkomt.
+        - link "Waardering geven" [ref=f25e105] [cursor=pointer]:
+          - /url: /geven
+    - navigation [ref=f25e106]:
+      - list [ref=f25e107]:
+        - listitem [ref=f25e108]:
+          - link "Home" [ref=f25e109] [cursor=pointer]:
+            - /url: /
+        - listitem [ref=f25e113]:
+          - link "Geven" [ref=f25e114] [cursor=pointer]:
+            - /url: /geven
+        - listitem [ref=f25e119]:
+          - link "Scannen" [ref=f25e120] [cursor=pointer]:
+            - /url: /scannen
+        - listitem [ref=f25e126]:
+          - link "Inzichten" [ref=f25e127] [cursor=pointer]:
+            - /url: /inzichten
+        - listitem [ref=f25e130]:
+          - link "Profiel" [ref=f25e131] [cursor=pointer]:
+            - /url: /profiel
+  - region "Notifications alt+T"
+  - complementary "Edit with Lovable" [ref=f25e135]:
+    - link "Edit with Lovable" [ref=f25e136] [cursor=pointer]:
+      - /url: https://lovable.dev/projects/lovp_2367m9w8xz93cvn1z0fs8e5n9j?utm_source=lovable-badge
+      - generic [ref=f25e137]: Edit with
+    - button "Dismiss" [ref=f25e143] [cursor=pointer]

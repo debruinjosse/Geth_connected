@@ -1,0 +1,39 @@
+- generic [active] [ref=f27e1]:
+  - generic [ref=f27e3]:
+    - banner [ref=f27e4]:
+      - button "Terug" [ref=f27e101]
+      - heading "Kaart geven" [level=1] [ref=f27e5]
+      - generic [ref=f27e6]: Stap 4 van 5
+      - 'button "Developer info: Give recognition" [ref=f27e7]'
+      - link "Developer overview of the whole app" [ref=f27e10] [cursor=pointer]:
+        - /url: /dev
+      - button "Licht" [ref=f27e14]
+    - main [ref=f27e21]:
+      - heading "Voeg een persoonlijk bericht toe" [level=2] [ref=f27e777]
+      - paragraph [ref=f27e778]: Optioneel
+      - textbox "Schrijf waarom je hem/haar waardeert…" [ref=f27e779]
+      - paragraph [ref=f27e780]: bijv. "Bedankt voor het overnemen van de late dienst — je stond voor me klaar."
+      - button "Waardering controleren" [ref=f27e781]
+    - navigation [ref=f27e61]:
+      - list [ref=f27e62]:
+        - listitem [ref=f27e63]:
+          - link "Home" [ref=f27e64] [cursor=pointer]:
+            - /url: /
+        - listitem [ref=f27e68]:
+          - link "Geven" [ref=f27e69] [cursor=pointer]:
+            - /url: /geven
+        - listitem [ref=f27e74]:
+          - link "Scannen" [ref=f27e75] [cursor=pointer]:
+            - /url: /scannen
+        - listitem [ref=f27e81]:
+          - link "Inzichten" [ref=f27e82] [cursor=pointer]:
+            - /url: /inzichten
+        - listitem [ref=f27e85]:
+          - link "Profiel" [ref=f27e86] [cursor=pointer]:
+            - /url: /profiel
+  - region "Notifications alt+T"
+  - complementary "Edit with Lovable" [ref=f27e90]:
+    - link "Edit with Lovable" [ref=f27e91] [cursor=pointer]:
+      - /url: https://lovable.dev/projects/lovp_2367m9w8xz93cvn1z0fs8e5n9j?utm_source=lovable-badge
+      - generic [ref=f27e92]: Edit with
+    - button "Dismiss" [ref=f27e98] [cursor=pointer]

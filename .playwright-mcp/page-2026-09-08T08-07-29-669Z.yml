@@ -1,0 +1,730 @@
+- generic [active] [ref=f1e1]:
+  - generic [ref=f1e3]:
+    - banner [ref=f1e4]:
+      - button "Terug" [ref=f1e5]
+      - heading "Developer overview" [level=1] [ref=f1e8]
+      - 'button "Developer info: Developer overview" [ref=f1e9]'
+      - link "Developer overview of the whole app" [ref=f1e12] [cursor=pointer]:
+        - /url: /dev
+      - button "Donker" [ref=f1e16]
+    - main [ref=f1e19]:
+      - paragraph [ref=f1e20]:
+        - text: Complete map of the app for web developers. Every screen also carries an
+        - strong [ref=f1e21]: i
+        - text: button in its header with the same entry.
+      - button "Download alle info (PDF)" [ref=f1e23]
+      - heading "Stack" [level=2] [ref=f1e28]
+      - list [ref=f1e30]:
+        - listitem [ref=f1e31]:
+          - generic [ref=f1e33]: TanStack Start v1 (React 19 + Vite 7), file-based routing in src/routes, SSR on an edge runtime.
+        - listitem [ref=f1e34]:
+          - generic [ref=f1e36]: Tailwind CSS v4 via src/styles.css with semantic tokens (primary, gold, canvas, card, border …) — no hardcoded colours in components.
+        - listitem [ref=f1e37]:
+          - generic [ref=f1e39]: TanStack Query for AI calls; createServerFn for all server logic (no edge functions).
+        - listitem [ref=f1e40]:
+          - generic [ref=f1e42]: "Route code splitting is disabled on purpose (vite.config.ts → tanstackStart.router.codeSplittingOptions.defaultBehavior = []): one client bundle, so preview redeploys can no longer strand tabs on a deleted route chunk."
+        - listitem [ref=f1e43]:
+          - generic [ref=f1e45]: src/routes/__root.tsx also carries a stale-chunk recovery script (vite:preloadError / unhandledrejection → one guarded reload).
+      - heading "Architecture layers" [level=2] [ref=f1e47]
+      - list [ref=f1e49]:
+        - listitem [ref=f1e50]:
+          - generic [ref=f1e52]: "UI primitives: src/components/geth/ui.tsx (CardVisual, CardFace, Avatar, Pill, Panel, Meter, SectionTitle, btn)."
+        - listitem [ref=f1e53]:
+          - generic [ref=f1e55]: "Shell: src/components/geth/AppShell.tsx — sticky header (logo/title, dev info, overview, theme) + fixed bottom tab bar, max-width 440px mobile canvas, explicit backTo prop for reliable back navigation."
+        - listitem [ref=f1e56]:
+          - generic [ref=f1e58]: "Home composition: GrowthJourney.tsx (stage ladder + banners + streak chips), RecognitionStats.tsx (4 tiles + latest badge), TopQualities.tsx (top 3 with counts per C-colour)."
+        - listitem [ref=f1e59]:
+          - generic [ref=f1e61]: "AI surface: src/components/geth/AiPanel.tsx wraps every premium insight; generation is always user-triggered (useMutation), never on page load."
+        - listitem [ref=f1e62]:
+          - generic [ref=f1e64]: "Demo data: src/lib/geth-data.ts (cards, colleagues, stats), premium-data.ts, gamification-data.ts, growth-journey.ts, recognition-patterns.ts."
+        - listitem [ref=f1e65]:
+          - generic [ref=f1e67]: "Client state via context + localStorage: i18n.tsx (nl/en), theme.tsx (context stored on globalThis to survive hot reloads), rollout.tsx, scanned-cards.tsx, given-cards.tsx."
+      - heading "AI layer" [level=2] [ref=f1e69]
+      - list [ref=f1e71]:
+        - listitem [ref=f1e72]:
+          - generic [ref=f1e74]: src/lib/ai-insights.functions.ts + ai-insights.prompt.ts + ai-insights.server.ts — the GETH® AI insight; the prompt embeds the GETH AI Constitution (no competition, no rankings, no numeric scores, cards are the only evidence).
+        - listitem [ref=f1e75]:
+          - generic [ref=f1e77]: src/lib/ai-premium.functions.ts + ai-premium.server.ts + ai-premium-types.ts — timeline | patterns | manager, one system prompt per feature, shared JSON output contract. Types live in a client-safe module so routes never import server-only code.
+        - listitem [ref=f1e78]:
+          - generic [ref=f1e80]: Qualitative evidence levels (early signal / emerging / clear pattern) replace percentages everywhere.
+        - listitem [ref=f1e81]:
+          - generic [ref=f1e83]: Prompts are server-only; the gateway key is read inside .handler() and never reaches the browser.
+      - heading "Backend next steps" [level=2] [ref=f1e85]
+      - list [ref=f1e87]:
+        - listitem [ref=f1e88]:
+          - generic [ref=f1e90]: "Enable Lovable Cloud: tables for cards, colleagues, recognitions and user_roles (roles in their own table), RLS + GRANTs."
+        - listitem [ref=f1e91]:
+          - generic [ref=f1e93]: Replace geth-data/premium-data and the localStorage stores (scanned/given cards) with queries; keep the module boundaries so screens do not change.
+        - listitem [ref=f1e94]:
+          - generic [ref=f1e96]: Move gamification unlocks and manager access checks to the server.
+        - listitem [ref=f1e97]:
+          - generic [ref=f1e99]: Swap the scan simulation for real camera/NFC while keeping the addScanned() contract.
+      - heading "Screens (17)" [level=2] [ref=f1e101]
+      - navigation [ref=f1e102]:
+        - link / [ref=f1e103] [cursor=pointer]:
+          - /url: "#doc-home"
+        - link "/geven" [ref=f1e104] [cursor=pointer]:
+          - /url: "#doc-geven"
+        - link "/scannen" [ref=f1e105] [cursor=pointer]:
+          - /url: "#doc-scannen"
+        - link "/ontvangen" [ref=f1e106] [cursor=pointer]:
+          - /url: "#doc-ontvangen"
+        - link "/gegeven" [ref=f1e107] [cursor=pointer]:
+          - /url: "#doc-gegeven"
+        - link "/kaart/$id" [ref=f1e108] [cursor=pointer]:
+          - /url: "#doc-kaart-id"
+        - link "/inzichten" [ref=f1e109] [cursor=pointer]:
+          - /url: "#doc-inzichten"
+        - link "/groei" [ref=f1e110] [cursor=pointer]:
+          - /url: "#doc-groei"
+        - link "/patronen" [ref=f1e111] [cursor=pointer]:
+          - /url: "#doc-patronen"
+        - link "/kaarten-overzicht" [ref=f1e112] [cursor=pointer]:
+          - /url: "#doc-kaarten-overzicht"
+        - link "/manager" [ref=f1e113] [cursor=pointer]:
+          - /url: "#doc-manager"
+        - link "/dna" [ref=f1e114] [cursor=pointer]:
+          - /url: "#doc-dna"
+        - link "/prestaties" [ref=f1e115] [cursor=pointer]:
+          - /url: "#doc-prestaties"
+        - link "/certificaat" [ref=f1e116] [cursor=pointer]:
+          - /url: "#doc-certificaat"
+        - link "/profiel" [ref=f1e117] [cursor=pointer]:
+          - /url: "#doc-profiel"
+        - link "/privacy" [ref=f1e118] [cursor=pointer]:
+          - /url: "#doc-privacy"
+        - link "/dev" [ref=f1e119] [cursor=pointer]:
+          - /url: "#doc-dev"
+      - generic [ref=f1e120]:
+        - generic [ref=f1e122]:
+          - generic [ref=f1e123]:
+            - heading "Home dashboard" [level=2] [ref=f1e124]
+            - link "Open" [ref=f1e125] [cursor=pointer]:
+              - /url: /
+          - generic [ref=f1e128]:
+            - generic [ref=f1e129]:
+              - code [ref=f1e130]: /
+              - paragraph [ref=f1e131]: "Entry screen: greet the employee, offer the two recognition actions, show growth stage, key totals with the latest badge, top qualities and the newest cards."
+            - generic [ref=f1e132]:
+              - paragraph [ref=f1e133]: How it works
+              - list [ref=f1e134]:
+                - listitem [ref=f1e135]:
+                  - generic [ref=f1e137]: Client component inside <AppShell> (bottom tab navigation, sticky header). The time-based greeting only renders after hydration to avoid a mismatch.
+                - listitem [ref=f1e138]:
+                  - generic [ref=f1e140]: "Plum hero section with two actions: 'Kaart scannen' (/scannen) and 'Geef een kaart' (/geven)."
+                - listitem [ref=f1e141]:
+                  - generic [ref=f1e143]: "<GrowthJourney received={n} showStreaks /> renders the profile banner, the bird growth-stage banner, the progress meter and streak chips (src/lib/growth-journey.ts, 6 stages: Nieuw → Inspirerend)."
+                - listitem [ref=f1e144]:
+                  - generic [ref=f1e146]: "<RecognitionStats /> shows four tiles: received cards, cards you gave, qualities recognised and badges (unlocked/total, sub-label = latest badge) — the newest unlocked badge is also rendered as a full-width card linking to /prestaties."
+                - listitem [ref=f1e147]:
+                  - generic [ref=f1e149]: <TopQualities /> aggregates the received cards into the top 3 qualities with counts, coloured per 'C' category.
+                - listitem [ref=f1e150]:
+                  - generic [ref=f1e152]: Received cards come from useScannedCards().allReceived; given cards from useGivenCards().allGiven (localStorage-persisted).
+                - listitem [ref=f1e153]:
+                  - generic [ref=f1e155]: All copy goes through useI18n().t(key); card titles/messages are Localised objects resolved with localised(value, lang).
+                - listitem [ref=f1e156]:
+                  - generic [ref=f1e158]: No AI on this screen — the AI insight lives on /inzichten.
+            - generic [ref=f1e159]:
+              - paragraph [ref=f1e160]: Data sources
+              - list [ref=f1e161]:
+                - listitem [ref=f1e162]:
+                  - generic [ref=f1e164]: src/lib/growth-journey.ts — stage ladder derived from total received cards
+                - listitem [ref=f1e165]:
+                  - generic [ref=f1e167]: src/lib/gamification-data.ts — badges (for the latest-badge tile/card), streaks
+                - listitem [ref=f1e168]:
+                  - generic [ref=f1e170]: src/lib/geth-data.ts — me, receivedCards, cardById()
+                - listitem [ref=f1e171]:
+                  - generic [ref=f1e173]: "src/lib/scanned-cards.tsx — ScannedCardsProvider (localStorage: geth-scanned-cards)"
+                - listitem [ref=f1e174]:
+                  - generic [ref=f1e176]: "src/lib/given-cards.tsx — GivenCardsProvider (localStorage: geth-given-cards)"
+            - generic [ref=f1e177]:
+              - paragraph [ref=f1e178]: Files
+              - list [ref=f1e179]:
+                - listitem [ref=f1e180]:
+                  - generic [ref=f1e182]: src/routes/index.tsx
+                - listitem [ref=f1e183]:
+                  - generic [ref=f1e185]: src/components/geth/GrowthJourney.tsx
+                - listitem [ref=f1e186]:
+                  - generic [ref=f1e188]: src/components/geth/RecognitionStats.tsx
+                - listitem [ref=f1e189]:
+                  - generic [ref=f1e191]: src/components/geth/TopQualities.tsx
+                - listitem [ref=f1e192]:
+                  - generic [ref=f1e194]: src/lib/growth-journey.ts
+            - generic [ref=f1e195]:
+              - paragraph [ref=f1e196]: Notes / next steps
+              - list [ref=f1e197]:
+                - listitem [ref=f1e198]:
+                  - generic [ref=f1e200]: Demo data only — replace geth-data with Lovable Cloud queries when the backend lands.
+        - generic [ref=f1e202]:
+          - generic [ref=f1e203]:
+            - heading "Give recognition" [level=2] [ref=f1e204]
+            - link "Open" [ref=f1e205] [cursor=pointer]:
+              - /url: /geven
+          - generic [ref=f1e208]:
+            - generic [ref=f1e209]:
+              - code [ref=f1e210]: /geven
+              - paragraph [ref=f1e211]: Flow to pick a colleague, pick a card from the deck and attach a personal message.
+            - generic [ref=f1e212]:
+              - paragraph [ref=f1e213]: How it works
+              - list [ref=f1e214]:
+                - listitem [ref=f1e215]:
+                  - generic [ref=f1e217]: Multi-step wizard held in local useState (colleague → card → message → confirmation); no route changes between steps.
+                - listitem [ref=f1e218]:
+                  - generic [ref=f1e220]: "The deck is filtered by category and by rollout availability (useRollout(): one 'C' unlocks per programme month)."
+                - listitem [ref=f1e221]:
+                  - generic [ref=f1e223]: "Submitting calls addGiven() from useGivenCards(): the card is stored in localStorage, so Home ('kaarten die je gaf') and /gegeven update immediately."
+            - generic [ref=f1e224]:
+              - paragraph [ref=f1e225]: Data sources
+              - list [ref=f1e226]:
+                - listitem [ref=f1e227]:
+                  - generic [ref=f1e229]: src/lib/geth-data.ts — colleagues, cardDeck, categoryLabelKey
+                - listitem [ref=f1e230]:
+                  - generic [ref=f1e232]: src/lib/given-cards.tsx — addGiven(), allGiven
+                - listitem [ref=f1e233]:
+                  - generic [ref=f1e235]: "src/lib/rollout.tsx — unlockMonth(), month overrides (localStorage key: geth-rollout)"
+            - generic [ref=f1e236]:
+              - paragraph [ref=f1e237]: Files
+              - list [ref=f1e238]:
+                - listitem [ref=f1e239]:
+                  - generic [ref=f1e241]: src/routes/geven.tsx
+                - listitem [ref=f1e242]:
+                  - generic [ref=f1e244]: src/lib/given-cards.tsx
+                - listitem [ref=f1e245]:
+                  - generic [ref=f1e247]: src/lib/rollout.tsx
+            - generic [ref=f1e248]:
+              - paragraph [ref=f1e249]: Notes / next steps
+              - list [ref=f1e250]:
+                - listitem [ref=f1e251]:
+                  - generic [ref=f1e253]: Swap the localStorage store for an insert (createServerFn + Cloud) once the backend exists.
+        - generic [ref=f1e255]:
+          - generic [ref=f1e256]:
+            - heading "Scan card + simulation" [level=2] [ref=f1e257]
+            - link "Open" [ref=f1e258] [cursor=pointer]:
+              - /url: /scannen
+          - generic [ref=f1e261]:
+            - generic [ref=f1e262]:
+              - code [ref=f1e263]: /scannen
+              - paragraph [ref=f1e264]: "Simulate scanning a physical GETH card: choose a sender and any card from the deck and add it to the account."
+            - generic [ref=f1e265]:
+              - paragraph [ref=f1e266]: How it works
+              - list [ref=f1e267]:
+                - listitem [ref=f1e268]:
+                  - generic [ref=f1e270]: "State machine in local useState: idle → picking sender → picking card → result."
+                - listitem [ref=f1e271]:
+                  - generic [ref=f1e273]: The picker supports category filter + text search over the full cardDeck.
+                - listitem [ref=f1e274]:
+                  - generic [ref=f1e276]: "'Add to my cards' calls addScanned({ cardId, fromId }) from useScannedCards(); the context writes to localStorage and re-renders Home, Ontvangen and the card detail."
+                - listitem [ref=f1e277]:
+                  - generic [ref=f1e279]: Scanned card ids are prefixed with 's' so /kaart/$id can resolve them client-side after hydration (SSR has no localStorage).
+            - generic [ref=f1e280]:
+              - paragraph [ref=f1e281]: Data sources
+              - list [ref=f1e282]:
+                - listitem [ref=f1e283]:
+                  - generic [ref=f1e285]: src/lib/scanned-cards.tsx — addScanned(), allReceived, clearScanned()
+                - listitem [ref=f1e286]:
+                  - generic [ref=f1e288]: src/lib/geth-data.ts — cardDeck, colleagues
+            - generic [ref=f1e289]:
+              - paragraph [ref=f1e290]: Files
+              - list [ref=f1e291]:
+                - listitem [ref=f1e292]:
+                  - generic [ref=f1e294]: src/routes/scannen.tsx
+                - listitem [ref=f1e295]:
+                  - generic [ref=f1e297]: src/lib/scanned-cards.tsx
+            - generic [ref=f1e298]:
+              - paragraph [ref=f1e299]: Notes / next steps
+              - list [ref=f1e300]:
+                - listitem [ref=f1e301]:
+                  - generic [ref=f1e303]: "No camera/NFC yet: swap the simulation for a real scanner and keep the same addScanned() contract."
+        - generic [ref=f1e305]:
+          - generic [ref=f1e306]:
+            - heading "Received cards" [level=2] [ref=f1e307]
+            - link "Open" [ref=f1e308] [cursor=pointer]:
+              - /url: /ontvangen
+          - generic [ref=f1e311]:
+            - generic [ref=f1e312]:
+              - code [ref=f1e313]: /ontvangen
+              - paragraph [ref=f1e314]: Full, chronological list of every card the employee received.
+            - generic [ref=f1e315]:
+              - paragraph [ref=f1e316]: How it works
+              - list [ref=f1e317]:
+                - listitem [ref=f1e318]:
+                  - generic [ref=f1e320]: Reads useScannedCards().allReceived (demo + simulated), renders thumbnails and links to /kaart/$id.
+            - generic [ref=f1e321]:
+              - paragraph [ref=f1e322]: Data sources
+              - list [ref=f1e323]:
+                - listitem [ref=f1e324]:
+                  - generic [ref=f1e326]: src/lib/geth-data.ts
+                - listitem [ref=f1e327]:
+                  - generic [ref=f1e329]: src/lib/scanned-cards.tsx
+            - generic [ref=f1e330]:
+              - paragraph [ref=f1e331]: Files
+              - list [ref=f1e332]:
+                - listitem [ref=f1e333]:
+                  - generic [ref=f1e335]: src/routes/ontvangen.tsx
+        - generic [ref=f1e337]:
+          - generic [ref=f1e338]:
+            - heading "Given cards" [level=2] [ref=f1e339]
+            - link "Open" [ref=f1e340] [cursor=pointer]:
+              - /url: /gegeven
+          - generic [ref=f1e343]:
+            - generic [ref=f1e344]:
+              - code [ref=f1e345]: /gegeven
+              - paragraph [ref=f1e346]: History of cards the employee gave, for self-reflection on how often they recognise others.
+            - generic [ref=f1e347]:
+              - paragraph [ref=f1e348]: How it works
+              - list [ref=f1e349]:
+                - listitem [ref=f1e350]:
+                  - generic [ref=f1e352]: Reads useGivenCards().allGiven — the demo history merged with cards given in this browser (localStorage), newest first.
+            - generic [ref=f1e353]:
+              - paragraph [ref=f1e354]: Data sources
+              - list [ref=f1e355]:
+                - listitem [ref=f1e356]:
+                  - generic [ref=f1e358]: src/lib/geth-data.ts — givenCards, colleagueById()
+                - listitem [ref=f1e359]:
+                  - generic [ref=f1e361]: src/lib/given-cards.tsx
+            - generic [ref=f1e362]:
+              - paragraph [ref=f1e363]: Files
+              - list [ref=f1e364]:
+                - listitem [ref=f1e365]:
+                  - generic [ref=f1e367]: src/routes/gegeven.tsx
+                - listitem [ref=f1e368]:
+                  - generic [ref=f1e370]: src/lib/given-cards.tsx
+        - generic [ref=f1e372]:
+          - heading "Card detail" [level=2] [ref=f1e374]
+          - generic [ref=f1e375]:
+            - generic [ref=f1e376]:
+              - code [ref=f1e377]: /kaart/$id
+              - paragraph [ref=f1e378]: Show a single received card large, with sender, date, source (digital/physical) and message.
+            - generic [ref=f1e379]:
+              - paragraph [ref=f1e380]: How it works
+              - list [ref=f1e381]:
+                - listitem [ref=f1e382]:
+                  - generic [ref=f1e384]: Route param $id is looked up in the merged received list.
+                - listitem [ref=f1e385]:
+                  - generic [ref=f1e387]: "Ids starting with 's' are scanned cards: during SSR they cannot be resolved, so the route renders an empty shell instead of notFound() until the client has hydrated."
+            - generic [ref=f1e388]:
+              - paragraph [ref=f1e389]: Data sources
+              - list [ref=f1e390]:
+                - listitem [ref=f1e391]:
+                  - generic [ref=f1e393]: src/lib/geth-data.ts
+                - listitem [ref=f1e394]:
+                  - generic [ref=f1e396]: src/lib/scanned-cards.tsx
+            - generic [ref=f1e397]:
+              - paragraph [ref=f1e398]: Files
+              - list [ref=f1e399]:
+                - listitem [ref=f1e400]:
+                  - generic [ref=f1e402]: src/routes/kaart.$id.tsx
+        - generic [ref=f1e404]:
+          - generic [ref=f1e405]:
+            - heading "Insights + AI coach" [level=2] [ref=f1e406]
+            - link "Open" [ref=f1e407] [cursor=pointer]:
+              - /url: /inzichten
+          - generic [ref=f1e410]:
+            - generic [ref=f1e411]:
+              - code [ref=f1e412]: /inzichten
+              - paragraph [ref=f1e413]: Personal recognition analytics plus the AI-generated coaching insight, and hub to the premium screens.
+            - generic [ref=f1e414]:
+              - paragraph [ref=f1e415]: How it works
+              - list [ref=f1e416]:
+                - listitem [ref=f1e417]:
+                  - generic [ref=f1e419]: "GETH® AI insight is generated on demand: useMutation calls generateAiInsight through useServerFn() only after the user taps 'Inzicht genereren' / 'Vernieuwen' — nothing is fetched on page load, so opening Insights is always instant."
+                - listitem [ref=f1e420]:
+                  - generic [ref=f1e422]: Totals come from src/lib/recognition-stats.ts (demo baseline plus every simulated scan); the scanned cards are sent to the server function as evidence.
+                - listitem [ref=f1e423]:
+                  - generic [ref=f1e425]: "Kept blocks: AI insight hero, core totals, link to /kaarten-overzicht (all received cards by frequency), certificate CTA (/certificaat), premium links to /groei, /patronen and /prestaties, plus /privacy."
+                - listitem [ref=f1e426]:
+                  - generic [ref=f1e428]: "Removed on request: confidence metrics, monthly trend, recurring patterns, team contribution, the colleagues tile, the chronological card list (lives on Home) and the AI manager coach link."
+                - listitem [ref=f1e429]:
+                  - generic [ref=f1e431]: Back navigation uses <AppShell showBack backTo="/"> so users can always leave the screen.
+            - generic [ref=f1e432]:
+              - paragraph [ref=f1e433]: Data sources
+              - list [ref=f1e434]:
+                - listitem [ref=f1e435]:
+                  - generic [ref=f1e437]: src/lib/recognition-stats.ts — deriveStrengthStats/CategoryStats/Totals
+                - listitem [ref=f1e438]:
+                  - generic [ref=f1e440]: src/lib/geth-data.ts — baseline aggregates
+                - listitem [ref=f1e441]:
+                  - generic [ref=f1e443]: src/lib/scanned-cards.tsx — scanned
+            - generic [ref=f1e444]:
+              - paragraph [ref=f1e445]: Files
+              - list [ref=f1e446]:
+                - listitem [ref=f1e447]:
+                  - generic [ref=f1e449]: src/routes/inzichten.tsx
+                - listitem [ref=f1e450]:
+                  - generic [ref=f1e452]: src/lib/ai-insights.functions.ts
+                - listitem [ref=f1e453]:
+                  - generic [ref=f1e455]: src/lib/ai-insights.prompt.ts
+                - listitem [ref=f1e456]:
+                  - generic [ref=f1e458]: src/lib/ai-insights-input.ts
+                - listitem [ref=f1e459]:
+                  - generic [ref=f1e461]: src/lib/recognition-stats.ts
+            - generic [ref=f1e462]:
+              - paragraph [ref=f1e463]: AI prompt
+              - generic [ref=f1e464]:
+                - generic [ref=f1e465]:
+                  - term [ref=f1e466]: Server fn
+                  - definition [ref=f1e467]: "generateAiInsight({ lang, scanned }) — createServerFn, POST; scanned cards are merged into the received list and the derived stats in the context block"
+                - generic [ref=f1e468]:
+                  - term [ref=f1e469]: Model
+                  - definition [ref=f1e470]: Gemini Flash via the Lovable AI Gateway (server-side key, never exposed to the client)
+                - generic [ref=f1e471]:
+                  - term [ref=f1e472]: System prompt
+                  - definition [ref=f1e473]: "GETH AI Insights master prompt (verbatim in src/lib/ai-insights.prompt.ts): recognition cards are the only evidence; interpret recognition, never analyse people; no statistics, no comparisons, no invented strengths; warm 'you'-voice, 80-150 words; pick one behavioural identity (Trusted Advisor, Team Connector, Reliable Expert, …) only when strongly supported; always end with a motivating recognition nudge."
+                - generic [ref=f1e474]:
+                  - term [ref=f1e475]: Output
+                  - definition [ref=f1e476]: "{\"identity\",\"insight\",\"pattern\",\"contribution\",\"suggestion\"} — strict JSON, no fences."
+        - generic [ref=f1e478]:
+          - generic [ref=f1e479]:
+            - heading "Growth timeline" [level=2] [ref=f1e480]
+            - link "Open" [ref=f1e481] [cursor=pointer]:
+              - /url: /groei
+          - generic [ref=f1e484]:
+            - generic [ref=f1e485]:
+              - code [ref=f1e486]: /groei
+              - paragraph [ref=f1e487]: Visualise how the qualities colleagues recognise shift month over month.
+            - generic [ref=f1e488]:
+              - paragraph [ref=f1e489]: How it works
+              - list [ref=f1e490]:
+                - listitem [ref=f1e491]:
+                  - generic [ref=f1e493]: growthPeriods renders as a vertical timeline with per-period highlights.
+                - listitem [ref=f1e494]:
+                  - generic [ref=f1e496]: <AiPanel feature="timeline"> adds the AI reading of the movement.
+            - generic [ref=f1e497]:
+              - paragraph [ref=f1e498]: Data sources
+              - list [ref=f1e499]:
+                - listitem [ref=f1e500]:
+                  - generic [ref=f1e502]: src/lib/premium-data.ts — growthPeriods
+            - generic [ref=f1e503]:
+              - paragraph [ref=f1e504]: Files
+              - list [ref=f1e505]:
+                - listitem [ref=f1e506]:
+                  - generic [ref=f1e508]: src/routes/groei.tsx
+                - listitem [ref=f1e509]:
+                  - generic [ref=f1e511]: src/components/geth/AiPanel.tsx
+            - generic [ref=f1e512]:
+              - paragraph [ref=f1e513]: AI prompt
+              - generic [ref=f1e514]:
+                - generic [ref=f1e515]:
+                  - term [ref=f1e516]: Server fn
+                  - definition [ref=f1e517]: "runPremiumInsight({ feature: 'timeline', lang })"
+                - generic [ref=f1e518]:
+                  - term [ref=f1e519]: Model
+                  - definition [ref=f1e520]: Gemini Flash via Lovable AI Gateway
+                - generic [ref=f1e521]:
+                  - term [ref=f1e522]: System prompt
+                  - definition [ref=f1e523]: "Shared rules (src/lib/ai-premium.server.ts → SHARED_RULES): \"You are GETH AI Insights, the recognition-based coach of the GETH platform. Recognition cards are your ONLY evidence. Never invent strengths, never mention percentages or statistics, never compare individuals negatively, never judge. Warm, direct, 'you'-voice, no corporate jargon.\" headline max 8 words, body 70-120 words, 3 bullets. Task: explain how recognised qualities evolved over the months; focus on movement, not totals. Bullets: what changed, what stayed constant, what may emerge next."
+                - generic [ref=f1e524]:
+                  - term [ref=f1e525]: Output
+                  - definition [ref=f1e526]: "{\"headline\": string, \"body\": string, \"bullets\": [string, string, string]} — strict JSON, no fences."
+        - generic [ref=f1e528]:
+          - generic [ref=f1e529]:
+            - heading "Hidden patterns" [level=2] [ref=f1e530]
+            - link "Open" [ref=f1e531] [cursor=pointer]:
+              - /url: /patronen
+          - generic [ref=f1e534]:
+            - generic [ref=f1e535]:
+              - code [ref=f1e536]: /patronen
+              - paragraph [ref=f1e537]: "Surface only the recognition patterns the received cards actually support: quality combinations, shared voices, recurrence over time, recognition beyond the team."
+            - generic [ref=f1e538]:
+              - paragraph [ref=f1e539]: How it works
+              - list [ref=f1e540]:
+                - listitem [ref=f1e541]:
+                  - generic [ref=f1e543]: derivePatterns() builds patterns from the real received cards and labels each with a human evidence level (early signal / emerging / clear pattern) — no scores, no invented patterns.
+                - listitem [ref=f1e544]:
+                  - generic [ref=f1e546]: <AiPanel feature="patterns"> explains why each pattern matters.
+            - generic [ref=f1e547]:
+              - paragraph [ref=f1e548]: Data sources
+              - list [ref=f1e549]:
+                - listitem [ref=f1e550]:
+                  - generic [ref=f1e552]: src/lib/recognition-patterns.ts — derivePatterns
+            - generic [ref=f1e553]:
+              - paragraph [ref=f1e554]: Files
+              - list [ref=f1e555]:
+                - listitem [ref=f1e556]:
+                  - generic [ref=f1e558]: src/routes/patronen.tsx
+                - listitem [ref=f1e559]:
+                  - generic [ref=f1e561]: src/components/geth/AiPanel.tsx
+            - generic [ref=f1e562]:
+              - paragraph [ref=f1e563]: AI prompt
+              - generic [ref=f1e564]:
+                - generic [ref=f1e565]:
+                  - term [ref=f1e566]: Server fn
+                  - definition [ref=f1e567]: "runPremiumInsight({ feature: 'patterns', lang })"
+                - generic [ref=f1e568]:
+                  - term [ref=f1e569]: Model
+                  - definition [ref=f1e570]: Gemini Flash via Lovable AI Gateway
+                - generic [ref=f1e571]:
+                  - term [ref=f1e572]: System prompt
+                  - definition [ref=f1e573]: "Shared rules (src/lib/ai-premium.server.ts → SHARED_RULES): \"You are GETH AI Insights, the recognition-based coach of the GETH platform. Recognition cards are your ONLY evidence. Never invent strengths, never mention percentages or statistics, never compare individuals negatively, never judge. Warm, direct, 'you'-voice, no corporate jargon.\" headline max 8 words, body 70-120 words, 3 bullets. Task: interpret detected recognition patterns (quality combinations, seasonal peaks, cross-department appreciation, recurring moments) and explain why they matter. Bullets: one concrete insight per pattern type."
+                - generic [ref=f1e574]:
+                  - term [ref=f1e575]: Output
+                  - definition [ref=f1e576]: "{\"headline\": string, \"body\": string, \"bullets\": [string, string, string]} — strict JSON, no fences."
+        - generic [ref=f1e578]:
+          - generic [ref=f1e579]:
+            - heading "All received cards by frequency" [level=2] [ref=f1e580]
+            - link "Open" [ref=f1e581] [cursor=pointer]:
+              - /url: /kaarten-overzicht
+          - generic [ref=f1e584]:
+            - generic [ref=f1e585]:
+              - code [ref=f1e586]: /kaarten-overzicht
+              - paragraph [ref=f1e587]: Overview of every card the employee received, most-received card first, reachable from Insights.
+            - generic [ref=f1e588]:
+              - paragraph [ref=f1e589]: How it works
+              - list [ref=f1e590]:
+                - listitem [ref=f1e591]:
+                  - generic [ref=f1e593]: Aggregates useScannedCards().allReceived per cardId, counts occurrences and sorts descending; each row links to the card detail.
+            - generic [ref=f1e594]:
+              - paragraph [ref=f1e595]: Data sources
+              - list [ref=f1e596]:
+                - listitem [ref=f1e597]:
+                  - generic [ref=f1e599]: src/lib/scanned-cards.tsx — allReceived
+                - listitem [ref=f1e600]:
+                  - generic [ref=f1e602]: src/lib/geth-data.ts — cardById()
+            - generic [ref=f1e603]:
+              - paragraph [ref=f1e604]: Files
+              - list [ref=f1e605]:
+                - listitem [ref=f1e606]:
+                  - generic [ref=f1e608]: src/routes/kaarten-overzicht.tsx
+        - generic [ref=f1e610]:
+          - generic [ref=f1e611]:
+            - heading "AI manager coach (unlinked)" [level=2] [ref=f1e612]
+            - link "Open" [ref=f1e613] [cursor=pointer]:
+              - /url: /manager
+          - generic [ref=f1e616]:
+            - generic [ref=f1e617]:
+              - code [ref=f1e618]: /manager
+              - paragraph [ref=f1e619]: "Team view for managers: participation, hidden talent and under-recognised colleagues with coaching actions."
+            - generic [ref=f1e620]:
+              - paragraph [ref=f1e621]: How it works
+              - list [ref=f1e622]:
+                - listitem [ref=f1e623]:
+                  - generic [ref=f1e625]: Still routable but intentionally not linked from Insights any more; reachable by URL only.
+                - listitem [ref=f1e626]:
+                  - generic [ref=f1e628]: teamMeta drives the participation stats; teamSignals renders one row per colleague with a signal label.
+                - listitem [ref=f1e629]:
+                  - generic [ref=f1e631]: <AiPanel feature="manager"> produces the coaching advice on demand (button, no auto-fetch).
+            - generic [ref=f1e632]:
+              - paragraph [ref=f1e633]: Data sources
+              - list [ref=f1e634]:
+                - listitem [ref=f1e635]:
+                  - generic [ref=f1e637]: src/lib/premium-data.ts — teamMeta, teamSignals
+            - generic [ref=f1e638]:
+              - paragraph [ref=f1e639]: Files
+              - list [ref=f1e640]:
+                - listitem [ref=f1e641]:
+                  - generic [ref=f1e643]: src/routes/manager.tsx
+                - listitem [ref=f1e644]:
+                  - generic [ref=f1e646]: src/components/geth/AiPanel.tsx
+            - generic [ref=f1e647]:
+              - paragraph [ref=f1e648]: AI prompt
+              - generic [ref=f1e649]:
+                - generic [ref=f1e650]:
+                  - term [ref=f1e651]: Server fn
+                  - definition [ref=f1e652]: "runPremiumInsight({ feature: 'manager', lang })"
+                - generic [ref=f1e653]:
+                  - term [ref=f1e654]: Model
+                  - definition [ref=f1e655]: Gemini Flash via Lovable AI Gateway
+                - generic [ref=f1e656]:
+                  - term [ref=f1e657]: System prompt
+                  - definition [ref=f1e658]: "Shared rules (src/lib/ai-premium.server.ts → SHARED_RULES): \"You are GETH AI Insights, the recognition-based coach of the GETH platform. Recognition cards are your ONLY evidence. Never invent strengths, never mention percentages or statistics, never compare individuals negatively, never judge. Warm, direct, 'you'-voice, no corporate jargon.\" headline max 8 words, body 70-120 words, 3 bullets. Task: address the manager as 'you' about their team. Highlight hidden talent (gives much, receives little) and under-recognised colleagues, suggest coaching actions, never frame anyone as a problem. Bullets: three concrete actions for the coming two weeks."
+                - generic [ref=f1e659]:
+                  - term [ref=f1e660]: Output
+                  - definition [ref=f1e661]: "{\"headline\": string, \"body\": string, \"bullets\": [string, string, string]} — strict JSON, no fences."
+            - generic [ref=f1e662]:
+              - paragraph [ref=f1e663]: Notes / next steps
+              - list [ref=f1e664]:
+                - listitem [ref=f1e665]:
+                  - generic [ref=f1e667]: Gate this route behind a manager role (separate user_roles table) once auth exists.
+        - generic [ref=f1e669]:
+          - generic [ref=f1e670]:
+            - heading "Recognition Story (removed)" [level=2] [ref=f1e671]
+            - link "Open" [ref=f1e672] [cursor=pointer]:
+              - /url: /dna
+          - generic [ref=f1e675]:
+            - generic [ref=f1e676]:
+              - code [ref=f1e677]: /dna
+              - paragraph [ref=f1e678]: Legacy URL of the deleted Recognition DNA/Story screen.
+            - generic [ref=f1e679]:
+              - paragraph [ref=f1e680]: How it works
+              - list [ref=f1e681]:
+                - listitem [ref=f1e682]:
+                  - generic [ref=f1e684]: "beforeLoad throws redirect({ to: '/inzichten' }) so old links and caches keep working."
+            - generic [ref=f1e685]:
+              - paragraph [ref=f1e686]: Files
+              - list [ref=f1e687]:
+                - listitem [ref=f1e688]:
+                  - generic [ref=f1e690]: src/routes/dna.tsx
+        - generic [ref=f1e692]:
+          - generic [ref=f1e693]:
+            - heading "Milestones, badges & streaks" [level=2] [ref=f1e694]
+            - link "Open" [ref=f1e695] [cursor=pointer]:
+              - /url: /prestaties
+          - generic [ref=f1e698]:
+            - generic [ref=f1e699]:
+              - code [ref=f1e700]: /prestaties
+              - paragraph [ref=f1e701]: "Unified growth narrative: the same growth ladder as Home, then streaks, badges and milestones."
+            - generic [ref=f1e702]:
+              - paragraph [ref=f1e703]: How it works
+              - list [ref=f1e704]:
+                - listitem [ref=f1e705]:
+                  - generic [ref=f1e707]: "<GrowthJourney received={n} /> sits at the top so stages match the Home dashboard exactly."
+                - listitem [ref=f1e708]:
+                  - generic [ref=f1e710]: Streaks render as a week-by-week timeline with a legend, current vs. best streak and a 'new record' marker.
+                - listitem [ref=f1e711]:
+                  - generic [ref=f1e713]: Badge grid shows unlocked (checkmark + description) and locked badges with a progress Meter; milestone list closes the page.
+                - listitem [ref=f1e714]:
+                  - generic [ref=f1e716]: All progress values are static demo numbers — no persistence, no unlock logic yet.
+            - generic [ref=f1e717]:
+              - paragraph [ref=f1e718]: Data sources
+              - list [ref=f1e719]:
+                - listitem [ref=f1e720]:
+                  - generic [ref=f1e722]: src/lib/gamification-data.ts — milestones, badges, streaks
+                - listitem [ref=f1e723]:
+                  - generic [ref=f1e725]: src/lib/growth-journey.ts
+            - generic [ref=f1e726]:
+              - paragraph [ref=f1e727]: Files
+              - list [ref=f1e728]:
+                - listitem [ref=f1e729]:
+                  - generic [ref=f1e731]: src/routes/prestaties.tsx
+                - listitem [ref=f1e732]:
+                  - generic [ref=f1e734]: src/components/geth/GrowthJourney.tsx
+                - listitem [ref=f1e735]:
+                  - generic [ref=f1e737]: src/lib/gamification-data.ts
+            - generic [ref=f1e738]:
+              - paragraph [ref=f1e739]: Notes / next steps
+              - list [ref=f1e740]:
+                - listitem [ref=f1e741]:
+                  - generic [ref=f1e743]: Unlock rules should move server-side (derive from card counts) to stay tamper-proof.
+        - generic [ref=f1e745]:
+          - generic [ref=f1e746]:
+            - heading "Recognition certificate" [level=2] [ref=f1e747]
+            - link "Open" [ref=f1e748] [cursor=pointer]:
+              - /url: /certificaat
+          - generic [ref=f1e751]:
+            - generic [ref=f1e752]:
+              - code [ref=f1e753]: /certificaat
+              - paragraph [ref=f1e754]: Printable/shareable certificate for the 6-month programme milestone.
+            - generic [ref=f1e755]:
+              - paragraph [ref=f1e756]: How it works
+              - list [ref=f1e757]:
+                - listitem [ref=f1e758]:
+                  - generic [ref=f1e760]: Reads useRollout().month; before CERTIFICATE_MONTH (6) it renders a locked state instead of the certificate.
+            - generic [ref=f1e761]:
+              - paragraph [ref=f1e762]: Data sources
+              - list [ref=f1e763]:
+                - listitem [ref=f1e764]:
+                  - generic [ref=f1e766]: src/lib/rollout.tsx — CERTIFICATE_MONTH
+                - listitem [ref=f1e767]:
+                  - generic [ref=f1e769]: src/lib/geth-data.ts — me, strengthStats
+            - generic [ref=f1e770]:
+              - paragraph [ref=f1e771]: Files
+              - list [ref=f1e772]:
+                - listitem [ref=f1e773]:
+                  - generic [ref=f1e775]: src/routes/certificaat.tsx
+        - generic [ref=f1e777]:
+          - generic [ref=f1e778]:
+            - heading "Profile & settings" [level=2] [ref=f1e779]
+            - link "Open" [ref=f1e780] [cursor=pointer]:
+              - /url: /profiel
+          - generic [ref=f1e783]:
+            - generic [ref=f1e784]:
+              - code [ref=f1e785]: /profiel
+              - paragraph [ref=f1e786]: Identity, theme and language preferences, rollout simulator and links to sub-screens.
+            - generic [ref=f1e787]:
+              - paragraph [ref=f1e788]: How it works
+              - list [ref=f1e789]:
+                - listitem [ref=f1e790]:
+                  - generic [ref=f1e792]: ThemeSelector (light/dark/system, src/lib/theme.tsx) and LanguageToggle (src/lib/i18n.tsx) both persist to localStorage.
+                - listitem [ref=f1e793]:
+                  - generic [ref=f1e795]: The rollout simulator lets you jump to any programme month to test card availability.
+            - generic [ref=f1e796]:
+              - paragraph [ref=f1e797]: Data sources
+              - list [ref=f1e798]:
+                - listitem [ref=f1e799]:
+                  - generic [ref=f1e801]: src/lib/theme.tsx
+                - listitem [ref=f1e802]:
+                  - generic [ref=f1e804]: src/lib/i18n.tsx
+                - listitem [ref=f1e805]:
+                  - generic [ref=f1e807]: src/lib/rollout.tsx
+            - generic [ref=f1e808]:
+              - paragraph [ref=f1e809]: Files
+              - list [ref=f1e810]:
+                - listitem [ref=f1e811]:
+                  - generic [ref=f1e813]: src/routes/profiel.tsx
+                - listitem [ref=f1e814]:
+                  - generic [ref=f1e816]: src/components/geth/AppShell.tsx
+        - generic [ref=f1e818]:
+          - generic [ref=f1e819]:
+            - heading "Privacy & who sees what" [level=2] [ref=f1e820]
+            - link "Open" [ref=f1e821] [cursor=pointer]:
+              - /url: /privacy
+          - generic [ref=f1e824]:
+            - generic [ref=f1e825]:
+              - code [ref=f1e826]: /privacy
+              - paragraph [ref=f1e827]: Explain in plain language which data is visible to the employee, the manager and the organisation.
+            - generic [ref=f1e828]:
+              - paragraph [ref=f1e829]: How it works
+              - list [ref=f1e830]:
+                - listitem [ref=f1e831]:
+                  - generic [ref=f1e833]: Static explanatory content, fully translated; no data access.
+            - generic [ref=f1e834]:
+              - paragraph [ref=f1e835]: Data sources
+              - list [ref=f1e836]:
+                - listitem [ref=f1e837]:
+                  - generic [ref=f1e839]: src/lib/i18n.tsx
+            - generic [ref=f1e840]:
+              - paragraph [ref=f1e841]: Files
+              - list [ref=f1e842]:
+                - listitem [ref=f1e843]:
+                  - generic [ref=f1e845]: src/routes/privacy.tsx
+        - generic [ref=f1e847]:
+          - generic [ref=f1e848]:
+            - heading "Developer overview" [level=2] [ref=f1e849]
+            - link "Open" [ref=f1e850] [cursor=pointer]:
+              - /url: /dev
+          - generic [ref=f1e853]:
+            - generic [ref=f1e854]:
+              - code [ref=f1e855]: /dev
+              - paragraph [ref=f1e856]: Single page with the architecture summary and every screen's documentation (this doc set).
+            - generic [ref=f1e857]:
+              - paragraph [ref=f1e858]: How it works
+              - list [ref=f1e859]:
+                - listitem [ref=f1e860]:
+                  - generic [ref=f1e862]: Renders devDocs from src/lib/dev-docs.ts; the header 'i' button on each screen renders the matching entry in a sheet.
+            - generic [ref=f1e863]:
+              - paragraph [ref=f1e864]: Data sources
+              - list [ref=f1e865]:
+                - listitem [ref=f1e866]:
+                  - generic [ref=f1e868]: src/lib/dev-docs.ts
+            - generic [ref=f1e869]:
+              - paragraph [ref=f1e870]: Files
+              - list [ref=f1e871]:
+                - listitem [ref=f1e872]:
+                  - generic [ref=f1e874]: src/routes/dev.tsx
+                - listitem [ref=f1e875]:
+                  - generic [ref=f1e877]: src/components/geth/DevInfo.tsx
+                - listitem [ref=f1e878]:
+                  - generic [ref=f1e880]: src/lib/dev-docs.ts
+    - navigation [ref=f1e881]:
+      - list [ref=f1e882]:
+        - listitem [ref=f1e883]:
+          - link "Home" [ref=f1e884] [cursor=pointer]:
+            - /url: /
+        - listitem [ref=f1e888]:
+          - link "Geven" [ref=f1e889] [cursor=pointer]:
+            - /url: /geven
+        - listitem [ref=f1e894]:
+          - link "Scannen" [ref=f1e895] [cursor=pointer]:
+            - /url: /scannen
+        - listitem [ref=f1e901]:
+          - link "Inzichten" [ref=f1e902] [cursor=pointer]:
+            - /url: /inzichten
+        - listitem [ref=f1e905]:
+          - link "Profiel" [ref=f1e906] [cursor=pointer]:
+            - /url: /profiel
+  - region "Notifications alt+T"
+  - complementary "Edit with Lovable" [ref=f1e910]:
+    - link "Edit with Lovable" [ref=f1e911] [cursor=pointer]:
+      - /url: https://lovable.dev/projects/lovp_2367m9w8xz93cvn1z0fs8e5n9j?utm_source=lovable-badge
+      - generic [ref=f1e912]: Edit with
+    - button "Dismiss" [ref=f1e918] [cursor=pointer]

@@ -1,5 +1,8 @@
-export function buildEmployeeInsightSystemPrompt(locale: "en" | "nl") {
+import { getMasterToneGuidance } from "@/lib/ai/master-prompt-settings";
+
+export async function buildEmployeeInsightSystemPrompt(locale: "en" | "nl") {
   const language = locale === "nl" ? "Dutch" : "English";
+  const toneGuidance = await getMasterToneGuidance();
 
   return [
     "Role",
@@ -36,6 +39,9 @@ export function buildEmployeeInsightSystemPrompt(locale: "en" | "nl") {
     "- Make the employee feel seen, appreciated, and motivated.",
     "- Avoid corporate jargon.",
     "- Never sound like a statistical report — do not mention recognition counts unless exceptionally relevant.",
+    "",
+    "Tone guidance",
+    toneGuidance,
     "",
     "Focus on Strengths",
     "Instead of describing the data, explain what the recognitions reveal about the employee.",

@@ -1,0 +1,44 @@
+- generic [active] [ref=f19e1]:
+  - generic [ref=f19e3]:
+    - banner [ref=f19e4]:
+      - link "Terug" [ref=f19e5] [cursor=pointer]:
+        - /url: /inzichten
+      - heading "Verborgen patronen" [level=1] [ref=f19e8]
+      - 'button "Developer info: Hidden patterns" [ref=f19e9]'
+      - link "Developer overview of the whole app" [ref=f19e12] [cursor=pointer]:
+        - /url: /dev
+      - button "Licht" [ref=f19e16]
+    - main [ref=f19e23]:
+      - paragraph [ref=f19e24]: Thema's die de waardering die je ontving daadwerkelijk ondersteunt.
+      - generic [ref=f19e26]:
+        - generic [ref=f19e27]:
+          - generic [ref=f19e28]: GETH® AI-inzicht
+          - button "Inzicht genereren" [ref=f19e32] [cursor=pointer]
+        - heading "Verborgen patronen" [level=2] [ref=f19e33]
+        - paragraph
+      - heading "Patronen in jouw waardering" [level=2] [ref=f19e35]
+      - paragraph [ref=f19e37]: Jouw waarderingsverhaal staat nog aan het begin. Zodra er meer echte waardering bijkomt, verschijnen hier de eerste thema's — zonder te gokken.
+      - paragraph [ref=f19e38]: Demogegevens — er worden nog geen echte collega's of kaarten gebruikt.
+    - navigation [ref=f19e39]:
+      - list [ref=f19e40]:
+        - listitem [ref=f19e41]:
+          - link "Home" [ref=f19e42] [cursor=pointer]:
+            - /url: /
+        - listitem [ref=f19e46]:
+          - link "Geven" [ref=f19e47] [cursor=pointer]:
+            - /url: /geven
+        - listitem [ref=f19e52]:
+          - link "Scannen" [ref=f19e53] [cursor=pointer]:
+            - /url: /scannen
+        - listitem [ref=f19e59]:
+          - link "Inzichten" [ref=f19e60] [cursor=pointer]:
+            - /url: /inzichten
+        - listitem [ref=f19e63]:
+          - link "Profiel" [ref=f19e64] [cursor=pointer]:
+            - /url: /profiel
+  - region "Notifications alt+T"
+  - complementary "Edit with Lovable" [ref=f19e68]:
+    - link "Edit with Lovable" [ref=f19e69] [cursor=pointer]:
+      - /url: https://lovable.dev/projects/lovp_2367m9w8xz93cvn1z0fs8e5n9j?utm_source=lovable-badge
+      - generic [ref=f19e70]: Edit with
+    - button "Dismiss" [ref=f19e76] [cursor=pointer]

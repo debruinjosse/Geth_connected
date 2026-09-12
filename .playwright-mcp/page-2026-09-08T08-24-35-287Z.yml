@@ -1,0 +1,69 @@
+- generic [ref=f14e1]:
+  - generic [ref=f14e3]:
+    - banner [ref=f14e4]:
+      - heading "Inzichten" [level=1] [ref=f14e5]
+      - 'button "Developer info: Insights + AI coach" [ref=f14e6]'
+      - link "Developer overview of the whole app" [ref=f14e9] [cursor=pointer]:
+        - /url: /dev
+      - button "Licht" [active] [ref=f14e108]
+    - main [ref=f14e16]:
+      - paragraph [ref=f14e17]: Wat collega's in je herkennen
+      - link [ref=f14e18] [cursor=pointer]:
+        - /url: /kaarten-overzicht
+        - generic [ref=f14e19]:
+          - paragraph [ref=f14e20]: "0"
+          - paragraph [ref=f14e21]: Ontvangen kaarten
+      - generic [ref=f14e27]:
+        - generic [ref=f14e28]:
+          - generic [ref=f14e29]: GETH® AI-inzicht
+          - button "Inzicht genereren" [ref=f14e33] [cursor=pointer]
+        - heading "Je betrouwbaarheid wordt duidelijk gewaardeerd" [level=2] [ref=f14e34]
+        - paragraph
+      - heading "Premium inzichten" [level=2] [ref=f14e36]
+      - paragraph [ref=f14e37]: Diepere AI-analyse van jouw waardering.
+      - generic [ref=f14e38]:
+        - link [ref=f14e39] [cursor=pointer]:
+          - /url: /groei
+          - paragraph [ref=f14e40]: Groeitijdlijn
+          - paragraph [ref=f14e41]: Hoe de kwaliteiten die collega's in je zien zich ontwikkelen.
+          - generic [ref=f14e42]: Bekijk je tijdlijn
+        - link [ref=f14e45] [cursor=pointer]:
+          - /url: /patronen
+          - paragraph [ref=f14e46]: Verborgen patronen
+          - paragraph [ref=f14e47]: Thema's die de waardering die je ontving daadwerkelijk ondersteunt.
+          - generic [ref=f14e48]: Bekijk gevonden patronen
+        - link [ref=f14e51] [cursor=pointer]:
+          - /url: /prestaties
+          - paragraph [ref=f14e52]: Mijlpalen & badges
+          - paragraph [ref=f14e53]: "Vier je waarderingsreis: mijlpalen, badges en reeksen."
+          - generic [ref=f14e54]: Bekijk je mijlpalen
+      - link [ref=f14e57] [cursor=pointer]:
+        - /url: /certificaat
+        - generic [ref=f14e62]:
+          - paragraph [ref=f14e63]: Mijn GETH-certificaat
+          - paragraph [ref=f14e64]: Een deelbaar overzicht van jouw waardering
+      - link "Wie kan mijn gegevens zien?" [ref=f14e67] [cursor=pointer]:
+        - /url: /privacy
+    - navigation [ref=f14e68]:
+      - list [ref=f14e69]:
+        - listitem [ref=f14e70]:
+          - link "Home" [ref=f14e71] [cursor=pointer]:
+            - /url: /
+        - listitem [ref=f14e75]:
+          - link "Geven" [ref=f14e76] [cursor=pointer]:
+            - /url: /geven
+        - listitem [ref=f14e81]:
+          - link "Scannen" [ref=f14e82] [cursor=pointer]:
+            - /url: /scannen
+        - listitem [ref=f14e88]:
+          - link "Inzichten" [ref=f14e89] [cursor=pointer]:
+            - /url: /inzichten
+        - listitem [ref=f14e92]:
+          - link "Profiel" [ref=f14e93] [cursor=pointer]:
+            - /url: /profiel
+  - region "Notifications alt+T"
+  - complementary "Edit with Lovable" [ref=f14e97]:
+    - link "Edit with Lovable" [ref=f14e98] [cursor=pointer]:
+      - /url: https://lovable.dev/projects/lovp_2367m9w8xz93cvn1z0fs8e5n9j?utm_source=lovable-badge
+      - generic [ref=f14e99]: Edit with
+    - button "Dismiss" [ref=f14e105] [cursor=pointer]

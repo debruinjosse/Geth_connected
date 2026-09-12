@@ -1,0 +1,146 @@
+- generic [active] [ref=f17e1]:
+  - generic [ref=f17e3]:
+    - banner [ref=f17e4]:
+      - link "Terug" [ref=f17e5] [cursor=pointer]:
+        - /url: /inzichten
+      - heading "Mijlpalen & badges" [level=1] [ref=f17e8]
+      - 'button "Developer info: Milestones, badges & streaks" [ref=f17e9]'
+      - link "Developer overview of the whole app" [ref=f17e12] [cursor=pointer]:
+        - /url: /dev
+      - button "Licht" [ref=f17e16]
+    - main [ref=f17e23]:
+      - paragraph [ref=f17e24]: "Vier je waarderingsreis: mijlpalen, badges en reeksen."
+      - generic [ref=f17e25]:
+        - generic [ref=f17e26]:
+          - heading "Jouw profiel groeit" [level=2] [ref=f17e27]
+          - img "Nieuw · Zichtbaar · Erkend · Groeiend · Verbindend · Inspirerend" [ref=f17e29]
+          - paragraph [ref=f17e32]: Nieuw · Onderweg naar 'Zichtbaar'
+        - paragraph [ref=f17e33]: Je fase groeit mee met de waardering die je ontvangt; je reeksen laten zien hoe constant je geeft en ontvangt.
+      - generic [ref=f17e34]:
+        - generic [ref=f17e35]:
+          - paragraph [ref=f17e42]: "3"
+          - paragraph [ref=f17e43]: Mijlpalen behaald
+        - generic [ref=f17e44]:
+          - paragraph [ref=f17e47]: 3/6
+          - paragraph [ref=f17e48]: Badges ontgrendeld
+      - heading "Jouw reeksen" [level=2] [ref=f17e50]
+      - generic [ref=f17e51]:
+        - generic [ref=f17e52]:
+          - generic [ref=f17e53]:
+            - generic [ref=f17e54]:
+              - paragraph [ref=f17e55]: Gevende reeks
+              - paragraph [ref=f17e56]: "Beste reeks: 7 weken"
+            - generic [ref=f17e57]: 4 weken op rij
+          - generic [ref=f17e58]:
+            - generic [ref=f17e59]: "-6"
+            - generic [ref=f17e62]: "-5"
+            - generic [ref=f17e65]: "-4"
+            - generic [ref=f17e68]: "-3"
+            - generic [ref=f17e71]: "-2"
+            - generic [ref=f17e74]: "-1"
+            - generic [ref=f17e77]: •
+          - generic [ref=f17e80]:
+            - generic [ref=f17e81]: Week met kaart
+            - generic [ref=f17e83]: Geen kaart
+          - paragraph [ref=f17e85]: Je gaf 4 weken op rij waardering. Geef deze week een kaart om je reeks te verlengen.
+        - generic [ref=f17e86]:
+          - generic [ref=f17e87]:
+            - generic [ref=f17e88]:
+              - paragraph [ref=f17e89]: Ontvangende reeks
+              - paragraph [ref=f17e90]: "Beste reeks: 6 weken"
+            - generic [ref=f17e91]: 6 weken op rij
+          - generic [ref=f17e92]:
+            - generic [ref=f17e93]: "-6"
+            - generic [ref=f17e96]: "-5"
+            - generic [ref=f17e99]: "-4"
+            - generic [ref=f17e102]: "-3"
+            - generic [ref=f17e105]: "-2"
+            - generic [ref=f17e108]: "-1"
+            - generic [ref=f17e111]: •
+          - generic [ref=f17e114]:
+            - generic [ref=f17e115]: Week met kaart
+            - generic [ref=f17e117]: Geen kaart
+          - paragraph [ref=f17e119]: Zes weken achter elkaar waardering ontvangen — je bent zichtbaar voor je team.
+          - paragraph [ref=f17e120]: Dit is je langste reeks tot nu toe.
+      - heading "Badges" [level=2] [ref=f17e122]
+      - generic [ref=f17e123]:
+        - generic [ref=f17e124]:
+          - paragraph [ref=f17e133]: Eerste waardering
+          - paragraph [ref=f17e134]: Je eerste GETH-kaart ontvangen.
+        - generic [ref=f17e135]:
+          - paragraph [ref=f17e146]: Eerste kaart gegeven
+          - paragraph [ref=f17e147]: Je gaf een collega je eerste kaart.
+        - generic [ref=f17e148]:
+          - paragraph [ref=f17e159]: Bruggenbouwer
+          - paragraph [ref=f17e160]: Waardering uitgewisseld met collega's buiten je eigen team.
+        - generic [ref=f17e161]:
+          - paragraph [ref=f17e169]: Kennisdeler
+          - paragraph [ref=f17e170]: Kaarten ontvangen voor het delen van kennis of uitleg.
+          - paragraph [ref=f17e174]: 60%
+        - generic [ref=f17e175]:
+          - paragraph [ref=f17e186]: Waardering over teams
+          - paragraph [ref=f17e187]: Waardering uit drie verschillende afdelingen.
+          - paragraph [ref=f17e191]: 66%
+        - generic [ref=f17e192]:
+          - paragraph [ref=f17e203]: Waarderingsgewoonte
+          - paragraph [ref=f17e204]: Waardering geven is een vast onderdeel van je maand geworden.
+          - paragraph [ref=f17e208]: 40%
+      - heading "Mijlpalen" [level=2] [ref=f17e210]
+      - generic [ref=f17e211]:
+        - generic [ref=f17e213]:
+          - generic [ref=f17e214]:
+            - paragraph [ref=f17e215]: Eerste kaart ontvangen
+            - paragraph [ref=f17e216]: Je allereerste waardering — het begin van je GETH-verhaal.
+          - generic [ref=f17e217]: 12 maart
+        - generic [ref=f17e220]:
+          - generic [ref=f17e221]:
+            - paragraph [ref=f17e222]: 10 kaarten ontvangen
+            - paragraph [ref=f17e223]: Tien collega's namen de tijd om je te bedanken.
+          - generic [ref=f17e224]: 28 mei
+        - generic [ref=f17e227]:
+          - generic [ref=f17e228]:
+            - paragraph [ref=f17e229]: Waardering buiten je team
+            - paragraph [ref=f17e230]: "Je eerste kaart van een andere afdeling: Planning."
+          - generic [ref=f17e231]: 9 juni
+        - generic [ref=f17e233]:
+          - generic [ref=f17e234]:
+            - generic [ref=f17e235]:
+              - paragraph [ref=f17e236]: 10 kaarten gegeven
+              - paragraph [ref=f17e237]: Je geeft net zo veel waardering als je ontvangt.
+            - generic [ref=f17e238]: Onderweg
+          - generic [ref=f17e241]:
+            - generic [ref=f17e242]: 8/10
+            - generic [ref=f17e243]: 80%
+        - generic [ref=f17e246]:
+          - generic [ref=f17e247]:
+            - generic [ref=f17e248]:
+              - paragraph [ref=f17e249]: 100 waarderingen
+              - paragraph [ref=f17e250]: De grote mijlpaal. Je bent goed op weg.
+            - generic [ref=f17e251]: Onderweg
+          - generic [ref=f17e254]:
+            - generic [ref=f17e255]: 24/100
+            - generic [ref=f17e256]: 24%
+      - paragraph [ref=f17e259]: Demogegevens — er worden nog geen echte collega's of kaarten gebruikt.
+    - navigation [ref=f17e260]:
+      - list [ref=f17e261]:
+        - listitem [ref=f17e262]:
+          - link "Home" [ref=f17e263] [cursor=pointer]:
+            - /url: /
+        - listitem [ref=f17e267]:
+          - link "Geven" [ref=f17e268] [cursor=pointer]:
+            - /url: /geven
+        - listitem [ref=f17e273]:
+          - link "Scannen" [ref=f17e274] [cursor=pointer]:
+            - /url: /scannen
+        - listitem [ref=f17e280]:
+          - link "Inzichten" [ref=f17e281] [cursor=pointer]:
+            - /url: /inzichten
+        - listitem [ref=f17e284]:
+          - link "Profiel" [ref=f17e285] [cursor=pointer]:
+            - /url: /profiel
+  - region "Notifications alt+T"
+  - complementary "Edit with Lovable" [ref=f17e289]:
+    - link "Edit with Lovable" [ref=f17e290] [cursor=pointer]:
+      - /url: https://lovable.dev/projects/lovp_2367m9w8xz93cvn1z0fs8e5n9j?utm_source=lovable-badge
+      - generic [ref=f17e291]: Edit with
+    - button "Dismiss" [ref=f17e297] [cursor=pointer]

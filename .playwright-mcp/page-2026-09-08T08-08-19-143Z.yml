@@ -1,0 +1,56 @@
+- generic [active] [ref=f3e1]:
+  - generic [ref=f3e3]:
+    - banner [ref=f3e4]:
+      - heading "Kaart geven" [level=1] [ref=f3e5]
+      - generic [ref=f3e6]: Stap 1 van 5
+      - 'button "Developer info: Give recognition" [ref=f3e7]'
+      - link "Developer overview of the whole app" [ref=f3e10] [cursor=pointer]:
+        - /url: /dev
+      - button "Donker" [ref=f3e14]
+    - main [ref=f3e17]:
+      - heading "Wie wil je waarderen?" [level=2] [ref=f3e24]
+      - textbox [ref=f3e29]:
+        - /placeholder: Zoek een collega
+      - heading "Jouw team" [level=2] [ref=f3e31]
+      - list [ref=f3e32]:
+        - listitem [ref=f3e33]:
+          - button [ref=f3e34]:
+            - img "Tim Schobbe" [ref=f3e35]
+            - generic [ref=f3e36]:
+              - paragraph [ref=f3e37]: Tim Schobbe
+              - paragraph [ref=f3e38]: Collega
+        - listitem [ref=f3e41]:
+          - button [ref=f3e42]:
+            - img "Meij Vos" [ref=f3e43]
+            - generic [ref=f3e44]:
+              - paragraph [ref=f3e45]: Meij Vos
+              - paragraph [ref=f3e46]: Collega
+        - listitem [ref=f3e49]:
+          - button [ref=f3e50]:
+            - img "Marco Deckers" [ref=f3e51]
+            - generic [ref=f3e52]:
+              - paragraph [ref=f3e53]: Marco Deckers
+              - paragraph [ref=f3e54]: Collega
+    - navigation [ref=f3e57]:
+      - list [ref=f3e58]:
+        - listitem [ref=f3e59]:
+          - link "Home" [ref=f3e60] [cursor=pointer]:
+            - /url: /
+        - listitem [ref=f3e64]:
+          - link "Geven" [ref=f3e65] [cursor=pointer]:
+            - /url: /geven
+        - listitem [ref=f3e70]:
+          - link "Scannen" [ref=f3e71] [cursor=pointer]:
+            - /url: /scannen
+        - listitem [ref=f3e77]:
+          - link "Inzichten" [ref=f3e78] [cursor=pointer]:
+            - /url: /inzichten
+        - listitem [ref=f3e81]:
+          - link "Profiel" [ref=f3e82] [cursor=pointer]:
+            - /url: /profiel
+  - region "Notifications alt+T"
+  - complementary "Edit with Lovable" [ref=f3e86]:
+    - link "Edit with Lovable" [ref=f3e87] [cursor=pointer]:
+      - /url: https://lovable.dev/projects/lovp_2367m9w8xz93cvn1z0fs8e5n9j?utm_source=lovable-badge
+      - generic [ref=f3e88]: Edit with
+    - button "Dismiss" [ref=f3e94] [cursor=pointer]

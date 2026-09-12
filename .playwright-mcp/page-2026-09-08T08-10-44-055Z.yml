@@ -1,0 +1,40 @@
+- generic [active] [ref=f7e1]:
+  - generic [ref=f7e3]:
+    - banner [ref=f7e4]:
+      - heading "Kaart scannen" [level=1] [ref=f7e5]
+      - 'button "Developer info: Scan card + simulation" [ref=f7e6]'
+      - link "Developer overview of the whole app" [ref=f7e9] [cursor=pointer]:
+        - /url: /dev
+      - button "Donker" [ref=f7e13]
+    - main [ref=f7e16]:
+      - paragraph [ref=f7e28]: Richt je camera op de QR-code van de fysieke kaart.
+      - generic [ref=f7e29]:
+        - button "Scan simuleren" [ref=f7e30]
+        - generic [ref=f7e36]:
+          - generic [ref=f7e37]: Code handmatig invoeren
+          - textbox "Code handmatig invoeren" [ref=f7e38]:
+            - /placeholder: Kaartcode, bijv. GETH-4821
+        - button "Toevoegen aan mijn kaarten" [ref=f7e39]
+    - navigation [ref=f7e40]:
+      - list [ref=f7e41]:
+        - listitem [ref=f7e42]:
+          - link "Home" [ref=f7e43] [cursor=pointer]:
+            - /url: /
+        - listitem [ref=f7e47]:
+          - link "Geven" [ref=f7e48] [cursor=pointer]:
+            - /url: /geven
+        - listitem [ref=f7e53]:
+          - link "Scannen" [ref=f7e54] [cursor=pointer]:
+            - /url: /scannen
+        - listitem [ref=f7e60]:
+          - link "Inzichten" [ref=f7e61] [cursor=pointer]:
+            - /url: /inzichten
+        - listitem [ref=f7e64]:
+          - link "Profiel" [ref=f7e65] [cursor=pointer]:
+            - /url: /profiel
+  - region "Notifications alt+T"
+  - complementary "Edit with Lovable" [ref=f7e69]:
+    - link "Edit with Lovable" [ref=f7e70] [cursor=pointer]:
+      - /url: https://lovable.dev/projects/lovp_2367m9w8xz93cvn1z0fs8e5n9j?utm_source=lovable-badge
+      - generic [ref=f7e71]: Edit with
+    - button "Dismiss" [ref=f7e77] [cursor=pointer]

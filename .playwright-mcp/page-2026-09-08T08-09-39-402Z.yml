@@ -1,0 +1,84 @@
+- generic [active] [ref=f6e1]:
+  - generic [ref=f6e3]:
+    - banner [ref=f6e4]:
+      - img "GETH" [ref=f6e6]
+      - generic [ref=f6e8]:
+        - button "nl" [ref=f6e9]
+        - button "en" [ref=f6e10]
+      - 'button "Developer info: Home dashboard" [ref=f6e15]'
+      - link "Developer overview of the whole app" [ref=f6e18] [cursor=pointer]:
+        - /url: /dev
+      - button "Donker" [ref=f6e22]
+    - main [ref=f6e25]:
+      - generic [ref=f6e26]:
+        - generic [ref=f6e27]: JB
+        - generic [ref=f6e28]:
+          - heading "Goedemiddag, Josse" [level=1] [ref=f6e29]
+          - paragraph [ref=f6e30]: Neem even een moment voor wat collega's in je zien.
+      - link [ref=f6e31] [cursor=pointer]:
+        - /url: /inzichten
+        - generic [ref=f6e34]:
+          - generic [ref=f6e35]: GETH® AI-inzicht
+          - heading "Je betrouwbaarheid wordt duidelijk gewaardeerd" [level=2] [ref=f6e40]
+          - paragraph
+          - generic [ref=f6e41]: Bekijk mijn inzicht
+      - generic [ref=f6e45]:
+        - heading "Jouw profiel groeit" [level=2] [ref=f6e46]
+        - img "Nieuw · Zichtbaar · Erkend · Groeiend · Verbindend · Inspirerend" [ref=f6e48]
+        - paragraph [ref=f6e51]: Nieuw · Onderweg naar 'Zichtbaar'
+        - link "Reeksen die je groei voeden Gevende reeks · 4 Ontvangende reeks · 6" [ref=f6e52] [cursor=pointer]:
+          - /url: /prestaties
+          - generic [ref=f6e53]:
+            - paragraph [ref=f6e54]: Reeksen die je groei voeden
+            - generic [ref=f6e55]:
+              - generic [ref=f6e56]: Gevende reeks · 4
+              - generic [ref=f6e57]: Ontvangende reeks · 6
+      - heading "Jouw waardering in het kort" [level=2] [ref=f6e61]
+      - generic [ref=f6e62]:
+        - generic [ref=f6e63]:
+          - paragraph [ref=f6e67]: "0"
+          - paragraph [ref=f6e68]: Ontvangen kaarten
+        - generic [ref=f6e69]:
+          - paragraph [ref=f6e74]: "0"
+          - paragraph [ref=f6e75]: Kaarten die je gaf
+        - generic [ref=f6e76]:
+          - paragraph [ref=f6e80]: "0"
+          - paragraph [ref=f6e81]: Kwaliteiten herkend
+        - link [ref=f6e82] [cursor=pointer]:
+          - /url: /prestaties
+          - paragraph [ref=f6e93]: Bruggenbouwer
+          - paragraph [ref=f6e94]: Badges
+      - heading "Top 3 ontvangen kwaliteiten" [level=2] [ref=f6e96]
+      - paragraph [ref=f6e98]: Je sterke punten verschijnen hier zodra collega's je gaan waarderen.
+      - generic [ref=f6e99]:
+        - heading "Recent ontvangen" [level=2] [ref=f6e100]
+        - link "Bekijk alles" [ref=f6e101] [cursor=pointer]:
+          - /url: /ontvangen
+      - generic [ref=f6e102]:
+        - paragraph [ref=f6e103]: Je eerste kaart is onderweg
+        - paragraph [ref=f6e104]: Waardering begint vaak bij het geven ervan. Geef een collega een kaart en je zult merken hoe snel het terugkomt.
+        - link "Waardering geven" [ref=f6e105] [cursor=pointer]:
+          - /url: /geven
+    - navigation [ref=f6e106]:
+      - list [ref=f6e107]:
+        - listitem [ref=f6e108]:
+          - link "Home" [ref=f6e109] [cursor=pointer]:
+            - /url: /
+        - listitem [ref=f6e113]:
+          - link "Geven" [ref=f6e114] [cursor=pointer]:
+            - /url: /geven
+        - listitem [ref=f6e119]:
+          - link "Scannen" [ref=f6e120] [cursor=pointer]:
+            - /url: /scannen
+        - listitem [ref=f6e126]:
+          - link "Inzichten" [ref=f6e127] [cursor=pointer]:
+            - /url: /inzichten
+        - listitem [ref=f6e130]:
+          - link "Profiel" [ref=f6e131] [cursor=pointer]:
+            - /url: /profiel
+  - region "Notifications alt+T"
+  - complementary "Edit with Lovable" [ref=f6e135]:
+    - link "Edit with Lovable" [ref=f6e136] [cursor=pointer]:
+      - /url: https://lovable.dev/projects/lovp_2367m9w8xz93cvn1z0fs8e5n9j?utm_source=lovable-badge
+      - generic [ref=f6e137]: Edit with
+    - button "Dismiss" [ref=f6e143] [cursor=pointer]

@@ -1,0 +1,118 @@
+- generic [active] [ref=f10e1]:
+  - generic [ref=f10e3]:
+    - banner [ref=f10e4]:
+      - heading "Profiel" [level=1] [ref=f10e5]
+      - 'button "Developer info: Profile & settings" [ref=f10e6]'
+      - link "Developer overview of the whole app" [ref=f10e9] [cursor=pointer]:
+        - /url: /dev
+      - button "Donker" [ref=f10e13]
+    - main [ref=f10e16]:
+      - generic [ref=f10e17]:
+        - generic [ref=f10e18]: JB
+        - generic [ref=f10e19]:
+          - paragraph [ref=f10e20]: Josse de Bruin
+          - paragraph [ref=f10e21]: Support Specialist · Klantenservice
+          - paragraph [ref=f10e22]: Vandermeer Groep · Klantenservice
+      - heading "Account" [level=2] [ref=f10e24]
+      - generic [ref=f10e25]:
+        - button "Persoonlijke gegevens" [ref=f10e26]
+        - button "Organisatie & team" [ref=f10e35]
+        - link "Ontvangen kaarten" [ref=f10e45] [cursor=pointer]:
+          - /url: /ontvangen
+        - link "Gegeven kaarten" [ref=f10e54] [cursor=pointer]:
+          - /url: /gegeven
+      - heading "Kaartcategorieën (4C's)" [level=2] [ref=f10e64]
+      - generic [ref=f10e65]:
+        - paragraph [ref=f10e66]: Elke maand wordt één C geïntroduceerd. Vanaf maand 4 is het deck compleet — 13 kaarten per C — en kun je alle kaarten gebruiken.
+        - generic [ref=f10e67]:
+          - generic [ref=f10e73]:
+            - generic [ref=f10e74]: Programmamaand
+            - generic [ref=f10e75]: Maand 4
+          - generic [ref=f10e76]:
+            - button "-" [ref=f10e77]
+            - button "+" [ref=f10e79]
+      - generic [ref=f10e81]:
+        - generic [ref=f10e82]:
+          - generic [ref=f10e88]:
+            - generic [ref=f10e89]: Communicatie
+            - generic [ref=f10e90]: 13 kaarten
+          - switch [checked] [ref=f10e91]
+        - generic [ref=f10e93]:
+          - generic [ref=f10e99]:
+            - generic [ref=f10e100]: Creativiteit
+            - generic [ref=f10e101]: 13 kaarten
+          - switch [checked] [ref=f10e102]
+        - generic [ref=f10e104]:
+          - generic [ref=f10e110]:
+            - generic [ref=f10e111]: Competentie
+            - generic [ref=f10e112]: 13 kaarten
+          - switch [checked] [ref=f10e113]
+        - generic [ref=f10e115]:
+          - generic [ref=f10e121]:
+            - generic [ref=f10e122]: Collegialiteit
+            - generic [ref=f10e123]: 13 kaarten
+          - switch [checked] [ref=f10e124]
+        - generic [ref=f10e126]:
+          - generic [ref=f10e132]:
+            - generic [ref=f10e133]: Open categorie
+            - generic [ref=f10e134]: 1 kaarten
+          - switch [checked] [ref=f10e135]
+      - link "Certificaat beschikbaar vanaf maand 6" [ref=f10e137] [cursor=pointer]:
+        - /url: /certificaat
+      - heading "Voorkeuren" [level=2] [ref=f10e146]
+      - generic [ref=f10e147]:
+        - generic [ref=f10e148]:
+          - generic [ref=f10e153]: Taal
+          - generic [ref=f10e154]:
+            - button "nl" [ref=f10e155]
+            - button "en" [ref=f10e156]
+        - generic [ref=f10e157]:
+          - generic [ref=f10e161]: Weergave
+          - generic [ref=f10e162]:
+            - button "Licht" [ref=f10e163]
+            - button "Donker" [ref=f10e164]
+            - button "Systeem" [ref=f10e165]
+        - generic [ref=f10e166]:
+          - generic [ref=f10e170]: Pushmeldingen
+          - switch [checked] [ref=f10e172]
+        - generic [ref=f10e174]:
+          - generic [ref=f10e178]: In-app meldingen
+          - switch [checked] [ref=f10e180]
+        - generic [ref=f10e182]:
+          - generic [ref=f10e186]:
+            - generic [ref=f10e187]: E-mailmeldingen
+            - generic [ref=f10e188]: Beheerd door je organisatie
+          - switch [disabled] [ref=f10e189]
+      - heading "Privacy & juridisch" [level=2] [ref=f10e192]
+      - generic [ref=f10e193]:
+        - link "Wie kan mijn gegevens zien?" [ref=f10e194] [cursor=pointer]:
+          - /url: /privacy
+        - button "Privacybeleid" [ref=f10e202]
+        - button "Algemene voorwaarden" [ref=f10e211]
+        - button "Support aanvragen" [ref=f10e220]
+      - generic [ref=f10e233]:
+        - button "Uitloggen" [ref=f10e234]
+        - button "Account- of gegevensverwijdering aanvragen" [ref=f10e243]
+    - navigation [ref=f10e252]:
+      - list [ref=f10e253]:
+        - listitem [ref=f10e254]:
+          - link "Home" [ref=f10e255] [cursor=pointer]:
+            - /url: /
+        - listitem [ref=f10e259]:
+          - link "Geven" [ref=f10e260] [cursor=pointer]:
+            - /url: /geven
+        - listitem [ref=f10e265]:
+          - link "Scannen" [ref=f10e266] [cursor=pointer]:
+            - /url: /scannen
+        - listitem [ref=f10e272]:
+          - link "Inzichten" [ref=f10e273] [cursor=pointer]:
+            - /url: /inzichten
+        - listitem [ref=f10e276]:
+          - link "Profiel" [ref=f10e277] [cursor=pointer]:
+            - /url: /profiel
+  - region "Notifications alt+T"
+  - complementary "Edit with Lovable" [ref=f10e281]:
+    - link "Edit with Lovable" [ref=f10e282] [cursor=pointer]:
+      - /url: https://lovable.dev/projects/lovp_2367m9w8xz93cvn1z0fs8e5n9j?utm_source=lovable-badge
+      - generic [ref=f10e283]: Edit with
+    - button "Dismiss" [ref=f10e289] [cursor=pointer]

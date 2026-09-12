@@ -1,0 +1,39 @@
+- generic [active] [ref=f9e1]:
+  - generic [ref=f9e3]:
+    - banner [ref=f9e4]:
+      - button "Terug" [ref=f9e5]
+      - heading "GETH-certificaat" [level=1] [ref=f9e8]
+      - 'button "Developer info: Recognition certificate" [ref=f9e9]'
+      - link "Developer overview of the whole app" [ref=f9e12] [cursor=pointer]:
+        - /url: /dev
+      - button "Donker" [ref=f9e16]
+    - main [ref=f9e19]:
+      - generic [ref=f9e20]:
+        - heading "Certificaat nog niet beschikbaar" [level=1] [ref=f9e25]
+        - paragraph [ref=f9e26]: Je GETH-certificaat kun je downloaden vanaf maand 6 van het programma. Blijf tot die tijd waardering verzamelen.
+        - paragraph [ref=f9e27]: Maand 4 / Maand 6
+        - link "Kaartcategorieën (4C's)" [ref=f9e28] [cursor=pointer]:
+          - /url: /profiel
+    - navigation [ref=f9e29]:
+      - list [ref=f9e30]:
+        - listitem [ref=f9e31]:
+          - link "Home" [ref=f9e32] [cursor=pointer]:
+            - /url: /
+        - listitem [ref=f9e36]:
+          - link "Geven" [ref=f9e37] [cursor=pointer]:
+            - /url: /geven
+        - listitem [ref=f9e42]:
+          - link "Scannen" [ref=f9e43] [cursor=pointer]:
+            - /url: /scannen
+        - listitem [ref=f9e49]:
+          - link "Inzichten" [ref=f9e50] [cursor=pointer]:
+            - /url: /inzichten
+        - listitem [ref=f9e53]:
+          - link "Profiel" [ref=f9e54] [cursor=pointer]:
+            - /url: /profiel
+  - region "Notifications alt+T"
+  - complementary "Edit with Lovable" [ref=f9e58]:
+    - link "Edit with Lovable" [ref=f9e59] [cursor=pointer]:
+      - /url: https://lovable.dev/projects/lovp_2367m9w8xz93cvn1z0fs8e5n9j?utm_source=lovable-badge
+      - generic [ref=f9e60]: Edit with
+    - button "Dismiss" [ref=f9e66] [cursor=pointer]

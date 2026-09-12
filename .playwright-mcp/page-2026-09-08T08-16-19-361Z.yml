@@ -1,0 +1,42 @@
+- generic [active] [ref=f11e1]:
+  - generic [ref=f11e3]:
+    - banner [ref=f11e4]:
+      - button "Terug" [ref=f11e5]
+      - heading "Ontvangen kaarten" [level=1] [ref=f11e8]
+      - 'button "Developer info: Received cards" [ref=f11e9]'
+      - link "Developer overview of the whole app" [ref=f11e12] [cursor=pointer]:
+        - /url: /dev
+      - button "Donker" [ref=f11e16]
+    - main [ref=f11e19]:
+      - generic [ref=f11e20]:
+        - button "Alle" [ref=f11e21]
+        - button "Digitaal" [ref=f11e22]
+        - button "Fysiek" [ref=f11e23]
+      - generic [ref=f11e24]:
+        - paragraph [ref=f11e29]: Je eerste kaart is onderweg
+        - paragraph [ref=f11e30]: Waardering begint vaak bij het geven ervan. Geef een collega een kaart en je zult merken hoe snel het terugkomt.
+        - link "Waardering geven" [ref=f11e31] [cursor=pointer]:
+          - /url: /geven
+    - navigation [ref=f11e32]:
+      - list [ref=f11e33]:
+        - listitem [ref=f11e34]:
+          - link "Home" [ref=f11e35] [cursor=pointer]:
+            - /url: /
+        - listitem [ref=f11e39]:
+          - link "Geven" [ref=f11e40] [cursor=pointer]:
+            - /url: /geven
+        - listitem [ref=f11e45]:
+          - link "Scannen" [ref=f11e46] [cursor=pointer]:
+            - /url: /scannen
+        - listitem [ref=f11e52]:
+          - link "Inzichten" [ref=f11e53] [cursor=pointer]:
+            - /url: /inzichten
+        - listitem [ref=f11e56]:
+          - link "Profiel" [ref=f11e57] [cursor=pointer]:
+            - /url: /profiel
+  - region "Notifications alt+T"
+  - complementary "Edit with Lovable" [ref=f11e61]:
+    - link "Edit with Lovable" [ref=f11e62] [cursor=pointer]:
+      - /url: https://lovable.dev/projects/lovp_2367m9w8xz93cvn1z0fs8e5n9j?utm_source=lovable-badge
+      - generic [ref=f11e63]: Edit with
+    - button "Dismiss" [ref=f11e69] [cursor=pointer]

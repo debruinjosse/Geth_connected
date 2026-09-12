@@ -160,7 +160,7 @@ async function generateWithGroq(context: EmployeeSignalsContext): Promise<Employ
     messages: [
       {
         role: "system",
-        content: buildEmployeeInsightSystemPrompt(locale)
+        content: await buildEmployeeInsightSystemPrompt(locale)
       },
       {
         role: "user",

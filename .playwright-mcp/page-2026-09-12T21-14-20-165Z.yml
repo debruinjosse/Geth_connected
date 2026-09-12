@@ -1,0 +1,211 @@
+- generic [active] [ref=f5e1]:
+  - generic [ref=f5e2]:
+    - complementary [ref=f5e3]:
+      - generic [ref=f5e4]:
+        - generic [ref=f5e5]:
+          - generic [ref=f5e7]:
+            - link "Back to home" [ref=f5e8] [cursor=pointer]:
+              - /url: /en
+              - img "GETH® crest" [ref=f5e9]
+            - link "Back to home" [ref=f5e10] [cursor=pointer]:
+              - /url: /en
+              - generic [ref=f5e13]:
+                - text: GETH
+                - superscript [aria-hidden] [ref=f5e14]: ®
+          - button "Collapse sidebar" [ref=f5e15] [cursor=pointer]
+        - navigation "admin navigation" [ref=f5e18]:
+          - link "Overview" [ref=f5e19] [cursor=pointer]:
+            - /url: /en/admin
+          - link "Companies" [ref=f5e24] [cursor=pointer]:
+            - /url: /en/admin/companies
+          - link "Demo bookings" [ref=f5e30] [cursor=pointer]:
+            - /url: /en/admin/demo-bookings
+          - link "Subscriptions" [ref=f5e35] [cursor=pointer]:
+            - /url: /en/admin/subscriptions
+          - link "Cards" [ref=f5e39] [cursor=pointer]:
+            - /url: /en/admin/cards
+          - link "QR routes" [ref=f5e43] [cursor=pointer]:
+            - /url: /en/admin/qr-routes
+          - link "Homepage content" [ref=f5e51] [cursor=pointer]:
+            - /url: /en/admin/site-content
+          - link "Analytics" [ref=f5e56] [cursor=pointer]:
+            - /url: /en/admin/analytics
+      - generic [ref=f5e60]:
+        - generic "Language" [ref=f5e61]:
+          - navigation "Choose language" [ref=f5e62]:
+            - 'link "Language: Nederlands" [ref=f5e63] [cursor=pointer]':
+              - /url: /nl/admin/settings
+              - text: NL
+            - 'link "Language: English" [ref=f5e64] [cursor=pointer]':
+              - /url: /en/admin/settings
+              - text: EN
+        - button "Sign out" [ref=f5e65] [cursor=pointer]
+    - main [ref=f5e70]:
+      - generic [ref=f5e71]:
+        - generic [ref=f5e73]:
+          - generic [ref=f5e74]: GETH® platform admin
+          - heading "Platform settings" [level=1] [ref=f5e75]
+          - paragraph [ref=f5e76]: Global configuration and production readiness checks.
+        - generic [ref=f5e77]:
+          - generic [ref=f5e78]: Read-only status
+          - link "0 unread notifications" [ref=f5e79] [cursor=pointer]:
+            - /url: /en/admin/notifications
+          - link "Open GETH Super Admin's profile" [ref=f5e83] [cursor=pointer]:
+            - /url: /en/admin/settings
+            - generic [ref=f5e84]: GS
+          - button "Sign out" [ref=f5e85] [cursor=pointer]
+      - generic [ref=f5e89]:
+        - article [ref=f5e90]:
+          - generic [ref=f5e92]:
+            - heading "Account settings" [level=2] [ref=f5e93]
+            - paragraph [ref=f5e94]: Update your display name or send yourself a secure password reset email.
+          - generic [ref=f5e95]:
+            - generic [ref=f5e96]:
+              - generic [ref=f5e97]: GS
+              - generic [ref=f5e99]:
+                - strong [ref=f5e100]: Profile photo
+                - paragraph [ref=f5e101]: Upload an HD JPG, PNG, WEBP, GIF, HEIC, or HEIF up to 100 MB. This photo appears in your dashboard and claim-card people picker.
+            - generic [ref=f5e102]:
+              - generic [ref=f5e103] [cursor=pointer]:
+                - generic [ref=f5e107]: Choose photo
+                - button "Choose photo" [ref=f5e108]
+              - paragraph [ref=f5e109]: No photo selected yet. Choose a photo first, then upload it.
+            - button "Upload photo" [ref=f5e111] [cursor=pointer]
+          - generic [ref=f5e115]:
+            - generic [ref=f5e116]:
+              - generic [ref=f5e117]:
+                - text: First name
+                - textbox "First name" [ref=f5e118]: GETH
+              - generic [ref=f5e119]:
+                - text: Last name
+                - textbox "Last name" [ref=f5e120]: Super Admin
+            - button "Save name" [ref=f5e122] [cursor=pointer]
+          - generic [ref=f5e127]:
+            - generic [ref=f5e128]:
+              - strong [ref=f5e129]: Password reset
+              - paragraph [ref=f5e130]: Send a secure reset email to your inbox.
+            - button "Send reset email" [ref=f5e132] [cursor=pointer]
+        - article [ref=f5e136]:
+          - generic [ref=f5e138]:
+            - heading "System configuration" [level=2] [ref=f5e139]
+            - paragraph [ref=f5e140]: No secrets are displayed here.
+          - generic [ref=f5e141]:
+            - generic [ref=f5e142]:
+              - generic [ref=f5e143]:
+                - strong [ref=f5e144]: Supabase URL
+                - paragraph [ref=f5e145]: Required for auth and database reads.
+              - generic [ref=f5e146]: Configured
+            - generic [ref=f5e147]:
+              - generic [ref=f5e148]:
+                - strong [ref=f5e149]: Supabase anon key
+                - paragraph [ref=f5e150]: Required for browser/server session clients.
+              - generic [ref=f5e151]: Configured
+            - generic [ref=f5e152]:
+              - generic [ref=f5e153]:
+                - strong [ref=f5e154]: Service role key
+                - paragraph [ref=f5e155]: Used by trusted seed/card helper scripts only.
+              - generic [ref=f5e156]: Configured
+            - generic [ref=f5e157]:
+              - generic [ref=f5e158]:
+                - strong [ref=f5e159]: App SMTP mailbox
+                - paragraph [ref=f5e160]: Required for GETH® invite and bulk-import emails. Use the get.pro SMTP mailbox here.
+              - generic [ref=f5e161]: Configured
+            - generic [ref=f5e162]:
+              - generic [ref=f5e163]:
+                - strong [ref=f5e164]: SMTP sender is info@geth.pro
+                - paragraph [ref=f5e165]: SMTP_FROM and SMTP_USER should use info@geth.pro so invites do not come from personal or university mailboxes.
+              - generic [ref=f5e166]: Configured
+            - generic [ref=f5e167]:
+              - generic [ref=f5e168]:
+                - strong [ref=f5e169]: Stripe secret key
+                - paragraph [ref=f5e170]: Required for checkout and billing portal actions.
+              - generic [ref=f5e171]: Missing
+            - generic [ref=f5e172]:
+              - generic [ref=f5e173]:
+                - strong [ref=f5e174]: Stripe webhook secret
+                - paragraph [ref=f5e175]: Required for subscription webhook verification.
+              - generic [ref=f5e176]: Missing
+            - generic [ref=f5e177]:
+              - generic [ref=f5e178]:
+                - strong [ref=f5e179]: App URL
+                - paragraph [ref=f5e180]: Used to generate invite and billing redirect links.
+              - generic [ref=f5e181]: Configured
+            - generic [ref=f5e182]:
+              - generic [ref=f5e183]:
+                - strong [ref=f5e184]: Invoice seller and payment details
+                - paragraph [ref=f5e185]: Seller name, address, email, and payment IBAN are configured.
+              - generic [ref=f5e186]: Configured
+        - article [ref=f5e187]:
+          - generic [ref=f5e189]:
+            - heading "Seller and payment details" [level=2] [ref=f5e190]
+            - paragraph [ref=f5e191]: These details appear on generated European invoices and in invoice emails. Environment variables are used as fallback until values are saved here.
+          - generic [ref=f5e192]:
+            - generic [ref=f5e193]:
+              - generic [ref=f5e194]: Seller legal name
+              - textbox "Seller legal name" [ref=f5e195]: GETH Demo Company
+            - generic [ref=f5e196]:
+              - generic [ref=f5e197]: Seller VAT number
+              - textbox "Seller VAT number" [ref=f5e198]
+            - generic [ref=f5e199]:
+              - generic [ref=f5e200]: Seller billing address
+              - textbox "Seller billing address" [ref=f5e201]: Demo Address, City, Country
+            - generic [ref=f5e202]:
+              - generic [ref=f5e203]: Seller invoice email
+              - textbox "Seller invoice email" [ref=f5e204]: info@geth.pro
+            - generic [ref=f5e205]:
+              - generic [ref=f5e206]:
+                - text: Payment IBAN
+                - generic [ref=f5e207]: Demo data
+              - textbox "Payment IBAN Demo data" [ref=f5e208]: TEST-IBAN-NOT-FOR-PAYMENT
+            - generic [ref=f5e209]:
+              - generic [ref=f5e210]:
+                - text: Payment BIC
+                - generic [ref=f5e211]: Demo data
+              - textbox "Payment BIC Demo data" [ref=f5e212]: TESTBIC
+            - generic [ref=f5e213]:
+              - generic [ref=f5e214]: Bank name
+              - textbox "Bank name" [ref=f5e215]: Demo Bank
+            - generic [ref=f5e216]:
+              - generic [ref=f5e217]: Payment reference prefix
+              - textbox "Payment reference prefix" [ref=f5e218]: GETH
+            - generic [ref=f5e219]:
+              - generic [ref=f5e220]: Payment terms (days)
+              - spinbutton "Payment terms (days)" [ref=f5e221]: "14"
+            - generic [ref=f5e222]:
+              - generic [ref=f5e223]: VAT rate (%)
+              - textbox "VAT rate (%)" [ref=f5e224]: "21"
+            - generic [ref=f5e225]:
+              - generic [ref=f5e226]: Payment terms copy
+              - textbox "Payment terms copy" [ref=f5e227]: Payment due within 14 days by bank transfer.
+            - button "Save billing settings" [ref=f5e229] [cursor=pointer]
+        - article [ref=f5e234]:
+          - generic [ref=f5e236]:
+            - heading "AI coaching tone" [level=2] [ref=f5e237]
+            - paragraph [ref=f5e238]: Tune the tone/coaching-style instructions used to generate employee AI insight cards on both web and mobile. This is additive guidance only — the underlying output format cannot be changed here.
+          - generic [ref=f5e239]:
+            - generic [ref=f5e240]:
+              - generic [ref=f5e241]: Tone guidance
+              - textbox "Tone guidance" [ref=f5e242]
+            - paragraph [ref=f5e243]: Currently using the built-in default tone.
+            - paragraph [ref=f5e244]: Last updated by GETH Super Admin on 9/13/2026, 1:50:15 AM.
+            - generic [ref=f5e245]:
+              - button "Save tone guidance" [ref=f5e246] [cursor=pointer]
+              - button "Reset to default" [ref=f5e251] [cursor=pointer]
+        - article [ref=f5e255]:
+          - generic [ref=f5e257]:
+            - heading "Production notes" [level=2] [ref=f5e258]
+            - paragraph [ref=f5e259]: Operational notes for running this environment — billing and AI tone above are already editable and persisted; the checks and notes below stay informational.
+          - generic [ref=f5e260]:
+            - generic [ref=f5e262]:
+              - strong [ref=f5e263]: System checks are read-only by design
+              - paragraph [ref=f5e264]: The checks above are intentionally read-only so production configuration cannot be changed accidentally from the UI.
+            - generic [ref=f5e266]:
+              - strong [ref=f5e267]: SMTP is split across two places
+              - paragraph [ref=f5e268]: "Use Supabase Auth SMTP settings for magic-link, signup, and password-reset emails. Use `.env.local` SMTP settings for GETH® app invite emails."
+            - generic [ref=f5e270]:
+              - strong [ref=f5e271]: Keep the mailbox identity aligned
+              - paragraph [ref=f5e272]: Once the get.pro mailbox details are available, configure them in both places so all automated user emails share the same sender identity.
+            - generic [ref=f5e274]:
+              - strong [ref=f5e275]: Concurrent admin testing
+              - paragraph [ref=f5e276]: Up to three admins can test in parallel on different devices with the same super-admin login. Use separate browsers or machines—not the same browser profile—to avoid session cookie conflicts.
+  - alert [ref=f5e277]

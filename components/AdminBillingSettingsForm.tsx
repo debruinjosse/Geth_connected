@@ -4,6 +4,10 @@ import { Save } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { updatePlatformBillingSettingsAction } from "@/app/actions/billing";
 
+function looksLikeTestValue(value: string) {
+  return /test/i.test(value);
+}
+
 function getBillingSettingsMessage(t: (key: string) => string, code?: string) {
   switch (code) {
     case "billing-saved":
@@ -76,12 +80,18 @@ export function AdminBillingSettingsForm({
         </label>
 
         <label>
-          <span>{t("billingPaymentIbanLabel")}</span>
+          <span>
+            {t("billingPaymentIbanLabel")}
+            {looksLikeTestValue(values.paymentIban) ? <span className="demo-tag">{t("billingDemoDataTag")}</span> : null}
+          </span>
           <input className="input" name="paymentIban" defaultValue={values.paymentIban} required />
         </label>
 
         <label>
-          <span>{t("billingPaymentBicLabel")}</span>
+          <span>
+            {t("billingPaymentBicLabel")}
+            {looksLikeTestValue(values.paymentBic) ? <span className="demo-tag">{t("billingDemoDataTag")}</span> : null}
+          </span>
           <input className="input" name="paymentBic" defaultValue={values.paymentBic} />
         </label>
 

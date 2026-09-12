@@ -1,0 +1,53 @@
+- generic [active] [ref=f21e1]:
+  - generic [ref=f21e3]:
+    - banner [ref=f21e4]:
+      - button "Terug" [ref=f21e5]
+      - heading "Wie kan mijn gegevens zien?" [level=1] [ref=f21e8]
+      - 'button "Developer info: Privacy & who sees what" [ref=f21e9]'
+      - link "Developer overview of the whole app" [ref=f21e12] [cursor=pointer]:
+        - /url: /dev
+      - button "Licht" [ref=f21e16]
+    - main [ref=f21e23]:
+      - paragraph [ref=f21e28]: GETH helpt jouw organisatie om waardering zichtbaar te maken. Hieronder staat precies welke soorten informatie iedere rol kan zien.
+      - generic [ref=f21e29]:
+        - heading "Jij ziet" [level=2] [ref=f21e35]
+        - list [ref=f21e36]:
+          - listitem [ref=f21e37]: je ontvangen en gegeven kaarten
+          - listitem [ref=f21e40]: je persoonlijke berichten
+          - listitem [ref=f21e43]: je persoonlijke kwaliteiten
+          - listitem [ref=f21e46]: je AI-reflectie
+      - generic [ref=f21e49]:
+        - heading "Je manager ziet" [level=2] [ref=f21e57]
+        - list [ref=f21e58]:
+          - listitem [ref=f21e59]: relevante erkenningsactiviteit binnen het team
+          - listitem [ref=f21e62]: terugkerende kwaliteiten in het team
+          - listitem [ref=f21e65]: signalen die kunnen helpen bij ondersteuning en gesprekken
+      - generic [ref=f21e68]:
+        - heading "Company leadership ziet" [level=2] [ref=f21e75]
+        - list [ref=f21e76]:
+          - listitem [ref=f21e77]: voornamelijk geaggregeerde team- en organisatietrends
+          - listitem [ref=f21e80]: deelname per team, nooit individuele berichten
+      - paragraph [ref=f21e87]: GETH rangschikt medewerkers nooit en beoordeelt geen prestaties. Persoonlijke inzichten worden alleen weergegeven volgens de afgesproken privacy- en toegangsregels.
+    - navigation [ref=f21e88]:
+      - list [ref=f21e89]:
+        - listitem [ref=f21e90]:
+          - link "Home" [ref=f21e91] [cursor=pointer]:
+            - /url: /
+        - listitem [ref=f21e95]:
+          - link "Geven" [ref=f21e96] [cursor=pointer]:
+            - /url: /geven
+        - listitem [ref=f21e101]:
+          - link "Scannen" [ref=f21e102] [cursor=pointer]:
+            - /url: /scannen
+        - listitem [ref=f21e108]:
+          - link "Inzichten" [ref=f21e109] [cursor=pointer]:
+            - /url: /inzichten
+        - listitem [ref=f21e112]:
+          - link "Profiel" [ref=f21e113] [cursor=pointer]:
+            - /url: /profiel
+  - region "Notifications alt+T"
+  - complementary "Edit with Lovable" [ref=f21e117]:
+    - link "Edit with Lovable" [ref=f21e118] [cursor=pointer]:
+      - /url: https://lovable.dev/projects/lovp_2367m9w8xz93cvn1z0fs8e5n9j?utm_source=lovable-badge
+      - generic [ref=f21e119]: Edit with
+    - button "Dismiss" [ref=f21e125] [cursor=pointer]
