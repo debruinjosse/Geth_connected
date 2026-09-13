@@ -169,7 +169,11 @@ Deno.serve(async (req) => {
             android: {
               notification: {
                 color: "#2B1A2D",
-                image: "https://geth.pro/assets/geth-logo-official-256.png"
+                // The mobile app's actual current bird-shield mark (not the older/differently
+                // colored "official" web logo) — transparent PNG, no baked background, hosted in
+                // a dedicated public Supabase Storage bucket (app-assets) rather than the
+                // profile-photos bucket, which is scoped to user-uploaded content.
+                image: "https://bxnqshxoftirczmyayzk.supabase.co/storage/v1/object/public/app-assets/geth-notification-avatar.png"
               }
             },
             data: {
