@@ -31,6 +31,12 @@ export async function requestPasswordResetEmail(email: string): Promise<ActionRe
     });
 
     if (error) {
+      // Don't let a "no account with that email" error reach the public forgot-password caller
+      // as a distinguishable response — that would let anyone enumerate which work emails have
+      // GETH accounts. Report success (no email actually goes out) exactly as if it had sent.
+      if (error.message?.toLowerCase().includes("not found")) {
+        return { ok: true as const };
+      }
       throw error;
     }
 

@@ -125,7 +125,7 @@ Deno.serve(async (req) => {
 
   const { data: tokens, error: tokensError } = await supabase
     .from("device_tokens")
-    .select("id, fcm_token")
+    .select("id, fcm_token, active, user_id")
     .eq("user_id", userId)
     .eq("active", true);
 
