@@ -7,6 +7,7 @@ import {
   type EmployeeRecognitionSignal,
   type EmployeeSignalsContext
 } from "@/lib/ai/employee-recognition-signals";
+import type { InsightType } from "@/lib/ai/master-prompt-settings";
 
 /**
  * Role: `employee` (caller supplies their own aggregated `context` — this does not fetch data
@@ -22,9 +23,10 @@ export async function fetchEmployeeRecognitionSignals(
     insightTitle: string;
     fallbackInsight: string;
     categoryFallbacks: Record<string, string>;
-  }
+  },
+  insightType: InsightType = "growth_timeline"
 ): Promise<EmployeeRecognitionSignal[]> {
-  return getEmployeeRecognitionSignals(context, labels);
+  return getEmployeeRecognitionSignals(context, labels, insightType);
 }
 
 /** Invalidates the 60s growth/AI-signals cache for one employee (called after a recognition event changes their data). */

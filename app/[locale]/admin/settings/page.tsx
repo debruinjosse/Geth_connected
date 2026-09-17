@@ -62,16 +62,25 @@ export default async function AdminSettingsPage({
   const billingFormValues = platformBillingSettingsToFormValues(billingSettingsRow, getEnvInvoiceConfig());
   const missingInvoiceFields = await getMissingInvoiceConfig(supabase);
 
-  const aiPromptSettingsRow = await loadAiMasterPromptSettings(supabase);
-  let aiPromptUpdatedByLabel: string | null = null;
-  if (aiPromptSettingsRow?.updated_by) {
+  const [growthTimelinePromptRow, hiddenPatternsPromptRow] = await Promise.all([
+    loadAiMasterPromptSettings(supabase, "growth_timeline"),
+    loadAiMasterPromptSettings(supabase, "hidden_patterns")
+  ]);
+
+  async function resolveUpdatedByLabel(updatedBy: string | null) {
+    if (!updatedBy) return null;
     const { data: updatedByProfile } = await supabase
       .from("profiles")
       .select("first_name, last_name")
-      .eq("id", aiPromptSettingsRow.updated_by)
+      .eq("id", updatedBy)
       .maybeSingle<{ first_name: string | null; last_name: string | null }>();
-    aiPromptUpdatedByLabel = `${updatedByProfile?.first_name ?? ""} ${updatedByProfile?.last_name ?? ""}`.trim() || null;
+    return `${updatedByProfile?.first_name ?? ""} ${updatedByProfile?.last_name ?? ""}`.trim() || null;
   }
+
+  const [growthTimelineUpdatedByLabel, hiddenPatternsUpdatedByLabel] = await Promise.all([
+    resolveUpdatedByLabel(growthTimelinePromptRow?.updated_by ?? null),
+    resolveUpdatedByLabel(hiddenPatternsPromptRow?.updated_by ?? null)
+  ]);
 
   const checks = [
     { label: t("checkSupabaseUrl"), ok: Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL), detail: t("checkSupabaseUrlDetail") },
@@ -139,10 +148,24 @@ export default async function AdminSettingsPage({
         <AdminBillingSettingsForm locale={locale} values={billingFormValues} statusCode={settings} />
         <AiMasterPromptSettingsForm
           locale={locale}
-          toneGuidance={aiPromptSettingsRow?.tone_guidance ?? ""}
-          isDefault={!aiPromptSettingsRow?.tone_guidance}
-          updatedByLabel={aiPromptUpdatedByLabel}
-          updatedAt={aiPromptSettingsRow?.updated_at ?? null}
+          insightType="growth_timeline"
+          title={t("aiPromptSettingsGrowthTimelineTitle")}
+          copy={t("aiPromptSettingsGrowthTimelineCopy")}
+          toneGuidance={growthTimelinePromptRow?.tone_guidance ?? ""}
+          isDefault={!growthTimelinePromptRow?.tone_guidance}
+          updatedByLabel={growthTimelineUpdatedByLabel}
+          updatedAt={growthTimelinePromptRow?.updated_at ?? null}
+          statusCode={settings}
+        />
+        <AiMasterPromptSettingsForm
+          locale={locale}
+          insightType="hidden_patterns"
+          title={t("aiPromptSettingsHiddenPatternsTitle")}
+          copy={t("aiPromptSettingsHiddenPatternsCopy")}
+          toneGuidance={hiddenPatternsPromptRow?.tone_guidance ?? ""}
+          isDefault={!hiddenPatternsPromptRow?.tone_guidance}
+          updatedByLabel={hiddenPatternsUpdatedByLabel}
+          updatedAt={hiddenPatternsPromptRow?.updated_at ?? null}
           statusCode={settings}
         />
         <article className="panel dashboard-panel full-span">

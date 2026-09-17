@@ -19,9 +19,7 @@ import type { ActionResult } from "@/lib/actions/types";
 
 export type ClaimRecognitionInput = {
   cardSlug: string;
-  giverUserId?: string;
-  giverName?: string;
-  giverEmail?: string;
+  giverUserId: string;
   personalNote?: string;
   claimOrigin?: "qr_scan" | "direct_link" | "card_library" | "manual_entry";
 };
@@ -69,27 +67,48 @@ export async function claimRecognitionCore(
       };
     }
 
-    if (input.giverUserId) {
-      const { data: giverProfile, error: giverError } = await supabase
-        .from("profiles")
-        .select("id, role, company_id, status")
-        .eq("id", input.giverUserId)
-        .maybeSingle<{ id: string; role: string; company_id: string | null; status: string }>();
-
-      if (
-        giverError ||
-        !giverProfile ||
-        giverProfile.role !== "employee" ||
-        giverProfile.status !== "active" ||
-        giverProfile.company_id !== receiverProfile.company_id
-      ) {
-        return {
-          ok: false as const,
-          error: "Choose an active employee from your company as the giver.",
-          code: "GIVER_NOT_FOUND" as const
-        };
-      }
+    const giverUserId = input.giverUserId?.trim();
+    if (!giverUserId) {
+      return {
+        ok: false as const,
+        error: "Choose who gave you this card.",
+        code: "GIVER_REQUIRED" as const
+      };
     }
+
+    if (giverUserId === user.id) {
+      return { ok: false as const, error: "Choose a teammate, not yourself.", code: "SELF_GIVER" as const };
+    }
+
+    const { data: giverProfile, error: giverError } = await supabase
+      .from("profiles")
+      .select("id, role, company_id, status, first_name, last_name, email")
+      .eq("id", giverUserId)
+      .maybeSingle<{
+        id: string;
+        role: string;
+        company_id: string | null;
+        status: string;
+        first_name: string | null;
+        last_name: string | null;
+        email: string | null;
+      }>();
+
+    if (
+      giverError ||
+      !giverProfile ||
+      giverProfile.role !== "employee" ||
+      giverProfile.status !== "active" ||
+      giverProfile.company_id !== receiverProfile.company_id
+    ) {
+      return {
+        ok: false as const,
+        error: "Choose an active employee from your company as the giver.",
+        code: "GIVER_NOT_FOUND" as const
+      };
+    }
+
+    const giverName = `${giverProfile.first_name ?? ""} ${giverProfile.last_name ?? ""}`.trim() || giverProfile.email || "the giver";
 
     const { data: cardRecord, error: cardError } = await supabase
       .from("card_library")
@@ -103,44 +122,24 @@ export async function claimRecognitionCore(
     }
 
     const claimOrigin = input.claimOrigin ?? "direct_link";
-    const needsGiverVerification = Boolean(input.giverUserId);
-    const recognitionPayload = {
-      company_id: receiverProfile.company_id,
-      team_id: receiverProfile.team_id,
-      card_id: cardRecord.id,
-      receiver_user_id: user.id,
-      giver_user_id: input.giverUserId ?? null,
-      giver_name: input.giverName?.trim() || null,
-      giver_email: input.giverEmail?.trim() || null,
-      personal_note: input.personalNote?.trim() || null,
-      claim_origin: claimOrigin,
-      originated_digitally: ["qr_scan", "direct_link", "card_library", "manual_entry"].includes(claimOrigin),
-      claimed_at: new Date().toISOString()
-    };
-
-    let verificationPending = needsGiverVerification;
-    let { data: insertedRecognition, error: insertError } = await supabase
+    const { data: insertedRecognition, error: insertError } = await supabase
       .from("recognition_events")
       .insert({
-        ...recognitionPayload,
-        status: needsGiverVerification ? "pending_verification" : "claimed"
+        company_id: receiverProfile.company_id,
+        team_id: receiverProfile.team_id,
+        card_id: cardRecord.id,
+        receiver_user_id: user.id,
+        giver_user_id: giverUserId,
+        giver_name: giverName,
+        giver_email: giverProfile.email,
+        personal_note: input.personalNote?.trim() || null,
+        claim_origin: claimOrigin,
+        originated_digitally: ["qr_scan", "direct_link", "card_library", "manual_entry"].includes(claimOrigin),
+        claimed_at: new Date().toISOString(),
+        status: "pending_verification"
       })
       .select("id")
       .single<{ id: string }>();
-
-    if (insertError && needsGiverVerification && /pending_verification|recognition_status|invalid input value/i.test(insertError.message)) {
-      verificationPending = false;
-      const retry = await supabase
-        .from("recognition_events")
-        .insert({
-          ...recognitionPayload,
-          status: "claimed"
-        })
-        .select("id")
-        .single<{ id: string }>();
-      insertedRecognition = retry.data;
-      insertError = retry.error;
-    }
 
     if (insertError) {
       console.warn("claimRecognition insert failed:", insertError.message);
@@ -154,22 +153,18 @@ export async function claimRecognitionCore(
         companyId: receiverProfile.company_id,
         type: "recognition_received",
         title: "Recognition claimed",
-        body: verificationPending
-          ? `Your ${cardRecord.title} recognition was sent to ${input.giverName?.trim() || "the giver"} for verification.`
-          : `Your ${cardRecord.title} recognition was added to your dashboard.`,
+        body: `Your ${cardRecord.title} recognition was sent to ${giverName} for verification.`,
         href: "/employee"
       });
 
-      if (verificationPending && input.giverUserId) {
-        await createNotification(admin, {
-          userId: input.giverUserId,
-          companyId: receiverProfile.company_id,
-          type: "recognition_verification_requested",
-          title: "Approve a recognition",
-          body: `${input.giverName?.trim() ? "You were selected as the giver" : "A teammate selected you as the giver"} for a ${cardRecord.title} card. Please approve it to verify the recognition.`,
-          href: "/employee"
-        });
-      }
+      await createNotification(admin, {
+        userId: giverUserId,
+        companyId: receiverProfile.company_id,
+        type: "recognition_verification_requested",
+        title: "Approve a recognition",
+        body: `A teammate selected you as the giver for a ${cardRecord.title} card. Please approve or reject it.`,
+        href: `/recognitions/${insertedRecognition.id}/verify`
+      });
     }
 
     revalidateTag(getEmployeeAiSignalsCacheTag(user.id), "max");

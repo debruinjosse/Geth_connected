@@ -531,7 +531,8 @@
     "navDemoBookings": "Demo bookings",
     "navSubscriptions": "Subscriptions",
     "navQrRoutes": "QR routes",
-    "navSiteContent": "Homepage content"
+    "navSiteContent": "Homepage content",
+    "navSettings": "Settings"
   },
   "authForm": {
     "titleSignup": "Create account",
@@ -642,6 +643,9 @@
     "marking": "Marking...",
     "markRead": "Mark read",
     "markAllRead": "Mark all read",
+    "approve": "Approve",
+    "reject": "Reject",
+    "resolved": "Resolved",
     "minutesAgo": "{count}m ago",
     "hoursAgo": "{count}h ago",
     "daysAgo": "{count}d ago"
@@ -1646,6 +1650,16 @@
     "billingDemoDataTag": "Demo data",
     "aiPromptSettingsTitle": "AI coaching tone",
     "aiPromptSettingsCopy": "Tune the tone/coaching-style instructions used to generate employee AI insight cards on both web and mobile. This is additive guidance only — the underlying output format cannot be changed here.",
+    "insightFeaturesTitle": "Insights features",
+    "insightFeaturesCopy": "Turn Insights hub sections on or off for this company's mobile app.",
+    "insightFeatureGrowthTimeline": "Growth Timeline",
+    "insightFeatureHiddenPatterns": "Hidden Patterns",
+    "insightFeatureMilestones": "Milestones and badges",
+    "saveInsightFeaturesButton": "Save",
+    "aiPromptSettingsGrowthTimelineTitle": "Growth Timeline prompt",
+    "aiPromptSettingsGrowthTimelineCopy": "Tone/coaching-style instructions for the Growth Timeline insight on mobile, which frames recognition data as progression over time. Additive guidance only.",
+    "aiPromptSettingsHiddenPatternsTitle": "Hidden Patterns prompt",
+    "aiPromptSettingsHiddenPatternsCopy": "Tone/coaching-style instructions for the Hidden Patterns insight on mobile, which surfaces a recurring behavioral theme instead of a progression. Additive guidance only.",
     "aiPromptTextareaLabel": "Tone guidance",
     "aiPromptSaveButton": "Save tone guidance",
     "aiPromptResetButton": "Reset to default",

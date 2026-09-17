@@ -7,6 +7,7 @@ import {
   FileText,
   Home,
   QrCode,
+  Settings,
   Shield,
   UserRound,
   UsersRound
@@ -54,7 +55,8 @@ export const dashboardNavByRole: Record<DashboardRole, DashboardNavItem[]> = {
     { labelKey: "navCards", href: "/admin/cards", icon: "vertical-card" },
     { labelKey: "navQrRoutes", href: "/admin/qr-routes", icon: QrCode },
     { labelKey: "navSiteContent", href: "/admin/site-content", icon: FileText },
-    { labelKey: "navAnalytics", href: "/admin/analytics", icon: BarChart3 }
+    { labelKey: "navAnalytics", href: "/admin/analytics", icon: BarChart3 },
+    { labelKey: "navSettings", href: "/admin/settings", icon: Settings }
   ]
 };
 

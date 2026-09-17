@@ -21,11 +21,11 @@ type GiveRecognitionResult = ActionResult<GiveRecognitionSuccess | { cardTitle: 
  * session) live here; the actual business logic — shared with the mobile API — lives in
  * `lib/recognition/claim-recognition.ts`.
  *
- * Role: `employee` only (enforced by `claimRecognitionCore` and by RLS). If `giverUserId` is
- * supplied, the recognition is inserted as `pending_verification` and the named giver is notified
- * to approve it via `approveRecognitionVerification`; otherwise it's inserted as `claimed`
- * immediately. Side effects: inserts into `recognition_events` and `notifications`, invalidates
- * the employee's cached growth/AI-signals tag.
+ * Role: `employee` only (enforced by `claimRecognitionCore` and by RLS). `giverUserId` is
+ * required — every claim is inserted as `pending_verification` and the named giver is notified to
+ * approve or reject it via `approveRecognitionVerification` / `rejectRecognitionVerification`.
+ * Side effects: inserts into `recognition_events` and `notifications`, invalidates the employee's
+ * cached growth/AI-signals tag.
  */
 export async function claimRecognition(input: ClaimRecognitionInput): Promise<ClaimRecognitionResult> {
   const resolvedCardSlug = resolveCardSlug(input.cardSlug);

@@ -531,7 +531,8 @@
     "navDemoBookings": "Demoboekingen",
     "navSubscriptions": "Abonnementen",
     "navQrRoutes": "QR-routes",
-    "navSiteContent": "Homepage-inhoud"
+    "navSiteContent": "Homepage-inhoud",
+    "navSettings": "Instellingen"
   },
   "authForm": {
     "titleSignup": "Account aanmaken",
@@ -642,6 +643,9 @@
     "marking": "Bezig...",
     "markRead": "Markeer als gelezen",
     "markAllRead": "Alles als gelezen markeren",
+    "approve": "Goedkeuren",
+    "reject": "Afwijzen",
+    "resolved": "Afgehandeld",
     "minutesAgo": "{count} min geleden",
     "hoursAgo": "{count} uur geleden",
     "daysAgo": "{count} d geleden"
@@ -1646,6 +1650,16 @@
     "billingDemoDataTag": "Demogegevens",
     "aiPromptSettingsTitle": "AI-coachingtoon",
     "aiPromptSettingsCopy": "Stel de toon-/coachinginstructies af die worden gebruikt om AI-inzichtkaarten voor medewerkers te genereren, op zowel web als mobiel. Dit is alleen aanvullende sturing — het onderliggende uitvoerformaat kan hier niet worden gewijzigd.",
+    "insightFeaturesTitle": "Inzichtenfuncties",
+    "insightFeaturesCopy": "Zet onderdelen van het Inzichten-overzicht aan of uit voor de mobiele app van dit bedrijf.",
+    "insightFeatureGrowthTimeline": "Groeitijdlijn",
+    "insightFeatureHiddenPatterns": "Verborgen patronen",
+    "insightFeatureMilestones": "Mijlpalen en badges",
+    "saveInsightFeaturesButton": "Opslaan",
+    "aiPromptSettingsGrowthTimelineTitle": "Groeitijdlijn-prompt",
+    "aiPromptSettingsGrowthTimelineCopy": "Toon-/coachinginstructies voor het Groeitijdlijn-inzicht op mobiel, dat waarderingsgegevens weergeeft als voortgang over tijd. Alleen aanvullende sturing.",
+    "aiPromptSettingsHiddenPatternsTitle": "Verborgen patronen-prompt",
+    "aiPromptSettingsHiddenPatternsCopy": "Toon-/coachinginstructies voor het Verborgen patronen-inzicht op mobiel, dat een terugkerend gedragspatroon laat zien in plaats van voortgang. Alleen aanvullende sturing.",
     "aiPromptTextareaLabel": "Toonsturing",
     "aiPromptSaveButton": "Toonsturing opslaan",
     "aiPromptResetButton": "Terugzetten naar standaard",

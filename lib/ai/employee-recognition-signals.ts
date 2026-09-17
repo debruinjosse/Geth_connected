@@ -2,6 +2,7 @@ import { unstable_cache } from "next/cache";
 import { callGroqJson } from "@/lib/ai/groq-client";
 import { buildEmployeeInsightSystemPrompt } from "@/lib/ai/prompts/employee-insight-prompt";
 import { getLocalizedCardDescription, getLocalizedRecognitionSentence } from "@/lib/cards";
+import type { InsightType } from "@/lib/ai/master-prompt-settings";
 
 export type EmployeeRecognitionSignal = {
   id: string;
@@ -132,7 +133,7 @@ function buildCardMeaningFields(title: string, locale: string) {
   };
 }
 
-async function generateWithGroq(context: EmployeeSignalsContext): Promise<EmployeeRecognitionSignal[]> {
+async function generateWithGroq(context: EmployeeSignalsContext, insightType: InsightType): Promise<EmployeeRecognitionSignal[]> {
   const locale = context.locale === "nl" ? "nl" : "en";
   const recentReceivedCards = context.recentReceivedCards.slice(0, 8).map((card) => ({
     ...card,
@@ -160,7 +161,7 @@ async function generateWithGroq(context: EmployeeSignalsContext): Promise<Employ
     messages: [
       {
         role: "system",
-        content: await buildEmployeeInsightSystemPrompt(locale)
+        content: await buildEmployeeInsightSystemPrompt(locale, insightType)
       },
       {
         role: "user",
@@ -206,9 +207,10 @@ async function generateWithGroq(context: EmployeeSignalsContext): Promise<Employ
   ];
 }
 
-function buildCacheKey(context: EmployeeSignalsContext) {
+function buildCacheKey(context: EmployeeSignalsContext, insightType: InsightType) {
   const digest = [
     context.employeeId,
+    insightType,
     context.locale,
     context.cardsReceived,
     context.recent30DaysCount,
@@ -229,7 +231,8 @@ export async function getEmployeeRecognitionSignals(
     insightTitle: string;
     fallbackInsight: string;
     categoryFallbacks: Record<string, string>;
-  }
+  },
+  insightType: InsightType = "growth_timeline"
 ): Promise<EmployeeRecognitionSignal[]> {
   if (!context.cardsReceived || !context.recentReceivedCards.length) {
     return buildTemplateSignals(context, labels);
@@ -244,16 +247,20 @@ export async function getEmployeeRecognitionSignals(
   const cached = unstable_cache(
     async () => {
       try {
-        return await generateWithGroq(context);
+        return await generateWithGroq(context, insightType);
       } catch (error) {
         console.warn("Employee AI signals fallback:", error instanceof Error ? error.message : error);
         return templateFallback();
       }
     },
-    ["employee-ai-signals", "coaching-v3", buildCacheKey(context)],
+    ["employee-ai-signals", "coaching-v3", buildCacheKey(context, insightType)],
     {
       revalidate: 60,
-      tags: ["employee-ai-signals", getEmployeeAiSignalsCacheTag(context.employeeId)]
+      // Both the shared base tag and a per-type tag: claim/give/approve flows only know to
+      // invalidate the base tag (see claim-recognition.ts / verify-recognition.ts), so every
+      // insight type's cache must carry it too, or approving a recognition would only bust
+      // whichever insight type happened to be requested last.
+      tags: ["employee-ai-signals", getEmployeeAiSignalsCacheTag(context.employeeId), `${getEmployeeAiSignalsCacheTag(context.employeeId)}:${insightType}`]
     }
   );
 

@@ -120,9 +120,7 @@ export function ClaimCardClient({
             })
           : await claimRecognition({
               cardSlug: card.slug,
-              giverUserId: selectedGiver || undefined,
-              giverName: selectedPerson?.name,
-              giverEmail: selectedPerson?.email,
+              giverUserId: selectedGiver,
               personalNote: note,
               claimOrigin
             });

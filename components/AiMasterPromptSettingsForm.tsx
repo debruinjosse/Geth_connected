@@ -21,6 +21,9 @@ function getAiPromptSettingsMessage(t: (key: string) => string, code?: string) {
 
 export function AiMasterPromptSettingsForm({
   locale,
+  insightType,
+  title,
+  copy,
   toneGuidance,
   isDefault,
   updatedByLabel,
@@ -28,6 +31,9 @@ export function AiMasterPromptSettingsForm({
   statusCode
 }: {
   locale: string;
+  insightType: "growth_timeline" | "hidden_patterns";
+  title: string;
+  copy: string;
   toneGuidance: string;
   isDefault: boolean;
   updatedByLabel: string | null;
@@ -41,8 +47,8 @@ export function AiMasterPromptSettingsForm({
     <article className="panel dashboard-panel">
       <div className="panel-top">
         <div>
-          <h2>{t("aiPromptSettingsTitle")}</h2>
-          <p className="section-copy">{t("aiPromptSettingsCopy")}</p>
+          <h2>{title}</h2>
+          <p className="section-copy">{copy}</p>
         </div>
       </div>
 
@@ -50,6 +56,7 @@ export function AiMasterPromptSettingsForm({
 
       <form action={updateAiMasterPromptSettingsAction} className="form-grid">
         <input type="hidden" name="locale" value={locale} />
+        <input type="hidden" name="insightType" value={insightType} />
 
         <label className="full-span">
           <span>{t("aiPromptTextareaLabel")}</span>

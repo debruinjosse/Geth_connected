@@ -76,6 +76,68 @@ export async function approveRecognitionVerificationCore(user: User, recognition
   return { ok: true, message: "Recognition approved. Thank you for verifying it." };
 }
 
+/** The named giver rejects a recognition claimed against them. See `rejectRecognitionVerification` for the full contract. */
+export async function rejectRecognitionVerificationCore(user: User, recognitionId: string): Promise<ActionOutcome> {
+  const cleanRecognitionId = recognitionId.trim();
+
+  if (!cleanRecognitionId) {
+    return { ok: false, message: "Missing recognition to reject." };
+  }
+
+  const admin = createSupabaseAdminClient();
+  const { data: recognition, error: recognitionError } = await admin
+    .from("recognition_events")
+    .select("id, company_id, receiver_user_id, giver_user_id, status, card:card_library(title)")
+    .eq("id", cleanRecognitionId)
+    .maybeSingle<{
+      id: string;
+      company_id: string | null;
+      receiver_user_id: string;
+      giver_user_id: string | null;
+      status: string;
+      card: { title: string } | Array<{ title: string }> | null;
+    }>();
+
+  if (recognitionError || !recognition) {
+    return { ok: false, message: "Recognition not found." };
+  }
+
+  if (recognition.giver_user_id !== user.id) {
+    return { ok: false, message: "Only the selected giver can reject this recognition." };
+  }
+
+  if (recognition.status === "approved" || recognition.status === "rejected") {
+    return { ok: true, message: "This recognition has already been resolved." };
+  }
+
+  const { error: updateError } = await admin
+    .from("recognition_events")
+    .update({ status: "rejected" })
+    .eq("id", cleanRecognitionId)
+    .eq("giver_user_id", user.id);
+
+  if (updateError) {
+    return { ok: false, message: "Could not reject this recognition yet. Please try again." };
+  }
+
+  const card = Array.isArray(recognition.card) ? recognition.card[0] : recognition.card;
+  await createNotification(admin, {
+    userId: recognition.receiver_user_id,
+    companyId: recognition.company_id,
+    type: "recognition_rejected",
+    title: "Recognition rejected",
+    body: `The giver said they didn't send you this ${card?.title ?? "GETH"} card. Double-check who gave it to you and try again.`,
+    href: "/employee"
+  });
+
+  revalidatePath("/employee");
+  revalidatePath("/employee/cards");
+  revalidatePath("/employee/notifications");
+  revalidateTag(getEmployeeAiSignalsCacheTag(recognition.receiver_user_id), "max");
+
+  return { ok: true, message: "Recognition rejected." };
+}
+
 /** The receiver acknowledges a card given to them digitally. See `acknowledgeReceivedRecognition` for the full contract. */
 export async function acknowledgeReceivedRecognitionCore(user: User, recognitionId: string): Promise<ActionOutcome> {
   const cleanRecognitionId = recognitionId.trim();

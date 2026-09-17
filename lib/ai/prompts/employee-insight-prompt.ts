@@ -1,8 +1,15 @@
-import { getMasterToneGuidance } from "@/lib/ai/master-prompt-settings";
+import { getMasterToneGuidance, type InsightType } from "@/lib/ai/master-prompt-settings";
 
-export async function buildEmployeeInsightSystemPrompt(locale: "en" | "nl") {
+const FOCUS_BY_INSIGHT_TYPE: Record<InsightType, string> = {
+  growth_timeline:
+    "Frame this as a growth timeline: emphasize how the employee's recognized strengths are developing and being reinforced over time, and where they're headed next.",
+  hidden_patterns:
+    "Frame this as surfacing a hidden pattern: your primary goal is to name a recurring, possibly non-obvious behavioral theme across the employee's recognitions that they may not consciously notice about themselves — prioritize the `pattern` field over restating recent activity."
+};
+
+export async function buildEmployeeInsightSystemPrompt(locale: "en" | "nl", insightType: InsightType = "growth_timeline") {
   const language = locale === "nl" ? "Dutch" : "English";
-  const toneGuidance = await getMasterToneGuidance();
+  const toneGuidance = await getMasterToneGuidance(insightType);
 
   return [
     "Role",
@@ -12,6 +19,7 @@ export async function buildEmployeeInsightSystemPrompt(locale: "en" | "nl") {
     "",
     "Instructions",
     `Based only on the recognition cards an employee has received, generate a short, personal coaching insight in ${language}, split into fixed sections.`,
+    FOCUS_BY_INSIGHT_TYPE[insightType],
     "Return JSON only, matching exactly this shape (all fields are strings; pattern may be null):",
     '{"headline":"...","compliment":"...","strengths":"...","behaviorExplanation":"...","pattern":"..."|null,"teamContribution":"...","suggestion":"..."}',
     "",

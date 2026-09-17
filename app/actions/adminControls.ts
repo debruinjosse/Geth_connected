@@ -330,6 +330,42 @@ export async function updateCompanyStatusAction(formData: FormData) {
 }
 
 /**
+ * Role: `platform_admin`/`super_admin` only. Toggles which "Premium inzichten" sections
+ * (Growth Timeline, Hidden Patterns, Milestones) this company's employees see on the mobile
+ * Insights hub (see migration 037's `companies.enabled_insight_features`, read by
+ * `lib/company-insight-features.ts`). Checkbox inputs only submit when checked, so any flag
+ * missing from the form data is treated as off.
+ */
+export async function updateCompanyInsightFeaturesAction(formData: FormData) {
+  const companyId = String(formData.get("companyId") ?? "");
+  if (!companyId) {
+    return;
+  }
+
+  const auth = await requirePlatformAdmin();
+  if (!auth.ok) {
+    return;
+  }
+
+  const enabledInsightFeatures = {
+    growthTimeline: formData.get("growthTimeline") === "on",
+    hiddenPatterns: formData.get("hiddenPatterns") === "on",
+    milestones: formData.get("milestones") === "on"
+  };
+
+  const { error } = await auth.supabase
+    .from("companies")
+    .update({ enabled_insight_features: enabledInsightFeatures })
+    .eq("id", companyId);
+
+  if (error) {
+    return;
+  }
+
+  revalidatePath(`/admin/companies/${companyId}`);
+}
+
+/**
  * Role: `platform_admin`/`super_admin` only. Irreversibly deletes a company row and every Supabase
  * Auth user tied to it (via its profiles and any pending invitations). Destructive — no undo.
  */

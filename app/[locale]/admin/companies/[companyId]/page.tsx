@@ -2,11 +2,17 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { Building2, Shield, Star, UserRound, UsersRound } from "lucide-react";
-import { createCompanyInviteFromAdminAction, updateCompanyContactAction, updateCompanyStatusAction } from "@/app/actions/adminControls";
+import {
+  createCompanyInviteFromAdminAction,
+  updateCompanyContactAction,
+  updateCompanyInsightFeaturesAction,
+  updateCompanyStatusAction
+} from "@/app/actions/adminControls";
 import { AdminTeamDeleteButton } from "@/components/AdminTeamDeleteButton";
 import { DashboardShell } from "@/components/DashboardShell";
 import { EmptyState } from "@/components/EmptyState";
 import { MetricCard } from "@/components/MetricCard";
+import { getCompanyInsightFeatures } from "@/lib/company-insight-features";
 import { getUnreadNotificationCount } from "@/lib/notifications";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -141,6 +147,8 @@ export default async function AdminCompanyDetailPage({
     throw new Error(t("errLoadCompanyDetail"));
   }
 
+  const insightFeatures = await getCompanyInsightFeatures(supabase, companyId);
+
   const companyProfiles = (profiles ?? []) as ProfileRow[];
   const companyTeams = (teams ?? []) as TeamRow[];
   const pendingInvitations = ((invitations ?? []) as InvitationRow[]).filter((inviteRow) => inviteRow.status === "pending");
@@ -210,6 +218,31 @@ export default async function AdminCompanyDetailPage({
               <option value="inactive">{t("statusInactiveOption")}</option>
             </select>
             <button className="btn btn-secondary compact" type="submit">{t("saveStatusButton")}</button>
+          </form>
+        </article>
+
+        <article className="panel dashboard-panel">
+          <div className="panel-top">
+            <div>
+              <h2>{t("insightFeaturesTitle")}</h2>
+              <p className="section-copy">{t("insightFeaturesCopy")}</p>
+            </div>
+          </div>
+          <form action={updateCompanyInsightFeaturesAction} className="admin-control-form" style={{ flexDirection: "column", alignItems: "flex-start", gap: 10 }}>
+            <input type="hidden" name="companyId" value={company.id} />
+            <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <input type="checkbox" name="growthTimeline" defaultChecked={insightFeatures.growthTimeline} />
+              {t("insightFeatureGrowthTimeline")}
+            </label>
+            <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <input type="checkbox" name="hiddenPatterns" defaultChecked={insightFeatures.hiddenPatterns} />
+              {t("insightFeatureHiddenPatterns")}
+            </label>
+            <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <input type="checkbox" name="milestones" defaultChecked={insightFeatures.milestones} />
+              {t("insightFeatureMilestones")}
+            </label>
+            <button className="btn btn-secondary compact" type="submit">{t("saveInsightFeaturesButton")}</button>
           </form>
         </article>
 

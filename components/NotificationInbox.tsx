@@ -7,6 +7,9 @@ import { useState } from "react";
 import { CheckCircle2, Bell } from "lucide-react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { EmptyState } from "@/components/EmptyState";
+import { approveRecognitionVerification, rejectRecognitionVerification } from "@/app/actions/recognitionVerification";
+
+const VERIFICATION_HREF_PATTERN = /^\/recognitions\/([^/]+)\/verify$/;
 
 export type NotificationInboxRow = {
   id: string;
@@ -72,6 +75,8 @@ export function NotificationInbox({
   const localizedEmptyActionHref = getLocalizedHref(emptyActionHref, locale);
   const [localNotifications, setLocalNotifications] = useState(notifications);
   const [pendingId, setPendingId] = useState<string | null>(null);
+  const [verificationPendingId, setVerificationPendingId] = useState<string | null>(null);
+  const [verificationError, setVerificationError] = useState<{ notificationId: string; message: string } | null>(null);
 
   async function markRead(notificationId: string) {
     const readAt = new Date().toISOString();
@@ -104,6 +109,23 @@ export function NotificationInbox({
     }
   }
 
+  async function resolveVerification(notificationId: string, recognitionId: string, action: "approve" | "reject") {
+    setVerificationError(null);
+    setVerificationPendingId(notificationId);
+
+    try {
+      const result = action === "approve" ? await approveRecognitionVerification(recognitionId) : await rejectRecognitionVerification(recognitionId);
+      if (!result.ok) {
+        setVerificationError({ notificationId, message: result.message });
+        return;
+      }
+      setVerificationError(null);
+      await markRead(notificationId);
+    } finally {
+      setVerificationPendingId(null);
+    }
+  }
+
   if (!localNotifications.length) {
     return (
       <EmptyState
@@ -118,33 +140,68 @@ export function NotificationInbox({
 
   return (
     <div className="signal-list">
-      {localNotifications.map((notification) => (
-        <div className={`signal-card notification-card ${notification.read_at ? "" : "unread"}`.trim()} key={notification.id}>
-          <div className="signal-icon notification-card-icon" style={{ color: notification.read_at ? "var(--theme-muted)" : "var(--theme-gold)" }}>
-            <Bell size={18} />
-          </div>
-          <div className="notification-card-content">
-            <div className="notification-meta-row">
-              <strong>{notification.title}</strong>
-              <span className="quality-pill">{notification.type.replaceAll("_", " ")}</span>
+      {localNotifications.map((notification) => {
+        const verificationMatch =
+          notification.type === "recognition_verification_requested" ? notification.href?.match(VERIFICATION_HREF_PATTERN) : null;
+        const recognitionId = verificationMatch?.[1];
+        const isVerificationBusy = verificationPendingId === notification.id;
+
+        return (
+          <div className={`signal-card notification-card ${notification.read_at ? "" : "unread"}`.trim()} key={notification.id}>
+            <div className="signal-icon notification-card-icon" style={{ color: notification.read_at ? "var(--theme-muted)" : "var(--theme-gold)" }}>
+              <Bell size={18} />
             </div>
-            <p className="notification-card-body">{notification.body}</p>
-            {notification.href ? (
-              <Link href={getLocalizedHref(notification.href, locale) ?? notification.href} className="notification-card-link">
-                {t("openUpdate")}
-              </Link>
-            ) : null}
+            <div className="notification-card-content">
+              <div className="notification-meta-row">
+                <strong>{notification.title}</strong>
+                <span className="quality-pill">{notification.type.replaceAll("_", " ")}</span>
+              </div>
+              <p className="notification-card-body">{notification.body}</p>
+              {recognitionId && !notification.read_at ? (
+                <>
+                  {verificationError?.notificationId === notification.id ? (
+                    <p className="claim-error" role="alert">
+                      {verificationError.message}
+                    </p>
+                  ) : null}
+                  <div className="notification-card-actions">
+                    <button
+                      className="btn btn-primary"
+                      type="button"
+                      disabled={isVerificationBusy}
+                      onClick={() => resolveVerification(notification.id, recognitionId, "approve")}
+                    >
+                      {isVerificationBusy ? t("marking") : t("approve")}
+                    </button>
+                    <button
+                      className="btn btn-secondary"
+                      type="button"
+                      disabled={isVerificationBusy}
+                      onClick={() => resolveVerification(notification.id, recognitionId, "reject")}
+                    >
+                      {isVerificationBusy ? t("marking") : t("reject")}
+                    </button>
+                  </div>
+                </>
+              ) : recognitionId ? (
+                <span className="quality-pill">{t("resolved")}</span>
+              ) : notification.href ? (
+                <Link href={getLocalizedHref(notification.href, locale) ?? notification.href} className="notification-card-link">
+                  {t("openUpdate")}
+                </Link>
+              ) : null}
+            </div>
+            <div className="notification-card-side">
+              <span className="quality-pill">{formatNotificationTime(notification.created_at, t, locale)}</span>
+              {!notification.read_at && !recognitionId ? (
+                <button className="btn btn-secondary" type="button" disabled={pendingId === notification.id} onClick={() => markRead(notification.id)}>
+                  {pendingId === notification.id ? t("marking") : t("markRead")}
+                </button>
+              ) : null}
+            </div>
           </div>
-          <div className="notification-card-side">
-            <span className="quality-pill">{formatNotificationTime(notification.created_at, t, locale)}</span>
-            {!notification.read_at ? (
-              <button className="btn btn-secondary" type="button" disabled={pendingId === notification.id} onClick={() => markRead(notification.id)}>
-                {pendingId === notification.id ? t("marking") : t("markRead")}
-              </button>
-            ) : null}
-          </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }
