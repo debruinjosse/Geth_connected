@@ -9,7 +9,9 @@ import type { InsightType } from "@/lib/ai/master-prompt-settings";
 const MAX_TONE_GUIDANCE_LENGTH = 4000;
 
 function resolveInsightType(value: FormDataEntryValue | null): InsightType {
-  return value === "hidden_patterns" ? "hidden_patterns" : "growth_timeline";
+  if (value === "hidden_patterns") return "hidden_patterns";
+  if (value === "master_prompt") return "master_prompt";
+  return "growth_timeline";
 }
 
 async function requireGlobalAdminForAiSettings() {

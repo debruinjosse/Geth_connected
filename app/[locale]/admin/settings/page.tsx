@@ -62,9 +62,10 @@ export default async function AdminSettingsPage({
   const billingFormValues = platformBillingSettingsToFormValues(billingSettingsRow, getEnvInvoiceConfig());
   const missingInvoiceFields = await getMissingInvoiceConfig(supabase);
 
-  const [growthTimelinePromptRow, hiddenPatternsPromptRow] = await Promise.all([
+  const [growthTimelinePromptRow, hiddenPatternsPromptRow, masterPromptRow] = await Promise.all([
     loadAiMasterPromptSettings(supabase, "growth_timeline"),
-    loadAiMasterPromptSettings(supabase, "hidden_patterns")
+    loadAiMasterPromptSettings(supabase, "hidden_patterns"),
+    loadAiMasterPromptSettings(supabase, "master_prompt")
   ]);
 
   async function resolveUpdatedByLabel(updatedBy: string | null) {
@@ -77,9 +78,10 @@ export default async function AdminSettingsPage({
     return `${updatedByProfile?.first_name ?? ""} ${updatedByProfile?.last_name ?? ""}`.trim() || null;
   }
 
-  const [growthTimelineUpdatedByLabel, hiddenPatternsUpdatedByLabel] = await Promise.all([
+  const [growthTimelineUpdatedByLabel, hiddenPatternsUpdatedByLabel, masterPromptUpdatedByLabel] = await Promise.all([
     resolveUpdatedByLabel(growthTimelinePromptRow?.updated_by ?? null),
-    resolveUpdatedByLabel(hiddenPatternsPromptRow?.updated_by ?? null)
+    resolveUpdatedByLabel(hiddenPatternsPromptRow?.updated_by ?? null),
+    resolveUpdatedByLabel(masterPromptRow?.updated_by ?? null)
   ]);
 
   const checks = [
@@ -166,6 +168,17 @@ export default async function AdminSettingsPage({
           isDefault={!hiddenPatternsPromptRow?.tone_guidance}
           updatedByLabel={hiddenPatternsUpdatedByLabel}
           updatedAt={hiddenPatternsPromptRow?.updated_at ?? null}
+          statusCode={settings}
+        />
+        <AiMasterPromptSettingsForm
+          locale={locale}
+          insightType="master_prompt"
+          title={t("aiPromptSettingsMasterPromptTitle")}
+          copy={t("aiPromptSettingsMasterPromptCopy")}
+          toneGuidance={masterPromptRow?.tone_guidance ?? ""}
+          isDefault={!masterPromptRow?.tone_guidance}
+          updatedByLabel={masterPromptUpdatedByLabel}
+          updatedAt={masterPromptRow?.updated_at ?? null}
           statusCode={settings}
         />
         <article className="panel dashboard-panel full-span">

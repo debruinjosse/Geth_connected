@@ -350,12 +350,50 @@ export async function updateCompanyInsightFeaturesAction(formData: FormData) {
   const enabledInsightFeatures = {
     growthTimeline: formData.get("growthTimeline") === "on",
     hiddenPatterns: formData.get("hiddenPatterns") === "on",
-    milestones: formData.get("milestones") === "on"
+    milestones: formData.get("milestones") === "on",
+    masterInsight: formData.get("masterInsight") === "on"
   };
 
   const { error } = await auth.supabase
     .from("companies")
     .update({ enabled_insight_features: enabledInsightFeatures })
+    .eq("id", companyId);
+
+  if (error) {
+    return;
+  }
+
+  revalidatePath(`/admin/companies/${companyId}`);
+}
+
+/**
+ * Role: `platform_admin`/`super_admin` only. Toggles which of the 5 card categories
+ * (Communication/Creativity/Competence/Collegiality/Open) this company's employees can give in
+ * the mobile "give a card" flow (see migration 038's `companies.enabled_card_categories`, read by
+ * `lib/company-card-categories.ts`).
+ */
+export async function updateCompanyCardCategoriesAction(formData: FormData) {
+  const companyId = String(formData.get("companyId") ?? "");
+  if (!companyId) {
+    return;
+  }
+
+  const auth = await requirePlatformAdmin();
+  if (!auth.ok) {
+    return;
+  }
+
+  const enabledCardCategories = {
+    communication: formData.get("communication") === "on",
+    creativity: formData.get("creativity") === "on",
+    competence: formData.get("competence") === "on",
+    collegiality: formData.get("collegiality") === "on",
+    open: formData.get("open") === "on"
+  };
+
+  const { error } = await auth.supabase
+    .from("companies")
+    .update({ enabled_card_categories: enabledCardCategories })
     .eq("id", companyId);
 
   if (error) {

@@ -4,12 +4,14 @@ export type CompanyInsightFeatures = {
   growthTimeline: boolean;
   hiddenPatterns: boolean;
   milestones: boolean;
+  masterInsight: boolean;
 };
 
 const DEFAULT_FEATURES: CompanyInsightFeatures = {
   growthTimeline: true,
   hiddenPatterns: true,
-  milestones: true
+  milestones: true,
+  masterInsight: true
 };
 
 /**
@@ -33,6 +35,7 @@ export async function getCompanyInsightFeatures(supabase: SupabaseClient, compan
   return {
     growthTimeline: flags.growthTimeline ?? DEFAULT_FEATURES.growthTimeline,
     hiddenPatterns: flags.hiddenPatterns ?? DEFAULT_FEATURES.hiddenPatterns,
-    milestones: flags.milestones ?? DEFAULT_FEATURES.milestones
+    milestones: flags.milestones ?? DEFAULT_FEATURES.milestones,
+    masterInsight: flags.masterInsight ?? DEFAULT_FEATURES.masterInsight
   };
 }

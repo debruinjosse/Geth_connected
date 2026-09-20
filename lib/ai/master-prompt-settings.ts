@@ -1,7 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
-export type InsightType = "growth_timeline" | "hidden_patterns";
+export type InsightType = "growth_timeline" | "hidden_patterns" | "master_prompt";
 
 const DEFAULT_TONE_GUIDANCE =
   "Be warm, specific, and encouraging. Sound like a supportive coach, not a corporate evaluator.";

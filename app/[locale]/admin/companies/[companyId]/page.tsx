@@ -4,6 +4,7 @@ import { getLocale, getTranslations } from "next-intl/server";
 import { Building2, Shield, Star, UserRound, UsersRound } from "lucide-react";
 import {
   createCompanyInviteFromAdminAction,
+  updateCompanyCardCategoriesAction,
   updateCompanyContactAction,
   updateCompanyInsightFeaturesAction,
   updateCompanyStatusAction
@@ -12,6 +13,7 @@ import { AdminTeamDeleteButton } from "@/components/AdminTeamDeleteButton";
 import { DashboardShell } from "@/components/DashboardShell";
 import { EmptyState } from "@/components/EmptyState";
 import { MetricCard } from "@/components/MetricCard";
+import { getCompanyCardCategories } from "@/lib/company-card-categories";
 import { getCompanyInsightFeatures } from "@/lib/company-insight-features";
 import { getUnreadNotificationCount } from "@/lib/notifications";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -148,6 +150,7 @@ export default async function AdminCompanyDetailPage({
   }
 
   const insightFeatures = await getCompanyInsightFeatures(supabase, companyId);
+  const cardCategories = await getCompanyCardCategories(supabase, companyId);
 
   const companyProfiles = (profiles ?? []) as ProfileRow[];
   const companyTeams = (teams ?? []) as TeamRow[];
@@ -242,7 +245,44 @@ export default async function AdminCompanyDetailPage({
               <input type="checkbox" name="milestones" defaultChecked={insightFeatures.milestones} />
               {t("insightFeatureMilestones")}
             </label>
+            <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <input type="checkbox" name="masterInsight" defaultChecked={insightFeatures.masterInsight} />
+              {t("insightFeatureMasterInsight")}
+            </label>
             <button className="btn btn-secondary compact" type="submit">{t("saveInsightFeaturesButton")}</button>
+          </form>
+        </article>
+
+        <article className="panel dashboard-panel">
+          <div className="panel-top">
+            <div>
+              <h2>{t("cardCategoriesTitle")}</h2>
+              <p className="section-copy">{t("cardCategoriesCopy")}</p>
+            </div>
+          </div>
+          <form action={updateCompanyCardCategoriesAction} className="admin-control-form" style={{ flexDirection: "column", alignItems: "flex-start", gap: 10 }}>
+            <input type="hidden" name="companyId" value={company.id} />
+            <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <input type="checkbox" name="communication" defaultChecked={cardCategories.communication} />
+              {t("cardCategoryCommunication")}
+            </label>
+            <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <input type="checkbox" name="creativity" defaultChecked={cardCategories.creativity} />
+              {t("cardCategoryCreativity")}
+            </label>
+            <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <input type="checkbox" name="competence" defaultChecked={cardCategories.competence} />
+              {t("cardCategoryCompetence")}
+            </label>
+            <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <input type="checkbox" name="collegiality" defaultChecked={cardCategories.collegiality} />
+              {t("cardCategoryCollegiality")}
+            </label>
+            <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <input type="checkbox" name="open" defaultChecked={cardCategories.open} />
+              {t("cardCategoryOpen")}
+            </label>
+            <button className="btn btn-secondary compact" type="submit">{t("saveCardCategoriesButton")}</button>
           </form>
         </article>
 

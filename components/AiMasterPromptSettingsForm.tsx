@@ -31,7 +31,7 @@ export function AiMasterPromptSettingsForm({
   statusCode
 }: {
   locale: string;
-  insightType: "growth_timeline" | "hidden_patterns";
+  insightType: "growth_timeline" | "hidden_patterns" | "master_prompt";
   title: string;
   copy: string;
   toneGuidance: string;

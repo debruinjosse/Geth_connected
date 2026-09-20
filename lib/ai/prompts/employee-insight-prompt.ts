@@ -4,7 +4,9 @@ const FOCUS_BY_INSIGHT_TYPE: Record<InsightType, string> = {
   growth_timeline:
     "Frame this as a growth timeline: emphasize how the employee's recognized strengths are developing and being reinforced over time, and where they're headed next.",
   hidden_patterns:
-    "Frame this as surfacing a hidden pattern: your primary goal is to name a recurring, possibly non-obvious behavioral theme across the employee's recognitions that they may not consciously notice about themselves — prioritize the `pattern` field over restating recent activity."
+    "Frame this as surfacing a hidden pattern: your primary goal is to name a recurring, possibly non-obvious behavioral theme across the employee's recognitions that they may not consciously notice about themselves — prioritize the `pattern` field over restating recent activity.",
+  master_prompt:
+    "Frame this as a quick, uplifting snapshot rather than a deep trend or pattern analysis: your primary goal is a short, immediate, feel-good compliment the employee can read in a few seconds — lead with the most recent recognition(s) rather than long-term history, keep the `pattern` field null unless a theme is extremely obvious, and favor a punchy, energetic `headline` over a reflective one."
 };
 
 export async function buildEmployeeInsightSystemPrompt(locale: "en" | "nl", insightType: InsightType = "growth_timeline") {
