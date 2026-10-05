@@ -681,6 +681,38 @@ img {
   overflow: hidden;
 }
 
+.hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background:
+    radial-gradient(circle 2.5px at 14% 24%, var(--theme-gold-soft), transparent 100%),
+    radial-gradient(circle 2px at 46% 10%, var(--theme-sky), transparent 100%),
+    radial-gradient(circle 2px at 88% 30%, var(--theme-emerald), transparent 100%),
+    radial-gradient(circle 1.8px at 34% 82%, var(--theme-gold), transparent 100%),
+    radial-gradient(circle at 8% 18%, var(--glow-gold), transparent 32%),
+    radial-gradient(circle at 92% 8%, var(--glow-sky), transparent 30%),
+    radial-gradient(circle at 70% 90%, var(--glow-emerald), transparent 28%);
+  pointer-events: none;
+}
+
+.hero::after {
+  content: "";
+  position: absolute;
+  top: -8%;
+  right: -4%;
+  width: min(44vw, 620px);
+  height: min(44vw, 620px);
+  background-image: url("/assets/geth-crest-mark.svg");
+  background-size: contain;
+  background-repeat: no-repeat;
+  opacity: var(--watermark-opacity);
+  transform: rotate(-10deg);
+  pointer-events: none;
+  z-index: 0;
+}
+
 .landingHeroInner {
   position: relative;
   z-index: 1;
@@ -4540,13 +4572,39 @@ img {
 }
 
 .claim-page {
+  position: relative;
   min-height: 100vh;
   overflow-x: hidden;
   background:
+    radial-gradient(circle 2.5px at 16% 16%, var(--theme-gold-soft), transparent 100%),
+    radial-gradient(circle 2px at 88% 24%, var(--theme-sky), transparent 100%),
+    radial-gradient(circle 1.8px at 72% 86%, var(--theme-emerald), transparent 100%),
     radial-gradient(circle at 12% 30%, rgba(100, 57, 136, 0.28), transparent 20%),
     radial-gradient(circle at 80% 0%, rgba(216, 162, 58, 0.08), transparent 22%),
     linear-gradient(180deg, #2a133c 0%, var(--theme-night) 100%);
   color: white;
+}
+
+.claim-page::after {
+  content: "";
+  position: absolute;
+  top: -6%;
+  right: -6%;
+  width: min(40vw, 480px);
+  height: min(40vw, 480px);
+  background-image: url("/assets/geth-crest-mark.svg");
+  background-size: contain;
+  background-repeat: no-repeat;
+  opacity: var(--watermark-opacity);
+  transform: rotate(8deg);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.claim-header,
+.claim-one-page .claim-shell {
+  position: relative;
+  z-index: 1;
 }
 
 .claim-one-page {
