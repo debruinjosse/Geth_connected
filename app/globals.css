@@ -231,7 +231,7 @@ img {
   right: -40px;
   width: 280px;
   height: 280px;
-  background-image: url("/assets/geth-crest-mark.svg");
+  background-image: url("/assets/geth-crest-mark.png");
   background-size: contain;
   background-repeat: no-repeat;
   opacity: var(--watermark-opacity);
@@ -700,14 +700,14 @@ img {
 .hero::after {
   content: "";
   position: absolute;
-  top: -8%;
-  right: -4%;
-  width: min(44vw, 620px);
-  height: min(44vw, 620px);
-  background-image: url("/assets/geth-crest-mark.svg");
+  top: -4%;
+  right: -8%;
+  width: min(26vw, 340px);
+  height: min(26vw, 340px);
+  background-image: url("/assets/geth-crest-mark.png");
   background-size: contain;
   background-repeat: no-repeat;
-  opacity: var(--watermark-opacity);
+  opacity: 0.05;
   transform: rotate(-10deg);
   pointer-events: none;
   z-index: 0;
@@ -4703,7 +4703,7 @@ img {
   right: -6%;
   width: min(40vw, 480px);
   height: min(40vw, 480px);
-  background-image: url("/assets/geth-crest-mark.svg");
+  background-image: url("/assets/geth-crest-mark.png");
   background-size: contain;
   background-repeat: no-repeat;
   opacity: var(--watermark-opacity);
@@ -6068,7 +6068,7 @@ textarea.input {
   bottom: -70px;
   width: 320px;
   height: 320px;
-  background-image: url("/assets/geth-crest-mark.svg");
+  background-image: url("/assets/geth-crest-mark.png");
   background-repeat: no-repeat;
   background-size: contain;
   opacity: var(--watermark-opacity);
