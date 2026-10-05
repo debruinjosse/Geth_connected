@@ -686,14 +686,7 @@ img {
   position: absolute;
   inset: 0;
   z-index: 0;
-  background:
-    radial-gradient(circle 2.5px at 14% 24%, var(--theme-gold-soft), transparent 100%),
-    radial-gradient(circle 2px at 46% 10%, var(--theme-sky), transparent 100%),
-    radial-gradient(circle 2px at 88% 30%, var(--theme-emerald), transparent 100%),
-    radial-gradient(circle 1.8px at 34% 82%, var(--theme-gold), transparent 100%),
-    radial-gradient(circle at 8% 18%, var(--glow-gold), transparent 32%),
-    radial-gradient(circle at 92% 8%, var(--glow-sky), transparent 30%),
-    radial-gradient(circle at 70% 90%, var(--glow-emerald), transparent 28%);
+  background: radial-gradient(circle at 10% 15%, var(--glow-gold), transparent 38%);
   pointer-events: none;
 }
 
@@ -1485,10 +1478,6 @@ img {
   padding-block: clamp(64px, 6vw, 92px);
   overflow: hidden;
   background:
-    radial-gradient(circle 2.5px at 10% 20%, var(--theme-gold-soft), transparent 100%),
-    radial-gradient(circle 2px at 92% 15%, var(--theme-sky), transparent 100%),
-    radial-gradient(circle 1.8px at 80% 85%, var(--theme-emerald), transparent 100%),
-    radial-gradient(circle 2px at 30% 88%, var(--theme-gold), transparent 100%),
     radial-gradient(circle at 50% 0%, var(--glow-gold), transparent 55%),
     linear-gradient(165deg, var(--theme-night) 0%, var(--theme-ink) 100%);
   color: white;
@@ -2679,26 +2668,9 @@ img {
   padding: clamp(46px, 5vw, 68px) 0 32px;
   background:
     radial-gradient(circle at 12% 8%, var(--glow-gold), transparent 42%),
-    radial-gradient(circle at 92% 18%, var(--glow-sky), transparent 38%),
     linear-gradient(180deg, #281334 0%, var(--theme-night) 100%);
   color: white;
   overflow: hidden;
-}
-
-.footer-banner::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  background-image:
-    radial-gradient(circle, var(--theme-gold-soft) 1.4px, transparent 1.6px),
-    radial-gradient(circle, var(--theme-sky) 1.2px, transparent 1.4px),
-    radial-gradient(circle, var(--theme-emerald) 1.2px, transparent 1.4px);
-  background-size: 340px 340px, 260px 260px, 300px 300px;
-  background-position: 6% 20%, 84% 62%, 48% 85%;
-  background-repeat: no-repeat;
-  opacity: 0.55;
-  pointer-events: none;
 }
 
 .footer-banner h2 {
@@ -4687,9 +4659,6 @@ img {
   min-height: 100vh;
   overflow-x: hidden;
   background:
-    radial-gradient(circle 2.5px at 16% 16%, var(--theme-gold-soft), transparent 100%),
-    radial-gradient(circle 2px at 88% 24%, var(--theme-sky), transparent 100%),
-    radial-gradient(circle 1.8px at 72% 86%, var(--theme-emerald), transparent 100%),
     radial-gradient(circle at 12% 30%, rgba(100, 57, 136, 0.28), transparent 20%),
     radial-gradient(circle at 80% 0%, rgba(216, 162, 58, 0.08), transparent 22%),
     linear-gradient(180deg, #2a133c 0%, var(--theme-night) 100%);
