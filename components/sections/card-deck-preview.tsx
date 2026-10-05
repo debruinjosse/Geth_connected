@@ -1,5 +1,6 @@
 import { getTranslations } from "next-intl/server";
-import { RecognitionCardCarousel, type RecognitionCardData } from "@/components/ui/recognition-card-carousel";
+import { CardCarousel } from "@/components/ui/CardCarousel";
+import type { CardTileData } from "@/components/ui/CardTile";
 import { pickSiteContentText } from "@/lib/site-content";
 
 export async function CardDeckPreview({
@@ -12,58 +13,52 @@ export async function CardDeckPreview({
   const t = await getTranslations({ locale, namespace: "home" });
   const text = (key: string) => pickSiteContentText(overrides, t(key), key);
 
-  const cardImageLocale = locale === "nl" ? "nl" : "en";
-  const recognitionCards: RecognitionCardData[] = [
+  const cards: CardTileData[] = [
     {
-      number: "01",
+      index: "01",
       category: text("previewCommunication"),
       categoryKind: "communication",
       title: text("previewListening"),
-      description: text("previewListeningCopy"),
-      image: `/cards/${cardImageLocale}/card_01_content.png`
+      description: text("previewListeningCopy")
     },
     {
-      number: "02",
+      index: "02",
       category: text("previewCreativity"),
       categoryKind: "creativity",
       title: text("previewRenewing"),
-      description: text("previewRenewingCopy"),
-      image: `/cards/${cardImageLocale}/card_14_content.png`
+      description: text("previewRenewingCopy")
     },
     {
-      number: "03",
+      index: "03",
       category: text("previewCompetence"),
       categoryKind: "competence",
       title: text("previewGoalOriented"),
-      description: text("previewGoalOrientedCopy"),
-      image: `/cards/${cardImageLocale}/card_27_content.png`
+      description: text("previewGoalOrientedCopy")
     },
     {
-      number: "04",
+      index: "04",
       category: text("previewCollegiality"),
       categoryKind: "collegiality",
       title: text("previewCaring"),
-      description: text("previewCaringCopy"),
-      image: `/cards/${cardImageLocale}/card_40_content.png`
+      description: text("previewCaringCopy")
     }
   ];
 
   return (
-    <section className="card-deck-preview" aria-labelledby="card-deck-preview-title">
-      <div className="card-deck-preview-head">
-        <div>
-          <div className="eyebrow">{text("deckPreview")}</div>
+    <section className="gt-section gt-section-default gt-card-preview" aria-labelledby="card-deck-preview-title">
+      <div className="gt-container">
+        <div className="gt-section-header gt-section-header-left">
           <h2 id="card-deck-preview-title">{text("deckPreviewTitle")}</h2>
-          <p>{text("deckPreviewCopy")}</p>
+          <p className="gt-section-lead">{text("deckPreviewCopy")}</p>
         </div>
+        <CardCarousel
+          cards={cards}
+          labels={{
+            previous: text("previousCards"),
+            next: text("nextCards")
+          }}
+        />
       </div>
-      <RecognitionCardCarousel
-        cards={recognitionCards}
-        labels={{
-          previous: text("previousCards"),
-          next: text("nextCards")
-        }}
-      />
     </section>
   );
 }

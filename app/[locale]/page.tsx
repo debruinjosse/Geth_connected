@@ -1,23 +1,13 @@
-import {
-  ArrowRight,
-  BarChart3,
-  Building2,
-  CirclePlay,
-  HeartHandshake,
-  ShieldCheck,
-  Sparkles,
-  UsersRound
-} from "lucide-react";
 import Image from "next/image";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
-import { HeroDashboardMockup } from "@/components/HeroDashboardMockup";
-import { MobileHeroProductPreview } from "@/components/MobileHeroProductPreview";
-import { InfinityValueStrip } from "@/components/InfinityValueStrip";
+import { SimpleDashboardMockup } from "@/components/SimpleDashboardMockup";
 import { PublicSiteChrome } from "@/components/PublicSiteChrome";
 import { Reveal } from "@/components/Reveal";
+import { Button } from "@/components/ui/Button";
+import { SocialProofStrip } from "@/components/SocialProofStrip";
+import { AudienceCard } from "@/components/ui/AudienceCard";
 import { RECOGNITION_MOMENT_ALT, RECOGNITION_MOMENT_SRC } from "@/lib/brand";
-import { buildMarqueeConfig } from "@/lib/marquee-config";
 import { resolveHeroHeadlineLines, splitHeadlinePhrase } from "@/lib/landing-hero-headline";
 import { getSiteContentOverrides, pickSiteContentText } from "@/lib/site-content";
 import { CardDeckPreview } from "@/components/sections/card-deck-preview";
@@ -33,18 +23,13 @@ export default async function LandingPage({ params }: LandingPageProps) {
   const t = await getTranslations({ locale, namespace: "home" });
   const nav = await getTranslations({ locale, namespace: "nav" });
   const overrides = await getSiteContentOverrides("home", locale);
-  const settingsOverrides = locale === "en" ? overrides : await getSiteContentOverrides("home", "en");
   const text = (key: string) => pickSiteContentText(overrides, t(key), key);
-  const marqueeConfig = buildMarqueeConfig(overrides, settingsOverrides, locale);
 
   const audiences = [
-    [text("companiesLabel"), text("companiesTitle"), text("companiesCopy"), Building2],
-    [text("managersLabel"), text("managersTitle"), text("managersCopy"), UsersRound],
-    [text("employeesLabel"), text("employeesTitle"), text("employeesCopy"), HeartHandshake]
-  ];
-  const valuePropCtaHref = text("valuePropCtaHref") || "/book-demo";
-  const valuePropCtaLabel = text("valuePropCtaLabel") || nav("bookDemo");
-  const bookDemoHref = "/book-demo";
+    [text("companiesLabel"), text("companiesTitle"), text("companiesCopy")],
+    [text("managersLabel"), text("managersTitle"), text("managersCopy")],
+    [text("employeesLabel"), text("employeesTitle"), text("employeesCopy")]
+  ] as const;
 
   const howItWorksContent = {
     title: text("howItWorksTitle"),
@@ -56,6 +41,7 @@ export default async function LandingPage({ params }: LandingPageProps) {
       moreImpact: { title: text("stepMoreImpactTitle"), description: text("stepMoreImpactDescription") }
     }
   };
+
   const heroHeadline = resolveHeroHeadlineLines(overrides, text);
   const heroHeadlineLines = [
     splitHeadlinePhrase(heroHeadline.line1),
@@ -64,122 +50,76 @@ export default async function LandingPage({ params }: LandingPageProps) {
 
   return (
     <PublicSiteChrome locale={locale}>
-      <section className="hero landingHero">
-        <div className="pageContainer landingHeroInner">
-          <div className="hero-copy landingHeroCopy">
-            <Reveal delay={0.02}>
-              <div className="eyebrow">{text("ctaEyebrow")}</div>
-            </Reveal>
-            <Reveal delay={0.1}>
-              <h1 className="brand-display landingHeroHeadline">
-                {heroHeadlineLines.map((line) => (
-                  <span className="landingHeroHeadlineLine" key={line}>
-                    {line}
-                  </span>
-                ))}
-              </h1>
-            </Reveal>
-            <Reveal delay={0.18}>
-              <p className="hero-detail-copy">{text("heroDetail")}</p>
-            </Reveal>
-            <Reveal className="hero-actions" delay={0.26} distance={14}>
-              <Link className="btn btn-dark" href="/book-demo">
-                {nav("bookDemo")} <ArrowRight size={16} />
-              </Link>
-              <Link className="btn btn-secondary" href="#how-it-works">
-                <CirclePlay size={16} /> {text("seeHow")}
-              </Link>
-            </Reveal>
-            <Reveal className="trust-row" delay={0.34} distance={12}>
-              <span>
-                <ShieldCheck size={18} /> {text("trustSecure")}
-              </span>
-              <span>
-                <BarChart3 size={18} /> {text("trustInsights")}
-              </span>
-              <span>
-                <UsersRound size={18} /> {text("trustTeams")}
-              </span>
-            </Reveal>
+      {/* Hero */}
+      <section className="gt-hero" aria-labelledby="gt-hero-title">
+        <div className="gt-container gt-hero-inner">
+          <div className="gt-hero-copy">
+            <h1 id="gt-hero-title" className="gt-hero-headline">
+              {heroHeadlineLines.map((line) => (
+                <span key={line}>{line}</span>
+              ))}
+            </h1>
+            <p className="gt-hero-subcopy">{text("heroDetail")}</p>
+            <div className="gt-hero-actions">
+              <Button href="/book-demo" variant="primary" size="hero">
+                {nav("bookDemo")}
+              </Button>
+              <Button href="#how-it-works" variant="text-link">
+                {text("seeHow")}
+              </Button>
+            </div>
           </div>
-
-          <div className="desktopHeroPreview">
-            <HeroDashboardMockup locale={locale} />
-          </div>
-          <Reveal className="mobileHeroPreview landingHeroMobileVisual" delay={0.04} distance={24}>
-            <MobileHeroProductPreview locale={locale} />
+          <Reveal className="gt-hero-visual-slot" delay={0.08} distance={12}>
+            <SimpleDashboardMockup locale={locale} />
           </Reveal>
         </div>
-        <a className="scrollToExplore landingHeroScrollCue" href="#how-it-works">
-          <span>{text("scrollExplore")}</span>
-          <ArrowRight size={16} />
-        </a>
       </section>
 
-      <InfinityValueStrip
-        items={marqueeConfig.items}
-        className="infinity-strip-below-hero"
-        enabled={marqueeConfig.enabled}
-        scrollSpeed={marqueeConfig.scrollSpeed}
-        backgroundColor={marqueeConfig.backgroundColor}
-        textColor={marqueeConfig.textColor}
-        dividerStyle={marqueeConfig.dividerStyle}
-      />
+      <SocialProofStrip locale={locale} />
 
+      {/* How it works */}
       <HowItWorksDeckSection content={howItWorksContent} />
 
-      <section className="section-shell section-shell-compact howPosterSection">
-        <div className="pageContainer">
-          <Reveal delay={0.12} distance={18}>
-            <CardDeckPreview locale={locale} overrides={overrides} />
-          </Reveal>
-        </div>
-      </section>
+      {/* Card deck preview */}
+      <Reveal delay={0.04} distance={12}>
+        <CardDeckPreview locale={locale} overrides={overrides} />
+      </Reveal>
 
-      <section className="section-shell section-shell-follow" id="for-companies">
-        <div className="pageContainer">
-          <div className="audience-grid audienceGrid">
-            {audiences.map(([label, title, copy, Icon], index) => (
-              <Reveal className="audience-card audienceCard" key={label as string} delay={index * 0.08}>
-                <Icon className="audienceCardIcon" size={34} strokeWidth={1.6} />
-                <div className="eyebrow">{label as string}</div>
-                <h3>{title as string}</h3>
-                <p>{copy as string}</p>
-                <Link href={bookDemoHref} className="audience-demo-cta">
-                  {nav("bookDemo")} <ArrowRight size={14} />
-                </Link>
+      {/* Audiences */}
+      <section className="gt-section gt-section-default" id="for-companies" aria-labelledby="gt-audiences-title">
+        <div className="gt-container">
+          <h2 id="gt-audiences-title" className="gt-visually-hidden">{text("companiesTitle")}</h2>
+          <div className="gt-audience-grid">
+            {audiences.map(([label, title, copy], index) => (
+              <Reveal key={label} delay={index * 0.06} distance={12}>
+                <AudienceCard title={title} description={copy} />
               </Reveal>
             ))}
           </div>
         </div>
       </section>
 
-      <section className="section-shell cta-band landingCta pre-footer-recognition" id="value-proposition">
-        <div className="pageContainer landingCtaInner">
-          <div className="landingCtaContent">
-            <Reveal className="cta-copy" distance={18}>
-              <div className="eyebrow">{text("valuePropEyebrow")}</div>
-              <h2 className="section-title">{text("valuePropHeadline")}</h2>
-              <p className="hero-detail-copy landingCtaDetail">{text("valuePropParagraph")}</p>
-            </Reveal>
-            <Reveal className="hero-actions landingCtaActions" delay={0.1} distance={14}>
-              <Link className="btn btn-primary" href={valuePropCtaHref}>
-                {valuePropCtaLabel} <Sparkles size={16} />
-              </Link>
-              <Link className="btn btn-secondary" href="/pricing">
+      {/* Photo + value statement */}
+      <section className="gt-section gt-section-subtle gt-value-split" aria-labelledby="gt-value-title">
+        <div className="gt-container gt-value-split-inner">
+          <Reveal distance={12}>
+            <div className="gt-value-split-copy">
+              <h2 id="gt-value-title">{text("valuePropHeadline")}</h2>
+              <p>{text("valuePropParagraph")}</p>
+              <Link className="gt-text-link" href="/pricing">
                 {text("viewPricing")}
               </Link>
-            </Reveal>
-          </div>
-          <Reveal className="landingCtaMedia landingRecognitionPhoto" delay={0.16} distance={16}>
-            <Image
-              src={RECOGNITION_MOMENT_SRC}
-              alt={RECOGNITION_MOMENT_ALT}
-              fill
-              sizes="(max-width: 920px) calc(100vw - 40px), 520px"
-              className="landingRecognitionPhotoImg"
-              priority={false}
-            />
+            </div>
+          </Reveal>
+          <Reveal delay={0.08} distance={12}>
+            <div className="gt-value-split-photo">
+              <Image
+                src={RECOGNITION_MOMENT_SRC}
+                alt={RECOGNITION_MOMENT_ALT}
+                fill
+                sizes="(max-width: 920px) calc(100vw - 40px), 520px"
+              />
+            </div>
           </Reveal>
         </div>
       </section>
