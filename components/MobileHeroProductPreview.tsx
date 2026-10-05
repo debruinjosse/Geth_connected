@@ -11,10 +11,17 @@ const qualities = [82, 74, 68] as const;
  */
 export function MobileHeroProductPreview({ locale = "en" }: { locale?: string }) {
   const copy = getHeroPreviewCopy(locale);
+  const cardImageLocale = locale === "nl" ? "nl" : "en";
 
   return (
     <section className="mobile-hero-phone-only" aria-label="GETH dashboard preview">
       <div className="mobile-hero-phone-only__card-wrap">
+        <div className="mobile-hero-phone-only__card mobile-hero-phone-only__card-echo mobile-hero-phone-only__card-echo-1" aria-hidden="true">
+          <Image src={`/cards/${cardImageLocale}/card_14_content.png`} alt="" fill sizes="90px" />
+        </div>
+        <div className="mobile-hero-phone-only__card mobile-hero-phone-only__card-echo mobile-hero-phone-only__card-echo-2" aria-hidden="true">
+          <Image src={`/cards/${cardImageLocale}/card_27_content.png`} alt="" fill sizes="90px" />
+        </div>
         <div className="mobile-hero-phone-only__card">
           <Image
             alt={getHeroPhysicalCardAlt(locale)}

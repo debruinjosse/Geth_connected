@@ -227,12 +227,15 @@
   }
 
   .mobile-hero-phone-only__card-wrap {
+    position: relative;
     display: flex;
     justify-content: center;
     width: 100%;
+    padding: 0 36px;
   }
 
   .mobile-hero-phone-only__card {
+    position: relative;
     width: 104px;
     max-width: 30vw;
     aspect-ratio: 560 / 797;
@@ -243,6 +246,23 @@
     box-shadow: 0 16px 36px rgba(28, 10, 38, 0.18);
     transform: rotate(-5deg);
     transform-origin: center center;
+  }
+
+  .mobile-hero-phone-only__card-echo {
+    position: absolute;
+    top: 0;
+    opacity: 0.78;
+    box-shadow: 0 12px 26px rgba(28, 10, 38, 0.22);
+  }
+
+  .mobile-hero-phone-only__card-echo-1 {
+    left: calc(50% - 86px);
+    transform: rotate(-20deg) scale(0.86);
+  }
+
+  .mobile-hero-phone-only__card-echo-2 {
+    left: calc(50% + 10px);
+    transform: rotate(13deg) scale(0.86);
   }
 
   .mobile-hero-phone-only__card img {

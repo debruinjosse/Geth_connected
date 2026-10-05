@@ -35,8 +35,16 @@ const chartPoints = [
 ] as const;
 
 function HeroPhysicalCard({ locale }: { locale: string }) {
+  const cardImageLocale = locale === "nl" ? "nl" : "en";
+
   return (
     <div className="hero-physical-card-wrap" aria-hidden="true">
+      <div className="hero-physical-card hero-physical-card-echo hero-physical-card-echo-1">
+        <Image src={`/cards/${cardImageLocale}/card_14_content.png`} alt="" fill sizes="140px" />
+      </div>
+      <div className="hero-physical-card hero-physical-card-echo hero-physical-card-echo-2">
+        <Image src={`/cards/${cardImageLocale}/card_27_content.png`} alt="" fill sizes="140px" />
+      </div>
       <div className="hero-physical-card">
         <Image
           alt={getHeroPhysicalCardAlt(locale)}

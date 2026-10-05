@@ -944,6 +944,21 @@ img {
   object-fit: cover;
 }
 
+.hero-physical-card-echo {
+  position: absolute;
+  inset: 0;
+  opacity: 0.82;
+  box-shadow: -4px 10px 24px rgba(28, 10, 38, 0.28);
+}
+
+.hero-physical-card-echo-1 {
+  transform: translate(-56%, 8%) rotate(-20deg) scale(0.84);
+}
+
+.hero-physical-card-echo-2 {
+  transform: translate(48%, 12%) rotate(15deg) scale(0.84);
+}
+
 .mobile-hero-product-preview {
   background:
     radial-gradient(circle at 90% 0%, rgba(216, 162, 58, 0.14), transparent 34%),
