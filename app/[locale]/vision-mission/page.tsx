@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { PublicSiteChrome } from "@/components/PublicSiteChrome";
 import { BrandWordmark } from "@/components/BrandWordmark";
@@ -24,6 +25,16 @@ export default async function VisionMissionPage({ params }: VisionMissionPagePro
     <PublicSiteChrome locale={locale}>
       <section className="section-shell vision-page">
         <div className="pageContainer vision-page-inner">
+          <div className="vision-hero-image">
+            <Image
+              src="/assets/geth-recognition-moment.png"
+              alt=""
+              fill
+              sizes="(min-width: 900px) 640px, 100vw"
+              style={{ objectFit: "cover" }}
+              priority
+            />
+          </div>
           <div className="vision-document">
             <div className="eyebrow"><BrandWordmark /></div>
             <h1>{t("title")}</h1>

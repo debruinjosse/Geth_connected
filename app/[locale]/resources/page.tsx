@@ -10,7 +10,7 @@ export default async function ResourcesPage({ params }: { params: Promise<{ loca
 
   return (
     <PublicSiteChrome locale={locale}>
-      <section className="section-shell page-shell">
+      <section className="section-shell page-shell resources-page-shell">
         <div className="section-head">
           <div className="eyebrow">{t("eyebrow")}</div>
           <h1 className="section-title">{t("title")}</h1>

@@ -9,7 +9,7 @@ export default async function BookDemoPage({ params }: { params: Promise<{ local
 
   return (
     <PublicSiteChrome locale={locale}>
-      <section className="section-shell page-shell">
+      <section className="section-shell page-shell book-demo-page-shell">
         <div className="section-head">
           <div className="eyebrow">{t("eyebrow")}</div>
           <h1 className="section-title">{t("title")}</h1>
