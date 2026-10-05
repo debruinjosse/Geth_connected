@@ -12,30 +12,39 @@ export async function CardDeckPreview({
   const t = await getTranslations({ locale, namespace: "home" });
   const text = (key: string) => pickSiteContentText(overrides, t(key), key);
 
+  const cardImageLocale = locale === "nl" ? "nl" : "en";
   const recognitionCards: RecognitionCardData[] = [
     {
       number: "01",
       category: text("previewCommunication"),
+      categoryKind: "communication",
       title: text("previewListening"),
-      description: text("previewListeningCopy")
+      description: text("previewListeningCopy"),
+      image: `/cards/${cardImageLocale}/card_01_content.png`
     },
     {
       number: "02",
       category: text("previewCreativity"),
+      categoryKind: "creativity",
       title: text("previewRenewing"),
-      description: text("previewRenewingCopy")
+      description: text("previewRenewingCopy"),
+      image: `/cards/${cardImageLocale}/card_14_content.png`
     },
     {
       number: "03",
       category: text("previewCompetence"),
+      categoryKind: "competence",
       title: text("previewGoalOriented"),
-      description: text("previewGoalOrientedCopy")
+      description: text("previewGoalOrientedCopy"),
+      image: `/cards/${cardImageLocale}/card_27_content.png`
     },
     {
       number: "04",
       category: text("previewCollegiality"),
+      categoryKind: "collegiality",
       title: text("previewCaring"),
-      description: text("previewCaringCopy")
+      description: text("previewCaringCopy"),
+      image: `/cards/${cardImageLocale}/card_40_content.png`
     }
   ];
 

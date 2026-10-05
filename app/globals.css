@@ -1466,7 +1466,43 @@ img {
 }
 
 .howPosterSection {
-  padding-top: clamp(30px, 3vw, 44px);
+  position: relative;
+  padding-block: clamp(64px, 6vw, 92px);
+  overflow: hidden;
+  background:
+    radial-gradient(circle 2.5px at 10% 20%, var(--theme-gold-soft), transparent 100%),
+    radial-gradient(circle 2px at 92% 15%, var(--theme-sky), transparent 100%),
+    radial-gradient(circle 1.8px at 80% 85%, var(--theme-emerald), transparent 100%),
+    radial-gradient(circle 2px at 30% 88%, var(--theme-gold), transparent 100%),
+    radial-gradient(circle at 50% 0%, var(--glow-gold), transparent 55%),
+    linear-gradient(165deg, var(--theme-night) 0%, var(--theme-ink) 100%);
+  color: white;
+}
+
+.howPosterSection .card-deck-preview-head h2 {
+  color: #fffdf8;
+}
+
+.howPosterSection .card-deck-preview-head .eyebrow {
+  color: var(--theme-gold-soft);
+}
+
+.howPosterSection .card-deck-preview-head p {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.howPosterSection .card-deck-preview-link {
+  color: #fffdf8;
+}
+
+.howPosterSection .card-deck-preview-link:hover {
+  color: var(--theme-gold-soft);
+}
+
+.howPosterSection .cardCarouselButton {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.18);
+  color: #fff;
 }
 
 .howPosterPanel {
@@ -2073,7 +2109,7 @@ img {
   grid-template-rows: auto 1fr;
   align-content: stretch;
   min-height: 272px;
-  aspect-ratio: 1.28 / 1;
+  aspect-ratio: 0.82 / 1;
   padding: clamp(17px, 1.7vw, 22px);
   border: 1px solid rgba(216, 162, 58, 0.28);
   border-radius: 20px;
@@ -2087,6 +2123,63 @@ img {
   isolation: isolate;
   overflow: hidden;
   scroll-snap-align: start;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.recognitionCard:hover {
+  transform: translateY(-4px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 26px 54px rgba(31, 18, 42, 0.3);
+}
+
+.recognitionCardPhoto {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+}
+
+.recognitionCardPhoto img {
+  object-fit: cover;
+  object-position: top;
+}
+
+.recognitionCardPhotoScrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(23, 9, 31, 0.4) 0%, rgba(23, 9, 31, 0.3) 30%, rgba(23, 9, 31, 0.62) 58%, rgba(23, 9, 31, 0.96) 84%);
+}
+
+.recognitionCard-communication {
+  border-color: rgba(12, 163, 212, 0.4);
+}
+
+.recognitionCard-creativity {
+  border-color: rgba(183, 160, 87, 0.4);
+}
+
+.recognitionCard-competence {
+  border-color: rgba(104, 179, 45, 0.4);
+}
+
+.recognitionCard-collegiality {
+  border-color: rgba(217, 119, 36, 0.4);
+}
+
+.recognitionCard-communication .recognitionCardCategory {
+  color: var(--category-communication);
+}
+
+.recognitionCard-creativity .recognitionCardCategory {
+  color: var(--category-creativity);
+}
+
+.recognitionCard-competence .recognitionCardCategory {
+  color: var(--category-competence);
+}
+
+.recognitionCard-collegiality .recognitionCardCategory {
+  color: var(--category-collegiality);
 }
 
 .recognitionCard::before {

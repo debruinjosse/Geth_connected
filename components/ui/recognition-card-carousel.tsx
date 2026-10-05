@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { BrandMarkIcon } from "@/components/BrandLogo";
 import { BrandWordmark } from "@/components/BrandWordmark";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -8,8 +9,10 @@ import { useEffect, useRef, useState } from "react";
 export interface RecognitionCardData {
   number: string;
   category: string;
+  categoryKind?: "communication" | "creativity" | "competence" | "collegiality";
   title: string;
   description: string;
+  image?: string;
 }
 
 interface RecognitionCardCarouselProps {
@@ -21,8 +24,15 @@ interface RecognitionCardCarouselProps {
 }
 
 function RecognitionCard({ card }: { card: RecognitionCardData }) {
+  const categoryClass = card.categoryKind ? ` recognitionCard-${card.categoryKind}` : "";
   return (
-    <article className="recognitionCard">
+    <article className={`recognitionCard${categoryClass}`}>
+      {card.image ? (
+        <div className="recognitionCardPhoto">
+          <Image src={card.image} alt="" fill sizes="(max-width: 767px) 80vw, 320px" />
+          <div className="recognitionCardPhotoScrim" />
+        </div>
+      ) : null}
       <div className="recognitionCardTop">
         <span className="recognitionCardLogo">
           <BrandMarkIcon size={30} />
