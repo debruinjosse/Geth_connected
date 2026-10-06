@@ -5,7 +5,8 @@ import { useTranslations } from "next-intl";
 import { Sparkles, RefreshCw } from "lucide-react";
 import { fetchEmployeeRecognitionSignals, refreshEmployeeRecognitionSignals } from "@/app/actions/employeeSignals";
 import type { EmployeeRecognitionSignal, EmployeeSignalsContext } from "@/lib/ai/employee-recognition-signals";
-import { SignalList } from "@/components/SignalList";
+import { Button } from "@/components/ui/Button";
+import { Panel } from "@/components/ui/Panel";
 
 const CATEGORY_FALLBACK_KEYS = {
   Communication: "coachingFallbackCommunication",
@@ -49,14 +50,14 @@ export function EmployeeAiSignalsPanel({ context }: { context: EmployeeSignalsCo
 
       try {
         const categoryFallbacks = Object.fromEntries(
-          Object.entries(CATEGORY_FALLBACK_KEYS).map(([category, key]) => [category, td(key)])
+          Object.entries(CATEGORY_FALLBACK_KEYS).map(([category, key]) => [category, td(key, { name: "{name}" })])
         );
 
         const result = await fetchEmployeeRecognitionSignals(context, {
           emptyTitle: td("emptySignalTitle"),
           emptyDetail: td("emptySignalDetail"),
           insightTitle: td("coachingInsightTitle"),
-          fallbackInsight: td("coachingFallbackDefault"),
+          fallbackInsight: td("coachingFallbackDefault", { name: "{name}" }),
           categoryFallbacks
         });
 
@@ -104,45 +105,48 @@ export function EmployeeAiSignalsPanel({ context }: { context: EmployeeSignalsCo
     !loading &&
     signals.some((signal) => signal.id !== "employee-signal-empty" && signal.detail.trim());
 
+  const visibleSignals = signals.filter((signal) => signal.id !== "employee-signal-empty");
+
   return (
-    <article className="panel dashboard-panel employee-ai-signals-panel">
-      <div className="panel-top">
-        <div>
-          <h2>{t("signalsTitle")}</h2>
-          <p>{t("signalsCopy")}</p>
-        </div>
-        <span className="quality-pill">
-          <Sparkles size={14} />
-          {loading ? t("signalsGenerating") : hasInsight ? t("signalsReady") : t("signalsWaiting")}
-        </span>
-        {hasRecognitionData ? (
-          <button
-            className="btn btn-secondary employee-ai-refresh-button"
-            type="button"
-            onClick={() => void handleRefresh()}
-            disabled={loading || refreshing}
-          >
-            <RefreshCw size={14} />
-            {refreshing ? t("signalsRefreshing") : t("refreshInsight")}
-          </button>
-        ) : null}
-      </div>
-
+    <Panel
+      title={t("signalsTitle")}
+      description={t("signalsCopy")}
+      action={
+        <>
+          <span className="lp-pill lp-pill-gold">
+            <Sparkles size={14} />
+            {loading ? t("signalsGenerating") : hasInsight ? t("signalsReady") : t("signalsWaiting")}
+          </span>
+          {hasRecognitionData ? (
+            <Button variant="ghost" size="sm" icon={<RefreshCw />} onClick={() => void handleRefresh()} disabled={loading || refreshing}>
+              {refreshing ? t("signalsRefreshing") : t("refreshInsight")}
+            </Button>
+          ) : null}
+        </>
+      }
+    >
       {loading ? (
-        <div className="employee-ai-signals-loading" aria-live="polite">
-          <div className="employee-ai-signals-skeleton" />
-          <div className="employee-ai-signals-skeleton short" />
-          <p>{t("signalsGenerating")}</p>
+        <div className="lp-stack" style={{ gap: 12 }} aria-live="polite">
+          <div className="lp-skel" style={{ width: "92%" }} />
+          <div className="lp-skel" style={{ width: "64%" }} />
+          <p className="lp-hint">{t("signalsGenerating")}</p>
         </div>
       ) : null}
 
-      {error ? <p className="section-copy">{error}</p> : null}
+      {error ? <p className="lp-panel-note">{error}</p> : null}
 
-      {!loading && hasRecognitionData && signals.some((signal) => signal.id !== "employee-signal-empty") ? (
-        <SignalList items={signals.filter((signal) => signal.id !== "employee-signal-empty")} variant="coaching" />
-      ) : null}
+      {!loading && hasRecognitionData
+        ? visibleSignals.map((signal) => (
+            <div className="lp-signal" key={signal.id}>
+              <Sparkles size={18} aria-hidden="true" />
+              <div>
+                <p>{signal.detail}</p>
+              </div>
+            </div>
+          ))
+        : null}
 
-      {!loading && !hasRecognitionData ? <p className="section-copy">{td("emptySignalDetail")}</p> : null}
-    </article>
+      {!loading && !hasRecognitionData ? <p className="lp-panel-note" style={{ marginTop: 0 }}>{td("emptySignalDetail")}</p> : null}
+    </Panel>
   );
 }

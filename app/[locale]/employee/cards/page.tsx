@@ -1,9 +1,13 @@
-import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { redirect } from "next/navigation";
 import { QrCode } from "lucide-react";
 import { DashboardShell } from "@/components/DashboardShell";
 import { EmptyState } from "@/components/EmptyState";
+import { RecognitionTabs } from "@/components/employee/RecognitionTabs";
+import { Button } from "@/components/ui/Button";
+import { Grid } from "@/components/ui/Grid";
+import { Panel } from "@/components/ui/Panel";
+import { Pill } from "@/components/ui/Pill";
 import { RecognitionList, type RecognitionItem } from "@/components/RecognitionList";
 import { getLocalizedCardTitle } from "@/lib/cards";
 import { localizeDemoRecognitions } from "@/lib/localize-demo-content";
@@ -46,19 +50,15 @@ export default async function EmployeeCardsPage({ params }: { params: Promise<{ 
 
   if (!hasSupabaseServerConfig()) {
     return (
-      <DashboardShell role="employee" title={t("cardsTitle")} subtitle={t("cardsSubtitle")} user={currentUser} actions={<span className="quality-pill">{tc("demoFallback")}</span>}>
-        <section className="dashboard-grid two">
-          <article className="panel dashboard-panel">
-            <div className="panel-top">
-              <h2>{t("historyTitle")}</h2>
-              <span className="quality-pill">{t("countReceived", { count: demoRecognitions.length })}</span>
-            </div>
+      <DashboardShell role="employee" title={t("cardsTitle")} subtitle={t("cardsSubtitle")} user={currentUser} actions={<Pill>{tc("demoFallback")}</Pill>}>
+        <Grid cols="two">
+          <Panel title={t("historyTitle")} action={<Pill>{t("countReceived", { count: demoRecognitions.length })}</Pill>}>
             <RecognitionList items={localizeDemoRecognitions(demoRecognitions, locale)} />
-          </article>
-          <article className="panel dashboard-panel">
+          </Panel>
+          <Panel>
             <EmptyState title={t("supabaseEmptyTitle")} copy={t("supabaseEmptyCopy")} />
-          </article>
-        </section>
+          </Panel>
+        </Grid>
       </DashboardShell>
     );
   }
@@ -152,28 +152,27 @@ export default async function EmployeeCardsPage({ params }: { params: Promise<{ 
       }}
       actions={
         <>
-          <Link className="btn btn-primary" href={`/${locale}/employee/scan`}><QrCode size={16} /> {t("scanCard")}</Link>
-          <Link className="btn btn-dark" href={`/${locale}/cards`}>{tc("browseCards")}</Link>
+          <Button href={`/${locale}/employee/scan`} size="sm" icon={<QrCode />}>
+            {t("scanCard")}
+          </Button>
+          <Button href={`/${locale}/cards`} variant="ghost" size="sm">
+            {tc("browseCards")}
+          </Button>
         </>
       }
       unreadNotifications={unreadNotifications}
     >
-      <section className="dashboard-grid two">
-        <article className="panel dashboard-panel">
-          <div className="panel-top">
-            <h2>{t("receivedTitle")}</h2>
-            <span className="quality-pill">{t("countReceived", { count: received.length })}</span>
-          </div>
-          {received.length ? <RecognitionList items={received} /> : <EmptyState title={t("receivedEmptyTitle")} copy={t("receivedEmptyCopy")} />}
-        </article>
-        <article className="panel dashboard-panel">
-          <div className="panel-top">
-            <h2>{t("givenTitle")}</h2>
-            <span className="quality-pill">{t("countSent", { count: given.length })}</span>
-          </div>
-          {given.length ? <RecognitionList items={given} compact /> : <EmptyState title={t("givenEmptyTitle")} copy={t("givenEmptyCopy")} actionLabel={tc("openCardLibrary")} actionHref={`/${locale}/cards`} />}
-        </article>
-      </section>
+      <RecognitionTabs
+        ariaLabel={t("cardsTitle")}
+        received={received}
+        given={given}
+        receivedLabel={t("receivedTitle")}
+        givenLabel={t("givenTitle")}
+        receivedCount={t("countReceived", { count: received.length })}
+        givenCount={t("countSent", { count: given.length })}
+        receivedEmpty={<EmptyState title={t("receivedEmptyTitle")} copy={t("receivedEmptyCopy")} />}
+        givenEmpty={<EmptyState title={t("givenEmptyTitle")} copy={t("givenEmptyCopy")} actionLabel={tc("openCardLibrary")} actionHref={`/${locale}/cards`} />}
+      />
     </DashboardShell>
   );
 }

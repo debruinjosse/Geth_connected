@@ -1,10 +1,14 @@
 "use client";
 
-import Image from "next/image";
 import { KeyRound, Save, UploadCloud } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { sendPasswordResetFromSettingsAction, updateOwnProfileNameAction, updateOwnProfilePhotoAction } from "@/app/actions/accountSettings";
 import { ProfilePhotoUploadField } from "@/components/ProfilePhotoUploadField";
+import { Alert } from "@/components/ui/Alert";
+import { Avatar } from "@/components/ui/Avatar";
+import { Button } from "@/components/ui/Button";
+import { Field, FieldGrid, Input } from "@/components/ui/Fields";
+import { Panel } from "@/components/ui/Panel";
 
 function getSettingsMessage(t: (key: string) => string, code?: string) {
   switch (code) {
@@ -53,71 +57,56 @@ export function AccountSettingsPanel({
   const initials = `${firstName[0] ?? ""}${lastName[0] ?? ""}`.toUpperCase() || "GU";
 
   return (
-    <article className="panel dashboard-panel account-settings-panel">
-      <div className="panel-top">
-        <div>
-          <h2>{t("title")}</h2>
-          <p>{t("subtitle")}</p>
+    <Panel title={t("title")} description={t("subtitle")} className="lp-settings">
+      {message ? (
+        <div className="lp-mb">
+          <Alert tone={message.tone === "success" ? "success" : "error"}>{message.copy}</Alert>
         </div>
-      </div>
+      ) : null}
 
-      {message ? <p className={`settings-feedback ${message.tone}`}>{message.copy}</p> : null}
-
-      <form action={updateOwnProfilePhotoAction} className="settings-photo-form">
+      <form action={updateOwnProfilePhotoAction} className="lp-settings-block">
         <input type="hidden" name="returnTo" value={returnTo} />
-        <div className="settings-photo-preview">
-          <div className="profile-photo-large">
-            {profileImageUrl ? (
-              <Image src={profileImageUrl} alt={t("profilePhotoAlt", { name: firstName || "Your" })} width={82} height={82} unoptimized />
-            ) : (
-              <span>{initials}</span>
-            )}
-          </div>
+        <div className="lp-profile-head" style={{ marginBottom: 18 }}>
+          <Avatar size="xl" name={`${firstName} ${lastName}`} initials={initials} imageUrl={profileImageUrl} />
           <div>
-            <strong>{t("profilePhoto")}</strong>
-            <p>{t("profilePhotoCopy")}</p>
+            <b style={{ fontWeight: 500 }}>{t("profilePhoto")}</b>
+            <p className="lp-hint" style={{ fontSize: 14.5, marginTop: 4 }}>{t("profilePhotoCopy")}</p>
           </div>
         </div>
         <ProfilePhotoUploadField />
-        <div className="settings-action-row">
-          <button className="btn btn-secondary" type="submit">
-            <UploadCloud size={16} /> {t("uploadPhoto")}
-          </button>
+        <div style={{ marginTop: 16 }}>
+          <Button type="submit" variant="ghost" size="sm" icon={<UploadCloud />}>
+            {t("uploadPhoto")}
+          </Button>
         </div>
       </form>
 
-      <form action={updateOwnProfileNameAction} className="settings-form">
+      <form action={updateOwnProfileNameAction} className="lp-settings-block">
         <input type="hidden" name="returnTo" value={returnTo} />
-        <div className="settings-field-grid">
-          <label>
-            {t("firstName")}
-            <input className="input" name="firstName" defaultValue={firstName} required />
-          </label>
-          <label>
-            {t("lastName")}
-            <input className="input" name="lastName" defaultValue={lastName} required />
-          </label>
-        </div>
-        <div className="settings-action-row">
-          <button className="btn btn-primary" type="submit">
-            <Save size={16} /> {t("saveName")}
-          </button>
+        <FieldGrid>
+          <Field label={t("firstName")} htmlFor="settings-first-name">
+            <Input id="settings-first-name" name="firstName" defaultValue={firstName} required />
+          </Field>
+          <Field label={t("lastName")} htmlFor="settings-last-name">
+            <Input id="settings-last-name" name="lastName" defaultValue={lastName} required />
+          </Field>
+        </FieldGrid>
+        <div style={{ marginTop: 18 }}>
+          <Button type="submit" size="sm" icon={<Save />}>
+            {t("saveName")}
+          </Button>
         </div>
       </form>
 
-      <form action={sendPasswordResetFromSettingsAction} className="settings-reset-form">
+      <form action={sendPasswordResetFromSettingsAction} className="lp-settings-block">
         <input type="hidden" name="returnTo" value={returnTo} />
         <input type="hidden" name="email" value={email} />
-        <div>
-          <strong>{t("passwordReset")}</strong>
-          <p>{t("passwordResetCopy")}</p>
-        </div>
-        <div className="settings-action-row">
-          <button className="btn btn-secondary" type="submit">
-            <KeyRound size={16} /> {t("sendResetEmail")}
-          </button>
-        </div>
+        <b style={{ fontWeight: 500 }}>{t("passwordReset")}</b>
+        <p className="lp-hint" style={{ fontSize: 14.5, margin: "4px 0 16px" }}>{t("passwordResetCopy")}</p>
+        <Button type="submit" variant="ghost" size="sm" icon={<KeyRound />}>
+          {t("sendResetEmail")}
+        </Button>
       </form>
-    </article>
+    </Panel>
   );
 }

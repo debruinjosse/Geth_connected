@@ -6,6 +6,7 @@ import { DashboardShell } from "@/components/DashboardShell";
 import { EmptyState } from "@/components/EmptyState";
 import { getUnreadNotificationCount } from "@/lib/notifications";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { Button } from "@/components/ui/Button";
 
 function getInitials(firstName: string | null, lastName: string | null) {
   return `${firstName?.[0] ?? ""}${lastName?.[0] ?? ""}`.toUpperCase() || "GU";
@@ -65,10 +66,10 @@ export default async function EmployeeScanPage({ params }: EmployeeScanPageProps
         <EmptyState title={t("scanEmployeesOnlyTitle")} copy={t("scanEmployeesOnlyCopy")} />
       ) : (
         <>
-          <div className="button-row dashboard-action-row">
-            <Link className="btn btn-secondary" href={`/${locale}/cards`}>
+          <div>
+            <Button href={`/${locale}/cards`} variant="ghost" size="sm">
               {tc("openCardLibrary")}
-            </Link>
+            </Button>
           </div>
           <QrScanClientLazy />
         </>

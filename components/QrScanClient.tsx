@@ -7,6 +7,12 @@ import { useParams, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Camera, CheckCircle2, ImageUp, Keyboard, QrCode, Send, XCircle } from "lucide-react";
 import { gethCards, getLocalizedCardTitle, resolveCardSlug } from "@/lib/cards";
+import { Alert } from "@/components/ui/Alert";
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
+import { Field, Input } from "@/components/ui/Fields";
+import { Grid } from "@/components/ui/Grid";
+import { Panel } from "@/components/ui/Panel";
 
 type BarcodeResult = {
   rawValue: string;
@@ -621,118 +627,97 @@ export function QrScanClient() {
   }, []);
 
   return (
-    <div className="qr-scan-grid">
-      <section className="panel dashboard-panel qr-scan-panel qr-camera-panel">
-        <div className="panel-top">
-          <div>
-            <h2>{t("cameraTitle")}</h2>
-            <p className="section-copy">{t("cameraCopy")}</p>
-          </div>
-          <QrCode size={28} />
-        </div>
-
-        <div className="qr-camera-frame">
-          <video ref={videoRef} autoPlay playsInline muted className={scanning ? "is-active" : ""} />
+    <Grid cols="two" className="lp-scan">
+      <Panel title={t("cameraTitle")} description={t("cameraCopy")} action={<span className="lp-icontile" aria-hidden="true"><QrCode /></span>}>
+        <div className="lp-camera">
+          <video ref={videoRef} autoPlay playsInline muted className={scanning ? "lp-on" : ""} />
           {!scanning ? (
-            <div className="qr-camera-placeholder">
-              <Camera size={44} />
-              <strong>{t("cameraScanner")}</strong>
+            <div className="lp-camera-empty">
+              <Camera size={40} strokeWidth={1.4} />
+              <b>{t("cameraScanner")}</b>
               <p>{t("cameraHint")}</p>
             </div>
+          ) : (
+            <span className="lp-camera-frame" aria-hidden="true" />
+          )}
+        </div>
+
+        <div className="lp-cta-row" style={{ marginTop: 20 }}>
+          <Button onClick={startScanner} disabled={scanning} icon={<Camera />}>
+            {scanning ? t("scanning") : t("startScan")}
+          </Button>
+          <Button variant="ghost" onClick={stopScanner} disabled={!scanning} icon={<XCircle />}>
+            {t("stopCamera")}
+          </Button>
+        </div>
+
+        {status ? (
+          <div className="lp-panel-note" aria-live="polite">
+            {status}
+          </div>
+        ) : null}
+      </Panel>
+
+      <Panel title={t("exploreTitle")} description={t("exploreCopy")} action={<span className="lp-icontile" aria-hidden="true"><ImageUp /></span>}>
+        <div className="lp-form">
+          <label className="lp-upload" htmlFor="qr-image-upload">
+            <ImageUp aria-hidden="true" />
+            <span>
+              <b>{imageScanning ? t("readingImageBtn") : t("scanFromPhoto")}</b>
+              <small>{t("uploadHint")}</small>
+            </span>
+            <input id="qr-image-upload" type="file" accept="image/*" onChange={handleImageUpload} />
+          </label>
+
+          <Field label={t("searchCard")} htmlFor="manual-qr-value">
+            <Input
+              id="manual-qr-value"
+              value={manualValue}
+              onChange={(event) => {
+                setManualValue(event.target.value);
+                setDetectedSlug("");
+              }}
+              placeholder={t("searchPlaceholder")}
+            />
+          </Field>
+          <div>
+            <Button variant="ghost" onClick={() => resolveDetectedCard(manualValue, "manual_entry")} icon={<Keyboard />}>
+              {t("findCard")}
+            </Button>
+          </div>
+
+          {decodedRaw && !detectedSlug ? (
+            <Alert tone="info">
+              {t("qrDecoded", { value: decodedRaw.length > 120 ? `${decodedRaw.slice(0, 120)}…` : decodedRaw })}
+              {/^https?:\/\//i.test(decodedRaw) ? (
+                <div style={{ marginTop: 10 }}>
+                  <Button href={decodedRaw} target="_blank" rel="noreferrer" variant="ghost" size="sm">
+                    Open scanned link
+                  </Button>
+                </div>
+              ) : null}
+            </Alert>
+          ) : null}
+
+          {detectedSlug ? (
+            <Card tone="accent" size="sm" role="status" aria-live="polite">
+              <span className="lp-pill lp-pill-green">
+                <CheckCircle2 size={14} /> {t("cardReady")}
+              </span>
+              <h3 style={{ margin: "12px 0 4px", fontSize: "1.3rem" }}>{detectedCard ? getLocalizedCardTitle(detectedCard, locale) : detectedSlug}</h3>
+              <p className="lp-hint" style={{ fontSize: 14.5 }}>{t("chooseHow")}</p>
+              <div className="lp-cta-row" style={{ marginTop: 16 }}>
+                <Button onClick={() => goToClaim()} icon={<QrCode />}>
+                  {t("claimCard")}
+                </Button>
+                <Button variant="ghost" onClick={() => goToGiveDigitally()} icon={<Send />}>
+                  {t("giveDigitally")}
+                </Button>
+              </div>
+            </Card>
           ) : null}
         </div>
-
-        <div className="button-row">
-          <button className="btn btn-primary" type="button" onClick={startScanner} disabled={scanning}>
-            <Camera size={16} />
-            {scanning ? t("scanning") : t("startScan")}
-          </button>
-          <button className="btn btn-secondary" type="button" onClick={stopScanner} disabled={!scanning}>
-            <XCircle size={16} />
-            {t("stopCamera")}
-          </button>
-        </div>
-
-        <p className="section-copy" aria-live="polite">{status}</p>
-      </section>
-
-      <section className="panel dashboard-panel qr-manual-claim-panel">
-        <div className="panel-top">
-          <div>
-            <h2>{t("exploreTitle")}</h2>
-            <p className="section-copy">{t("exploreCopy")}</p>
-          </div>
-          <ImageUp size={24} />
-        </div>
-
-        <div className="qr-upload-card">
-          <input
-            id="qr-image-upload"
-            className="sr-only"
-            type="file"
-            accept="image/*"
-            onChange={handleImageUpload}
-          />
-          <label className="btn btn-secondary" htmlFor="qr-image-upload">
-            <ImageUp size={16} />
-            {imageScanning ? t("readingImageBtn") : t("scanFromPhoto")}
-          </label>
-          <p>{t("uploadHint")}</p>
-        </div>
-
-        <div className="form-field">
-          <label htmlFor="manual-qr-value">{t("searchCard")}</label>
-          <input
-            id="manual-qr-value"
-            className="input"
-            value={manualValue}
-            onChange={(event) => {
-              setManualValue(event.target.value);
-              setDetectedSlug("");
-            }}
-            placeholder={t("searchPlaceholder")}
-          />
-        </div>
-        <button className="btn btn-dark" type="button" onClick={() => resolveDetectedCard(manualValue, "manual_entry")}>
-          <Keyboard size={16} />
-          {t("findCard")}
-        </button>
-
-        {decodedRaw && !detectedSlug ? (
-          <div className="qr-detected-card qr-detected-raw" role="status" aria-live="polite">
-            <div>
-              <CheckCircle2 size={18} />
-              <span>{t("qrDecoded", { value: decodedRaw.length > 120 ? `${decodedRaw.slice(0, 120)}…` : decodedRaw })}</span>
-            </div>
-            {/^https?:\/\//i.test(decodedRaw) ? (
-              <a className="btn btn-secondary" href={decodedRaw} target="_blank" rel="noreferrer">
-                Open scanned link
-              </a>
-            ) : null}
-          </div>
-        ) : null}
-
-        {detectedSlug ? (
-          <div className="qr-detected-card" role="status" aria-live="polite">
-            <div>
-              <CheckCircle2 size={18} />
-              <span>{t("cardReady")}</span>
-            </div>
-            <strong>{detectedCard ? getLocalizedCardTitle(detectedCard, locale) : detectedSlug}</strong>
-            <p>{t("chooseHow")}</p>
-            <div className="qr-detected-actions">
-              <button className="btn btn-primary" type="button" onClick={() => goToClaim()}>
-                <QrCode size={16} />
-                {t("claimCard")}
-              </button>
-              <button className="btn btn-secondary" type="button" onClick={() => goToGiveDigitally()}>
-                <Send size={16} />
-                {t("giveDigitally")}
-              </button>
-            </div>
-          </div>
-        ) : null}
-      </section>
-    </div>
+      </Panel>
+    </Grid>
   );
 }

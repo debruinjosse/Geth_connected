@@ -2,7 +2,10 @@
 
 import Link from "next/link";
 import { useTranslations } from "next-intl";
+import { Button } from "@/components/ui/Button";
+import { Eyebrow } from "@/components/ui/Eyebrow";
 
+/** Quiet placeholder for lists with nothing in them yet. */
 export function EmptyState({
   eyebrow,
   title,
@@ -20,14 +23,14 @@ export function EmptyState({
   const resolvedEyebrow = eyebrow ?? t("nothingYet");
 
   return (
-    <div className="empty-state">
-      <div className="eyebrow">{resolvedEyebrow}</div>
+    <div className="lp lp-empty">
+      <Eyebrow>{resolvedEyebrow}</Eyebrow>
       <h3>{title}</h3>
       <p>{copy}</p>
       {actionLabel && actionHref ? (
-        <Link className="btn btn-secondary" href={actionHref}>
+        <Button href={actionHref} variant="ghost" size="sm">
           {actionLabel}
-        </Link>
+        </Button>
       ) : null}
     </div>
   );

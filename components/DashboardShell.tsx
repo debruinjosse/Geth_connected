@@ -2,7 +2,6 @@
 
 import type { ReactNode } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
@@ -10,13 +9,15 @@ import {
   Bell,
   ChevronLeft,
   LogOut,
-  Menu,
+  MoreHorizontal,
   PanelLeft,
   CircleUserRound,
   X
 } from "lucide-react";
-import { BrandLogo, BrandMarkIcon } from "@/components/BrandLogo";
-import { GoogleTranslateWidget } from "@/components/GoogleTranslateWidget";
+import { BrandMarkIcon } from "@/components/BrandLogo";
+import { Avatar } from "@/components/ui/Avatar";
+import { cx } from "@/components/ui/cx";
+import { LanguageToggle } from "@/components/ui/LanguageToggle";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { clearDemoSession, getDemoSession, hasSupabaseBrowserConfig } from "@/lib/demo-session";
 import { stripLocaleFromPathname, type AppLocale } from "@/i18n/routing";
@@ -55,20 +56,12 @@ function VerticalCardIcon({ size = 19 }: { size?: number }) {
 }
 
 function GethBirdIcon({ size = 19 }: { size?: number }) {
-  return <BrandMarkIcon alt="" aria-hidden="true" className="side-link-brand-icon" size={size} />;
+  return <BrandMarkIcon alt="" aria-hidden="true" className="lp-nav-bird" size={size} />;
 }
 
 function renderNavIcon(icon: DashboardNavItem["icon"], profileUser?: { name: string; initials: string; imageUrl?: string | null }) {
   if (icon === "profile-avatar") {
-    return (
-      <div className="side-link-avatar">
-        {profileUser?.imageUrl ? (
-          <Image src={profileUser.imageUrl} alt="" width={22} height={22} unoptimized />
-        ) : (
-          <span>{profileUser?.initials || <CircleUserRound size={16} />}</span>
-        )}
-      </div>
-    );
+    return <Avatar name={profileUser?.name} initials={profileUser?.initials} imageUrl={profileUser?.imageUrl} size="sm" className="lp-nav-avatar" />;
   }
   if (icon === "vertical-card") return <VerticalCardIcon size={19} />;
   if (icon === "calendar") return <CalendarIcon size={19} />;
@@ -78,6 +71,7 @@ function renderNavIcon(icon: DashboardNavItem["icon"], profileUser?: { name: str
 }
 
 const SIDEBAR_COLLAPSED_KEY = "geth-sidebar-collapsed";
+const TAB_LIMIT = 5;
 
 export function DashboardShell({
   role,
@@ -102,7 +96,7 @@ export function DashboardShell({
   const tNav = useTranslations("nav");
   const locale = useLocale() as AppLocale;
   const basePathname = stripLocaleFromPathname(pathname);
-  const [mobileOpen, setMobileOpen] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
 
@@ -116,6 +110,10 @@ export function DashboardShell({
     }
   }, []);
 
+  useEffect(() => {
+    setMoreOpen(false);
+  }, [pathname]);
+
   function persistSidebarCollapsed(next: boolean) {
     setSidebarCollapsed(next);
     try {
@@ -128,6 +126,8 @@ export function DashboardShell({
   const nav = dashboardNavByRole[role];
   const notificationHref = localizeDashboardHref(notificationHrefByRole[role], locale);
   const profileHref = getDashboardProfileHref(role, locale);
+  const tabItems = nav.length > TAB_LIMIT ? nav.slice(0, TAB_LIMIT - 1) : nav;
+  const hasMore = nav.length > TAB_LIMIT;
 
   async function handleLogout() {
     setLoggingOut(true);
@@ -143,139 +143,128 @@ export function DashboardShell({
         await supabase.auth.signOut();
       }
     } finally {
-      setMobileOpen(false);
+      setMoreOpen(false);
       router.replace(`/${locale}`);
       router.refresh();
       setLoggingOut(false);
     }
   }
 
-  return (
-    <div className={`dashboard-layout ${sidebarCollapsed ? "sidebar-collapsed" : ""}`.trim()}>
-      <div className={`dashboard-overlay ${mobileOpen ? "open" : ""}`.trim()} onClick={() => setMobileOpen(false)} />
+  function renderLink(item: DashboardNavItem, extra?: string) {
+    const active = isDashboardNavActive(basePathname, item.href, role);
+    const label = t(item.labelKey);
+    return (
+      <Link
+        href={localizeDashboardHref(item.href, locale)}
+        className={cx(active && "lp-active", extra)}
+        key={item.href}
+        title={label}
+        aria-current={active ? "page" : undefined}
+      >
+        {renderNavIcon(item.icon, item.icon === "profile-avatar" ? user : undefined)}
+        <span>{label}</span>
+      </Link>
+    );
+  }
 
-      <aside className={`dashboard-sidebar ${mobileOpen ? "open" : ""}`.trim()}>
-        <div className="dashboard-sidebar-top">
-          <div className="dashboard-sidebar-head">
+  return (
+    <div className={cx("lp lp-app", sidebarCollapsed && "lp-collapsed")}>
+      <aside className="lp-side">
+        <div>
+          <div className="lp-side-head">
             {sidebarCollapsed ? (
-              <button
-                className="dashboard-sidebar-expand"
-                type="button"
-                onClick={() => persistSidebarCollapsed(false)}
-                aria-label={t("expandSidebar")}
-              >
+              <button className="lp-iconbtn" type="button" onClick={() => persistSidebarCollapsed(false)} aria-label={t("expandSidebar")}>
                 <PanelLeft size={18} />
               </button>
             ) : (
               <>
-                <div className="dashboard-sidebar-brand-wrap">
-                  <BrandLogo href={`/${locale}`} />
-                </div>
-                <button
-                  className="dashboard-sidebar-collapse"
-                  type="button"
-                  onClick={() => persistSidebarCollapsed(true)}
-                  aria-label={t("collapseSidebar")}
-                >
+                <Link href={`/${locale}`} className="lp-brand" aria-label="GETH®">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src="/landing/geth-crest.svg" alt="" />
+                  <b>
+                    GETH<sup>®</sup>
+                  </b>
+                </Link>
+                <button className="lp-iconbtn" type="button" onClick={() => persistSidebarCollapsed(true)} aria-label={t("collapseSidebar")}>
                   <ChevronLeft size={18} />
-                </button>
-                <button className="mobile-nav-close" type="button" onClick={() => setMobileOpen(false)} aria-label={t("closeNavigation")}>
-                  <X size={18} />
                 </button>
               </>
             )}
           </div>
-          <nav className="side-links" aria-label={t("navigationLabel", { role })}>
-            {nav.map((item) => {
-              const active = isDashboardNavActive(basePathname, item.href, role);
-              const label = t(item.labelKey);
-              return (
-                <Link
-                  href={localizeDashboardHref(item.href, locale)}
-                  className={active ? "active" : ""}
-                  key={item.href}
-                  title={label}
-                  onClick={() => setMobileOpen(false)}
-                >
-                  {renderNavIcon(item.icon, item.icon === "profile-avatar" ? user : undefined)}
-                  <span>{label}</span>
-                </Link>
-              );
-            })}
+          <nav className="lp-nav-list" aria-label={t("navigationLabel", { role })}>
+            {nav.map((item) => renderLink(item))}
           </nav>
         </div>
 
-        <div className="dashboard-sidebar-bottom">
-          <div className="dashboard-sidebar-language" aria-label={tNav("language")}>
-            <GoogleTranslateWidget />
+        <div className="lp-side-foot">
+          <div className="lp-side-lang">
+            <LanguageToggle locale={locale} label={tNav("language")} />
           </div>
-          <button className="sidebar-logout" type="button" onClick={handleLogout} disabled={loggingOut}>
-            <LogOut size={16} />
-            <span>{loggingOut ? t("loggingOut") : t("signOut")}</span>
-          </button>
+          <div className="lp-side-user">
+            <Avatar name={user.name} initials={user.initials} imageUrl={user.imageUrl} />
+            <div>
+              <b>{user.name}</b>
+              <small>{user.team}</small>
+            </div>
+            <button className="lp-iconbtn" type="button" onClick={handleLogout} disabled={loggingOut} aria-label={loggingOut ? t("loggingOut") : t("signOut")} title={t("signOut")}>
+              <LogOut size={17} />
+            </button>
+          </div>
         </div>
       </aside>
 
-      <main className={`dashboard-main dashboard-main-${role}`}>
-        <div className="dashboard-header">
-          <div className="dashboard-header-intro">
-            <button
-              className="dashboard-header-menu mobile-shell-toggle"
-              type="button"
-              onClick={() => setMobileOpen(true)}
-              aria-label={t("openNavigation")}
-            >
-              <Menu size={20} />
+      <div className="lp-app-main">
+        <header className="lp-app-top">
+          <Link href={`/${locale}`} className="lp-brand lp-app-mobile-brand" aria-label="GETH®">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/landing/geth-crest.svg" alt="" />
+          </Link>
+          <div className="lp-app-title">
+            <span className="lp-eyebrow">{t(dashboardEyebrowKeyByRole[role])}</span>
+            <h1>{title}</h1>
+            {subtitle ? <p>{subtitle}</p> : null}
+          </div>
+          {actions ? <div className="lp-app-quick">{actions}</div> : null}
+          <div className="lp-app-actions">
+            <Link className="lp-iconbtn lp-bell" href={notificationHref} aria-label={t("unreadNotifications", { count: unreadNotifications })}>
+              <Bell size={19} />
+              {unreadNotifications > 0 ? <span className="lp-bell-count">{unreadNotifications > 9 ? "9+" : unreadNotifications}</span> : null}
+            </Link>
+            <Link className="lp-app-avatar" href={profileHref} title={`${user.name} - ${user.team}`} aria-label={t("openProfile", { name: user.name })}>
+              <Avatar name={user.name} initials={user.initials} imageUrl={user.imageUrl} />
+            </Link>
+          </div>
+        </header>
+
+        <main className={cx("lp-app-body", role !== "employee" && `dashboard-main dashboard-main-${role}`)}>{children}</main>
+      </div>
+
+      <nav className="lp-tabbar" aria-label={t("navigationLabel", { role })}>
+        {tabItems.map((item) => renderLink(item))}
+        {hasMore ? (
+          <button type="button" className={cx(moreOpen && "lp-active")} onClick={() => setMoreOpen(true)} aria-haspopup="dialog">
+            <MoreHorizontal size={20} />
+            <span>{t("navMore")}</span>
+          </button>
+        ) : null}
+      </nav>
+
+      {moreOpen ? (
+        <div className="lp-sheet-backdrop" onClick={() => setMoreOpen(false)}>
+          <div className="lp-sheet" role="dialog" aria-modal="true" aria-label={t("navigationLabel", { role })} onClick={(event) => event.stopPropagation()}>
+            <button className="lp-iconbtn lp-sheet-close" type="button" onClick={() => setMoreOpen(false)} aria-label={t("closeNavigation")}>
+              <X size={18} />
             </button>
-            {sidebarCollapsed ? (
-              <button
-                className="dashboard-sidebar-expand-floating"
-                type="button"
-                onClick={() => persistSidebarCollapsed(false)}
-                aria-label={t("expandSidebar")}
-              >
-                <PanelLeft size={18} />
+            <div className="lp-nav-list">{nav.map((item) => renderLink(item))}</div>
+            <div className="lp-sheet-foot">
+              <LanguageToggle locale={locale} label={tNav("language")} />
+              <button className="lp-btn lp-btn-ghost lp-btn-sm" type="button" onClick={handleLogout} disabled={loggingOut}>
+                <LogOut size={16} /> {loggingOut ? t("signingOut") : t("signOut")}
               </button>
-            ) : null}
-            <div>
-              <div className="eyebrow">{t(dashboardEyebrowKeyByRole[role])}</div>
-              <h1>{title}</h1>
-              <p>{subtitle}</p>
             </div>
           </div>
-          <div className="dashboard-header-actions">
-            {actions}
-            <Link
-              className="dashboard-icon-button notification-icon-button"
-              href={notificationHref}
-              aria-label={t("unreadNotifications", { count: unreadNotifications })}
-            >
-              <Bell size={17} />
-              {unreadNotifications > 0 ? <span className="notification-count">{unreadNotifications > 9 ? "9+" : unreadNotifications}</span> : null}
-            </Link>
-            <Link
-              className="dashboard-avatar-chip"
-              href={profileHref}
-              title={`${user.name} - ${user.team}`}
-              aria-label={t("openProfile", { name: user.name })}
-            >
-              <div className="avatar">
-                {user.imageUrl ? (
-                  <Image src={user.imageUrl} alt={t("profilePhotoAlt", { name: user.name })} width={32} height={32} unoptimized />
-                ) : (
-                  user.initials || <CircleUserRound size={18} />
-                )}
-              </div>
-            </Link>
-            <button className="btn btn-secondary dashboard-logout dashboard-top-signout" type="button" onClick={handleLogout} disabled={loggingOut}>
-              <LogOut size={16} />
-              {loggingOut ? t("signingOut") : t("signOut")}
-            </button>
-          </div>
         </div>
-
-        {children}
-      </main>
+      ) : null}
     </div>
   );
 }

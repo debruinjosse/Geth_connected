@@ -532,7 +532,8 @@
     "navSubscriptions": "Abonnementen",
     "navQrRoutes": "QR-routes",
     "navSiteContent": "Homepage-inhoud",
-    "navSettings": "Instellingen"
+    "navSettings": "Instellingen",
+    "navMore": "Meer"
   },
   "authForm": {
     "titleSignup": "Account aanmaken",
@@ -795,7 +796,12 @@
     "demoStrength": "Sterke communicator",
     "demoSignalDetail": "Communicatiekaarten komen het vaakst voor in je waarderingsverhaal.",
     "signalHighlightsAria": "Top waarderingskaarten achter dit signaal",
-    "signalHighlightCards": "{count, plural, one {# kaart} other {# kaarten}}"
+    "signalHighlightCards": "{count, plural, one {# kaart} other {# kaarten}}",
+    "milestoneEyebrow": "Jouw profiel groeit",
+    "milestoneNext": "Nog {count, plural, one {# kaart} other {# kaarten}} tot {badge}.",
+    "milestoneTop": "Je hebt de hoogste mijlpaal bereikt. Wat een erkenning.",
+    "milestoneReceived": "{count, plural, one {# kaart ontvangen} other {# kaarten ontvangen}}",
+    "cardsReceivedLabel": "Ontvangen"
   },
   "employeePages": {
     "scanTitle": "Scan een GETH®-kaart",

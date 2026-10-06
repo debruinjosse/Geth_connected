@@ -5,6 +5,8 @@ import { MarkAllNotificationsReadButton, NotificationInbox, type NotificationInb
 import { currentUser, employeeNotifications } from "@/lib/demo-data";
 import { getUnreadNotificationCount } from "@/lib/notifications";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { Feed, FeedItem } from "@/components/ui/Feed";
+import { Panel } from "@/components/ui/Panel";
 
 function hasSupabaseServerConfig() {
   return Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
@@ -19,21 +21,13 @@ async function DemoNotificationsPage({ locale }: { locale: string }) {
 
   return (
     <DashboardShell role="employee" title={t("notificationsTitle")} subtitle={t("notificationsSubtitle")} user={currentUser}>
-      <section className="dashboard-grid">
-        <article className="panel dashboard-panel">
-          <div className="signal-list">
-            {employeeNotifications.map((notification) => (
-              <div className="signal-card" key={notification.id}>
-                <div>
-                  <strong>{notification.title}</strong>
-                  <p>{notification.detail}</p>
-                </div>
-                <span className="quality-pill">{notification.time}</span>
-              </div>
-            ))}
-          </div>
-        </article>
-      </section>
+      <Panel>
+        <Feed>
+          {employeeNotifications.map((notification) => (
+            <FeedItem key={notification.id} title={notification.title} note={notification.detail} meta={notification.time} />
+          ))}
+        </Feed>
+      </Panel>
     </DashboardShell>
   );
 }
@@ -104,8 +98,7 @@ export default async function EmployeeNotificationsPage({ params }: { params: Pr
         ) : null
       }
     >
-      <section className="dashboard-grid">
-        <article className="panel dashboard-panel">
+      <Panel>
           <NotificationInbox
             notifications={rows}
             emptyTitle={t("notificationsEmptyTitle")}
@@ -114,8 +107,7 @@ export default async function EmployeeNotificationsPage({ params }: { params: Pr
             emptyActionHref="/cards"
             locale={locale}
           />
-        </article>
-      </section>
+      </Panel>
     </DashboardShell>
   );
 }

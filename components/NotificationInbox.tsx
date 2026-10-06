@@ -4,9 +4,11 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
-import { CheckCircle2, Bell } from "lucide-react";
+import { CheckCircle2 } from "lucide-react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { EmptyState } from "@/components/EmptyState";
+import { Alert } from "@/components/ui/Alert";
+import { Button } from "@/components/ui/Button";
 import { approveRecognitionVerification, rejectRecognitionVerification } from "@/app/actions/recognitionVerification";
 
 const VERIFICATION_HREF_PATTERN = /^\/recognitions\/([^/]+)\/verify$/;
@@ -139,64 +141,59 @@ export function NotificationInbox({
   }
 
   return (
-    <div className="signal-list">
+    <div className="lp-feed">
       {localNotifications.map((notification) => {
         const verificationMatch =
           notification.type === "recognition_verification_requested" ? notification.href?.match(VERIFICATION_HREF_PATTERN) : null;
         const recognitionId = verificationMatch?.[1];
         const isVerificationBusy = verificationPendingId === notification.id;
+        const unread = !notification.read_at;
 
         return (
-          <div className={`signal-card notification-card ${notification.read_at ? "" : "unread"}`.trim()} key={notification.id}>
-            <div className="signal-icon notification-card-icon" style={{ color: notification.read_at ? "var(--theme-muted)" : "var(--theme-gold)" }}>
-              <Bell size={18} />
-            </div>
-            <div className="notification-card-content">
-              <div className="notification-meta-row">
-                <strong>{notification.title}</strong>
-                <span className="quality-pill">{notification.type.replaceAll("_", " ")}</span>
+          <div className="lp-feed-item" key={notification.id}>
+            <span className={`lp-notif-dot${unread ? "" : " lp-read"}`} aria-hidden="true" />
+            <div className="lp-feed-main">
+              <div className="lp-feed-title" style={{ fontWeight: unread ? 500 : 400 }}>
+                {notification.title}
+                <span className="lp-feed-tag">{notification.type.replaceAll("_", " ")}</span>
               </div>
-              <p className="notification-card-body">{notification.body}</p>
+              <p className="lp-feed-note">{notification.body}</p>
               {recognitionId && !notification.read_at ? (
                 <>
                   {verificationError?.notificationId === notification.id ? (
-                    <p className="claim-error" role="alert">
-                      {verificationError.message}
-                    </p>
+                    <div style={{ marginTop: 12 }}>
+                      <Alert tone="error">{verificationError.message}</Alert>
+                    </div>
                   ) : null}
-                  <div className="notification-card-actions">
-                    <button
-                      className="btn btn-primary"
-                      type="button"
-                      disabled={isVerificationBusy}
-                      onClick={() => resolveVerification(notification.id, recognitionId, "approve")}
-                    >
+                  <div className="lp-feed-actions">
+                    <Button size="sm" disabled={isVerificationBusy} onClick={() => resolveVerification(notification.id, recognitionId, "approve")}>
                       {isVerificationBusy ? t("marking") : t("approve")}
-                    </button>
-                    <button
-                      className="btn btn-secondary"
-                      type="button"
-                      disabled={isVerificationBusy}
-                      onClick={() => resolveVerification(notification.id, recognitionId, "reject")}
-                    >
+                    </Button>
+                    <Button size="sm" variant="ghost" disabled={isVerificationBusy} onClick={() => resolveVerification(notification.id, recognitionId, "reject")}>
                       {isVerificationBusy ? t("marking") : t("reject")}
-                    </button>
+                    </Button>
                   </div>
                 </>
               ) : recognitionId ? (
-                <span className="quality-pill">{t("resolved")}</span>
+                <div className="lp-feed-actions">
+                  <span className="lp-pill lp-pill-green">{t("resolved")}</span>
+                </div>
               ) : notification.href ? (
-                <Link href={getLocalizedHref(notification.href, locale) ?? notification.href} className="notification-card-link">
-                  {t("openUpdate")}
-                </Link>
+                <div className="lp-feed-actions">
+                  <Link href={getLocalizedHref(notification.href, locale) ?? notification.href} className="lp-link">
+                    {t("openUpdate")}
+                  </Link>
+                </div>
               ) : null}
             </div>
-            <div className="notification-card-side">
-              <span className="quality-pill">{formatNotificationTime(notification.created_at, t, locale)}</span>
-              {!notification.read_at && !recognitionId ? (
-                <button className="btn btn-secondary" type="button" disabled={pendingId === notification.id} onClick={() => markRead(notification.id)}>
-                  {pendingId === notification.id ? t("marking") : t("markRead")}
-                </button>
+            <div className="lp-feed-meta">
+              {formatNotificationTime(notification.created_at, t, locale)}
+              {unread && !recognitionId ? (
+                <div style={{ marginTop: 8 }}>
+                  <Button size="sm" variant="ghost" disabled={pendingId === notification.id} onClick={() => markRead(notification.id)}>
+                    {pendingId === notification.id ? t("marking") : t("markRead")}
+                  </Button>
+                </div>
               ) : null}
             </div>
           </div>
@@ -239,8 +236,8 @@ export function MarkAllNotificationsReadButton({ label }: { label?: string }) {
   }
 
   return (
-    <button className="btn btn-secondary" type="button" onClick={markAllRead} disabled={pending}>
-      <CheckCircle2 size={16} /> {pending ? t("marking") : label ?? t("markAllRead")}
-    </button>
+    <Button variant="ghost" size="sm" onClick={markAllRead} disabled={pending} icon={<CheckCircle2 />}>
+      {pending ? t("marking") : label ?? t("markAllRead")}
+    </Button>
   );
 }

@@ -6,6 +6,9 @@ import { getLocalizedCardTitle } from "@/lib/cards";
 import { currentUser } from "@/lib/demo-data";
 import { getUnreadNotificationCount } from "@/lib/notifications";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { Feed, FeedItem } from "@/components/ui/Feed";
+import { Panel } from "@/components/ui/Panel";
+import { Pill } from "@/components/ui/Pill";
 
 function hasSupabaseServerConfig() {
   return Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
@@ -30,22 +33,14 @@ export default async function EmployeeMessagesPage({ params }: { params: Promise
       { id: "m2", title: t("demoMessage2Title"), excerpt: t("demoMessage2Excerpt"), time: t("demoMessage2Time") }
     ];
     return (
-      <DashboardShell role="employee" title={t("messagesTitle")} subtitle="" user={currentUser} actions={<span className="quality-pill">{tc("demoFallback")}</span>}>
-        <section className="dashboard-grid">
-          <article className="panel dashboard-panel">
-            <div className="signal-list">
-              {demoMessages.map((message) => (
-                <div className="signal-card" key={message.id}>
-                  <div>
-                    <strong>{message.title}</strong>
-                    <p>{message.excerpt}</p>
-                  </div>
-                  <span className="quality-pill">{message.time}</span>
-                </div>
-              ))}
-            </div>
-          </article>
-        </section>
+      <DashboardShell role="employee" title={t("messagesTitle")} subtitle="" user={currentUser} actions={<Pill>{tc("demoFallback")}</Pill>}>
+        <Panel>
+          <Feed>
+            {demoMessages.map((message) => (
+              <FeedItem key={message.id} title={message.title} note={message.excerpt} meta={message.time} />
+            ))}
+          </Feed>
+        </Panel>
       </DashboardShell>
     );
   }
@@ -105,10 +100,9 @@ export default async function EmployeeMessagesPage({ params }: { params: Promise
       }}
       unreadNotifications={unreadNotifications}
     >
-      <section className="dashboard-grid">
-        <article className="panel dashboard-panel">
+      <Panel>
           {messages?.length ? (
-            <div className="signal-list">
+            <Feed>
               {messages.map((message) => {
                 const card = Array.isArray(message.card) ? message.card[0] : message.card;
                 const cardTitle = card
@@ -120,21 +114,14 @@ export default async function EmployeeMessagesPage({ params }: { params: Promise
                   message.giver_email ||
                   tc("colleague");
                 return (
-                  <div className="signal-card" key={message.id}>
-                    <div>
-                      <strong>{t("messageHeading", { card: cardTitle, giver })}</strong>
-                      <p>{message.personal_note}</p>
-                    </div>
-                    <span className="quality-pill">{formatDate(message.created_at, locale)}</span>
-                  </div>
+                  <FeedItem key={message.id} avatar={giver} title={t("messageHeading", { card: cardTitle, giver })} note={message.personal_note} meta={formatDate(message.created_at, locale)} />
                 );
               })}
-            </div>
+            </Feed>
           ) : (
             <EmptyState title={t("messagesEmptyTitle")} copy={t("messagesEmptyCopy")} actionLabel={tc("openCardLibrary")} actionHref="/cards" />
           )}
-        </article>
-      </section>
+      </Panel>
     </DashboardShell>
   );
 }

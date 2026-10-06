@@ -1,15 +1,22 @@
 "use client";
 
-import Link from "next/link";
 import type { CSSProperties } from "react";
 import { useEffect, useState, useTransition } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { ArrowRight, CheckCircle2, Gift, Heart, QrCode, Scale, Send, Sparkles } from "lucide-react";
+import { CheckCircle2, Gift, Heart, QrCode, Scale, Send } from "lucide-react";
 import { acknowledgeReceivedRecognition, approveRecognitionVerification } from "@/app/actions/recognitionVerification";
-import { BarChart } from "@/components/BarChart";
 import { DashboardShell } from "@/components/DashboardShell";
 import { EmptyState } from "@/components/EmptyState";
-import { MetricCard } from "@/components/MetricCard";
+import { MilestoneCard } from "@/components/employee/MilestoneCard";
+import { Alert } from "@/components/ui/Alert";
+import { BarsChart } from "@/components/ui/BarsChart";
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
+import { Feed, FeedItem } from "@/components/ui/Feed";
+import { Grid } from "@/components/ui/Grid";
+import { MeterList } from "@/components/ui/Meter";
+import { Panel } from "@/components/ui/Panel";
+import { StatCard } from "@/components/ui/StatCard";
 import { RecognitionList, type RecognitionItem } from "@/components/RecognitionList";
 import { EmployeeAiSignalsPanel } from "@/components/EmployeeAiSignalsPanel";
 import type { EmployeeSignalsContext } from "@/lib/ai/employee-recognition-signals";
@@ -241,6 +248,14 @@ export function EmployeeDashboardClient({ data }: { data?: EmployeeDashboardData
     });
   }
 
+  const categoryColor: Record<string, string> = {
+    Communication: "var(--cat-com)",
+    Creativity: "var(--cat-cre)",
+    Competence: "var(--cat-cmp)",
+    Collegiality: "var(--cat-col)"
+  };
+  const heroCard = `/landing/cards/${locale === "nl" ? "nl" : "en"}/card_01_cover.png`;
+
   return (
     <DashboardShell
       role="employee"
@@ -249,191 +264,140 @@ export function EmployeeDashboardClient({ data }: { data?: EmployeeDashboardData
       user={resolvedData.user}
       actions={
         <>
-          <Link className="btn btn-primary compact" href={`/${locale}/employee/scan`}><QrCode size={16} /> {t("scanCard")}</Link>
-          <Link className="btn btn-dark compact" href={`/${locale}/cards?intent=give`}><Gift size={16} /> {t("giveCard")}</Link>
+          <Button href={`/${locale}/employee/scan`} size="sm" icon={<QrCode />}>
+            {t("scanCard")}
+          </Button>
+          <Button href={`/${locale}/cards?intent=give`} variant="ghost" size="sm" icon={<Gift />}>
+            {t("giveCard")}
+          </Button>
         </>
       }
       unreadNotifications={resolvedData.unreadNotifications ?? 0}
     >
-      <div className="employee-dashboard">
-        <section className="compact-metrics-grid">
-          <MetricCard icon={<Heart />} value={resolvedData.cardsReceived} label={t("received")} helper={t("receivedHelper")} />
-          <MetricCard icon={<Send />} value={resolvedData.cardsGiven} label={t("given")} helper={t("givenHelper")} />
-          <MetricCard icon={<Scale />} value={recognitionBalanceValue} label={t("balance")} helper={t("balanceHelper")} tone="var(--theme-gold)" iconBackground="rgba(216, 162, 58, 0.12)" />
-          <article className="metric-card top-qualities-card">
-            <div>
-              <span className="top-qualities-card-label">{t("topThreeQualities")}</span>
-              <div className="top-quality-buttons" aria-label={t("topThreeAria")}>
-                {qualityRows.map((quality) => (
-                  <span className="top-quality-button" key={quality.label} style={{ "--quality-tone": quality.tone } as CSSProperties}>
-                    <strong>{quality.label}</strong>
-                    <small>{t("cardsCount", { count: quality.count })}</small>
-                  </span>
-                ))}
-              </div>
-            </div>
-          </article>
-        </section>
+      <MilestoneCard received={resolvedData.cardsReceived} />
 
-        {resolvedData.signalsContext ? <EmployeeAiSignalsPanel context={resolvedData.signalsContext} /> : null}
+      <Grid cols="four">
+        <StatCard icon={<Heart />} value={resolvedData.cardsReceived} label={t("received")} helper={t("receivedHelper")} />
+        <StatCard icon={<Send />} value={resolvedData.cardsGiven} label={t("given")} helper={t("givenHelper")} />
+        <StatCard icon={<Scale />} value={recognitionBalanceValue} label={t("balance")} helper={t("balanceHelper")} />
+        <Card size="sm" className="lp-stat">
+          <div className="lp-stat-top">
+            <span className="lp-stat-label">{t("topThreeQualities")}</span>
+          </div>
+          <div className="lp-chips" aria-label={t("topThreeAria")}>
+            {qualityRows.map((quality) => (
+              <span className="lp-chip-q" key={quality.label} style={{ "--c": quality.tone } as CSSProperties}>
+                {quality.label}
+                <small>{quality.count}</small>
+              </span>
+            ))}
+          </div>
+        </Card>
+      </Grid>
 
-        {pendingApprovals.length ? (
-          <article className="panel dashboard-panel approval-panel">
-            <div className="panel-top">
-              <div>
-                <h2>{t("verifyTitle")}</h2>
-                <p>{t("verifyCopy")}</p>
-              </div>
-              <span className="quality-pill">{t("verifyWaiting", { count: pendingApprovals.length })}</span>
-            </div>
-            <div className="approval-list">
-              {pendingApprovals.map((approval) => (
-                <div className="approval-card" key={approval.id}>
-                  <div>
-                    <span className="approval-eyebrow">{approval.kind === "receiver_acknowledgement" ? t("receiverAcknowledgement") : t("giverVerification")}</span>
-                    <strong>
-                      {approval.kind === "receiver_acknowledgement"
-                        ? t("gaveYou", { giver: approval.giverName ?? t("aTeammate"), card: approval.cardTitle })
-                        : t("saysYouGave", { receiver: approval.receiverName, card: approval.cardTitle })}
-                    </strong>
-                    <p>{approval.note || t("noNote")}</p>
-                    <span className="quality-pill">{approval.category}</span>
-                  </div>
-                  <button className="btn btn-primary compact" type="button" disabled={isApproving && approvingId === approval.id} onClick={() => approveRecognition(approval.id)}>
-                    <CheckCircle2 size={16} />
+      {resolvedData.signalsContext ? <EmployeeAiSignalsPanel context={resolvedData.signalsContext} /> : null}
+
+      {pendingApprovals.length ? (
+        <Panel
+          title={t("verifyTitle")}
+          description={t("verifyCopy")}
+          action={<span className="lp-pill lp-pill-gold">{t("verifyWaiting", { count: pendingApprovals.length })}</span>}
+        >
+          <Feed>
+            {pendingApprovals.map((approval) => (
+              <FeedItem
+                key={approval.id}
+                title={
+                  approval.kind === "receiver_acknowledgement"
+                    ? t("gaveYou", { giver: approval.giverName ?? t("aTeammate"), card: approval.cardTitle })
+                    : t("saysYouGave", { receiver: approval.receiverName, card: approval.cardTitle })
+                }
+                tag={approval.category}
+                note={approval.note || t("noNote")}
+              >
+                <div className="lp-feed-actions">
+                  <Button size="sm" icon={<CheckCircle2 />} disabled={isApproving && approvingId === approval.id} onClick={() => approveRecognition(approval.id)}>
                     {isApproving && approvingId === approval.id ? t("saving") : approval.kind === "receiver_acknowledgement" ? t("acknowledge") : t("approve")}
-                  </button>
+                  </Button>
+                  <span className="lp-pill lp-pill-gold">{approval.kind === "receiver_acknowledgement" ? t("receiverAcknowledgement") : t("giverVerification")}</span>
                 </div>
-              ))}
+              </FeedItem>
+            ))}
+          </Feed>
+          {approvalMessage ? (
+            <div className="lp-panel-note">
+              <Alert tone="info">{approvalMessage}</Alert>
             </div>
-            {approvalMessage ? <p className="section-copy" aria-live="polite">{approvalMessage}</p> : null}
-          </article>
-        ) : null}
+          ) : null}
+        </Panel>
+      ) : null}
 
-        <section className="employee-analytics-grid">
-          <article className="panel dashboard-panel trend-panel">
-            <div className="panel-top">
-              <div>
-                <h2>{t("activityTitle")}</h2>
-                <p>{t("activityCopy")}</p>
-              </div>
-              <span className="quality-pill">{t("lastSixMonths")}</span>
-            </div>
-            <div className="recognition-activity-summary" aria-label={t("activityTotalsAria")}>
-              <span className="activity-total-chip received">{t("receivedLabel")} <strong>{receivedActivityTotal}</strong></span>
-              <span className="activity-total-chip given">{t("givenLabel")} <strong>{givenActivityTotal}</strong></span>
-            </div>
-            <div className="recognition-activity-compare" aria-label={t("activityByMonthAria")}>
-              {resolvedData.growthLabels.map((label, index) => {
-                const receivedValue = receivedTrendPoints[index] ?? 0;
-                const givenValue = givenTrendPoints[index] ?? 0;
-                const receivedWidth = receivedValue > 0 ? Math.max(8, Math.round((receivedValue / activityMax) * 100)) : 0;
-                const givenWidth = givenValue > 0 ? Math.max(8, Math.round((givenValue / activityMax) * 100)) : 0;
+      <Grid cols="main">
+        <Panel title={t("activityTitle")} description={t("activityCopy")} action={<span className="lp-pill">{t("lastSixMonths")}</span>}>
+          <BarsChart
+            height={330}
+            labels={resolvedData.growthLabels}
+            series={[
+              { name: t("receivedLabel"), color: "var(--purple)", values: receivedTrendPoints },
+              { name: t("givenLabel"), color: "var(--gold)", values: givenTrendPoints }
+            ]}
+          />
+          {!hasActivityItems ? <p className="lp-panel-note">{t("activityEmpty")}</p> : null}
+        </Panel>
 
-                return (
-                  <div className="recognition-activity-row" key={label}>
-                    <span className="activity-month">{label}</span>
-                    <div className="activity-lines">
-                      <div className="activity-line received">
-                        <span>{t("receivedLabel")}</span>
-                        <div className="activity-track">
-                          <i style={{ width: `${receivedWidth}%` }} />
-                        </div>
-                        <strong>{receivedValue}</strong>
-                      </div>
-                      <div className="activity-line given">
-                        <span>{t("givenLabel")}</span>
-                        <div className="activity-track">
-                          <i style={{ width: `${givenWidth}%` }} />
-                        </div>
-                        <strong>{givenValue}</strong>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-            {!hasActivityItems ? <p className="section-copy">{t("activityEmpty")}</p> : null}
-          </article>
-
-          <article className="panel dashboard-panel category-panel">
-            <div className="panel-top">
-              <div>
-                <h2>{t("categoryTitle")}</h2>
-                <p>{t("categoryCopy")}</p>
-              </div>
-            </div>
-            <BarChart
-              compact
+        <div className="lp-stack">
+          <Panel title={t("categoryTitle")} description={t("categoryCopy")}>
+            <MeterList
               items={displayCategories.map((item) => ({
                 label: item.label,
                 value: item.value,
                 valueLabel: t("cardsCount", { count: item.value }),
-                color: item.color
+                color: categoryColor[normalizeCategoryKey(item.label)] ?? "var(--purple)"
               }))}
+              max={Math.max(...displayCategories.map((item) => item.value), 1)}
             />
-            {!hasAnyRecognitionItems ? <p className="section-copy">{t("categoryEmpty")}</p> : null}
-          </article>
+            {!hasAnyRecognitionItems ? <p className="lp-panel-note">{t("categoryEmpty")}</p> : null}
+          </Panel>
 
-          <article className="panel dashboard-panel qualities-panel">
-            <div className="panel-top">
-              <div>
-                <h2>{t("qualitiesTitle")}</h2>
-                <p>{t("qualitiesCopy")}</p>
-              </div>
-            </div>
-            <div className="quality-count-list">
-              {qualityRows.map((quality) => (
-                <div className="quality-count-row" key={quality.label}>
-                  <span>{quality.label}</span>
-                  <strong>{t("cardsCount", { count: quality.count })}</strong>
-                </div>
-              ))}
-            </div>
-            <Link className="panel-link" href={`/${locale}/employee/growth`}>{t("growthInsights")} <ArrowRight size={14} /></Link>
-            {!hasAnyRecognitionItems ? <p className="section-copy">{t("qualitiesEmpty")}</p> : null}
-          </article>
-        </section>
+          <Panel
+            title={t("qualitiesTitle")}
+            description={t("qualitiesCopy")}
+            action={<a href={`/${locale}/employee/growth`}>{t("growthInsights")}</a>}
+          >
+            <MeterList
+              items={qualityRows.map((quality) => ({ label: quality.label, value: quality.count, valueLabel: t("cardsCount", { count: quality.count }), color: quality.tone }))}
+            />
+            {!hasAnyRecognitionItems ? <p className="lp-panel-note">{t("qualitiesEmpty")}</p> : null}
+          </Panel>
+        </div>
+      </Grid>
 
-        <section className="employee-lower-grid">
-          <article className="panel dashboard-panel recent-recognition-panel">
-            <div className="panel-top">
-              <div>
-                <h2>{t("recentTitle")}</h2>
-                <p>{t("recentCopy")}</p>
-              </div>
-              <Link href={`/${locale}/employee/cards`}>{t("viewAll")}</Link>
-            </div>
-            {hasAnyRecognitionItems ? (
-              <RecognitionList items={recognitionItems} compact />
-            ) : (
-              <EmptyState
-                eyebrow={t("emptyEyebrow")}
-                title={t("emptyTitle")}
-                copy={t("emptyCopy")}
-                actionLabel={t("browseCards")}
-                actionHref={`/${locale}/cards`}
-              />
-            )}
-          </article>
+      <Grid cols="main">
+        <Panel title={t("recentTitle")} description={t("recentCopy")} action={<a href={`/${locale}/employee/cards`}>{t("viewAll")}</a>}>
+          {hasAnyRecognitionItems ? (
+            <RecognitionList items={recognitionItems} compact />
+          ) : (
+            <EmptyState eyebrow={t("emptyEyebrow")} title={t("emptyTitle")} copy={t("emptyCopy")} actionLabel={t("browseCards")} actionHref={`/${locale}/cards`} />
+          )}
+        </Panel>
 
-          <article className="employee-cta-panel">
-            <div className="cta-orbit">
-              <Sparkles size={22} />
-            </div>
-            <div>
-              <h2>{t("ctaTitle")}</h2>
-              <p>{t("ctaCopy")}</p>
-            </div>
-            <Link className="btn btn-dark" href={`/${locale}/employee/scan`}>
-              {t("scanCard")} <QrCode size={16} />
-            </Link>
-            <Link className="btn btn-secondary" href={`/${locale}/cards?intent=give`}>
-              {t("giveCard")} <Gift size={16} />
-            </Link>
-          </article>
-        </section>
-      </div>
+        <Card tone="tint" size="lg" className="lp-cta-tile">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img className="lp-cta-card" src={heroCard} alt="" />
+          <div>
+            <h2>{t("ctaTitle")}</h2>
+            <p>{t("ctaCopy")}</p>
+          </div>
+          <div className="lp-stack">
+            <Button href={`/${locale}/employee/scan`} icon={<QrCode />} block>
+              {t("scanCard")}
+            </Button>
+            <Button href={`/${locale}/cards?intent=give`} variant="ghost" icon={<Gift />} block>
+              {t("giveCard")}
+            </Button>
+          </div>
+        </Card>
+      </Grid>
     </DashboardShell>
   );
 }

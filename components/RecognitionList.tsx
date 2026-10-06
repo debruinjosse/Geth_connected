@@ -1,6 +1,7 @@
 "use client";
 
 import { useLocale, useTranslations } from "next-intl";
+import { Feed, FeedItem } from "@/components/ui/Feed";
 import { formatRecognitionDate, type StoredRecognition } from "@/lib/demo-session";
 
 export type RecognitionItem = {
@@ -14,18 +15,19 @@ export type RecognitionItem = {
   createdAt?: string;
 };
 
+/** Received / given recognitions as a quiet feed: avatar, card, note, sender and date. */
 export function RecognitionList({
-  items,
-  compact = false
+  items
 }: {
   items: Array<RecognitionItem | StoredRecognition>;
+  /** kept for API compatibility with older callers */
   compact?: boolean;
 }) {
   const locale = useLocale();
   const t = useTranslations("common");
 
   return (
-    <div className="recognition-list">
+    <Feed>
       {items.map((item) => {
         const from = "giverName" in item ? item.giverName : item.from;
         const note = "cardTitle" in item ? item.note ?? "" : item.note;
@@ -35,20 +37,8 @@ export function RecognitionList({
             ? formatRecognitionDate(item.createdAt, locale)
             : item.date ?? (item.createdAt ? formatRecognitionDate(item.createdAt, locale) : "");
 
-        return (
-          <div className="recognition-item" key={item.id}>
-            <div className="avatar">{from.split(" ").map((part) => part[0]).join("").slice(0, 2)}</div>
-            <div className="recognition-copy" style={{ flex: 1 }}>
-              <strong>{card}</strong>
-              <p>{note || t("noPersonalNote")}</p>
-            </div>
-            <div style={{ textAlign: "right", minWidth: compact ? 88 : 120 }}>
-              <strong>{from}</strong>
-              <p style={{ margin: "4px 0 0" }}>{date}</p>
-            </div>
-          </div>
-        );
+        return <FeedItem key={item.id} avatar={from} title={card} note={note || t("noPersonalNote")} meta={from} metaSub={date} />;
       })}
-    </div>
+    </Feed>
   );
 }

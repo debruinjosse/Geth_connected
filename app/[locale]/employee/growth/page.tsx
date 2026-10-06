@@ -10,6 +10,11 @@ import { currentUser, employeeCategoryBreakdown, employeeGrowthPoints } from "@/
 import { getUnreadNotificationCount } from "@/lib/notifications";
 import { getPercentageMix } from "@/lib/quality-percentages";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { BarsChart } from "@/components/ui/BarsChart";
+import { Grid } from "@/components/ui/Grid";
+import { MeterList } from "@/components/ui/Meter";
+import { Panel } from "@/components/ui/Panel";
+import { Pill } from "@/components/ui/Pill";
 
 function hasSupabaseServerConfig() {
   return Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
@@ -24,6 +29,12 @@ function getMonthKey(date: Date) {
 }
 
 const fourCCategories: CardCategory[] = ["Communication", "Creativity", "Competence", "Collegiality"];
+const categoryTone: Record<string, string> = {
+  Communication: "var(--cat-com)",
+  Creativity: "var(--cat-cre)",
+  Competence: "var(--cat-cmp)",
+  Collegiality: "var(--cat-col)"
+};
 
 export default async function EmployeeGrowthPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
@@ -32,23 +43,15 @@ export default async function EmployeeGrowthPage({ params }: { params: Promise<{
 
   if (!hasSupabaseServerConfig()) {
     return (
-      <DashboardShell role="employee" title={t("growthTitle")} subtitle={t("growthSubtitle")} user={currentUser} actions={<span className="quality-pill">{tc("demoFallback")}</span>}>
-        <section className="dashboard-grid two">
-          <article className="panel dashboard-panel">
-            <div className="panel-top"><h2>{t("activityTitle")}</h2></div>
-            <BarChart items={getRecentMonthLabels(3, locale).map((label, index) => ({ label, value: employeeGrowthPoints[index] ?? 0, color: "var(--theme-emerald)" }))} />
-          </article>
-          <article className="panel dashboard-panel">
-            <div className="panel-top"><h2>{t("categoryTitle")}</h2></div>
-            <BarChart
-              items={fourCCategories.map((category, index) => ({
-                label: getLocalizedCategoryDisplayName(category, locale),
-                value: employeeCategoryBreakdown[index]?.value ?? 0,
-                color: employeeCategoryBreakdown[index]?.color ?? categoryMeta[category].color
-              }))}
-            />
-          </article>
-        </section>
+      <DashboardShell role="employee" title={t("growthTitle")} subtitle={t("growthSubtitle")} user={currentUser} actions={<Pill>{tc("demoFallback")}</Pill>}>
+        <Grid cols="two">
+          <Panel title={t("activityTitle")}>
+            <BarsChart labels={getRecentMonthLabels(3, locale)} series={[{ name: t("activityTitle"), color: "var(--purple)", values: getRecentMonthLabels(3, locale).map((_, index) => employeeGrowthPoints[index] ?? 0) }]} />
+          </Panel>
+          <Panel title={t("categoryTitle")}>
+            <MeterList items={fourCCategories.map((category, index) => ({ label: getLocalizedCategoryDisplayName(category, locale), value: employeeCategoryBreakdown[index]?.value ?? 0, color: categoryTone[category] }))} />
+          </Panel>
+        </Grid>
       </DashboardShell>
     );
   }
@@ -134,37 +137,51 @@ export default async function EmployeeGrowthPage({ params }: { params: Promise<{
         initials: getInitials(profile.first_name, profile.last_name),
         team: team?.name ?? tc("noTeam")
       }}
-      actions={<span className="quality-pill">{t("liveGrowth")}</span>}
+      actions={<Pill tone="green">{t("liveGrowth")}</Pill>}
       unreadNotifications={unreadNotifications}
     >
-      <section className="dashboard-grid two">
-        <article className="panel dashboard-panel">
-          <div className="panel-top"><h2>{t("activityTitle")}</h2></div>
+      <Grid cols="two">
+        <Panel title={t("activityTitle")}>
           {recognitions.length ? (
-            <BarChart items={monthWindows.map((month) => ({ label: month.label, value: monthlyCounts.get(month.key) ?? 0, color: "var(--theme-emerald)" }))} />
+            <BarsChart labels={monthWindows.map((month) => month.label)} series={[{ name: t("activityTitle"), color: "var(--purple)", values: monthWindows.map((month) => monthlyCounts.get(month.key) ?? 0) }]} />
           ) : (
             <EmptyState title={t("growthEmptyTitle")} copy={t("growthEmptyCopy")} actionLabel={tc("browseCards")} actionHref="/cards" />
           )}
-        </article>
-        <article className="panel dashboard-panel">
-          <div className="panel-top"><h2>{t("categoryTitle")}</h2></div>
+        </Panel>
+        <Panel title={t("categoryTitle")}>
           {categoryRows.length ? (
-            <BarChart
+            <MeterList
               items={fourCCategories.map((category) => ({
                 label: getLocalizedCategoryDisplayName(category, locale),
                 value: categoryCounts.get(category) ?? 0,
-                color: categoryMeta[category].color
+                valueLabel: categoryCounts.get(category) ?? 0,
+                color: categoryTone[category]
               }))}
             />
           ) : (
             <EmptyState title={t("categoriesEmptyTitle")} copy={t("categoriesEmptyCopy")} />
           )}
-        </article>
-      </section>
-      <article className="panel dashboard-panel">
-        <div className="panel-top"><h2>{t("topQualitiesTitle")}</h2></div>
-        {qualityRows.length ? <QualityBars items={qualityRows} /> : <EmptyState title={t("qualitiesEmptyTitle")} copy={t("qualitiesEmptyCopy")} />}
-      </article>
+        </Panel>
+      </Grid>
+      <Panel title={t("topQualitiesTitle")}>
+        {qualityRows.length ? (
+          <MeterList
+            max={100}
+            items={qualityRows.map((quality) => ({
+              label: (
+                <>
+                  {quality.label} <small className="lp-hint">· {quality.category}</small>
+                </>
+              ),
+              value: quality.value,
+              valueLabel: `${quality.value}%`,
+              color: categoryTone[normalizeCategoryKey(quality.category) as CardCategory] ?? "var(--purple)"
+            }))}
+          />
+        ) : (
+          <EmptyState title={t("qualitiesEmptyTitle")} copy={t("qualitiesEmptyCopy")} />
+        )}
+      </Panel>
     </DashboardShell>
   );
 }

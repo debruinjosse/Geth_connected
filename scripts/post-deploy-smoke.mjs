@@ -115,11 +115,11 @@ async function main() {
   const pricing = await fetchText("/nl/pricing");
   const pricingOk =
     pricing.status === 200 &&
-    pricing.text.includes("pricing-plan-grid") &&
-    pricing.text.includes("pricing-plan-card");
+    pricing.text.includes("lp-plans") &&
+    pricing.text.includes("lp-plan ");
   results.push({
     name: "Pricing page structure",
-    ...(pricingOk ? pass("pricing-plan-grid + cards present") : fail(`HTTP ${pricing.status}`))
+    ...(pricingOk ? pass("lp-plans grid + plan cards present") : fail(`HTTP ${pricing.status}`))
   });
 
   // 6. Recognition asset

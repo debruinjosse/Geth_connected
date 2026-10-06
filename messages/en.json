@@ -532,7 +532,8 @@
     "navSubscriptions": "Subscriptions",
     "navQrRoutes": "QR routes",
     "navSiteContent": "Homepage content",
-    "navSettings": "Settings"
+    "navSettings": "Settings",
+    "navMore": "More"
   },
   "authForm": {
     "titleSignup": "Create account",
@@ -795,7 +796,12 @@
     "demoStrength": "Great communicator",
     "demoSignalDetail": "Communication cards are appearing most often in your recognition story.",
     "signalHighlightsAria": "Top recognition cards behind this signal",
-    "signalHighlightCards": "{count, plural, one {# card} other {# cards}}"
+    "signalHighlightCards": "{count, plural, one {# card} other {# cards}}",
+    "milestoneEyebrow": "Your profile is growing",
+    "milestoneNext": "{count, plural, one {# more card} other {# more cards}} to reach {badge}.",
+    "milestoneTop": "You have reached the highest milestone. What recognition.",
+    "milestoneReceived": "{count, plural, one {# card received} other {# cards received}}",
+    "cardsReceivedLabel": "Received"
   },
   "employeePages": {
     "scanTitle": "Scan a GETH® card",
