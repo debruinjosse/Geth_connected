@@ -1,12 +1,10 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
-import { BrandLogo } from "@/components/BrandLogo";
-import { GoogleTranslateWidget } from "@/components/GoogleTranslateWidget";
-import { PublicMobileNav } from "@/components/PublicMobileNav";
-import { StickyNav } from "@/components/ui/StickyNav";
-import { Button } from "@/components/ui/Button";
+import { LandingEffects } from "@/components/landing/LandingEffects";
+import { PublicNav } from "@/components/landing/PublicNav";
 import { getLocalizedDashboardHref, localizePublicHref, publicNavLinks } from "@/lib/navigation/public-nav";
+import type { AppLocale } from "@/i18n/routing";
 import { getSiteContentOverrides, pickSiteContentText } from "@/lib/site-content";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -27,18 +25,7 @@ async function getPublicUserState(locale: string) {
 
     if (!user) return null;
 
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("first_name, last_name")
-      .eq("id", user.id)
-      .maybeSingle<{ first_name: string; last_name: string }>();
-    const fallbackName = user.email?.split("@")[0]?.replace(/[._-]+/g, " ") ?? "there";
-    const name = profile?.first_name?.trim() || fallbackName;
-
-    return {
-      name,
-      dashboardHref: getLocalizedDashboardHref(locale)
-    };
+    return { dashboardHref: getLocalizedDashboardHref(locale) };
   } catch {
     return null;
   }
@@ -55,119 +42,146 @@ export async function PublicSiteChrome({
   ctaHref?: string;
   locale?: string;
 }) {
-  const locale = localeOverride ?? await getLocale();
+  const locale = localeOverride ?? (await getLocale());
   const signedInUser = await getPublicUserState(locale);
   const nav = await getTranslations({ locale, namespace: "nav" });
-  const footer = await getTranslations({ locale, namespace: "footer" });
-  const home = await getTranslations({ locale, namespace: "home" });
+  const lp = await getTranslations({ locale, namespace: "landingV2" });
   const overrides = await getSiteContentOverrides("home", locale);
   const cmsText = (key: string, fallback: string) => pickSiteContentText(overrides, fallback, key);
-  const footerTitle = cmsText("finalCtaTitle", footer("title"));
-  const footerCopy = cmsText("finalCtaCopy", footer("copy"));
-  const footerCtaLabel = cmsText("finalCtaButtonLabel", home("finalCtaButtonLabel"));
-  const footerCtaHref = localizeHref(cmsText("finalCtaButtonHref", home("finalCtaButtonHref")), locale);
-  const localizedCtaHref = localizeHref(ctaHref, locale);
-  const localizedNavLinks = publicNavLinks.map((link) => ({
+
+  const navLabelKeys = {
+    howItWorks: "nHow",
+    cards: "nCards",
+    pricing: "nPricing",
+    support: "nSupport",
+    visionMission: "nVision"
+  } as const;
+  const links = publicNavLinks.map((link) => ({
     href: localizeHref(link.href, locale),
-    label: nav(link.labelKey)
+    label: lp(navLabelKeys[link.labelKey])
   }));
-  const primaryNavLabel = signedInUser
-    ? nav("openDashboard")
-    : ctaLabel === "Book a demo"
-      ? nav("bookDemo")
-      : ctaLabel;
-  const primaryNavHref = signedInUser ? signedInUser.dashboardHref : localizedCtaHref;
+  const demoLabel = ctaLabel === "Book a demo" ? lp("nDemo") : ctaLabel;
+  const demoHref = localizeHref(ctaHref, locale);
+  const primaryLabel = signedInUser ? lp("openDashboard") : demoLabel;
+  const primaryHref = signedInUser ? signedInUser.dashboardHref : demoHref;
+  const secondaryLabel = signedInUser ? lp("signOut") : lp("nLogin");
+  const secondaryHref = signedInUser ? "/auth/signout" : localizeHref("/login", locale);
+
+  const ctaEyebrow = lp("ctaEye");
+  const ctaTitle = lp("ctaT");
+  const ctaCopy = lp("ctaP");
+  const ctaButtonLabel = lp("nDemo");
+  const ctaButtonHref = localizeHref(cmsText("finalCtaButtonHref", "/book-demo"), locale);
+
+  const homeHref = `/${locale}`;
+  const footerColumns = [
+    {
+      title: lp("fP"),
+      links: [
+        { href: localizeHref("/#how-it-works", locale), label: lp("nHow") },
+        { href: localizeHref("/#cards", locale), label: lp("nCards") },
+        { href: localizeHref("/pricing", locale), label: lp("nPricing") }
+      ]
+    },
+    {
+      title: lp("fC"),
+      links: [
+        { href: localizeHref("/vision-mission", locale), label: lp("nVision") },
+        { href: localizeHref("/resources", locale), label: lp("nSupport") },
+        { href: demoHref, label: lp("nDemo") }
+      ]
+    },
+    {
+      title: lp("fL"),
+      links: [
+        { href: localizeHref("/privacy", locale), label: lp("fPriv") },
+        { href: localizeHref("/terms", locale), label: lp("fTerms") },
+        { href: localizeHref("/resources", locale), label: lp("fSec") }
+      ]
+    }
+  ];
 
   return (
     <>
-      <StickyNav>
-        <div className="gt-container gt-navbar-inner">
-          <div className="gt-navbar-brand">
-            <BrandLogo href={`/${locale}`} />
+      <PublicNav
+        locale={locale as AppLocale}
+        homeHref={homeHref}
+        links={links}
+        secondaryLabel={secondaryLabel}
+        secondaryHref={secondaryHref}
+        primaryLabel={primaryLabel}
+        primaryHref={primaryHref}
+        menuLabel={nav("menu")}
+        closeLabel={nav("closeMenu")}
+        languageLabel={lp("language")}
+        mainNavLabel={lp("mainNav")}
+      />
+
+      <main id="top">
+        {children}
+
+        <section className="lp lp-cta" id="demo" aria-labelledby="lp-cta-title">
+          <div className="lp-wrap">
+            <div className="lp-cta-box lp-rv">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img className="lp-bird-mark" src="/landing/badges/geth_constellation_bird_mark.svg" alt="" />
+              <span className="lp-eyebrow">{ctaEyebrow}</span>
+              <h2 id="lp-cta-title">{ctaTitle}</h2>
+              <p>{ctaCopy}</p>
+              <div className="lp-cta-row">
+                {!signedInUser && ctaButtonLabel ? (
+                  <Link href={ctaButtonHref} className="lp-btn lp-btn-gold">
+                    <span>{ctaButtonLabel}</span>
+                    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M3 8h10M9 4l4 4-4 4" />
+                    </svg>
+                  </Link>
+                ) : null}
+                <Link href={localizeHref("/pricing", locale)} className="lp-btn lp-btn-ghost">
+                  {lp("mPrice")}
+                </Link>
+              </div>
+            </div>
           </div>
-          <nav className="gt-navbar-links" aria-label="Main navigation">
-            {localizedNavLinks.map((link) => (
-              <Link key={link.href} href={link.href}>
-                {link.label}
+        </section>
+      </main>
+
+      <footer className="lp lp-footer">
+        <div className="lp-wrap">
+          <div className="lp-f-grid">
+            <div className="lp-f-brand">
+              <Link href={homeHref} className="lp-brand" aria-label="GETH®">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/landing/geth-crest.svg" alt="" />
+                <b>
+                  GETH<sup>®</sup>
+                </b>
               </Link>
+              <p>{lp("fTag")}</p>
+              <a className="lp-mail" href="mailto:info@geth.pro">
+                info@geth.pro
+              </a>
+            </div>
+            {footerColumns.map((column) => (
+              <div key={column.title}>
+                <h5>{column.title}</h5>
+                <ul>
+                  {column.links.map((link) => (
+                    <li key={`${column.title}-${link.href}-${link.label}`}>
+                      <Link href={link.href}>{link.label}</Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             ))}
-          </nav>
-          <div className={`gt-navbar-actions${signedInUser ? " signed-in" : ""}`}>
-            {signedInUser ? (
-              <>
-                <Link className="gt-navbar-user-link" href={primaryNavHref}>{nav("hi", { name: signedInUser.name })}</Link>
-                <Button href={primaryNavHref} variant="primary">
-                  {nav("openDashboard")}
-                </Button>
-                <GoogleTranslateWidget />
-                <Link href="/auth/signout">{nav("signOut")}</Link>
-              </>
-            ) : (
-              <>
-                <Link className="gt-navbar-login" href={localizeHref("/login", locale)}>{nav("login")}</Link>
-                <Button href={localizedCtaHref} variant="primary">
-                  {ctaLabel === "Book a demo" ? nav("bookDemo") : ctaLabel}
-                </Button>
-                <GoogleTranslateWidget />
-              </>
-            )}
           </div>
-          <PublicMobileNav
-            links={localizedNavLinks}
-            menuLabel={nav("menu")}
-            closeLabel={nav("closeMenu")}
-            signedIn={Boolean(signedInUser)}
-            primaryLabel={primaryNavLabel}
-            primaryHref={primaryNavHref}
-            secondaryLabel={signedInUser ? undefined : nav("login")}
-            secondaryHref={signedInUser ? undefined : localizeHref("/login", locale)}
-            signOutLabel={nav("signOut")}
-          />
-        </div>
-      </StickyNav>
-
-      <main>
-      {children}
-
-      <section className="gt-final-cta" aria-labelledby="gt-final-cta-title">
-        <div className="gt-container gt-final-cta-inner">
-          <h2 id="gt-final-cta-title">{footerTitle}</h2>
-          <p>{footerCopy}</p>
-          {!signedInUser && footerCtaLabel ? (
-            <Button href={footerCtaHref} variant="primary" size="hero" className="gt-final-cta-button">
-              {footerCtaLabel}
-            </Button>
-          ) : null}
-        </div>
-      </section>
-
-      <footer className="gt-footer">
-        <div className="gt-container gt-footer-inner">
-          <div className="gt-footer-grid">
-            <div className="gt-footer-brand">
-              <BrandLogo href={`/${locale}`} />
-              <a href="mailto:info@geth.pro">info@geth.pro</a>
-            </div>
-            <div className="gt-footer-col">
-              <span className="gt-footer-col-title">{nav("pricing")}</span>
-              <Link href={localizeHref("/pricing", locale)}>{nav("pricing")}</Link>
-              <Link href={localizeHref("/resources", locale)}>{nav("support")}</Link>
-              <Link href={localizeHref("/vision-mission", locale)}>{nav("visionMission")}</Link>
-            </div>
-            <div className="gt-footer-col">
-              <span className="gt-footer-col-title">{footer("privacy")}</span>
-              <Link href={localizeHref("/privacy", locale)}>{footer("privacy")}</Link>
-              <Link href={localizeHref("/terms", locale)}>{footer("terms")}</Link>
-              <Link href={localizeHref("/resources", locale)}>{footer("security")}</Link>
-            </div>
-          </div>
-          <div className="gt-footer-bottom">
-            <small>&copy; 2026 GETH</small>
-            <GoogleTranslateWidget />
+          <div className="lp-f-bottom">
+            <span>© 2026 GETH®</span>
+            <span>{lp("fReg")}</span>
           </div>
         </div>
       </footer>
-      </main>
+      <LandingEffects />
     </>
   );
 }

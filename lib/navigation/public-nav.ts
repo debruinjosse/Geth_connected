@@ -1,5 +1,6 @@
 export const publicNavLinks = [
   { href: "/#how-it-works", labelKey: "howItWorks" },
+  { href: "/#cards", labelKey: "cards" },
   { href: "/pricing", labelKey: "pricing" },
   { href: "/resources", labelKey: "support" },
   { href: "/vision-mission", labelKey: "visionMission" }
