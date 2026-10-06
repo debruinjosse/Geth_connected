@@ -11659,3 +11659,158 @@ select.lp-input{padding-right:44px;cursor:pointer;background-image:url("data:ima
 .lp-edit-foot .lp-btn{height:54px}
 .lp-edit-grid{align-items:end}
 @media (max-width:1020px){.lp-access-form{justify-content:flex-start}}
+
+/* ---------- Admin: shared form helpers + legacy-markup safety net ---------- */
+.lp-form-stack{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px 20px}
+.lp-form-stack>.lp-field:has(textarea),.lp-form-stack>.lp-hint,.lp-form-stack>.lp-form-actions,.lp-form-stack>.lp-field:first-of-type:last-of-type{grid-column:1/-1}
+.lp-form-actions{display:flex;flex-wrap:wrap;gap:12px;align-items:center;grid-column:1/-1}
+.lp-field>.lp-label{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+@media(max-width:700px){.lp-form-stack{grid-template-columns:1fr}}
+.lp-app-body .settings-feedback{padding:13px 16px;border-radius:14px;font-size:14.5px;margin:0 0 16px;background:var(--bg-2,#f4efe5);color:var(--ink)}
+.lp-app-body .settings-feedback.error{background:#fbeceb;color:#8a2b24}
+.lp-app-body .settings-feedback.success{background:#eef4e8;color:#3d5a24}
+.lp-app-body .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:46px;padding:0 20px;border-radius:999px;border:1px solid var(--line,#e6dfd0);background:#fff;color:var(--ink);font:inherit;font-size:14.5px;cursor:pointer;text-decoration:none;transition:background .2s,border-color .2s}
+.lp-app-body .btn.compact{height:40px;padding:0 16px;font-size:14px}
+.lp-app-body .btn-primary,.lp-app-body .btn-dark{background:var(--purple);border-color:var(--purple);color:#fff}
+.lp-app-body .btn:hover{border-color:var(--purple)}
+.lp-app-body .input,.lp-app-body .form-field input,.lp-app-body .form-field select,.lp-app-body .form-field textarea,.lp-app-body .admin-control-form select,.lp-app-body .admin-control-form input,.lp-app-body .table-toolbar input{width:100%;min-height:48px;padding:10px 16px;border:1px solid var(--line,#e6dfd0);border-radius:14px;background:#fff;color:var(--ink);font:inherit;font-size:15px}
+.lp-app-body textarea.input,.lp-app-body .form-field textarea{min-height:96px;resize:vertical}
+.lp-app-body .form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px 20px}
+.lp-app-body .form-grid .full-span{grid-column:1/-1}
+.lp-app-body .form-field,.lp-app-body .form-grid label{display:flex;flex-direction:column;gap:8px;font-size:14px;color:var(--ink-2)}
+.lp-app-body .button-row{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.lp-app-body .admin-control-form,.lp-app-body .admin-invite-form,.lp-app-body .table-toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.lp-app-body .panel-link{color:var(--gold-ink);font-size:14.5px;text-decoration:none}
+.lp-app-body .panel-link:hover{text-decoration:underline}
+@media(max-width:700px){.lp-app-body .form-grid{grid-template-columns:1fr}}
+.lp-field>.lp-label{flex-wrap:nowrap}
+.lp-form-stack{align-items:start}
+.lp-app-body .signal-list{display:grid;gap:10px}
+.lp-app-body .signal-card{background:transparent;box-shadow:none;border:1px solid var(--line,#e6dfd0);border-radius:16px;padding:14px 16px}
+
+/* ---------- Admin refinements: slim tables, aligned actions, balanced grids ---------- */
+.lp-app-body,.lp-app-body.dashboard-main{padding-bottom:56px}
+.lp-grid-three{grid-template-columns:repeat(6,minmax(0,1fr))}
+.lp-grid-three>*{grid-column:span 2}
+.lp-grid-three>:last-child:nth-child(3n+2),.lp-grid-three>:nth-last-child(2):nth-child(3n+1){grid-column:span 3}
+.lp-grid-three>:last-child:nth-child(3n+1){grid-column:1/-1}
+.lp-table-flat th{padding-top:10px;padding-bottom:12px}
+.lp-table-flat td{padding-top:11px;padding-bottom:11px;font-size:14.5px;line-height:1.4}
+.lp-table .lp-ncol{text-align:right;font-variant-numeric:tabular-nums;padding-right:24px}
+.lp-table .lp-act{text-align:right;white-space:nowrap;padding-right:0}
+.lp-table-flat td:last-child,.lp-table-flat th:last-child{padding-right:0}
+.lp-cell-sub{display:block;font-size:12.5px;color:var(--ink-3);margin-top:1px}
+.lp-row-actions{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:nowrap}
+.lp-row-actions form{margin:0}
+.lp-inline-ctl{display:flex;align-items:center;gap:8px}
+.lp-select-sm{height:40px!important;min-height:0!important;padding:0 36px 0 14px!important;font-size:14px!important;width:auto!important;border-radius:999px!important}
+.lp-form-foot{display:flex;align-items:center;justify-content:space-between;gap:16px 24px;flex-wrap:wrap;margin-top:24px;padding-top:20px;border-top:1px solid var(--line)}
+.lp-form-foot .lp-hint{max-width:56ch}
+.lp-form-actions{margin-top:4px}
+@media(max-width:1180px){.lp-grid-three{grid-template-columns:repeat(2,minmax(0,1fr))}.lp-grid-three>*,.lp-grid-three>:last-child:nth-child(n){grid-column:auto}.lp-grid-three>:last-child:nth-child(odd){grid-column:1/-1}}
+@media(max-width:700px){.lp-grid-three{grid-template-columns:minmax(0,1fr)}.lp-grid-three>*,.lp-grid-three>:last-child:nth-child(n){grid-column:auto!important}.lp-row-actions{justify-content:flex-start;flex-wrap:wrap}.lp-table .lp-ncol{text-align:left}.lp-table .lp-act{text-align:left}}
+.lp-pager{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:14px;padding-top:14px;border-top:1px solid var(--line);font-size:13.5px;color:var(--ink-3)}
+.lp-pager div{display:flex;gap:8px}
+.lp-pager-btn{width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:var(--surface);display:grid;place-items:center;color:var(--ink);transition:border-color .2s,background .2s}
+.lp-pager-btn svg{width:16px;height:16px}
+.lp-pager-btn:hover:not(:disabled){border-color:var(--purple)}
+.lp-pager-btn:disabled{opacity:.35;cursor:default}
+.lp-grid-top{align-items:start!important}
+.lp-clamp{display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden;max-width:46ch}
+.lp-link{color:var(--gold-ink);text-decoration:none;border-bottom:1px solid rgba(122,101,40,.3)}
+.lp-link:hover{border-color:var(--gold-ink)}
+.lp-booking-list{display:grid;gap:14px}
+.lp-booking{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:20px 32px;padding:20px 22px;border:1px solid var(--line);border-radius:18px;align-items:start}
+.lp-booking-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:8px}
+.lp-booking-head h3{font-size:1.1rem;font-weight:500}
+.lp-booking-info p{font-size:14.5px;color:var(--ink-2);line-height:1.55}
+.lp-booking-msg{margin-top:8px;padding:10px 14px;background:var(--bg-soft);border-radius:12px}
+.lp-booking-actions{display:grid;gap:12px}
+.lp-booking-actions .lp-row-actions{justify-content:flex-start}
+@media(max-width:900px){.lp-booking{grid-template-columns:1fr}}
+.lp-tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.lp-tiles-notes{grid-template-columns:repeat(4,minmax(0,1fr))}
+.lp-tile{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:14px 16px;border:1px solid var(--line);border-radius:16px;min-width:0}
+.lp-tile>div{min-width:0}
+.lp-tile strong{display:block;font-weight:500;font-size:14.5px;line-height:1.35;color:var(--ink)}
+.lp-tile small{display:block;margin-top:3px;font-size:12.5px;line-height:1.5;color:var(--ink-3)}
+.lp-tile .lp-pill{flex:none}
+@media(max-width:1180px){.lp-tiles,.lp-tiles-notes{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:700px){.lp-tiles,.lp-tiles-notes{grid-template-columns:1fr}}
+.lp-grid-prompts .lp-form-stack{grid-template-columns:1fr}
+.lp-grid-prompts textarea{min-height:200px}
+@media(max-width:1180px){.lp-grid-prompts{grid-template-columns:1fr!important}}
+.lp-radio-tiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.lp-radio-tile{display:flex;align-items:flex-start;gap:12px;padding:14px 16px;border:1px solid var(--line);border-radius:16px;cursor:pointer;background:var(--surface);transition:border-color .2s,background .2s}
+.lp-radio-tile:has(input:checked){border-color:var(--purple);background:var(--bg-soft)}
+.lp-radio-tile:has(input:disabled){opacity:.6;cursor:default}
+.lp-radio-tile input{margin-top:3px;accent-color:var(--purple);width:16px;height:16px;flex:none}
+.lp-radio-tile strong{display:block;font-weight:500;font-size:14.5px}
+.lp-radio-tile small{display:block;margin-top:2px;font-size:13px;color:var(--ink-3);line-height:1.45}
+.lp-subtotal{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px 20px;border-radius:16px;background:var(--bg-soft);border:1px solid var(--line)}
+.lp-subtotal small{display:block;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--gold-ink)}
+.lp-subtotal p{font-size:13.5px;color:var(--ink-2);margin-top:2px}
+.lp-subtotal strong{font-size:1.7rem;font-weight:400;color:var(--ink);white-space:nowrap}
+@media(max-width:700px){.lp-radio-tiles{grid-template-columns:1fr}.lp-subtotal{flex-direction:column;align-items:flex-start}}
+.lp-cms-form{display:grid;gap:8px}
+.lp-cms-section{padding:24px 0;border-top:1px solid var(--line);display:grid;gap:16px}
+.lp-cms-section:first-of-type{border-top:0;padding-top:0}
+.lp-cms-section h3{font-size:1.05rem;font-weight:500}
+.lp-cms-form .lp-form-foot{position:sticky;bottom:0;background:linear-gradient(to top,var(--surface) 70%,transparent);padding-bottom:4px}
+.lp-color-input{padding:6px!important;height:54px;cursor:pointer}
+.admin-marquee-section{display:grid;gap:20px}
+.admin-marquee-items-header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
+.admin-marquee-items-list{display:grid;gap:10px}
+.admin-marquee-item-row{display:flex;gap:10px;align-items:center}
+.admin-marquee-item-row .lp-input{flex:1;min-width:0}
+.admin-marquee-item-actions{display:flex;gap:6px}
+.lp-icon-btn{width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:var(--surface);display:grid;place-items:center;color:var(--ink);transition:border-color .2s}
+.lp-icon-btn:hover:not(:disabled){border-color:var(--purple)}
+.lp-icon-btn:disabled{opacity:.35;cursor:default}
+.lp-kv{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 24px}
+.lp-kv dt{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3)}
+.lp-kv dd{margin:2px 0 0;font-size:15px;color:var(--ink)}
+.lp-mt{margin-top:22px}
+.lp-check-form{display:grid;gap:12px;justify-items:start}
+.lp-subform{display:grid;gap:16px;margin-top:22px;padding-top:22px;border-top:1px solid var(--line)}
+.lp-subform:first-child{margin-top:0;padding-top:0;border-top:0}
+.lp-subform h3{font-size:1.05rem;font-weight:500}
+.lp-link-strong{color:var(--ink);font-weight:500;text-decoration:none;border-bottom:1px solid transparent}
+.lp-link-strong:hover{border-color:var(--gold)}
+.lp-table td small.lp-cell-sub{font-weight:400}
+.lp-field-grid{align-items:start}
+.lp-tiles-one{grid-template-columns:1fr!important}
+.lp-grid-prompts{align-items:stretch!important}
+.lp-grid-prompts>.lp-panel{display:flex;flex-direction:column}
+.lp-grid-prompts form{display:flex;flex-direction:column;flex:1;gap:16px}
+.lp-grid-prompts form .lp-field{flex:1}
+.lp-grid-prompts form .lp-field textarea{flex:1;min-height:200px}
+.lp-field>.lp-label .lp-pill{font-size:11px;padding:2px 8px}
+.lp-grid .lp-table-flat .lp-table{min-width:0}
+.lp-grid-prompts textarea{width:100%}
+.lp-filters-bar .lp-input{height:48px}
+.lp-filters-bar{align-items:flex-end}
+
+/* ---------- Admin round 3: balanced forms, equal heights ---------- */
+.lp-billing .lp-form-stack{grid-template-columns:repeat(6,minmax(0,1fr))}
+.lp-billing .lp-form-stack>.lp-field{grid-column:span 3}
+.lp-billing .lp-form-stack>.lp-field:has(textarea),.lp-billing .lp-form-stack>.lp-form-actions,.lp-billing .lp-form-stack>.lp-alert{grid-column:1/-1}
+.lp-billing .lp-form-stack>.lp-field:has(input[name=paymentReferencePrefix]),.lp-billing .lp-form-stack>.lp-field:has(input[name=paymentTermsDays]),.lp-billing .lp-form-stack>.lp-field:has(input[name=vatRatePercent]){grid-column:span 2}
+@media(max-width:900px){.lp-billing .lp-form-stack{grid-template-columns:repeat(2,minmax(0,1fr))}.lp-billing .lp-form-stack>.lp-field,.lp-billing .lp-form-stack>.lp-field:has(input[name=paymentReferencePrefix]),.lp-billing .lp-form-stack>.lp-field:has(input[name=paymentTermsDays]),.lp-billing .lp-form-stack>.lp-field:has(input[name=vatRatePercent]){grid-column:auto}}
+@media(max-width:600px){.lp-billing .lp-form-stack{grid-template-columns:1fr}}
+.lp-form-stack>.lp-alert{grid-column:1/-1}
+.lp-color-input{padding:0!important;overflow:hidden;cursor:pointer}
+.lp-color-input::-webkit-color-swatch-wrapper{padding:0}
+.lp-color-input::-webkit-color-swatch{border:0;border-radius:0}
+.lp-color-input::-moz-color-swatch{border:0}
+.lp-grid-prompts{grid-template-rows:auto 1fr}
+.lp-grid-prompts>.lp-panel{display:grid;grid-template-rows:subgrid;grid-row:span 2;row-gap:0}
+.lp-grid-prompts .lp-panel-head{margin-bottom:18px}
+@media(max-width:1180px){.lp-grid-prompts>.lp-panel{display:flex;flex-direction:column}}
+.lp-grid-balanced{align-items:stretch!important}
+.lp-grid-balanced>.lp-panel,.lp-grid-balanced>.lp-card{display:flex;flex-direction:column}
+.lp-grid-balanced .lp-tiles-one{flex:1;grid-auto-rows:1fr}
+.lp-grid-balanced .lp-meters{flex:1;display:flex;flex-direction:column;justify-content:space-between}
+.lp-grid-prompts .lp-field{grid-template-columns:minmax(0,1fr)}
+.lp-grid-prompts .lp-field textarea{width:100%;box-sizing:border-box}
+.lp-grid-prompts form.lp-form-stack{align-items:stretch}

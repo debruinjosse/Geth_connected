@@ -1,6 +1,10 @@
 "use client";
 
 import { RotateCcw, Save } from "lucide-react";
+import { Alert } from "@/components/ui/Alert";
+import { buttonClass } from "@/components/ui/Button";
+import { Panel } from "@/components/ui/Panel";
+import { Pill } from "@/components/ui/Pill";
 import { useTranslations } from "next-intl";
 import { resetAiMasterPromptSettingsAction, updateAiMasterPromptSettingsAction } from "@/app/actions/aiSettings";
 
@@ -44,44 +48,44 @@ export function AiMasterPromptSettingsForm({
   const message = getAiPromptSettingsMessage(t, statusCode);
 
   return (
-    <article className="panel dashboard-panel">
-      <div className="panel-top">
+    <Panel>
+      <div className="lp-panel-head">
         <div>
           <h2>{title}</h2>
-          <p className="section-copy">{copy}</p>
+          <p>{copy}</p>
         </div>
       </div>
 
-      {message ? <p className={`settings-feedback ${message.tone}`}>{message.copy}</p> : null}
 
-      <form action={updateAiMasterPromptSettingsAction} className="form-grid">
+      <form action={updateAiMasterPromptSettingsAction} className="lp-form-stack">
         <input type="hidden" name="locale" value={locale} />
         <input type="hidden" name="insightType" value={insightType} />
+        {message ? <Alert tone={message.tone === "success" ? "success" : "error"}>{message.copy}</Alert> : null}
 
-        <label className="full-span">
-          <span>{t("aiPromptTextareaLabel")}</span>
-          <textarea className="input" name="toneGuidance" rows={10} maxLength={4000} defaultValue={toneGuidance} />
+        <label className="lp-field">
+          <span className="lp-label">{t("aiPromptTextareaLabel")}</span>
+          <textarea className="lp-input" name="toneGuidance" rows={10} maxLength={4000} defaultValue={toneGuidance} />
         </label>
 
-        {isDefault ? <p className="section-copy full-span">{t("aiPromptUsingDefaultHint")}</p> : null}
+        {isDefault ? <p className="lp-hint">{t("aiPromptUsingDefaultHint")}</p> : null}
 
         {updatedByLabel && updatedAt ? (
-          <p className="section-copy full-span">
+          <p className="lp-hint">
             {t("aiPromptLastUpdatedBy", { name: updatedByLabel, date: new Date(updatedAt).toLocaleString(locale) })}
           </p>
         ) : null}
 
-        <div className="button-row full-span">
-          <button className="btn btn-primary" type="submit">
+        <div className="lp-form-actions">
+          <button className={buttonClass({ variant: "primary" })} type="submit">
             <Save size={16} />
             {t("aiPromptSaveButton")}
           </button>
-          <button className="btn btn-secondary" type="submit" formAction={resetAiMasterPromptSettingsAction}>
+          <button className={buttonClass({ variant: "ghost" })} type="submit" formAction={resetAiMasterPromptSettingsAction}>
             <RotateCcw size={16} />
             {t("aiPromptResetButton")}
           </button>
         </div>
       </form>
-    </article>
+    </Panel>
   );
 }

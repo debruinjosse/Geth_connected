@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/Button";
+import { Field, FieldGrid, Input, Select, Textarea } from "@/components/ui/Fields";
 import { FileText } from "lucide-react";
 import { requestInvoicePaymentAction } from "@/app/actions/billing";
 
@@ -105,156 +107,100 @@ export function AdminInvoiceForm({
   }, [enterpriseSelected]);
 
   return (
-    <form action={requestInvoicePaymentAction} className="form-grid admin-company-create-form admin-invoice-form">
+    <form action={requestInvoicePaymentAction}>
       <input type="hidden" name="locale" value={locale} />
       <input type="hidden" name="useCustomPrice" value={customPricingActive ? "true" : "false"} />
 
-      <div className="form-field">
-        <label htmlFor="companyId">Company</label>
-        <select id="companyId" className="input" name="companyId" required>
-          <option value="">Choose company</option>
-          {companies.map((company) => (
-            <option key={company.id} value={company.id}>{company.company_name}</option>
-          ))}
-        </select>
-      </div>
+      <FieldGrid>
+        <Field label="Company" htmlFor="companyId" required>
+          <Select id="companyId" name="companyId" required>
+            <option value="">Choose company</option>
+            {companies.map((company) => (
+              <option key={company.id} value={company.id}>{company.company_name}</option>
+            ))}
+          </Select>
+        </Field>
 
-      <div className="form-field">
-        <label htmlFor="planId">Plan</label>
-        <select
-          id="planId"
-          className="input"
-          name="planId"
-          required
-          value={planId}
-          onChange={(event) => setPlanId(event.target.value)}
-        >
-          <option value="">Choose plan</option>
-          {billablePlans.map((plan) => (
-            <option key={plan.id} value={plan.id} disabled={plan.invoice_enabled === false}>
-              {formatPlanOption(plan)}
-            </option>
-          ))}
-        </select>
-        <span className="field-help">Growth uses €11.99 per employee/month. Custom/Enterprise always uses your custom amount.</span>
-      </div>
+        <Field label="Plan" htmlFor="planId" required hint="Growth uses €11.99 per employee/month. Custom/Enterprise always uses your custom amount.">
+          <Select id="planId" name="planId" required value={planId} onChange={(event) => setPlanId(event.target.value)}>
+            <option value="">Choose plan</option>
+            {billablePlans.map((plan) => (
+              <option key={plan.id} value={plan.id} disabled={plan.invoice_enabled === false}>
+                {formatPlanOption(plan)}
+              </option>
+            ))}
+          </Select>
+        </Field>
 
-      <div className="form-field">
-        <label htmlFor="billingInterval">Billing period</label>
-        <select
-          id="billingInterval"
-          className="input"
-          name="billingInterval"
-          required
-          value={billingInterval}
-          onChange={(event) => setBillingInterval(event.target.value as BillingInterval)}
-        >
-          <option value="monthly">Monthly</option>
-          <option value="yearly">Yearly - 20% yearly saving</option>
-        </select>
-      </div>
+        <Field label="Billing period" htmlFor="billingInterval" required>
+          <Select id="billingInterval" name="billingInterval" required value={billingInterval} onChange={(event) => setBillingInterval(event.target.value as BillingInterval)}>
+            <option value="monthly">Monthly</option>
+            <option value="yearly">Yearly - 20% yearly saving</option>
+          </Select>
+        </Field>
 
-      <div className="form-field">
-        <label htmlFor="seatCount">Users on invoice</label>
-        <input
-          id="seatCount"
-          className="input"
-          name="seatCount"
-          type="number"
-          min="1"
-          step="1"
-          value={seatCount}
-          onChange={(event) => setSeatCount(event.target.value)}
-          required
-        />
-        <span className="field-help">Shown on the invoice line item. Used to calculate standard plan pricing.</span>
-      </div>
+        <Field label="Users on invoice" htmlFor="seatCount" required hint="Shown on the invoice line item. Used to calculate standard plan pricing.">
+          <Input id="seatCount" name="seatCount" type="number" min="1" step="1" value={seatCount} onChange={(event) => setSeatCount(event.target.value)} required />
+        </Field>
 
-      <div className="form-field admin-invoice-pricing-mode">
-        <span className="field-label">Pricing method</span>
-        <div className="admin-invoice-pricing-options">
-          <label className="admin-invoice-pricing-option">
-            <input
-              type="radio"
-              name="pricingModeUi"
-              value="standard"
-              checked={!customPricingActive}
-              disabled={enterpriseSelected}
-              onChange={() => setPricingMode("standard")}
-            />
-            <span>
-              <strong>Standard plan pricing</strong>
-              <small>Calculate from plan rate, users, and billing period.</small>
-            </span>
-          </label>
-          <label className="admin-invoice-pricing-option">
-            <input
-              type="radio"
-              name="pricingModeUi"
-              value="custom"
-              checked={customPricingActive}
-              onChange={() => setPricingMode("custom")}
-            />
-            <span>
-              <strong>Custom invoice amount</strong>
-              <small>Enter an agreed subtotal before VAT in the field below.</small>
-            </span>
-          </label>
+        <div className="lp-field lp-span-2">
+          <span className="lp-label">Pricing method</span>
+          <div className="lp-radio-tiles" role="radiogroup" aria-label="Pricing method">
+            <label className="lp-radio-tile">
+              <input type="radio" name="pricingModeUi" value="standard" checked={!customPricingActive} disabled={enterpriseSelected} onChange={() => setPricingMode("standard")} />
+              <span>
+                <strong>Standard plan pricing</strong>
+                <small>Calculate from plan rate, users, and billing period.</small>
+              </span>
+            </label>
+            <label className="lp-radio-tile">
+              <input type="radio" name="pricingModeUi" value="custom" checked={customPricingActive} onChange={() => setPricingMode("custom")} />
+              <span>
+                <strong>Custom invoice amount</strong>
+                <small>Enter an agreed subtotal before VAT.</small>
+              </span>
+            </label>
+          </div>
         </div>
-      </div>
 
-      {customPricingActive ? (
-        <div className="form-field admin-invoice-custom-amount">
-          <label htmlFor="customAmount">Custom invoice amount (€)</label>
-          <input
-            id="customAmount"
-            className="input"
-            name="customAmount"
-            type="number"
-            min="0"
-            step="0.01"
-            placeholder="e.g. 1250.00"
-            value={customAmount}
-            onChange={(event) => setCustomAmount(event.target.value)}
-            required
-          />
-          <span className="field-help">Subtotal before VAT. The invoice PDF and email use this exact amount.</span>
+        {customPricingActive ? (
+          <Field label="Custom invoice amount (€)" htmlFor="customAmount" required hint="Subtotal before VAT. The invoice PDF and email use this exact amount." className="lp-span-2">
+            <Input id="customAmount" name="customAmount" type="number" min="0" step="0.01" placeholder="e.g. 1250.00" value={customAmount} onChange={(event) => setCustomAmount(event.target.value)} required />
+          </Field>
+        ) : null}
+
+        <div className="lp-subtotal lp-span-2">
+          <div>
+            <small>Invoice subtotal</small>
+            <p>
+              {customPricingActive
+                ? "Custom amount before VAT."
+                : `${parsedSeatCount} user${parsedSeatCount === 1 ? "" : "s"} × ${selectedPlan ? formatCurrency(resolvePlanPriceCents(selectedPlan), selectedPlan.currency) : "plan price"}${billingInterval === "yearly" ? " × 12 months with 20% yearly saving" : " per month"}.`}
+            </p>
+          </div>
+          <strong>{subtotal === null ? "—" : formatCurrency(subtotal, previewCurrency)}</strong>
         </div>
-      ) : null}
 
-      <div className="form-field admin-invoice-preview">
-        <span className="eyebrow">Invoice subtotal</span>
-        <strong>{subtotal === null ? "Choose values" : formatCurrency(subtotal, previewCurrency)}</strong>
-        <p>
-          {customPricingActive
-            ? "Custom amount before VAT."
-            : `${parsedSeatCount} user${parsedSeatCount === 1 ? "" : "s"} x ${selectedPlan ? formatCurrency(resolvePlanPriceCents(selectedPlan), selectedPlan.currency) : "plan price"}${billingInterval === "yearly" ? " x 12 months with 20% yearly saving" : " per month"}.`}
-        </p>
-      </div>
+        <Field label="Billing email" htmlFor="billingEmail" required>
+          <Input id="billingEmail" name="billingEmail" type="email" placeholder="finance@company.eu" required />
+        </Field>
+        <Field label="VAT number" htmlFor="vatNumber">
+          <Input id="vatNumber" name="vatNumber" placeholder="EU VAT number, if applicable" />
+        </Field>
+        <Field label="Purchase order" htmlFor="purchaseOrderNumber">
+          <Input id="purchaseOrderNumber" name="purchaseOrderNumber" placeholder="Optional PO number" />
+        </Field>
+        <Field label="Billing address" htmlFor="billingAddress" required>
+          <Textarea id="billingAddress" name="billingAddress" rows={3} placeholder="Company legal billing address" required />
+        </Field>
+        <Field label="Notes" htmlFor="notes" className="lp-span-2">
+          <Textarea id="notes" name="notes" rows={3} placeholder="Payment terms, onboarding notes, or admin invite reminder" />
+        </Field>
+      </FieldGrid>
 
-      <div className="form-field">
-        <label htmlFor="billingEmail">Billing email</label>
-        <input id="billingEmail" className="input" name="billingEmail" type="email" placeholder="finance@company.eu" required />
-      </div>
-      <div className="form-field">
-        <label htmlFor="vatNumber">VAT number</label>
-        <input id="vatNumber" className="input" name="vatNumber" placeholder="EU VAT number, if applicable" />
-      </div>
-      <div className="form-field">
-        <label htmlFor="purchaseOrderNumber">Purchase order</label>
-        <input id="purchaseOrderNumber" className="input" name="purchaseOrderNumber" placeholder="Optional PO number" />
-      </div>
-      <div className="form-field">
-        <label htmlFor="billingAddress">Billing address</label>
-        <textarea id="billingAddress" className="input" name="billingAddress" rows={3} placeholder="Company legal billing address" required />
-      </div>
-      <div className="form-field">
-        <label htmlFor="notes">Notes</label>
-        <textarea id="notes" className="input" name="notes" rows={3} placeholder="Payment terms, onboarding notes, or admin invite reminder" />
-      </div>
-      <div className="form-field admin-company-create-submit">
-        <span className="field-help">After payment is confirmed, create or send the company admin invite so they can add managers and employees.</span>
-        <button className="btn btn-primary" type="submit"><FileText size={16} /> Generate invoice</button>
+      <div className="lp-form-foot">
+        <small className="lp-hint">After payment is confirmed, create or send the company admin invite so they can add managers and employees.</small>
+        <Button type="submit" icon={<FileText />}>Generate invoice</Button>
       </div>
     </form>
   );

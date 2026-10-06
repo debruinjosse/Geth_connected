@@ -3,6 +3,8 @@ import { DashboardShell } from "@/components/DashboardShell";
 import { MarkAllNotificationsReadButton, NotificationInbox } from "@/components/NotificationInbox";
 import { employeeNotifications, superAdminUser } from "@/lib/demo-data";
 import { getNotificationInboxPageData } from "@/lib/notification-inbox-page";
+import { Panel } from "@/components/ui/Panel";
+import { Pill } from "@/components/ui/Pill";
 
 function hasSupabaseServerConfig() {
   return Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
@@ -13,8 +15,8 @@ async function DemoNotificationsPage({ locale }: { locale: string }) {
 
   return (
     <DashboardShell role="admin" title={t("notificationsTitle")} subtitle={t("notificationsSubtitle")} user={superAdminUser}>
-      <section className="dashboard-grid">
-        <article className="panel dashboard-panel">
+      <div className="lp-stack">
+        <Panel>
           <div className="signal-list">
             {employeeNotifications.map((notification) => (
               <div className="signal-card" key={notification.id}>
@@ -22,12 +24,12 @@ async function DemoNotificationsPage({ locale }: { locale: string }) {
                   <strong>{notification.title}</strong>
                   <p>{notification.detail}</p>
                 </div>
-                <span className="quality-pill">{notification.time}</span>
+                <Pill>{notification.time}</Pill>
               </div>
             ))}
           </div>
-        </article>
-      </section>
+        </Panel>
+      </div>
     </DashboardShell>
   );
 }
@@ -60,8 +62,8 @@ export default async function AdminNotificationsPage({ params }: { params: Promi
         ) : null
       }
     >
-      <section className="dashboard-grid">
-        <article className="panel dashboard-panel">
+      <div className="lp-stack">
+        <Panel>
           <NotificationInbox
             notifications={data.notifications}
             emptyTitle={t("emptyNoNotificationsTitle")}
@@ -70,8 +72,8 @@ export default async function AdminNotificationsPage({ params }: { params: Promi
             emptyActionHref="/admin/companies"
             locale={locale}
           />
-        </article>
-      </section>
+        </Panel>
+      </div>
     </DashboardShell>
   );
 }

@@ -728,7 +728,10 @@
     "managerRole": "Manager",
     "platformAdminName": "GETH Admin",
     "noEmailOnSession": "No email on session",
-    "demoSaved": "saved in demo mode"
+    "demoSaved": "saved in demo mode",
+    "page": "Page",
+    "previous": "Previous",
+    "next": "Next"
   },
   "employeeHome": {
     "headerTitle": "Hi, welcome back, {name}",

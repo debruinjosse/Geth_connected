@@ -12,6 +12,14 @@ import { getRecentMonthLabels } from "@/lib/locale-format";
 import { platformGrowthPoints, superAdminUser, teamComparison } from "@/lib/demo-data";
 import { getUnreadNotificationCount } from "@/lib/notifications";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { Grid } from "@/components/ui/Grid";
+import { Panel } from "@/components/ui/Panel";
+import { StatCard } from "@/components/ui/StatCard";
+import { StatusPill } from "@/components/ui/StatusPill";
+import { Pill } from "@/components/ui/Pill";
+import { Button } from "@/components/ui/Button";
+import { Field, Input } from "@/components/ui/Fields";
+import { PagedTable } from "@/components/ui/PagedTable";
 
 function hasSupabaseServerConfig() {
   return Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
@@ -71,23 +79,15 @@ export default async function AdminAnalyticsPage({ params }: { params: Promise<{
 
   if (!hasSupabaseServerConfig()) {
     return (
-      <DashboardShell role="admin" title={t("analyticsTitle")} subtitle={t("analyticsSubtitle")} user={superAdminUser} actions={<span className="quality-pill">{tc("demoFallback")}</span>}>
-        <section className="dashboard-grid two">
-          <article className="panel dashboard-panel">
-            <div className="panel-top"><h2>{t("monthlyRecognitions")}</h2></div>
+      <DashboardShell role="admin" title={t("analyticsTitle")} subtitle={t("analyticsSubtitle")} user={superAdminUser} actions={<Pill>{tc("demoFallback")}</Pill>}>
+        <Grid cols="two">
+          <Panel title={t("monthlyRecognitions")}>
             <BarChart items={getRecentMonthLabels(4, locale).map((label, index) => ({ label, value: platformGrowthPoints[index] ?? 0, color: "var(--theme-ink)" }))} />
-          </article>
-          <article className="panel dashboard-panel">
-            <div className="panel-top"><h2>{t("topCompanyVolume")}</h2></div>
-            {teamComparison.map((team) => (
-              <div className="bar-row" key={team.label}>
-                <span>{team.label}</span>
-                <div className="bar-track"><span style={{ width: `${team.value / 1.3}%`, background: "var(--theme-ink)" }} /></div>
-                <strong>{team.value}</strong>
-              </div>
-            ))}
-          </article>
-        </section>
+          </Panel>
+          <Panel title={t("topCompanyVolume")}>
+            <BarChart items={teamComparison.map((team) => ({ label: team.label, value: team.value, color: "var(--theme-ink)" }))} />
+          </Panel>
+        </Grid>
       </DashboardShell>
     );
   }
@@ -295,39 +295,26 @@ export default async function AdminAnalyticsPage({ params }: { params: Promise<{
         initials: getInitials(profile.first_name, profile.last_name),
         team: tc("platformTeam")
       }}
-      actions={<a className="btn btn-secondary" href={`/${locale}/admin/analytics/export`}><Download size={16} /> {t("exportCsv")}</a>}
+      actions={<Button variant="ghost" size="sm" href={`/${locale}/admin/analytics/export`} icon={<Download />}>{t("exportCsv")}</Button>}
       unreadNotifications={unreadNotifications}
     >
-      <section className="metrics-grid">
+      <Grid cols="three">
         <MetricCard icon={<Building2 />} value={companies?.length ?? 0} label={t("metricCompanies")} helper={t("metricTotalWorkspaces")} />
         <MetricCard icon={<UsersRound />} value={profiles?.length ?? 0} label={t("metricUsers")} helper={t("metricAllProfiles")} />
         <MetricCard icon={<BarChart3 />} value={recognitions?.length ?? 0} label={t("metricCardsGiven")} helper={t("metricAvgPerUser", { count: averageCardsPerUser })} />
         <MetricCard icon={<Star />} value={`${healthScore}/100`} label={t("metricHealthScore")} helper={t("metricActiveCompanies", { count: activeCompanyCount })} tone="var(--theme-emerald)" iconBackground="rgba(58, 166, 95, 0.12)" />
         <MetricCard icon={<Clock />} value={formatDuration(totalTrackedSeconds, notTrackedYet)} label={t("metricTimeTracked")} helper={t("metricAvgPerView", { value: averageTimePerView })} tone="var(--theme-gold)" iconBackground="rgba(216, 162, 58, 0.12)" />
         <MetricCard icon={<Bell />} value={unreadOperationalNotifications} label={t("metricUnreadUpdates")} helper={t("metricUpdatesThisWeek", { count: recentNotifications })} tone="var(--theme-sky)" iconBackground="rgba(47, 119, 184, 0.12)" />
-      </section>
+      </Grid>
 
-      <section className="dashboard-grid three report-summary-grid admin-report-summary-grid">
-        <article className="panel dashboard-panel report-summary-card">
-          <span className="eyebrow">{t("mostUsedCardEyebrow")}</span>
-          <strong>{topCard?.label ?? t("noCardsYet")}</strong>
-          <p>{topCard ? t("cardUsesRating", { count: topCard.count, rating: topCard.rating }) : t("liveCardRatingsCopy")}</p>
-        </article>
-        <article className="panel dashboard-panel report-summary-card">
-          <span className="eyebrow">{t("lowestUsedCardEyebrow")}</span>
-          <strong>{lowestCard?.label ?? t("noCardsYet")}</strong>
-          <p>{lowestCard ? t("cardUsesRating", { count: lowestCard.count, rating: lowestCard.rating }) : t("noLiveCardUsageCopy")}</p>
-        </article>
-        <article className="panel dashboard-panel report-summary-card">
-          <span className="eyebrow">{t("invoiceValueEyebrow")}</span>
-          <strong>{new Intl.NumberFormat(dateLocale, { style: "currency", currency: "EUR" }).format(invoiceRevenueCents / 100)}</strong>
-          <p>{t("subscriptionRecords", { count: subscriptions?.length ?? 0 })}</p>
-        </article>
-      </section>
+      <Grid cols="three">
+        <StatCard label={<>{t("mostUsedCardEyebrow")}</>} value={<>{topCard?.label ?? t("noCardsYet")}</>} helper={<>{topCard ? t("cardUsesRating", { count: topCard.count, rating: topCard.rating }) : t("liveCardRatingsCopy")}</>} />
+        <StatCard label={<>{t("lowestUsedCardEyebrow")}</>} value={<>{lowestCard?.label ?? t("noCardsYet")}</>} helper={<>{lowestCard ? t("cardUsesRating", { count: lowestCard.count, rating: lowestCard.rating }) : t("noLiveCardUsageCopy")}</>} />
+        <StatCard label={<>{t("invoiceValueEyebrow")}</>} value={<>{new Intl.NumberFormat(dateLocale, { style: "currency", currency: "EUR" }).format(invoiceRevenueCents / 100)}</>} helper={<>{t("subscriptionRecords", { count: subscriptions?.length ?? 0 })}</>} />
+      </Grid>
 
-      <section className="dashboard-grid two admin-analytics-grid">
-        <article className="panel dashboard-panel admin-chart-panel">
-          <div className="panel-top"><div><h2>{t("monthlyRecognitions")}</h2><p>{t("monthlyRecognitionsCopy")}</p></div></div>
+      <Grid cols="two">
+        <Panel title={t("monthlyRecognitions")} description={t("monthlyRecognitionsCopy")}>
           {recognitions?.length ? (
             <LineChart
               points={monthWindows.map((month) => monthlyCounts.get(month.key) ?? 0)}
@@ -339,81 +326,72 @@ export default async function AdminAnalyticsPage({ params }: { params: Promise<{
           ) : (
             <EmptyState title={t("emptyNoRecognitionsAnalyticsTitle")} copy={t("emptyNoRecognitionsAnalyticsCopy")} />
           )}
-        </article>
-        <article className="panel dashboard-panel admin-ranking-panel">
-          <div className="panel-top"><h2>{t("topCompanyVolume")}</h2></div>
+        </Panel>
+        <Panel title={t("topCompanyVolume")}>
           {topCompanies.length ? (
             <BarChart items={topCompanies.map((company) => ({ ...company, color: "var(--theme-ink)" }))} />
           ) : (
             <EmptyState title={t("emptyNoCompanyActivityTitle")} copy={t("emptyNoCompanyActivityCopy")} />
           )}
-        </article>
-      </section>
+        </Panel>
+      </Grid>
 
-      <section className="dashboard-grid two admin-analytics-grid">
-        <article className="panel dashboard-panel admin-chart-panel">
-          <div className="panel-top"><div><h2>{t("userGrowthTitle")}</h2><p>{t("userGrowthAnalyticsCopy")}</p></div></div>
+      <Grid cols="two">
+        <Panel title={t("userGrowthTitle")} description={t("userGrowthAnalyticsCopy")}>
           {profiles?.length ? (
             <LineChart points={monthWindows.map((month) => monthlyUserCounts.get(month.key) ?? 0)} labels={monthWindows.map((month) => month.label)} color="var(--theme-gold)" />
           ) : (
             <EmptyState title={t("emptyNoUsersTitle")} copy={t("emptyNoUsersCopy")} />
           )}
-        </article>
-        <article className="panel dashboard-panel admin-ranking-panel">
-          <div className="panel-top"><h2>{t("pageViewsTitle")}</h2></div>
+        </Panel>
+        <Panel title={t("pageViewsTitle")}>
           {safeAnalyticsEvents.length ? (
             <BarChart items={monthWindows.map((month) => ({ label: month.label, value: monthlyPageViews.get(month.key) ?? 0, color: "var(--theme-sky)" }))} />
           ) : (
             <EmptyState title={t("emptyTimeTrackingTitle")} copy={t("emptyTimeTrackingCopy")} />
           )}
-        </article>
-      </section>
+        </Panel>
+      </Grid>
 
-      <section className="dashboard-grid two admin-analytics-grid">
-        <article className="panel dashboard-panel">
-          <div className="panel-top"><h2>{t("companyHealthTitle")}</h2></div>
+      <Grid cols="two">
+        <Panel title={t("companyHealthTitle")}>
           {companyHealthRows.length ? (
             <BarChart items={companyHealthRows.map((company) => ({ ...company, color: company.value >= 70 ? "var(--theme-emerald)" : company.value >= 40 ? "var(--theme-gold)" : "var(--theme-red)", valueLabel: `${company.value}/100` }))} />
           ) : (
             <EmptyState title={t("emptyCompanyHealthTitle")} copy={t("emptyCompanyHealthCopy")} />
           )}
-        </article>
-        <article className="panel dashboard-panel">
-          <div className="panel-top"><h2>{t("operationalInsightsTitle")}</h2></div>
+        </Panel>
+        <Panel title={t("operationalInsightsTitle")}>
           <SignalList items={platformSignals} />
-        </article>
-      </section>
+        </Panel>
+      </Grid>
 
-      <section className="dashboard-grid two admin-analytics-grid">
-        <article className="panel dashboard-panel">
-          <div className="panel-top"><h2>{t("categoryDistributionTitle")}</h2></div>
+      <Grid cols="two">
+        <Panel title={t("categoryDistributionTitle")}>
           {categoryCounts.size ? (
             <BarChart items={Array.from(categoryCounts.entries()).sort((a, b) => b[1] - a[1]).map(([label, value]) => ({ label: getLocalizedCategoryDisplayName(label, locale), value, color: "var(--theme-emerald)" }))} />
           ) : (
             <EmptyState title={t("emptyCategoryTitle")} copy={t("emptyCategoryCopy")} />
           )}
-        </article>
-        <article className="panel dashboard-panel">
-          <div className="panel-top"><h2>{t("claimOriginTitle")}</h2></div>
+        </Panel>
+        <Panel title={t("claimOriginTitle")}>
           {claimOriginCounts.size ? (
             <BarChart items={Array.from(claimOriginCounts.entries()).sort((a, b) => b[1] - a[1]).map(([label, value]) => ({ label: label.replaceAll("_", " "), value, color: label === "qr_scan" ? "var(--theme-gold)" : "var(--theme-ink)" }))} />
           ) : (
             <EmptyState title={t("emptyClaimOriginTitle")} copy={t("emptyClaimOriginCopy")} />
           )}
-        </article>
-      </section>
+        </Panel>
+      </Grid>
 
-      <section className="dashboard-grid two admin-analytics-grid">
-        <article className="panel dashboard-panel">
-          <div className="panel-top"><h2>{t("topPagesTitle")}</h2></div>
+      <Grid cols="two">
+        <Panel title={t("topPagesTitle")}>
           {topPages.length ? (
             <BarChart items={topPages.map((page) => ({ ...page, color: "var(--theme-sky)" }))} />
           ) : (
             <EmptyState title={t("emptyPageUsageTitle")} copy={t("emptyPageUsageCopy")} />
           )}
-        </article>
-        <article className="panel dashboard-panel">
-          <div className="panel-top"><h2>{t("platformReachTitle")}</h2></div>
+        </Panel>
+        <Panel title={t("platformReachTitle")}>
           <BarChart
             items={[
               { label: t("reachReceivers"), value: receiverUserIds.size, color: "var(--theme-emerald)", helper: t("reachReceiversHelper") },
@@ -422,70 +400,49 @@ export default async function AdminAnalyticsPage({ params }: { params: Promise<{
               { label: t("reachActiveCards"), value: cards?.filter((card) => card.active).length ?? 0, color: "var(--theme-sky)", helper: t("reachActiveCardsHelper") }
             ]}
           />
-        </article>
-      </section>
+        </Panel>
+      </Grid>
 
-      <article className="panel dashboard-panel admin-export-panel">
-        <div className="panel-top">
-          <div>
-            <h2>{t("exportTitle")}</h2>
-            <p>{t("exportCopy")}</p>
-          </div>
-        </div>
-        <form className="table-toolbar" action={`/${locale}/admin/analytics/export`} method="get">
-          <label className="form-field">
-            <span>{t("dateFrom")}</span>
-            <input className="input" type="date" name="from" />
-          </label>
-          <label className="form-field">
-            <span>{t("dateTo")}</span>
-            <input className="input" type="date" name="to" />
-          </label>
-          <button className="btn btn-dark" type="submit">
-            <Download size={16} /> {t("downloadGroupedCsv")}
-          </button>
+      <Panel title={t("exportTitle")} description={t("exportCopy")}>
+        <form className="lp-filters-bar" action={`/${locale}/admin/analytics/export`} method="get">
+          <Field label={t("dateFrom")} htmlFor="exportFrom">
+            <Input id="exportFrom" type="date" name="from" />
+          </Field>
+          <Field label={t("dateTo")} htmlFor="exportTo">
+            <Input id="exportTo" type="date" name="to" />
+          </Field>
+          <Button type="submit" icon={<Download />}>{t("downloadGroupedCsv")}</Button>
         </form>
-      </article>
+      </Panel>
 
-      <section className="dashboard-grid two admin-analytics-grid">
-      <article className="panel dashboard-panel">
-        <div className="panel-top"><h2>{t("roleDistributionTitle")}</h2></div>
-        {roleRows.length ? (
-          roleRows.map(([role, value]) => (
-            <div className="bar-row" key={role}>
-              <span>{role.replaceAll("_", " ")}</span>
-              <div className="bar-track"><span style={{ width: `${Math.max(8, value * 16)}%`, background: "var(--theme-gold)" }} /></div>
-              <strong>{value}</strong>
-            </div>
-          ))
-        ) : (
-          <EmptyState title={t("emptyNoUsersTitle")} copy={t("emptyRoleDistributionCopy")} />
-        )}
-      </article>
-      <article className="panel dashboard-panel">
-        <div className="panel-top"><h2>{t("allCardsRatingsTitle")}</h2></div>
-        {cardRatings.length ? (
-          <div className="table-wrap">
-            <table className="dashboard-table">
-              <thead><tr><th>{t("tableCard")}</th><th>{t("tableCategory")}</th><th>{t("tableUses")}</th><th>{t("tableRating")}</th><th>{t("tableStatus")}</th></tr></thead>
-              <tbody>
-                {cardRatings.map((card) => (
-                  <tr key={card.id}>
-                    <td><strong>{card.label}</strong></td>
-                    <td>{getLocalizedCategoryDisplayName(card.category, locale)}</td>
-                    <td>{card.count}</td>
-                    <td>{card.rating}/100</td>
-                    <td>{card.active ? t("cardStatusActive") : t("cardStatusInactive")}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        ) : (
-          <EmptyState title={t("emptyCardsSeededTitle")} copy={t("emptyCardsSeededCopy")} />
-        )}
-      </article>
-      </section>
+      <Grid cols="two" className="lp-grid-balanced">
+        <Panel title={t("roleDistributionTitle")}>
+          {roleRows.length ? (
+            <BarChart items={roleRows.map(([role, value]) => ({ label: role.replaceAll("_", " "), value, color: "var(--theme-gold)" }))} />
+          ) : (
+            <EmptyState title={t("emptyNoUsersTitle")} copy={t("emptyRoleDistributionCopy")} />
+          )}
+        </Panel>
+        <Panel title={t("allCardsRatingsTitle")}>
+          {cardRatings.length ? (
+            <PagedTable
+              className="lp-table-flat"
+              pageSize={5}
+              head={<tr><th>{t("tableCard")}</th><th className="lp-ncol">{t("tableUses")}</th><th className="lp-ncol">{t("tableRating")}</th><th>{t("tableStatus")}</th></tr>}
+              rows={cardRatings.map((card) => (
+                <tr key={card.id}>
+                  <td><strong>{card.label}</strong><small className="lp-cell-sub">{getLocalizedCategoryDisplayName(card.category, locale)}</small></td>
+                  <td className="lp-ncol">{card.count}</td>
+                  <td className="lp-ncol">{card.rating}/100</td>
+                  <td><StatusPill raw={card.active ? "active" : "inactive"}>{card.active ? t("cardStatusActive") : t("cardStatusInactive")}</StatusPill></td>
+                </tr>
+              ))}
+            />
+          ) : (
+            <EmptyState title={t("emptyCardsSeededTitle")} copy={t("emptyCardsSeededCopy")} />
+          )}
+        </Panel>
+      </Grid>
     </DashboardShell>
   );
 }

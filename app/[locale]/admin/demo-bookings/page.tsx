@@ -6,6 +6,13 @@ import { DashboardShell } from "@/components/DashboardShell";
 import { EmptyState } from "@/components/EmptyState";
 import { getUnreadNotificationCount } from "@/lib/notifications";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { Panel } from "@/components/ui/Panel";
+import { Pill } from "@/components/ui/Pill";
+import { Alert } from "@/components/ui/Alert";
+import { Button } from "@/components/ui/Button";
+import { Textarea } from "@/components/ui/Fields";
+import { StatusPill } from "@/components/ui/StatusPill";
+import { AdminRescheduleButton } from "@/components/AdminRescheduleButton";
 
 type DemoBooking = {
   id: string;
@@ -92,87 +99,66 @@ export default async function AdminDemoBookingsPage({ params }: { params: Promis
         initials: getInitials(profile.first_name, profile.last_name),
         team: tc("platformTeam")
       }}
-      actions={<span className="quality-pill">{t("adminApprovalPill")}</span>}
+      actions={<Pill>{t("adminApprovalPill")}</Pill>}
       unreadNotifications={unreadNotifications}
     >
-      <article className="panel dashboard-panel">
-        <div className="panel-top">
-          <div>
-            <h2>{t("incomingDemoRequestsTitle")}</h2>
-            <p>{t("incomingDemoRequestsCopy")}</p>
-          </div>
-          <CalendarCheck2 size={22} />
-        </div>
+      <Panel title={t("incomingDemoRequestsTitle")} description={t("incomingDemoRequestsCopy")} action={<><CalendarCheck2 size={22} /></>}>
 
         {error ? (
           <EmptyState title={t("demoTableNotReadyTitle")} copy={t("demoTableNotReadyCopy")} />
         ) : bookings?.length ? (
-          <div className="demo-booking-list">
+          <div className="lp-booking-list">
             {(bookings as DemoBooking[]).map((booking) => {
               const isApproved = booking.status === "approved";
               const isRescheduled = booking.status === "rescheduled";
 
               return (
-                <section className="demo-booking-card" key={booking.id}>
-                  <div>
-                    <span className={`quality-pill status-${booking.status}`}>{isApproved ? t("statusApproved") : isRescheduled ? t("statusRescheduled") : booking.status}</span>
-                    <h3>{booking.company}</h3>
+                <section className="lp-booking" key={booking.id}>
+                  <div className="lp-booking-info">
+                    <div className="lp-booking-head">
+                      <h3>{booking.company}</h3>
+                      <StatusPill raw={booking.status}>{isApproved ? t("statusApproved") : isRescheduled ? t("statusRescheduled") : booking.status}</StatusPill>
+                    </div>
+                    <p>{booking.name} · {booking.email}</p>
                     <p>
-                      {booking.name} - {booking.email}
+                      {formatDate(booking.preferred_date, t("noDate"), dateLocale)} · {booking.preferred_time ?? t("timeNotSelected")} {booking.timezone ? `(${booking.timezone})` : ""}
                     </p>
                     <p>
-                      {formatDate(booking.preferred_date, t("noDate"), dateLocale)} at {booking.preferred_time ?? t("timeNotSelected")} {booking.timezone ? `(${booking.timezone})` : ""}
+                      {booking.role ?? t("roleNotProvided")} · {booking.team_size ?? t("teamSizeNotProvided")} · {t("minutesUnit", { count: booking.duration_minutes ?? 30 })}
                     </p>
-                    <p>
-                      {booking.role ?? t("roleNotProvided")} - {booking.team_size ?? t("teamSizeNotProvided")} - {t("minutesUnit", { count: booking.duration_minutes ?? 30 })}
-                    </p>
-                    {booking.message ? <p className="section-copy">{booking.message}</p> : null}
+                    {booking.message ? <p className="lp-booking-msg">{booking.message}</p> : null}
                   </div>
                   {isApproved ? (
-                    <div className="demo-booking-approved">
-                      <strong>{t("approvedConfirmationTitle")}</strong>
-                      <p>{t("approvedConfirmationCopy")}</p>
-                      {booking.admin_note ? <small>{t("notePrefix", { note: booking.admin_note })}</small> : null}
-                    </div>
+                    <Alert tone="success" title={t("approvedConfirmationTitle")}>
+                      {t("approvedConfirmationCopy")}
+                      {booking.admin_note ? <small className="lp-cell-sub">{t("notePrefix", { note: booking.admin_note })}</small> : null}
+                    </Alert>
                   ) : (
-                    <div className="demo-booking-actions">
-                      <form action={updateDemoBookingStatusAction}>
-                        <input type="hidden" name="bookingId" value={booking.id} />
-                        <textarea className="input" name="adminNote" placeholder={t("optionalNotePlaceholder")} defaultValue={booking.admin_note ?? ""} />
-                        <button className="btn btn-primary compact" type="submit" name="status" value="approved">
+                    <form action={updateDemoBookingStatusAction} className="lp-booking-actions">
+                      <input type="hidden" name="bookingId" value={booking.id} />
+                      <Textarea name="adminNote" rows={2} aria-label={t("optionalNotePlaceholder")} placeholder={t("optionalNotePlaceholder")} defaultValue={booking.admin_note ?? ""} />
+                      <div className="lp-row-actions">
+                        <Button size="sm" type="submit" name="status" value="approved">
                           {t("yesConfirmButton")}
-                        </button>
-                      </form>
-                      <details className="demo-reschedule-panel">
-                        <summary>{t("noRescheduleButton")}</summary>
-                        <form action={updateDemoBookingStatusAction} className="demo-reschedule-form">
-                          <input type="hidden" name="bookingId" value={booking.id} />
-                          <input type="hidden" name="status" value="rescheduled" />
-                          <div className="form-grid">
-                            <div className="form-field">
-                              <label htmlFor={`reschedule-date-${booking.id}`}>{t("newDateLabel")}</label>
-                              <input id={`reschedule-date-${booking.id}`} className="input" name="rescheduleDate" type="date" min={getMinimumScheduleDate()} defaultValue={booking.preferred_date ?? ""} required />
-                            </div>
-                            <div className="form-field">
-                              <label htmlFor={`reschedule-time-${booking.id}`}>{t("newTimeLabel")}</label>
-                              <input id={`reschedule-time-${booking.id}`} className="input" name="rescheduleTime" type="time" defaultValue={booking.preferred_time ?? ""} required />
-                            </div>
-                            <div className="form-field">
-                              <label htmlFor={`reschedule-duration-${booking.id}`}>{t("durationLabel")}</label>
-                              <select id={`reschedule-duration-${booking.id}`} className="input" name="rescheduleDuration" defaultValue={String(booking.duration_minutes ?? 30)}>
-                                <option value="30">{t("duration30")}</option>
-                                <option value="45">{t("duration45")}</option>
-                                <option value="60">{t("duration60")}</option>
-                              </select>
-                            </div>
-                          </div>
-                          <textarea className="input" name="adminNote" placeholder={t("rescheduleNotePlaceholder")} defaultValue={booking.admin_note ?? ""} />
-                          <button className="btn btn-secondary compact" type="submit">
-                            {t("sendRescheduleButton")}
-                          </button>
-                        </form>
-                      </details>
-                    </div>
+                        </Button>
+                        <AdminRescheduleButton
+                          bookingId={booking.id}
+                          minDate={getMinimumScheduleDate()}
+                          defaults={{ date: booking.preferred_date ?? "", time: booking.preferred_time ?? "", duration: String(booking.duration_minutes ?? 30), note: booking.admin_note ?? "" }}
+                          labels={{
+                            open: t("noRescheduleButton"),
+                            newDate: t("newDateLabel"),
+                            newTime: t("newTimeLabel"),
+                            duration: t("durationLabel"),
+                            duration30: t("duration30"),
+                            duration45: t("duration45"),
+                            duration60: t("duration60"),
+                            notePlaceholder: t("rescheduleNotePlaceholder"),
+                            send: t("sendRescheduleButton")
+                          }}
+                        />
+                      </div>
+                    </form>
                   )}
                 </section>
               );
@@ -181,7 +167,7 @@ export default async function AdminDemoBookingsPage({ params }: { params: Promis
         ) : (
           <EmptyState title={t("emptyNoDemoBookingsTitle")} copy={t("emptyNoDemoBookingsCopy")} />
         )}
-      </article>
+      </Panel>
     </DashboardShell>
   );
 }

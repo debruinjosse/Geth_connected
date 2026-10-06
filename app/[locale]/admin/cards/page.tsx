@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { updateCardActiveAction, updateCardContentAction } from "@/app/actions/adminControls";
+import { updateCardActiveAction } from "@/app/actions/adminControls";
 import { DashboardShell } from "@/components/DashboardShell";
 import { EmptyState } from "@/components/EmptyState";
 import {
@@ -10,6 +10,11 @@ import {
 } from "@/lib/cards";
 import { superAdminUser } from "@/lib/demo-data";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { Panel } from "@/components/ui/Panel";
+import { Button } from "@/components/ui/Button";
+import { PagedTable } from "@/components/ui/PagedTable";
+import { AdminCardEditor } from "@/components/AdminCardEditor";
+import { Pill } from "@/components/ui/Pill";
 
 type AdminCardRow = {
   id: string;
@@ -85,83 +90,62 @@ export default async function AdminCardsPage({ params }: { params: Promise<{ loc
         initials: getInitials(profile.first_name, profile.last_name),
         team: tc("platformTeam")
       }}
-      actions={<span className="quality-pill">{t("activeCardsPill", { count: activeCount })}</span>}
+      actions={<Pill>{t("activeCardsPill", { count: activeCount })}</Pill>}
     >
-      <article className="panel dashboard-panel">
-        <div className="panel-top">
-          <div>
-            <h2>{t("sharedCardDeckTitle")}</h2>
-            <p>{t("sharedCardDeckCopy")}</p>
-          </div>
-        </div>
-        <div className="table-wrap admin-table-scroll admin-card-library-scroll">
+      <Panel title={t("sharedCardDeckTitle")} description={t("sharedCardDeckCopy")}>
+        <>
           {cards?.length ? (
-            <table className="dashboard-table">
-              <thead><tr><th>{t("tableCard")}</th><th>{t("tableCategory")}</th><th>{t("tableNumber")}</th><th>{t("tableStatus")}</th><th>{t("tableUsage")}</th><th>{t("tableRoute")}</th><th>{t("tableControl")}</th></tr></thead>
-              <tbody>
-                {(cards as AdminCardRow[]).map((card) => (
-                  <tr key={card.id}>
-                    <td>
-                      <strong>{getLocalizedCardTitle({ title: card.title, slug: card.qr_slug }, locale)}</strong>
-                      <p className="admin-card-caption">
-                        {getLocalizedRecognitionSentence({ recognitionSentence: card.recognition_sentence, slug: card.qr_slug }, locale)}
-                      </p>
-                    </td>
-                    <td>{getLocalizedCategoryDisplayName(card.category, locale)}</td>
-                    <td>{card.card_number}</td>
-                    <td><span className="admin-status-pill">{card.active ? t("cardStatusActive") : t("cardStatusPaused")}</span></td>
-                    <td>{usageCounts.get(card.id) ?? 0}</td>
-                    <td>/claim-card/{card.qr_slug}</td>
-                    <td>
-                      <div className="admin-card-controls">
-                        <form action={updateCardActiveAction}>
-                          <input type="hidden" name="cardId" value={card.id} />
-                          <input type="hidden" name="active" value={card.active ? "false" : "true"} />
-                          <button className="btn btn-secondary compact" type="submit">
-                            {card.active ? t("pauseButton") : t("activateButton")}
-                          </button>
-                        </form>
-                        <details className="admin-card-edit">
-                          <summary>{t("editButton")}</summary>
-                          <form action={updateCardContentAction} className="admin-card-edit-form">
-                            <input type="hidden" name="cardId" value={card.id} />
-                            <label>
-                              {t("formNameLabel")}
-                              <input className="input" name="title" defaultValue={card.title} required />
-                            </label>
-                            <label>
-                              {t("tableCategory")}
-                              <select className="input" name="category" defaultValue={card.category} required>
-                                <option value="Communication">{getLocalizedCategoryDisplayName("Communication", locale)}</option>
-                                <option value="Creativity">{getLocalizedCategoryDisplayName("Creativity", locale)}</option>
-                                <option value="Competence">{getLocalizedCategoryDisplayName("Competence", locale)}</option>
-                                <option value="Collegiality">{getLocalizedCategoryDisplayName("Collegiality", locale)}</option>
-                                <option value="Open Category">{getLocalizedCategoryDisplayName("Open Category", locale)}</option>
-                              </select>
-                            </label>
-                            <label>
-                              {t("formCaptionLabel")}
-                              <textarea className="input" name="description" rows={3} defaultValue={card.description} required />
-                            </label>
-                            <label>
-                              {t("formRecognitionSentenceLabel")}
-                              <textarea className="input" name="recognitionSentence" rows={3} defaultValue={card.recognition_sentence} required />
-                            </label>
-                            <p>{t("qrSlugLocked", { slug: card.qr_slug })}</p>
-                            <button className="btn btn-primary compact" type="submit">{t("saveCardTextButton")}</button>
-                          </form>
-                        </details>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <PagedTable
+              className="lp-table-flat lp-table-stack"
+              pageSize={10}
+              pageLabel={tc("page")}
+              previousLabel={tc("previous")}
+              nextLabel={tc("next")}
+              head={<tr><th>{t("tableCard")}</th><th>{t("tableCategory")}</th><th className="lp-ncol">{t("tableNumber")}</th><th>{t("tableStatus")}</th><th className="lp-ncol">{t("tableUsage")}</th><th className="lp-act">{t("tableControl")}</th></tr>}
+              rows={(cards as AdminCardRow[]).map((card) => (
+                <tr key={card.id}>
+                  <td>
+                    <strong>{getLocalizedCardTitle({ title: card.title, slug: card.qr_slug }, locale)}</strong>
+                    <small className="lp-cell-sub lp-clamp">
+                      {getLocalizedRecognitionSentence({ recognitionSentence: card.recognition_sentence, slug: card.qr_slug }, locale)}
+                    </small>
+                  </td>
+                  <td data-label={t("tableCategory")}>{getLocalizedCategoryDisplayName(card.category, locale)}</td>
+                  <td className="lp-ncol" data-label={t("tableNumber")}>{card.card_number}</td>
+                  <td data-label={t("tableStatus")}><Pill tone={card.active ? "green" : "neutral"}>{card.active ? t("cardStatusActive") : t("cardStatusPaused")}</Pill></td>
+                  <td className="lp-ncol" data-label={t("tableUsage")}>{usageCounts.get(card.id) ?? 0}</td>
+                  <td className="lp-act" data-label={t("tableControl")} data-wide>
+                    <div className="lp-row-actions">
+                      <form action={updateCardActiveAction}>
+                        <input type="hidden" name="cardId" value={card.id} />
+                        <input type="hidden" name="active" value={card.active ? "false" : "true"} />
+                        <Button variant="ghost" size="sm" type="submit">
+                          {card.active ? t("pauseButton") : t("activateButton")}
+                        </Button>
+                      </form>
+                      <AdminCardEditor
+                        card={card}
+                        categories={["Communication", "Creativity", "Competence", "Collegiality", "Open Category"].map((value) => ({ value, label: getLocalizedCategoryDisplayName(value, locale) }))}
+                        labels={{
+                          edit: t("editButton"),
+                          name: t("formNameLabel"),
+                          category: t("tableCategory"),
+                          caption: t("formCaptionLabel"),
+                          sentence: t("formRecognitionSentenceLabel"),
+                          slugLocked: t("qrSlugLocked", { slug: card.qr_slug }),
+                          save: t("saveCardTextButton")
+                        }}
+                      />
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            />
           ) : (
             <EmptyState title={t("emptyNoCardsSeededTitle")} copy={t("emptyNoCardsSeededCopy")} />
           )}
-        </div>
-      </article>
+        </>
+      </Panel>
     </DashboardShell>
   );
 }

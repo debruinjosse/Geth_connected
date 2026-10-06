@@ -1,6 +1,10 @@
 "use client";
 
 import { Save } from "lucide-react";
+import { Alert } from "@/components/ui/Alert";
+import { buttonClass } from "@/components/ui/Button";
+import { Panel } from "@/components/ui/Panel";
+import { Pill } from "@/components/ui/Pill";
 import { useTranslations } from "next-intl";
 import { updatePlatformBillingSettingsAction } from "@/app/actions/billing";
 
@@ -46,87 +50,87 @@ export function AdminBillingSettingsForm({
   const message = getBillingSettingsMessage(t, statusCode);
 
   return (
-    <article className="panel dashboard-panel">
-      <div className="panel-top">
+    <Panel className="lp-billing">
+      <div className="lp-panel-head">
         <div>
           <h2>{t("billingSettingsTitle")}</h2>
-          <p className="section-copy">{t("billingSettingsCopy")}</p>
+          <p>{t("billingSettingsCopy")}</p>
         </div>
       </div>
 
-      {message ? <p className={`settings-feedback ${message.tone}`}>{message.copy}</p> : null}
+      {message ? <Alert tone={message.tone === "success" ? "success" : "error"}>{message.copy}</Alert> : null}
 
-      <form action={updatePlatformBillingSettingsAction} className="form-grid admin-billing-settings-form">
+      <form action={updatePlatformBillingSettingsAction} className="lp-form-stack">
         <input type="hidden" name="locale" value={locale} />
 
-        <label>
-          <span>{t("billingSellerNameLabel")}</span>
-          <input className="input" name="sellerLegalName" defaultValue={values.sellerLegalName} required />
+        <label className="lp-field">
+          <span className="lp-label">{t("billingSellerNameLabel")}</span>
+          <input className="lp-input" name="sellerLegalName" defaultValue={values.sellerLegalName} required />
         </label>
 
-        <label>
-          <span>{t("billingSellerVatLabel")}</span>
-          <input className="input" name="sellerVatNumber" defaultValue={values.sellerVatNumber} />
+        <label className="lp-field">
+          <span className="lp-label">{t("billingSellerVatLabel")}</span>
+          <input className="lp-input" name="sellerVatNumber" defaultValue={values.sellerVatNumber} />
         </label>
 
-        <label className="full-span">
-          <span>{t("billingSellerAddressLabel")}</span>
-          <textarea className="input" name="sellerBillingAddress" rows={3} defaultValue={values.sellerBillingAddress} required />
+        <label className="lp-field">
+          <span className="lp-label">{t("billingSellerAddressLabel")}</span>
+          <textarea className="lp-input" name="sellerBillingAddress" rows={3} defaultValue={values.sellerBillingAddress} required />
         </label>
 
-        <label>
-          <span>{t("billingSellerEmailLabel")}</span>
-          <input className="input" type="email" name="sellerEmail" defaultValue={values.sellerEmail} required />
+        <label className="lp-field">
+          <span className="lp-label">{t("billingSellerEmailLabel")}</span>
+          <input className="lp-input" type="email" name="sellerEmail" defaultValue={values.sellerEmail} required />
         </label>
 
-        <label>
-          <span>
+        <label className="lp-field">
+          <span className="lp-label">
             {t("billingPaymentIbanLabel")}
-            {looksLikeTestValue(values.paymentIban) ? <span className="demo-tag">{t("billingDemoDataTag")}</span> : null}
+            {looksLikeTestValue(values.paymentIban) ? <Pill tone="gold">{t("billingDemoDataTag")}</Pill> : null}
           </span>
-          <input className="input" name="paymentIban" defaultValue={values.paymentIban} required />
+          <input className="lp-input" name="paymentIban" defaultValue={values.paymentIban} required />
         </label>
 
-        <label>
-          <span>
+        <label className="lp-field">
+          <span className="lp-label">
             {t("billingPaymentBicLabel")}
-            {looksLikeTestValue(values.paymentBic) ? <span className="demo-tag">{t("billingDemoDataTag")}</span> : null}
+            {looksLikeTestValue(values.paymentBic) ? <Pill tone="gold">{t("billingDemoDataTag")}</Pill> : null}
           </span>
-          <input className="input" name="paymentBic" defaultValue={values.paymentBic} />
+          <input className="lp-input" name="paymentBic" defaultValue={values.paymentBic} />
         </label>
 
-        <label>
-          <span>{t("billingPaymentBankLabel")}</span>
-          <input className="input" name="paymentBankName" defaultValue={values.paymentBankName} />
+        <label className="lp-field">
+          <span className="lp-label">{t("billingPaymentBankLabel")}</span>
+          <input className="lp-input" name="paymentBankName" defaultValue={values.paymentBankName} />
         </label>
 
-        <label>
-          <span>{t("billingPaymentReferencePrefixLabel")}</span>
-          <input className="input" name="paymentReferencePrefix" defaultValue={values.paymentReferencePrefix} />
+        <label className="lp-field">
+          <span className="lp-label">{t("billingPaymentReferencePrefixLabel")}</span>
+          <input className="lp-input" name="paymentReferencePrefix" defaultValue={values.paymentReferencePrefix} />
         </label>
 
-        <label>
-          <span>{t("billingPaymentTermsDaysLabel")}</span>
-          <input className="input" type="number" min={1} name="paymentTermsDays" defaultValue={values.paymentTermsDays} />
+        <label className="lp-field">
+          <span className="lp-label">{t("billingPaymentTermsDaysLabel")}</span>
+          <input className="lp-input" type="number" min={1} name="paymentTermsDays" defaultValue={values.paymentTermsDays} />
         </label>
 
-        <label>
-          <span>{t("billingVatRateLabel")}</span>
-          <input className="input" name="vatRatePercent" defaultValue={values.vatRatePercent} />
+        <label className="lp-field">
+          <span className="lp-label">{t("billingVatRateLabel")}</span>
+          <input className="lp-input" name="vatRatePercent" defaultValue={values.vatRatePercent} />
         </label>
 
-        <label className="full-span">
-          <span>{t("billingPaymentTermsLabel")}</span>
-          <textarea className="input" name="paymentTerms" rows={2} defaultValue={values.paymentTerms} />
+        <label className="lp-field">
+          <span className="lp-label">{t("billingPaymentTermsLabel")}</span>
+          <textarea className="lp-input" name="paymentTerms" rows={2} defaultValue={values.paymentTerms} />
         </label>
 
-        <div className="button-row full-span">
-          <button className="btn btn-primary" type="submit">
+        <div className="lp-form-actions">
+          <button className={buttonClass({ variant: "primary" })} type="submit">
             <Save size={16} />
             {t("billingSettingsSave")}
           </button>
         </div>
       </form>
-    </article>
+    </Panel>
   );
 }

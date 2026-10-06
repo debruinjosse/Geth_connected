@@ -14,6 +14,9 @@ import {
 } from "@/lib/billing/platform-settings";
 import { superAdminUser } from "@/lib/demo-data";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { Grid } from "@/components/ui/Grid";
+import { Panel } from "@/components/ui/Panel";
+import { Pill } from "@/components/ui/Pill";
 
 function hasSupabaseServerConfig() {
   return Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
@@ -117,9 +120,23 @@ export default async function AdminSettingsPage({
         team: tc("platformTeam"),
         imageUrl: profile.profile_image
       }}
-      actions={<span className="quality-pill">{t("readOnlyStatusPill")}</span>}
+      actions={<Pill>{t("readOnlyStatusPill")}</Pill>}
     >
-      <section className="dashboard-grid two">
+      <Panel title={t("systemConfigurationTitle")} description={t("systemConfigurationCopy")}>
+        <div className="lp-tiles">
+          {checks.map((check) => (
+            <div className="lp-tile" key={check.label}>
+              <div>
+                <strong>{check.label}</strong>
+                <small>{check.detail}</small>
+              </div>
+              <Pill tone={check.ok ? "green" : "gold"}>{check.ok ? t("configuredLabel") : t("missingLabel")}</Pill>
+            </div>
+          ))}
+        </div>
+      </Panel>
+
+      <Grid cols="two" className="lp-grid-balanced">
         <AccountSettingsPanel
           email={user.email ?? tc("noEmail")}
           firstName={profile.first_name ?? ""}
@@ -128,83 +145,64 @@ export default async function AdminSettingsPage({
           returnTo={returnTo}
           statusCode={settings}
         />
-        <article className="panel dashboard-panel">
-          <div className="panel-top">
-            <div>
-              <h2>{t("systemConfigurationTitle")}</h2>
-              <p>{t("systemConfigurationCopy")}</p>
-            </div>
-          </div>
-          <div className="signal-list">
-            {checks.map((check) => (
-              <div className="signal-card" key={check.label}>
-                <div>
-                  <strong>{check.label}</strong>
-                  <p>{check.detail}</p>
-                </div>
-                <span className={`energy ${check.ok ? "high" : "low"}`}>{check.ok ? t("configuredLabel") : t("missingLabel")}</span>
-              </div>
-            ))}
-          </div>
-        </article>
-        <AdminBillingSettingsForm locale={locale} values={billingFormValues} statusCode={settings} />
-        <AiMasterPromptSettingsForm
-          locale={locale}
-          insightType="growth_timeline"
-          title={t("aiPromptSettingsGrowthTimelineTitle")}
-          copy={t("aiPromptSettingsGrowthTimelineCopy")}
-          toneGuidance={growthTimelinePromptRow?.tone_guidance ?? ""}
-          isDefault={!growthTimelinePromptRow?.tone_guidance}
-          updatedByLabel={growthTimelineUpdatedByLabel}
-          updatedAt={growthTimelinePromptRow?.updated_at ?? null}
-          statusCode={settings}
-        />
-        <AiMasterPromptSettingsForm
-          locale={locale}
-          insightType="hidden_patterns"
-          title={t("aiPromptSettingsHiddenPatternsTitle")}
-          copy={t("aiPromptSettingsHiddenPatternsCopy")}
-          toneGuidance={hiddenPatternsPromptRow?.tone_guidance ?? ""}
-          isDefault={!hiddenPatternsPromptRow?.tone_guidance}
-          updatedByLabel={hiddenPatternsUpdatedByLabel}
-          updatedAt={hiddenPatternsPromptRow?.updated_at ?? null}
-          statusCode={settings}
-        />
-        <AiMasterPromptSettingsForm
-          locale={locale}
-          insightType="master_prompt"
-          title={t("aiPromptSettingsMasterPromptTitle")}
-          copy={t("aiPromptSettingsMasterPromptCopy")}
-          toneGuidance={masterPromptRow?.tone_guidance ?? ""}
-          isDefault={!masterPromptRow?.tone_guidance}
-          updatedByLabel={masterPromptUpdatedByLabel}
-          updatedAt={masterPromptRow?.updated_at ?? null}
-          statusCode={settings}
-        />
-        <article className="panel dashboard-panel full-span">
-          <div className="panel-top">
-            <div>
-              <h2>{t("productionNotesTitle")}</h2>
-              <p>{t("productionNotesTableCopy")}</p>
-            </div>
-          </div>
-          <div className="signal-list">
+
+        <Panel title={t("productionNotesTitle")} description={t("productionNotesTableCopy")}>
+          <div className="lp-tiles lp-tiles-one">
             {[
               { title: t("productionNotesReadOnlyTitle"), detail: t("productionNotesReadOnly") },
               { title: t("productionNotesSmtpTitle"), detail: t("productionNotesSmtp") },
               { title: t("productionNotesMailboxTitle"), detail: t("productionNotesMailbox") },
               { title: t("productionNotesConcurrentTitle"), detail: t("productionNotesConcurrent") }
             ].map((note) => (
-              <div className="signal-card" key={note.title}>
+              <div className="lp-tile" key={note.title}>
                 <div>
                   <strong>{note.title}</strong>
-                  <p>{note.detail}</p>
+                  <small>{note.detail}</small>
                 </div>
               </div>
             ))}
           </div>
-        </article>
-      </section>
+        </Panel>
+      </Grid>
+
+      <AdminBillingSettingsForm locale={locale} values={billingFormValues} statusCode={settings} />
+
+      <Grid cols="three" className="lp-grid-prompts">
+          <AiMasterPromptSettingsForm
+            locale={locale}
+            insightType="growth_timeline"
+            title={t("aiPromptSettingsGrowthTimelineTitle")}
+            copy={t("aiPromptSettingsGrowthTimelineCopy")}
+            toneGuidance={growthTimelinePromptRow?.tone_guidance ?? ""}
+            isDefault={!growthTimelinePromptRow?.tone_guidance}
+            updatedByLabel={growthTimelineUpdatedByLabel}
+            updatedAt={growthTimelinePromptRow?.updated_at ?? null}
+            statusCode={settings}
+          />
+          <AiMasterPromptSettingsForm
+            locale={locale}
+            insightType="hidden_patterns"
+            title={t("aiPromptSettingsHiddenPatternsTitle")}
+            copy={t("aiPromptSettingsHiddenPatternsCopy")}
+            toneGuidance={hiddenPatternsPromptRow?.tone_guidance ?? ""}
+            isDefault={!hiddenPatternsPromptRow?.tone_guidance}
+            updatedByLabel={hiddenPatternsUpdatedByLabel}
+            updatedAt={hiddenPatternsPromptRow?.updated_at ?? null}
+            statusCode={settings}
+          />
+          <AiMasterPromptSettingsForm
+            locale={locale}
+            insightType="master_prompt"
+            title={t("aiPromptSettingsMasterPromptTitle")}
+            copy={t("aiPromptSettingsMasterPromptCopy")}
+            toneGuidance={masterPromptRow?.tone_guidance ?? ""}
+            isDefault={!masterPromptRow?.tone_guidance}
+            updatedByLabel={masterPromptUpdatedByLabel}
+            updatedAt={masterPromptRow?.updated_at ?? null}
+            statusCode={settings}
+          />
+      </Grid>
+
     </DashboardShell>
   );
 }

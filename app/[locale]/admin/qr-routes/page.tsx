@@ -5,6 +5,10 @@ import { DashboardShell } from "@/components/DashboardShell";
 import { EmptyState } from "@/components/EmptyState";
 import { superAdminUser } from "@/lib/demo-data";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { Panel } from "@/components/ui/Panel";
+import { Button } from "@/components/ui/Button";
+import { PagedTable } from "@/components/ui/PagedTable";
+import { Pill } from "@/components/ui/Pill";
 
 type QrRouteRow = {
   id: string;
@@ -75,31 +79,34 @@ export default async function AdminQrRoutesPage({ params }: { params: Promise<{ 
         initials: getInitials(profile.first_name, profile.last_name),
         team: tc("platformTeam")
       }}
-      actions={<Link className="btn btn-secondary compact" href={`/${locale}/admin/cards`}>{t("manageCardsButton")}</Link>}
+      actions={<Button variant="ghost" size="sm" href={`/${locale}/admin/cards`}>{t("manageCardsButton")}</Button>}
     >
-      <article className="panel dashboard-panel">
-        <div className="table-wrap admin-table-scroll">
+      <Panel>
+        <>
           {routes?.length ? (
-            <table className="dashboard-table">
-              <thead><tr><th>{t("tableSlug")}</th><th>{t("tableCard")}</th><th>{t("tableCategory")}</th><th>{t("tableDestination")}</th><th>{t("tableStatus")}</th><th>{t("tableClaims")}</th></tr></thead>
-              <tbody>
-                {(routes as QrRouteRow[]).map((route) => (
-                  <tr key={route.id}>
-                    <td><strong>{route.qr_slug}</strong></td>
-                    <td>{route.title}</td>
-                    <td>{route.category}</td>
-                    <td><Link className="panel-link" href={`/${locale}/claim-card/${route.qr_slug}`}>/{locale}/claim-card/{route.qr_slug}</Link></td>
-                    <td><span className="admin-status-pill">{route.active ? t("cardStatusActive") : t("cardStatusPaused")}</span></td>
-                    <td>{usageCounts.get(route.id) ?? 0}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <PagedTable
+              className="lp-table-flat lp-table-stack"
+              pageSize={10}
+              pageLabel={tc("page")}
+              previousLabel={tc("previous")}
+              nextLabel={tc("next")}
+              head={<tr><th>{t("tableSlug")}</th><th>{t("tableCard")}</th><th>{t("tableCategory")}</th><th>{t("tableDestination")}</th><th>{t("tableStatus")}</th><th className="lp-ncol">{t("tableClaims")}</th></tr>}
+              rows={(routes as QrRouteRow[]).map((route) => (
+                <tr key={route.id}>
+                  <td><strong>{route.qr_slug}</strong></td>
+                  <td data-label={t("tableCard")}>{route.title}</td>
+                  <td data-label={t("tableCategory")}>{route.category}</td>
+                  <td data-label={t("tableDestination")}><Link className="lp-link" href={`/${locale}/claim-card/${route.qr_slug}`}>/{locale}/claim-card/{route.qr_slug}</Link></td>
+                  <td data-label={t("tableStatus")}><Pill tone={route.active ? "green" : "neutral"}>{route.active ? t("cardStatusActive") : t("cardStatusPaused")}</Pill></td>
+                  <td className="lp-ncol" data-label={t("tableClaims")}>{usageCounts.get(route.id) ?? 0}</td>
+                </tr>
+              ))}
+            />
           ) : (
             <EmptyState title={t("emptyNoQrRoutesTitle")} copy={t("emptyNoQrRoutesCopy")} />
           )}
-        </div>
-      </article>
+        </>
+      </Panel>
     </DashboardShell>
   );
 }

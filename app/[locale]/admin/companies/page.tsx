@@ -7,6 +7,12 @@ import { DashboardShell } from "@/components/DashboardShell";
 import { EmptyState } from "@/components/EmptyState";
 import { superAdminUser } from "@/lib/demo-data";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { Panel } from "@/components/ui/Panel";
+import { Table } from "@/components/ui/Table";
+import { Pill } from "@/components/ui/Pill";
+import { Alert } from "@/components/ui/Alert";
+import { Button } from "@/components/ui/Button";
+import { Field, FieldGrid, Input, Select } from "@/components/ui/Fields";
 
 function getInitials(firstName: string, lastName: string) {
   return `${firstName[0] ?? ""}${lastName[0] ?? ""}`.toUpperCase() || "GA";
@@ -120,86 +126,69 @@ export default async function AdminCompaniesPage({
         initials: getInitials(profile.first_name, profile.last_name),
         team: tc("platformTeam")
       }}
-      actions={<span className="quality-pill">{tc("liveData")}</span>}
+      actions={<Pill>{tc("liveData")}</Pill>}
     >
       {deleteStatus === "success" ? (
-        <p className="settings-feedback success">{t("deleteCompanySuccess")}</p>
+        <Alert tone="success">{t("deleteCompanySuccess")}</Alert>
       ) : null}
       {deleteStatus === "failed" ? (
-        <p className="settings-feedback error">{t("deleteCompanyFailed")}</p>
+        <Alert tone="error">{t("deleteCompanyFailed")}</Alert>
       ) : null}
 
-      <article className="panel dashboard-panel">
-        <div className="panel-top">
-          <div>
-            <h2>{t("createCompanyWorkspaceTitle")}</h2>
-            <p className="section-copy">{t("createCompanyWorkspaceCopy")}</p>
-          </div>
-        </div>
-        <form action={createCompanyWorkspaceAction} className="form-grid admin-company-create-form">
+      <Panel title={t("createCompanyWorkspaceTitle")} description={t("createCompanyWorkspaceCopy")}>
+        <form action={createCompanyWorkspaceAction}>
           <input type="hidden" name="locale" value={locale} />
-          <div className="form-field">
-            <label htmlFor="companyName">{t("formCompanyNameLabel")}</label>
-            <input id="companyName" className="input" name="companyName" placeholder="ABC Company" required />
-          </div>
-          <div className="form-field">
-            <label htmlFor="slug">{t("formCompanySlugLabel")}</label>
-            <input id="slug" className="input" name="slug" placeholder="abc-company" />
-          </div>
-          <div className="form-field">
-            <label htmlFor="industry">{t("formIndustryLabel")}</label>
-            <input id="industry" className="input" name="industry" placeholder="Technology, healthcare, education..." />
-          </div>
-          <div className="form-field">
-            <label htmlFor="subscriptionPlan">{t("formPlanLabel")}</label>
-            <select id="subscriptionPlan" className="input" name="subscriptionPlan" defaultValue="growth">
-              <option value="growth">Growth — €11.99 / employee / month</option>
-              <option value="enterprise">Custom — 50+ employees</option>
-            </select>
-          </div>
-          <div className="form-field">
-            <label htmlFor="contactName">{t("formContactNameLabel")}</label>
-            <input id="contactName" className="input" name="contactName" placeholder="Tim Schobbe" />
-          </div>
-          <div className="form-field">
-            <label htmlFor="contactPhone">{t("formContactPhoneLabel")}</label>
-            <input id="contactPhone" className="input" name="contactPhone" type="tel" placeholder="+31 6 12345678" />
-          </div>
-          <div className="form-field">
-            <label htmlFor="companyAdminEmail">{t("formCompanyAdminEmailLabel")}</label>
-            <input id="companyAdminEmail" className="input" name="companyAdminEmail" type="email" placeholder="admin@company.com" required />
-          </div>
-          <div className="form-field">
-            <label htmlFor="teamName">{t("formStarterTeamLabel")}</label>
-            <input id="teamName" className="input" name="teamName" placeholder="Marketing Team" />
-          </div>
-          <div className="form-field">
-            <label htmlFor="managerEmail">{t("formStarterManagerEmailLabel")}</label>
-            <input id="managerEmail" className="input" name="managerEmail" type="email" placeholder="manager@company.com" />
-          </div>
-          <div className="form-field admin-company-create-submit">
-            <span className="field-help">{t("inviteLinksHelp")}</span>
-            <button className="btn btn-dark" type="submit">{t("createCompanyAndInvites")}</button>
+          <FieldGrid>
+            <Field label={t("formCompanyNameLabel")} htmlFor="companyName" required>
+              <Input id="companyName" name="companyName" placeholder="ABC Company" required />
+            </Field>
+            <Field label={t("formCompanySlugLabel")} htmlFor="slug">
+              <Input id="slug" name="slug" placeholder="abc-company" />
+            </Field>
+            <Field label={t("formIndustryLabel")} htmlFor="industry">
+              <Input id="industry" name="industry" placeholder="Technology, healthcare, education..." />
+            </Field>
+            <Field label={t("formPlanLabel")} htmlFor="subscriptionPlan">
+              <Select id="subscriptionPlan" name="subscriptionPlan" defaultValue="growth">
+                <option value="growth">Growth — €11.99 / employee / month</option>
+                <option value="enterprise">Custom — 50+ employees</option>
+              </Select>
+            </Field>
+            <Field label={t("formContactNameLabel")} htmlFor="contactName">
+              <Input id="contactName" name="contactName" placeholder="Tim Schobbe" />
+            </Field>
+            <Field label={t("formContactPhoneLabel")} htmlFor="contactPhone">
+              <Input id="contactPhone" name="contactPhone" type="tel" placeholder="+31 6 12345678" />
+            </Field>
+            <Field label={t("formCompanyAdminEmailLabel")} htmlFor="companyAdminEmail" required>
+              <Input id="companyAdminEmail" name="companyAdminEmail" type="email" placeholder="admin@company.com" required />
+            </Field>
+            <Field label={t("formStarterTeamLabel")} htmlFor="teamName">
+              <Input id="teamName" name="teamName" placeholder="Marketing Team" />
+            </Field>
+            <Field label={t("formStarterManagerEmailLabel")} htmlFor="managerEmail">
+              <Input id="managerEmail" name="managerEmail" type="email" placeholder="manager@company.com" />
+            </Field>
+          </FieldGrid>
+          <div className="lp-form-foot">
+            <small className="lp-hint">{t("inviteLinksHelp")}</small>
+            <Button type="submit">{t("createCompanyAndInvites")}</Button>
           </div>
         </form>
-      </article>
+      </Panel>
 
-      <article className="panel dashboard-panel">
-        <div className="table-wrap">
+      <Panel>
+        <>
           {companyRows.length ? (
-            <table className="dashboard-table">
+            <Table className="lp-table-flat lp-table-stack">
               <thead>
                 <tr>
                   <th>{t("tableCompany")}</th>
                   <th>{t("tableInviteEmail")}</th>
-                  <th>{t("tableContactName")}</th>
-                  <th>{t("tableContactPhone")}</th>
-                  <th>{t("tablePlan")}</th>
-                  <th>{t("tableStatus")}</th>
-                  <th>{t("tableUsers")}</th>
-                  <th>{t("tableManagers")}</th>
-                  <th>{t("tableTeams")}</th>
-                  <th>{t("tableControl")}</th>
+                  <th className="lp-ncol">{t("tableUsers")}</th>
+                  <th className="lp-ncol">{t("tableManagers")}</th>
+                  <th className="lp-ncol">{t("tableTeams")}</th>
+                  <th className="lp-act">{t("tableControl")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -210,29 +199,26 @@ export default async function AdminCompaniesPage({
                   return (
                     <tr key={company.id}>
                       <td>
-                        <strong>{company.company_name}</strong>
-                        <p style={{ margin: "4px 0 0", color: "var(--theme-muted)" }}>{company.industry ?? t("noIndustrySet")}</p>
-                        <Link className="panel-link" href={`/${locale}/admin/companies/${company.id}`}>{t("openHierarchy")}</Link>
+                        <Link className="lp-link-strong" href={`/${locale}/admin/companies/${company.id}`}>{company.company_name}</Link>
+                        <small className="lp-cell-sub">{company.industry ?? t("noIndustrySet")} · {company.subscription_plan}</small>
                       </td>
-                      <td>{inviteEmail}</td>
-                      <td>{company.contact_name ?? t("contactNotSet")}</td>
-                      <td>{company.contact_phone ?? t("contactNotSet")}</td>
-                      <td>{company.subscription_plan}</td>
-                      <td><span className="admin-status-pill">{company.status}</span></td>
-                      <td>{profileCounts.get(company.id) ?? 0}</td>
-                      <td>{managerCounts.get(company.id) ?? 0}</td>
-                      <td>{teamCounts.get(company.id) ?? 0}</td>
-                      <td>
-                        <div className="admin-control-form">
-                          <form action={updateCompanyStatusAction}>
+                      <td data-label={t("tableInviteEmail")}>
+                        {company.contact_name ?? inviteEmail}
+                        <small className="lp-cell-sub">{company.contact_name ? inviteEmail : t("contactNotSet")}{company.contact_phone ? ` · ${company.contact_phone}` : ""}</small>
+                      </td>
+                      <td className="lp-ncol" data-label={t("tableUsers")}>{profileCounts.get(company.id) ?? 0}</td>
+                      <td className="lp-ncol" data-label={t("tableManagers")}>{managerCounts.get(company.id) ?? 0}</td>
+                      <td className="lp-ncol" data-label={t("tableTeams")}>{teamCounts.get(company.id) ?? 0}</td>
+                      <td className="lp-act" data-label={t("tableControl")} data-wide>
+                        <div className="lp-row-actions">
+                          <form action={updateCompanyStatusAction} className="lp-inline-ctl">
                             <input type="hidden" name="companyId" value={company.id} />
-                            <label className="sr-only" htmlFor={`status-${company.id}`}>{t("companyStatusLabel")}</label>
-                            <select id={`status-${company.id}`} name="status" defaultValue={company.status ?? "active"} aria-label={`Update ${company.company_name} status`}>
+                            <Select className="lp-select-sm" id={`status-${company.id}`} name="status" defaultValue={company.status ?? "active"} aria-label={`${t("companyStatusLabel")} — ${company.company_name}`}>
                               <option value="active">{t("statusActiveOption")}</option>
                               <option value="demo">{t("statusDemoOption")}</option>
                               <option value="inactive">{t("statusInactiveOption")}</option>
-                            </select>
-                            <button className="btn btn-secondary compact" type="submit">{t("saveButton")}</button>
+                            </Select>
+                            <Button variant="ghost" size="sm" type="submit">{t("saveButton")}</Button>
                           </form>
                           <AdminCompanyDeleteButton
                             companyId={company.id}
@@ -246,12 +232,12 @@ export default async function AdminCompaniesPage({
                   );
                 })}
               </tbody>
-            </table>
+            </Table>
           ) : (
             <EmptyState title={t("emptyNoCompaniesListTitle")} copy={t("emptyNoCompaniesListCopy")} />
           )}
-        </div>
-      </article>
+        </>
+      </Panel>
     </DashboardShell>
   );
 }

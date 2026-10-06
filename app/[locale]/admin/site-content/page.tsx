@@ -6,6 +6,8 @@ import { buildHomeCmsDefaults } from "@/lib/build-home-cms-defaults";
 import { getAllSiteContentForNamespace } from "@/lib/site-content";
 import { getUnreadNotificationCount } from "@/lib/notifications";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { SegmentedLocaleTabs } from "@/components/admin/SegmentedLocaleTabs";
+import { Panel } from "@/components/ui/Panel";
 
 function hasSupabaseServerConfig() {
   return Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
@@ -25,9 +27,9 @@ export default async function AdminSiteContentPage({ params }: { params: Promise
   if (!hasSupabaseServerConfig()) {
     return (
       <DashboardShell role="admin" title={t("siteContentTitle")} subtitle={t("siteContentSubtitle")} user={{ name: tc("platformAdminName"), initials: "GA", team: tc("platformTeam") }}>
-        <article className="panel dashboard-panel">
+        <Panel>
           <p className="section-copy">{t("siteContentDemoCopy")}</p>
-        </article>
+        </Panel>
       </DashboardShell>
     );
   }
@@ -73,24 +75,12 @@ export default async function AdminSiteContentPage({ params }: { params: Promise
       }}
       unreadNotifications={unreadNotifications}
     >
-      <article className="panel dashboard-panel admin-site-content-panel">
-        <div className="panel-top">
-          <div>
-            <h2>{t("siteContentHeroTitle")}</h2>
-            <p className="section-copy">{t("siteContentHeroCopy")}</p>
-          </div>
-        </div>
-
-        <section className="admin-site-content-locale-block">
-          <div className="eyebrow">English</div>
-          <AdminSiteContentForm locale="en" defaults={defaultsEn} overrides={overridesEn} />
-        </section>
-
-        <section className="admin-site-content-locale-block">
-          <div className="eyebrow">Nederlands</div>
-          <AdminSiteContentForm locale="nl" defaults={defaultsNl} overrides={overridesNl} />
-        </section>
-      </article>
+      <Panel title={t("siteContentHeroTitle")} description={t("siteContentHeroCopy")}>
+        <SegmentedLocaleTabs
+          en={<AdminSiteContentForm locale="en" defaults={defaultsEn} overrides={overridesEn} />}
+          nl={<AdminSiteContentForm locale="nl" defaults={defaultsNl} overrides={overridesNl} />}
+        />
+      </Panel>
     </DashboardShell>
   );
 }

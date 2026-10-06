@@ -728,7 +728,10 @@
     "managerRole": "Manager",
     "platformAdminName": "GETH-beheerder",
     "noEmailOnSession": "Geen e-mailadres in sessie",
-    "demoSaved": "opgeslagen in demomodus"
+    "demoSaved": "opgeslagen in demomodus",
+    "page": "Pagina",
+    "previous": "Vorige",
+    "next": "Volgende"
   },
   "employeeHome": {
     "headerTitle": "Hoi, welkom terug, {name}",

@@ -9,6 +9,10 @@ import { MetricCard } from "@/components/MetricCard";
 import { superAdminUser } from "@/lib/demo-data";
 import { getUnreadNotificationCount } from "@/lib/notifications";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { Grid } from "@/components/ui/Grid";
+import { Panel } from "@/components/ui/Panel";
+import { Table } from "@/components/ui/Table";
+import { Pill } from "@/components/ui/Pill";
 
 function getInitials(firstName: string, lastName: string) {
   return `${firstName[0] ?? ""}${lastName[0] ?? ""}`.toUpperCase() || "GA";
@@ -106,10 +110,10 @@ export default async function AdminDashboardPage({ params }: { params: Promise<{
         initials: getInitials(profile.first_name, profile.last_name),
         team: tc("platformTeam")
       }}
-      actions={<span className="quality-pill">{tc("livePlatformData")}</span>}
+      actions={<Pill>{tc("livePlatformData")}</Pill>}
       unreadNotifications={unreadNotifications}
     >
-      <section className="metrics-grid">
+      <Grid cols="three">
         <MetricCard icon={<Building2 />} value={companyCount ?? 0} label={t("metricCompanies")} helper={t("metricCompaniesHelper")} />
         <MetricCard icon={<UsersRound />} value={profileCount ?? 0} label={t("metricUsers")} helper={t("metricUsersHelper")} />
         <MetricCard icon={<BarChart3 />} value={recognitionCount ?? 0} label={t("metricRecognitions")} helper={t("metricRecognitionsHelper")} tone="var(--theme-emerald)" iconBackground="rgba(58, 166, 95, 0.12)" />
@@ -122,17 +126,10 @@ export default async function AdminDashboardPage({ params }: { params: Promise<{
           tone="var(--theme-sky)"
           iconBackground="rgba(47, 119, 184, 0.12)"
         />
-      </section>
+      </Grid>
 
-      <section className="dashboard-grid two admin-overview-graphics">
-        <article className="panel dashboard-panel admin-chart-panel">
-          <div className="panel-top">
-            <div>
-              <h2>{t("recognitionActivityTitle")}</h2>
-              <p>{t("recognitionActivityCopy")}</p>
-            </div>
-            <Link className="quality-pill" href={`/${locale}/admin/analytics`}>{tc("analytics")}</Link>
-          </div>
+      <Grid cols="two">
+        <Panel title={t("recognitionActivityTitle")} description={t("recognitionActivityCopy")} action={<><Link className="lp-pill" href={`/${locale}/admin/analytics`}>{tc("analytics")}</Link></>}>
           {recognitionCount ? (
             <LineChart
               points={trendPoints}
@@ -144,34 +141,21 @@ export default async function AdminDashboardPage({ params }: { params: Promise<{
           ) : (
             <EmptyState title={t("emptyNoRecognitionsTitle")} copy={t("emptyNoRecognitionsCopy")} />
           )}
-        </article>
+        </Panel>
 
-        <article className="panel dashboard-panel admin-chart-panel">
-          <div className="panel-top">
-            <div>
-              <h2>{t("userGrowthTitle")}</h2>
-              <p>{t("userGrowthCopy")}</p>
-            </div>
-          </div>
+        <Panel title={t("userGrowthTitle")} description={t("userGrowthCopy")}>
           {profileCount ? (
             <LineChart points={userTrendPoints} labels={monthWindows.map((month) => month.label)} color="var(--theme-gold)" />
           ) : (
             <EmptyState title={t("emptyNoUserGrowthTitle")} copy={t("emptyNoUserGrowthCopy")} />
           )}
-        </article>
-      </section>
+        </Panel>
+      </Grid>
 
-      <article className="panel dashboard-panel">
-        <div className="panel-top">
-          <div>
-            <h2>{t("recentCompaniesTitle")}</h2>
-            <p>{t("recentCompaniesCopy")}</p>
-          </div>
-          <Link href={`/${locale}/admin/companies`} className="panel-link">{tc("viewAll")}</Link>
-        </div>
+      <Panel title={t("recentCompaniesTitle")} description={t("recentCompaniesCopy")} action={<><Link href={`/${locale}/admin/companies`} className="panel-link">{tc("viewAll")}</Link></>}>
         {companies?.length ? (
-          <div className="table-wrap">
-            <table className="dashboard-table">
+          <>
+            <Table className="lp-table-flat lp-table-stack">
               <thead>
                 <tr>
                   <th>{t("tableCompany")}</th>
@@ -184,18 +168,18 @@ export default async function AdminDashboardPage({ params }: { params: Promise<{
                 {companies.map((company) => (
                   <tr key={company.id}>
                     <td><strong>{company.company_name}</strong></td>
-                    <td>{company.subscription_plan}</td>
-                    <td>{company.status}</td>
-                    <td>{new Intl.DateTimeFormat(dateLocale, { month: "short", day: "numeric", year: "numeric" }).format(new Date(company.created_at))}</td>
+                    <td data-label={t("tablePlan")}>{company.subscription_plan}</td>
+                    <td data-label={t("tableStatus")}>{company.status}</td>
+                    <td data-label={t("tableCreated")}>{new Intl.DateTimeFormat(dateLocale, { month: "short", day: "numeric", year: "numeric" }).format(new Date(company.created_at))}</td>
                   </tr>
                 ))}
               </tbody>
-            </table>
-          </div>
+            </Table>
+          </>
         ) : (
           <EmptyState title={t("emptyNoCompaniesTitle")} copy={t("emptyNoCompaniesCopy")} />
         )}
-      </article>
+      </Panel>
     </DashboardShell>
   );
 }

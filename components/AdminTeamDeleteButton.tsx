@@ -1,5 +1,8 @@
 "use client";
 
+import { useState } from "react";
+import { Modal } from "@/components/ui/Modal";
+import { buttonClass } from "@/components/ui/Button";
 import { deleteCompanyTeamAction } from "@/app/actions/adminControls";
 
 export function AdminTeamDeleteButton({
@@ -8,7 +11,7 @@ export function AdminTeamDeleteButton({
   locale,
   returnTo,
   confirmMessage,
-  deleteLabel
+  deleteLabel,
 }: {
   teamId: string;
   companyId: string;
@@ -17,23 +20,33 @@ export function AdminTeamDeleteButton({
   confirmMessage: string;
   deleteLabel: string;
 }) {
+  const [open, setOpen] = useState(false);
   return (
-    <form action={deleteCompanyTeamAction}>
-      <input type="hidden" name="teamId" value={teamId} />
-      <input type="hidden" name="companyId" value={companyId} />
-      <input type="hidden" name="locale" value={locale} />
-      <input type="hidden" name="returnTo" value={returnTo} />
+    <>
       <button
-        className="btn btn-secondary compact"
-        type="submit"
-        onClick={(event) => {
-          if (!window.confirm(confirmMessage)) {
-            event.preventDefault();
-          }
-        }}
+        className={buttonClass({ variant: "ghost", size: "sm" })}
+        type="button"
+        onClick={() => setOpen(true)}
       >
         {deleteLabel}
       </button>
-    </form>
+      <Modal open={open} onClose={() => setOpen(false)} title={deleteLabel}>
+        <p>{confirmMessage}</p>
+        <form action={deleteCompanyTeamAction}>
+          <input type="hidden" name="teamId" value={teamId} />
+          <input type="hidden" name="companyId" value={companyId} />
+          <input type="hidden" name="locale" value={locale} />
+          <input type="hidden" name="returnTo" value={returnTo} />
+          <div className="lp-form-actions">
+            <button
+              className={buttonClass({ variant: "primary" })}
+              type="submit"
+            >
+              {deleteLabel}
+            </button>
+          </div>
+        </form>
+      </Modal>
+    </>
   );
 }

@@ -1,13 +1,18 @@
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { AdminInvoiceForm } from "@/components/AdminInvoiceForm";
-import { BrandLogo } from "@/components/BrandLogo";
-import { BrandWordmark } from "@/components/BrandWordmark";
 import { DashboardShell } from "@/components/DashboardShell";
 import { EmptyState } from "@/components/EmptyState";
 import { subscriptions, superAdminUser } from "@/lib/demo-data";
 import { getUnreadNotificationCount } from "@/lib/notifications";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { Grid } from "@/components/ui/Grid";
+import { Panel } from "@/components/ui/Panel";
+import { StatCard } from "@/components/ui/StatCard";
+import { Alert } from "@/components/ui/Alert";
+import { StatusPill } from "@/components/ui/StatusPill";
+import { Pill } from "@/components/ui/Pill";
+import { Table } from "@/components/ui/Table";
 
 function hasSupabaseServerConfig() {
   return Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
@@ -57,23 +62,23 @@ async function renderDemoSubscriptions(locale: string) {
 
   return (
     <DashboardShell role="admin" title={t("subscriptionsTitle")} subtitle={t("subscriptionsSubtitle")} user={superAdminUser}>
-      <article className="panel dashboard-panel">
-        <div className="table-wrap">
-          <table className="dashboard-table">
+      <Panel>
+        <>
+          <Table className="lp-table-flat lp-table-stack">
             <thead><tr><th>{t("tableCompany")}</th><th>{t("tablePlan")}</th><th>{t("tableRenewal")}</th><th>{t("tableStatus")}</th></tr></thead>
             <tbody>
               {subscriptions.map((subscription) => (
                 <tr key={subscription.id}>
                   <td><strong>{subscription.company}</strong></td>
-                  <td>{subscription.plan}</td>
-                  <td>{subscription.renewal}</td>
-                  <td>{subscription.status}</td>
+                  <td data-label={t("tablePlan")}>{subscription.plan}</td>
+                  <td data-label={t("tableRenewal")}>{subscription.renewal}</td>
+                  <td data-label={t("tableStatus")}>{subscription.status}</td>
                 </tr>
               ))}
             </tbody>
-          </table>
-        </div>
-      </article>
+          </Table>
+        </>
+      </Panel>
     </DashboardShell>
   );
 }
@@ -152,54 +157,18 @@ export default async function AdminSubscriptionsPage({
       }}
       unreadNotifications={unreadNotifications}
     >
-      <section className="panel dashboard-panel admin-invoice-hero">
-        <div>
-          <BrandLogo compact interactive={false} />
-          <span className="eyebrow">{t("ownerInvoiceConsole")}</span>
-          <h2>{t("generateInvoicesTitle")}</h2>
-          <p>{t("generateInvoicesCopy")}</p>
-        </div>
-        <div className="admin-invoice-hero-card" aria-hidden="true">
-          <span><BrandWordmark /></span>
-          <strong>{t("invoiceCardLabel")}</strong>
-          <small>{t("invoiceCardMeta")}</small>
-        </div>
-      </section>
+      {message ? <Alert tone="info">{message}</Alert> : null}
 
-      {message ? (
-        <section className="panel dashboard-panel billing-status-banner">
-          <strong>{message}</strong>
-        </section>
-      ) : null}
-
-      <section className="dashboard-grid three report-summary-grid">
-        <article className="panel dashboard-panel report-summary-card">
-          <span className="eyebrow">{t("summaryCompaniesEyebrow")}</span>
-          <strong>{companies?.length ?? 0}</strong>
-          <p>{t("trackedWorkspaces")}</p>
-        </article>
-        <article className="panel dashboard-panel report-summary-card">
-          <span className="eyebrow">{t("summaryActiveBillingEyebrow")}</span>
-          <strong>{activeCount}</strong>
-          <p>{t("activeOrTrialing")}</p>
-        </article>
-        <article className="panel dashboard-panel report-summary-card">
-          <span className="eyebrow">{t("summaryInvoiceBillingEyebrow")}</span>
-          <strong>{invoiceCount}</strong>
-          <p>{t("invoiceBasedAccounts")}</p>
-        </article>
-      </section>
+      <Grid cols="three">
+        <StatCard label={<>{t("summaryCompaniesEyebrow")}</>} value={<>{companies?.length ?? 0}</>} helper={<>{t("trackedWorkspaces")}</>} />
+        <StatCard label={<>{t("summaryActiveBillingEyebrow")}</>} value={<>{activeCount}</>} helper={<>{t("activeOrTrialing")}</>} />
+        <StatCard label={<>{t("summaryInvoiceBillingEyebrow")}</>} value={<>{invoiceCount}</>} helper={<>{t("invoiceBasedAccounts")}</>} />
+      </Grid>
 
       {plans?.length ? (
-        <article className="panel dashboard-panel">
-          <div className="panel-top">
-            <div>
-              <h2>{t("availablePlansTitle")}</h2>
-              <p className="section-copy">{t("availablePlansCopy")}</p>
-            </div>
-          </div>
-          <div className="table-wrap">
-            <table className="dashboard-table">
+        <Panel title={t("availablePlansTitle")} description={t("availablePlansCopy")}>
+          <>
+            <Table className="lp-table-flat lp-table-stack">
               <thead>
                 <tr>
                   <th>{t("tablePlan")}</th>
@@ -214,41 +183,29 @@ export default async function AdminSubscriptionsPage({
                   .map((plan) => (
                     <tr key={plan.id}>
                       <td><strong>{plan.name}</strong></td>
-                      <td>{formatPlanPrice(plan.price_cents, plan.currency, plan.plan_key, dateLocale, t("billingCustom"))} {t("perEmployee")}</td>
-                      <td>{plan.interval === "month" ? t("billingMonthly") : plan.interval}</td>
-                      <td>{plan.invoice_enabled ? t("planInvoiceEnabled") : t("planInvoiceDisabled")}</td>
+                      <td data-label={t("tablePlanPrice")}>{formatPlanPrice(plan.price_cents, plan.currency, plan.plan_key, dateLocale, t("billingCustom"))} {t("perEmployee")}</td>
+                      <td data-label={t("tablePlanInterval")}>{plan.interval === "month" ? t("billingMonthly") : plan.interval}</td>
+                      <td data-label={t("tablePlanStatus")}><Pill tone={plan.invoice_enabled ? "green" : "neutral"}>{plan.invoice_enabled ? t("planInvoiceEnabled") : t("planInvoiceDisabled")}</Pill></td>
                     </tr>
                   ))}
               </tbody>
-            </table>
-          </div>
-        </article>
+            </Table>
+          </>
+        </Panel>
       ) : null}
 
-      <article className="panel dashboard-panel">
-        <div className="panel-top">
-          <div>
-            <h2>{t("generateCompanyInvoiceTitle")}</h2>
-            <p className="section-copy">{t("generateCompanyInvoiceCopy")}</p>
-          </div>
-        </div>
+      <Panel title={t("generateCompanyInvoiceTitle")} description={t("generateCompanyInvoiceCopy")}>
         {companies?.length && plans?.length ? (
           <AdminInvoiceForm companies={companies} plans={plans} locale={locale} />
         ) : (
           <EmptyState eyebrow={t("setupNeededEyebrow")} title={t("setupNeededTitle")} copy={t("setupNeededCopy")} />
         )}
-      </article>
+      </Panel>
 
-      <article className="panel dashboard-panel">
-        <div className="panel-top">
-          <div>
-            <h2>{t("subscriptionStatusesTitle")}</h2>
-            <p className="section-copy">{t("subscriptionStatusesCopy")}</p>
-          </div>
-        </div>
+      <Panel title={t("subscriptionStatusesTitle")} description={t("subscriptionStatusesCopy")}>
         {companies?.length ? (
-          <div className="table-wrap">
-            <table className="dashboard-table">
+          <>
+            <Table className="lp-table-flat lp-table-stack">
               <thead>
                 <tr>
                   <th>{t("tableCompany")}</th>
@@ -267,22 +224,22 @@ export default async function AdminSubscriptionsPage({
                   return (
                     <tr key={company.id}>
                       <td><strong>{company.company_name}</strong></td>
-                      <td>{plan?.name ?? company.subscription_plan ?? "Starter"}</td>
-                      <td>{subscription?.status ?? company.subscription_status ?? "not_configured"}</td>
-                      <td>{subscription?.payment_method ?? company.billing_payment_method ?? "invoice"}</td>
-                      <td>{subscription?.invoice_status ?? "not_requested"}</td>
-                      <td>{subscription?.billing_contact_email ?? company.billing_email ?? tc("notSet")}</td>
-                      <td>{formatDate(subscription?.invoice_requested_at ?? subscription?.current_period_end ?? company.subscription_current_period_end, tc("notSet"), dateLocale)}</td>
+                      <td data-label={t("tablePlan")}>{plan?.name ?? company.subscription_plan ?? "Starter"}</td>
+                      <td data-label={t("tableStatus")}><StatusPill raw={subscription?.status ?? company.subscription_status ?? "not_configured"}>{(subscription?.status ?? company.subscription_status ?? "not_configured").replaceAll("_", " ")}</StatusPill></td>
+                      <td data-label={t("tablePaymentMethod")}>{subscription?.payment_method ?? company.billing_payment_method ?? "invoice"}</td>
+                      <td data-label={t("tableInvoiceStatus")}><StatusPill raw={subscription?.invoice_status ?? "not_requested"}>{(subscription?.invoice_status ?? "not_requested").replaceAll("_", " ")}</StatusPill></td>
+                      <td data-label={t("tableBillingEmail")}>{subscription?.billing_contact_email ?? company.billing_email ?? tc("notSet")}</td>
+                      <td data-label={t("tableRequested")}>{formatDate(subscription?.invoice_requested_at ?? subscription?.current_period_end ?? company.subscription_current_period_end, tc("notSet"), dateLocale)}</td>
                     </tr>
                   );
                 })}
               </tbody>
-            </table>
-          </div>
+            </Table>
+          </>
         ) : (
           <EmptyState eyebrow={t("emptyNoCompaniesEyebrow")} title={t("emptyNoSubscriptionTitle")} copy={t("emptyNoSubscriptionCopy")} />
         )}
-      </article>
+      </Panel>
     </DashboardShell>
   );
 }

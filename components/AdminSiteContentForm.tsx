@@ -1,5 +1,8 @@
 "use client";
 
+import { Alert } from "@/components/ui/Alert";
+import { Button } from "@/components/ui/Button";
+import { Field, FieldGrid, Input, Textarea } from "@/components/ui/Fields";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { updateSiteContentAction } from "@/app/actions/siteContent";
@@ -18,29 +21,32 @@ function SiteContentFieldGrid({
   overrides: Record<string, string>;
 }) {
   return (
-    <div className="admin-site-content-grid">
-      {fields.map((field) => {
+    <FieldGrid>
+      {fields.map((field, index) => {
+        const spanFull = field.multiline || isLoneField(fields, index);
         const defaultValue = overrides[field.key] || defaults[field.key] || "";
         return (
-          <div className="form-field" key={field.key}>
-            <label htmlFor={`${locale}-${field.key}`}>{field.label}</label>
+          <Field key={field.key} label={field.label} htmlFor={`${locale}-${field.key}`} hint={`Key: home.${field.key}`} className={spanFull ? "lp-span-2" : undefined}>
             {field.multiline ? (
-              <textarea
-                id={`${locale}-${field.key}`}
-                className="input"
-                name={field.key}
-                rows={4}
-                defaultValue={defaultValue}
-              />
+              <Textarea id={`${locale}-${field.key}`} name={field.key} rows={4} defaultValue={defaultValue} />
             ) : (
-              <input id={`${locale}-${field.key}`} className="input" name={field.key} defaultValue={defaultValue} />
+              <Input id={`${locale}-${field.key}`} name={field.key} defaultValue={defaultValue} />
             )}
-            <span className="field-help">Key: home.{field.key}</span>
-          </div>
+          </Field>
         );
       })}
-    </div>
+    </FieldGrid>
   );
+}
+
+function isLoneField(fields: { multiline?: boolean }[], index: number) {
+  // A single-line field that would end up alone in its row spans the full width.
+  let start = index;
+  while (start > 0 && !fields[start - 1].multiline) start -= 1;
+  let end = index;
+  while (end < fields.length - 1 && !fields[end + 1].multiline) end += 1;
+  const runLength = end - start + 1;
+  return runLength % 2 === 1 && index === end;
 }
 
 export function AdminSiteContentForm({
@@ -59,7 +65,7 @@ export function AdminSiteContentForm({
 
   return (
     <form
-      className="admin-site-content-form"
+      className="lp-cms-form"
       onSubmit={async (event) => {
         event.preventDefault();
         setStatus("saving");
@@ -82,9 +88,9 @@ export function AdminSiteContentForm({
       <input type="hidden" name="locale" value={locale} />
 
       {HOME_CMS_SECTIONS.map((section) => (
-        <div className="admin-site-content-section" key={section.id}>
+        <div className="lp-cms-section" key={section.id}>
           <h3>{section.title}</h3>
-          {section.description ? <p className="section-copy">{section.description}</p> : null}
+          {section.description ? <p className="lp-hint">{section.description}</p> : null}
 
           {section.id === "marquee" ? (
             <AdminMarqueeSection
@@ -99,22 +105,24 @@ export function AdminSiteContentForm({
         </div>
       ))}
 
-      <div className="admin-site-content-actions">
-        <button className="btn btn-primary" type="submit" disabled={status === "saving"}>
+      <div className="lp-form-foot">
+        <div>
+          {status === "saved" ? <Alert tone="success">Saved. Open the public homepage to preview your changes.</Alert> : null}
+          {status === "error" ? (
+            <Alert tone="error">
+              {error}
+              {errorCode === "AUTH_EXPIRED" ? (
+                <>
+                  {" "}
+                  <a className="lp-link" href={`/${locale}/login?next=/${locale}/admin/site-content`}>Sign in again</a>.
+                </>
+              ) : null}
+            </Alert>
+          ) : null}
+        </div>
+        <Button type="submit" disabled={status === "saving"}>
           {status === "saving" ? "Saving…" : `Save ${locale.toUpperCase()} homepage`}
-        </button>
-        {status === "saved" ? <span className="field-help success">Saved. Open the public homepage to preview your changes.</span> : null}
-        {status === "error" ? (
-          <span className="field-help error">
-            {error}
-            {errorCode === "AUTH_EXPIRED" ? (
-              <>
-                {" "}
-                <a href={`/${locale}/login?next=/${locale}/admin/site-content`}>Sign in again</a>.
-              </>
-            ) : null}
-          </span>
-        ) : null}
+        </Button>
       </div>
     </form>
   );

@@ -17,6 +17,16 @@ import { getCompanyCardCategories } from "@/lib/company-card-categories";
 import { getCompanyInsightFeatures } from "@/lib/company-insight-features";
 import { getUnreadNotificationCount } from "@/lib/notifications";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { Grid } from "@/components/ui/Grid";
+import { Panel } from "@/components/ui/Panel";
+import { Table } from "@/components/ui/Table";
+import { Pill } from "@/components/ui/Pill";
+import { StatusPill } from "@/components/ui/StatusPill";
+import { Alert } from "@/components/ui/Alert";
+import { Button } from "@/components/ui/Button";
+import { Checkbox } from "@/components/ui/Checkbox";
+import { Field, Input, Select } from "@/components/ui/Fields";
+import { Feed, FeedItem } from "@/components/ui/Feed";
 
 type AdminProfile = {
   first_name: string | null;
@@ -171,217 +181,139 @@ export default async function AdminCompanyDetailPage({
         initials: getInitials(adminProfile.first_name, adminProfile.last_name),
         team: tc("platformTeam")
       }}
-      actions={<Link className="btn btn-secondary" href={`/${locale}/admin/companies`}>{t("backToCompanies")}</Link>}
+      actions={<Button variant="ghost" size="sm" href={`/${locale}/admin/companies`}>{t("backToCompanies")}</Button>}
       unreadNotifications={unreadNotifications}
     >
       {created ? (
-        <p className="settings-feedback success">{t("companyCreatedSuccess")}</p>
+        <Alert tone="success">{t("companyCreatedSuccess")}</Alert>
       ) : null}
       {contact === "updated" ? (
-        <p className="settings-feedback success">{t("contactUpdatedSuccess")}</p>
+        <Alert tone="success">{t("contactUpdatedSuccess")}</Alert>
       ) : null}
       {contact === "failed" ? (
-        <p className="settings-feedback error">{t("contactUpdateFailed")}</p>
+        <Alert tone="error">{t("contactUpdateFailed")}</Alert>
       ) : null}
       {team === "deleted" ? (
-        <p className="settings-feedback success">{t("teamDeletedSuccess")}</p>
+        <Alert tone="success">{t("teamDeletedSuccess")}</Alert>
       ) : null}
       {team === "failed" ? (
-        <p className="settings-feedback error">{t("teamDeleteFailed")}</p>
+        <Alert tone="error">{t("teamDeleteFailed")}</Alert>
       ) : null}
 
-      <section className="metrics-grid">
+      <Grid cols="three">
         <MetricCard icon={<Shield />} value={companyAdmins.length} label={t("metricCompanyAdmins")} helper={t("metricCompanyAdminsHelper")} />
         <MetricCard icon={<UsersRound />} value={managers.length} label={t("metricManagers")} helper={t("metricManagersHelper")} tone="var(--theme-gold)" iconBackground="rgba(216, 162, 58, 0.12)" />
         <MetricCard icon={<UserRound />} value={employees.length} label={t("metricEmployees")} helper={t("metricEmployeesHelper")} />
         <MetricCard icon={<Star />} value={recognitionCount ?? 0} label={t("metricRecognitionsCompany")} helper={t("metricRecognitionsCompanyHelper")} tone="var(--theme-emerald)" iconBackground="rgba(58, 166, 95, 0.12)" />
-      </section>
+      </Grid>
 
-      <section className="dashboard-grid two">
-        <article className="panel dashboard-panel">
-          <div className="panel-top">
-            <div>
-              <h2>{t("workspaceStatusTitle")}</h2>
-              <p className="section-copy">{t("workspaceStatusCopy")}</p>
-            </div>
-          </div>
-          <div className="profile-stack">
-            <div><strong>{t("industryLabel")}</strong><p>{company.industry ?? tc("notSet")}</p></div>
-            <div><strong>{t("slugLabel")}</strong><p>{company.slug ?? tc("notSet")}</p></div>
-            <div><strong>{tc("plan")}</strong><p>{company.subscription_plan ?? "Starter"}</p></div>
-            <div><strong>{t("billingStatusLabel")}</strong><p>{company.subscription_status ?? "not_configured"}</p></div>
-            <div><strong>{t("createdLabel")}</strong><p>{formatDate(company.created_at, dateLocale)}</p></div>
-          </div>
-          <form action={updateCompanyStatusAction} className="admin-control-form" style={{ marginTop: 18 }}>
+      <Grid cols="two">
+        <Panel title={t("workspaceStatusTitle")} description={t("workspaceStatusCopy")}>
+          <dl className="lp-kv">
+            <div><dt>{t("industryLabel")}</dt><dd>{company.industry ?? tc("notSet")}</dd></div>
+            <div><dt>{t("slugLabel")}</dt><dd>{company.slug ?? tc("notSet")}</dd></div>
+            <div><dt>{tc("plan")}</dt><dd>{company.subscription_plan ?? "Starter"}</dd></div>
+            <div><dt>{t("billingStatusLabel")}</dt><dd>{company.subscription_status ?? "not_configured"}</dd></div>
+            <div><dt>{t("createdLabel")}</dt><dd>{formatDate(company.created_at, dateLocale)}</dd></div>
+          </dl>
+          <form action={updateCompanyStatusAction} className="lp-inline-ctl lp-mt">
             <input type="hidden" name="companyId" value={company.id} />
-            <label className="sr-only" htmlFor="company-status">{t("companyStatusLabel")}</label>
-            <select id="company-status" name="status" defaultValue={company.status ?? "active"} aria-label={`Update ${company.company_name} status`}>
+            <Select className="lp-select-sm" id="company-status" name="status" defaultValue={company.status ?? "active"} aria-label={t("companyStatusLabel")}>
               <option value="active">{t("statusActiveOption")}</option>
               <option value="demo">{t("statusDemoOption")}</option>
               <option value="inactive">{t("statusInactiveOption")}</option>
-            </select>
-            <button className="btn btn-secondary compact" type="submit">{t("saveStatusButton")}</button>
+            </Select>
+            <Button variant="ghost" size="sm" type="submit">{t("saveStatusButton")}</Button>
           </form>
-        </article>
+        </Panel>
 
-        <article className="panel dashboard-panel">
-          <div className="panel-top">
-            <div>
-              <h2>{t("insightFeaturesTitle")}</h2>
-              <p className="section-copy">{t("insightFeaturesCopy")}</p>
-            </div>
-          </div>
-          <form action={updateCompanyInsightFeaturesAction} className="admin-control-form" style={{ flexDirection: "column", alignItems: "flex-start", gap: 10 }}>
+        <Panel title={t("insightFeaturesTitle")} description={t("insightFeaturesCopy")}>
+          <form action={updateCompanyInsightFeaturesAction} className="lp-check-form">
             <input type="hidden" name="companyId" value={company.id} />
-            <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <input type="checkbox" name="growthTimeline" defaultChecked={insightFeatures.growthTimeline} />
-              {t("insightFeatureGrowthTimeline")}
-            </label>
-            <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <input type="checkbox" name="hiddenPatterns" defaultChecked={insightFeatures.hiddenPatterns} />
-              {t("insightFeatureHiddenPatterns")}
-            </label>
-            <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <input type="checkbox" name="milestones" defaultChecked={insightFeatures.milestones} />
-              {t("insightFeatureMilestones")}
-            </label>
-            <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <input type="checkbox" name="masterInsight" defaultChecked={insightFeatures.masterInsight} />
-              {t("insightFeatureMasterInsight")}
-            </label>
-            <button className="btn btn-secondary compact" type="submit">{t("saveInsightFeaturesButton")}</button>
+            <Checkbox name="growthTimeline" defaultChecked={insightFeatures.growthTimeline} label={t("insightFeatureGrowthTimeline")} />
+            <Checkbox name="hiddenPatterns" defaultChecked={insightFeatures.hiddenPatterns} label={t("insightFeatureHiddenPatterns")} />
+            <Checkbox name="milestones" defaultChecked={insightFeatures.milestones} label={t("insightFeatureMilestones")} />
+            <Checkbox name="masterInsight" defaultChecked={insightFeatures.masterInsight} label={t("insightFeatureMasterInsight")} />
+            <Button variant="ghost" size="sm" type="submit">{t("saveInsightFeaturesButton")}</Button>
           </form>
-        </article>
+        </Panel>
 
-        <article className="panel dashboard-panel">
-          <div className="panel-top">
-            <div>
-              <h2>{t("cardCategoriesTitle")}</h2>
-              <p className="section-copy">{t("cardCategoriesCopy")}</p>
-            </div>
-          </div>
-          <form action={updateCompanyCardCategoriesAction} className="admin-control-form" style={{ flexDirection: "column", alignItems: "flex-start", gap: 10 }}>
+        <Panel title={t("cardCategoriesTitle")} description={t("cardCategoriesCopy")}>
+          <form action={updateCompanyCardCategoriesAction} className="lp-check-form">
             <input type="hidden" name="companyId" value={company.id} />
-            <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <input type="checkbox" name="communication" defaultChecked={cardCategories.communication} />
-              {t("cardCategoryCommunication")}
-            </label>
-            <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <input type="checkbox" name="creativity" defaultChecked={cardCategories.creativity} />
-              {t("cardCategoryCreativity")}
-            </label>
-            <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <input type="checkbox" name="competence" defaultChecked={cardCategories.competence} />
-              {t("cardCategoryCompetence")}
-            </label>
-            <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <input type="checkbox" name="collegiality" defaultChecked={cardCategories.collegiality} />
-              {t("cardCategoryCollegiality")}
-            </label>
-            <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <input type="checkbox" name="open" defaultChecked={cardCategories.open} />
-              {t("cardCategoryOpen")}
-            </label>
-            <button className="btn btn-secondary compact" type="submit">{t("saveCardCategoriesButton")}</button>
+            <Checkbox name="communication" defaultChecked={cardCategories.communication} label={t("cardCategoryCommunication")} />
+            <Checkbox name="creativity" defaultChecked={cardCategories.creativity} label={t("cardCategoryCreativity")} />
+            <Checkbox name="competence" defaultChecked={cardCategories.competence} label={t("cardCategoryCompetence")} />
+            <Checkbox name="collegiality" defaultChecked={cardCategories.collegiality} label={t("cardCategoryCollegiality")} />
+            <Checkbox name="open" defaultChecked={cardCategories.open} label={t("cardCategoryOpen")} />
+            <Button variant="ghost" size="sm" type="submit">{t("saveCardCategoriesButton")}</Button>
           </form>
-        </article>
+        </Panel>
 
-        <article className="panel dashboard-panel">
-          <div className="panel-top">
-            <div>
-              <h2>{t("hierarchyTitle")}</h2>
-              <p className="section-copy">{t("hierarchyCopy")}</p>
-            </div>
-          </div>
-          <div className="signal-list">
-            <div className="signal-card">
-              <Building2 size={18} />
-              <div><strong>{t("platformHierarchyTitle")}</strong><p>{t("platformHierarchyCopy")}</p></div>
-            </div>
-            <div className="signal-card">
-              <Shield size={18} />
-              <div><strong>{company.company_name}</strong><p>{t("companyAdminsManage", { count: companyAdmins.length })}</p></div>
-            </div>
-            <div className="signal-card">
-              <UsersRound size={18} />
-              <div><p>{t("teamsManagersEmployees", { teams: companyTeams.length, managers: managers.length, employees: employees.length })}</p></div>
-            </div>
-          </div>
-          <form action={createCompanyInviteFromAdminAction} className="admin-invite-form">
+        <Panel title={t("hierarchyTitle")} description={t("hierarchyCopy")}>
+          <Feed>
+            <FeedItem title={t("platformHierarchyTitle")} note={t("platformHierarchyCopy")} />
+            <FeedItem title={company.company_name} note={t("companyAdminsManage", { count: companyAdmins.length })} />
+            <FeedItem title={t("teamsManagersEmployees", { teams: companyTeams.length, managers: managers.length, employees: employees.length })} />
+          </Feed>
+          <form action={createCompanyInviteFromAdminAction} className="lp-subform">
             <input type="hidden" name="companyId" value={company.id} />
             <input type="hidden" name="returnTo" value={returnTo} />
             <input type="hidden" name="locale" value={locale} />
             <div>
               <h3>{t("sendInviteTitle")}</h3>
-              <p className="section-copy">{t("sendInviteCopy")}</p>
+              <p className="lp-hint">{t("sendInviteCopy")}</p>
             </div>
             {invite ? (
-              <p className={`settings-feedback ${invite === "created" ? "success" : "error"}`}>
+              <Alert tone={invite === "created" ? "success" : "error"}>
                 {invite === "created" ? t("inviteCreatedSuccess") : t("inviteCreatedPartial")}
-              </p>
+              </Alert>
             ) : null}
-            <label>
-              {t("workEmailLabel")}
-              <input className="input" type="email" name="email" placeholder="new.user@company.com" required />
-            </label>
-            <label>
-              {t("roleLabel")}
-              <select className="input" name="role" defaultValue="employee">
+            <Field label={t("workEmailLabel")} htmlFor="inviteEmail" required>
+              <Input id="inviteEmail" type="email" name="email" placeholder="new.user@company.com" required />
+            </Field>
+            <Field label={t("roleLabel")} htmlFor="inviteRole">
+              <Select id="inviteRole" name="role" defaultValue="employee">
                 <option value="employee">{t("roleEmployeeOption")}</option>
                 <option value="manager">{t("roleManagerOption")}</option>
                 <option value="company_admin">{t("roleCompanyAdminOption")}</option>
-              </select>
-            </label>
-            <button className="btn btn-primary compact" type="submit">{t("sendInviteButton")}</button>
+              </Select>
+            </Field>
+            <div><Button type="submit" size="sm">{t("sendInviteButton")}</Button></div>
           </form>
-        </article>
+        </Panel>
 
-        <article className="panel dashboard-panel">
-          <div className="panel-top">
-            <div>
-              <h2>{t("companyContactTitle")}</h2>
-              <p className="section-copy">{t("companyContactCopy")}</p>
-            </div>
-          </div>
-          <form action={updateCompanyContactAction} className="admin-invite-form">
+        <Panel title={t("companyContactTitle")} description={t("companyContactCopy")}>
+          <form action={updateCompanyContactAction} className="lp-subform">
             <input type="hidden" name="companyId" value={company.id} />
             <input type="hidden" name="returnTo" value={returnTo} />
             <input type="hidden" name="locale" value={locale} />
-            <label>
-              {t("formContactNameLabel")}
-              <input className="input" name="contactName" value={company.contact_name ?? ""} placeholder="Tim Schobbe" />
-            </label>
-            <label>
-              {t("formContactPhoneLabel")}
-              <input className="input" name="contactPhone" type="tel" value={company.contact_phone ?? ""} placeholder="+31 6 12345678" />
-            </label>
-            <label>
-              {t("formContactEmailLabel")}
-              <input className="input" name="contactEmail" type="email" value={company.contact_email ?? ""} placeholder="admin@company.com" />
-            </label>
-            <button className="btn btn-secondary compact" type="submit">{t("saveContactButton")}</button>
+            <Field label={t("formContactNameLabel")} htmlFor="contactName">
+              <Input id="contactName" name="contactName" defaultValue={company.contact_name ?? ""} placeholder="Tim Schobbe" />
+            </Field>
+            <Field label={t("formContactPhoneLabel")} htmlFor="contactPhone">
+              <Input id="contactPhone" name="contactPhone" type="tel" defaultValue={company.contact_phone ?? ""} placeholder="+31 6 12345678" />
+            </Field>
+            <Field label={t("formContactEmailLabel")} htmlFor="contactEmail">
+              <Input id="contactEmail" name="contactEmail" type="email" defaultValue={company.contact_email ?? ""} placeholder="admin@company.com" />
+            </Field>
+            <div><Button variant="ghost" size="sm" type="submit">{t("saveContactButton")}</Button></div>
           </form>
-        </article>
-      </section>
+        </Panel>
+      </Grid>
 
-      <section className="dashboard-grid two">
-        <article className="panel dashboard-panel">
-          <div className="panel-top">
-            <div>
-              <h2>{t("teamsSectionTitle")}</h2>
-              <p className="section-copy">{t("teamsSectionCopy")}</p>
-            </div>
-          </div>
+      <Grid cols="two">
+        <Panel title={t("teamsSectionTitle")} description={t("teamsSectionCopy")}>
           {companyTeams.length ? (
-            <div className="table-wrap">
-              <table className="dashboard-table">
-                <thead><tr><th>{t("tableTeam")}</th><th>{t("tableManager")}</th><th>{t("tableActions")}</th></tr></thead>
+            <>
+              <Table className="lp-table-flat lp-table-stack">
+                <thead><tr><th>{t("tableTeam")}</th><th>{t("tableManager")}</th><th className="lp-act">{t("tableActions")}</th></tr></thead>
                 <tbody>
                   {companyTeams.map((team) => (
                     <tr key={team.id}>
                       <td><strong>{team.name}</strong></td>
-                      <td>{team.manager_id ? managerMap.get(team.manager_id) ?? t("assignedManager") : tc("unassigned")}</td>
-                      <td>
+                      <td data-label={t("tableManager")}>{team.manager_id ? managerMap.get(team.manager_id) ?? t("assignedManager") : tc("unassigned")}</td>
+                      <td className="lp-act" data-label={t("tableActions")}>
                         <AdminTeamDeleteButton
                           teamId={team.id}
                           companyId={company.id}
@@ -394,67 +326,55 @@ export default async function AdminCompanyDetailPage({
                     </tr>
                   ))}
                 </tbody>
-              </table>
-            </div>
+              </Table>
+            </>
           ) : (
             <EmptyState title={t("emptyNoTeamsTitle")} copy={t("emptyNoTeamsCopy")} />
           )}
-        </article>
+        </Panel>
 
-        <article className="panel dashboard-panel">
-          <div className="panel-top">
-            <div>
-              <h2>{t("pendingInvitationsTitle")}</h2>
-              <p className="section-copy">{t("pendingInvitationsCopy")}</p>
-            </div>
-          </div>
+        <Panel title={t("pendingInvitationsTitle")} description={t("pendingInvitationsCopy")}>
           {pendingInvitations.length ? (
-            <div className="signal-list">
+            <Feed>
               {pendingInvitations.map((inviteRow) => (
-                <div className="signal-card" key={inviteRow.id}>
-                  <div>
-                    <strong>{inviteRow.email}</strong>
-                    <p>{t("inviteExpires", { role: inviteRow.role.replace("_", " "), date: formatDate(inviteRow.expires_at, dateLocale) })}</p>
-                    <Link className="panel-link" href={`/${locale}/invite/${inviteRow.token}`}>{t("openRegistrationLink")}</Link>
-                  </div>
-                  <span className="quality-pill">{inviteRow.status}</span>
-                </div>
+                <FeedItem
+                  key={inviteRow.id}
+                  title={inviteRow.email}
+                  note={t("inviteExpires", { role: inviteRow.role.replace("_", " "), date: formatDate(inviteRow.expires_at, dateLocale) })}
+                  tag={<StatusPill raw={inviteRow.status}>{inviteRow.status}</StatusPill>}
+                >
+                  <Link className="lp-link" href={`/${locale}/invite/${inviteRow.token}`}>{t("openRegistrationLink")}</Link>
+                </FeedItem>
               ))}
-            </div>
+            </Feed>
           ) : (
             <EmptyState title={t("emptyNoInvitesTitle")} copy={t("emptyNoInvitesCopy")} />
           )}
-        </article>
-      </section>
+        </Panel>
+      </Grid>
 
-      <article className="panel dashboard-panel">
-        <div className="panel-top">
-          <div>
-            <h2>{t("peopleTitle")}</h2>
-            <p className="section-copy">{t("peopleCopy")}</p>
-          </div>
-        </div>
+      <Panel title={t("peopleTitle")} description={t("peopleCopy")}>
         {companyProfiles.length ? (
-          <div className="table-wrap">
-            <table className="dashboard-table">
+          <>
+            <Table className="lp-table-flat lp-table-stack">
               <thead><tr><th>{t("tableName")}</th><th>{t("tableEmail")}</th><th>{t("tableRole")}</th><th>{t("tableTeam")}</th><th>{t("tableStatus")}</th></tr></thead>
               <tbody>
                 {companyProfiles.map((profile) => (
                   <tr key={profile.id}>
                     <td><strong>{getName(profile, tc("gethUser"))}</strong></td>
-                    <td>{profile.email ?? tc("noEmail")}</td>
-                    <td>{profile.role.replace("_", " ")}</td>
-                    <td>{profile.team_id ? teamMap.get(profile.team_id) ?? t("assignedTeam") : tc("unassigned")}</td>
-                    <td><span className="admin-status-pill">{profile.status ?? "active"}</span></td>
+                    <td data-label={t("tableEmail")}>{profile.email ?? tc("noEmail")}</td>
+                    <td data-label={t("tableRole")}>{profile.role.replace("_", " ")}</td>
+                    <td data-label={t("tableTeam")}>{profile.team_id ? teamMap.get(profile.team_id) ?? t("assignedTeam") : tc("unassigned")}</td>
+                    <td data-label={t("tableStatus")}><StatusPill raw={profile.status ?? "active"}>{profile.status ?? "active"}</StatusPill></td>
                   </tr>
                 ))}
               </tbody>
-            </table>
-          </div>
+            </Table>
+          </>
         ) : (
           <EmptyState title={t("emptyNoProfilesTitle")} copy={t("emptyNoProfilesCopy")} />
         )}
-      </article>
+      </Panel>
     </DashboardShell>
   );
 }
