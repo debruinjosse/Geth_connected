@@ -7,6 +7,11 @@ import { InvitationPanel } from "@/components/InvitationPanel";
 import { CompanyPeopleManagementPanel } from "@/components/CompanyPeopleManagementPanel";
 import { companyAdmin, companyManagers } from "@/lib/demo-data";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { Avatar } from "@/components/ui/Avatar";
+import { Grid } from "@/components/ui/Grid";
+import { Panel } from "@/components/ui/Panel";
+import { Pill } from "@/components/ui/Pill";
+import { Table } from "@/components/ui/Table";
 
 function hasSupabaseServerConfig() {
   return Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
@@ -23,25 +28,23 @@ function getAppUrl() {
 function renderDemoManagers(t: Awaited<ReturnType<typeof getTranslations>>) {
   return (
     <DashboardShell role="company" title={t("managersTitle")} subtitle={t("managersSubtitle")} user={companyAdmin}>
-      <section className="dashboard-grid two">
-        <article className="panel dashboard-panel">
-          <div className="table-wrap">
-            <table className="dashboard-table">
-              <thead><tr><th>{t("manager")}</th><th>{t("team")}</th><th>{t("tableMembers")}</th><th>{t("tableScore")}</th><th>{t("tableReport")}</th></tr></thead>
-              <tbody>
-                {companyManagers.map((manager) => (
-                  <tr key={manager.id}>
-                    <td><strong>{manager.name}</strong></td>
-                    <td>{manager.team}</td>
-                    <td>{manager.members}</td>
-                    <td>{manager.score}</td>
-                    <td>{manager.report}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </article>
+      <Panel>
+        <Table className="lp-table-flat lp-table-stack">
+          <thead><tr><th>{t("manager")}</th><th>{t("team")}</th><th className="lp-c">{t("tableMembers")}</th><th className="lp-c">{t("tableScore")}</th><th>{t("tableReport")}</th></tr></thead>
+          <tbody>
+            {companyManagers.map((manager) => (
+              <tr key={manager.id}>
+                <td><span className="lp-person"><Avatar name={manager.name} size="sm" /><b style={{ fontWeight: 500 }}>{manager.name}</b></span></td>
+                <td data-label={t("team")}>{manager.team}</td>
+                <td className="lp-c" data-label={t("tableMembers")}>{manager.members}</td>
+                <td className="lp-c" data-label={t("tableScore")}>{manager.score}</td>
+                <td data-label={t("tableReport")}>{manager.report}</td>
+              </tr>
+            ))}
+          </tbody>
+        </Table>
+      </Panel>
+      <Grid cols="two">
         <InlineDemoForm
           title={t("assignManager")}
           description={t("managersSubtitle")}
@@ -51,7 +54,7 @@ function renderDemoManagers(t: Awaited<ReturnType<typeof getTranslations>>) {
             { id: "manager-team", label: t("team"), placeholder: "Marketing" }
           ]}
         />
-      </section>
+      </Grid>
     </DashboardShell>
   );
 }
@@ -138,62 +141,58 @@ export default async function CompanyManagersPage({ params }: { params: Promise<
         team: t("companyAdmin")
       }}
     >
-      <section className="dashboard-grid two">
-        <article className="panel dashboard-panel">
-          <div className="table-wrap">
-            {(managers?.length || invitations?.length) ? (
-              <table className="dashboard-table">
-                <thead><tr><th>{t("manager")}</th><th>{t("team")}</th><th>{t("tableMembers")}</th><th>{t("tableScore")}</th><th>{t("tableReport")}</th></tr></thead>
-                <tbody>
-                  {(managers ?? []).map((manager) => {
-                    const managedTeams = teamList.filter((team) => team.manager_id === manager.id);
-                    const managedTeam = managedTeams[0];
-                    const memberCount = managedTeams.reduce((sum, team) => sum + (memberCountsByTeam.get(team.id) ?? 0), 0);
-                    const recognitionCount = managedTeams.reduce((sum, team) => sum + (recognitionCountsByTeam.get(team.id) ?? 0), 0);
-                    const score = memberCount ? `${Math.round((recognitionCount / memberCount) * 100)}%` : "0%";
-                    const report = recognitionCount >= 6 ? t("reportStrongMomentum") : recognitionCount >= 2 ? t("reportHealthyCollaboration") : t("reportNeedsRecognition");
+      <Panel>
+        {managers?.length || invitations?.length ? (
+          <Table className="lp-table-flat lp-table-stack">
+            <thead><tr><th>{t("manager")}</th><th>{t("team")}</th><th className="lp-c">{t("tableMembers")}</th><th className="lp-c">{t("tableScore")}</th><th>{t("tableReport")}</th></tr></thead>
+            <tbody>
+              {(managers ?? []).map((manager) => {
+                const managedTeams = teamList.filter((team) => team.manager_id === manager.id);
+                const managedTeam = managedTeams[0];
+                const memberCount = managedTeams.reduce((sum, team) => sum + (memberCountsByTeam.get(team.id) ?? 0), 0);
+                const recognitionCount = managedTeams.reduce((sum, team) => sum + (recognitionCountsByTeam.get(team.id) ?? 0), 0);
+                const score = memberCount ? `${Math.round((recognitionCount / memberCount) * 100)}%` : "0%";
+                const report = recognitionCount >= 6 ? t("reportStrongMomentum") : recognitionCount >= 2 ? t("reportHealthyCollaboration") : t("reportNeedsRecognition");
+                const fullName = `${manager.first_name} ${manager.last_name}`.trim();
 
-                    return (
-                      <tr key={manager.id}>
-                        <td><strong>{`${manager.first_name} ${manager.last_name}`.trim()}</strong></td>
-                        <td>{managedTeam?.name ?? tc("unassigned")}</td>
-                        <td>{memberCount}</td>
-                        <td>{score}</td>
-                        <td>{manager.status === "active" ? report : manager.status}</td>
-                      </tr>
-                    );
-                  })}
-                  {(invitations ?? []).map((invite) => {
-                    const team = Array.isArray(invite.team) ? invite.team[0] : invite.team;
-                    return (
-                      <tr key={invite.id}>
-                        <td><strong>{invite.email}</strong></td>
-                        <td>{team?.name ?? tc("assignLater")}</td>
-                        <td>0</td>
-                        <td>{t("invitePending")}</td>
-                        <td>{t("awaitingAcceptance")}</td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            ) : (
-              <EmptyState
-                eyebrow={t("noManagersEyebrow")}
-                title={t("inviteFirstManagerTitle")}
-                copy={t("inviteFirstManagerCopy")}
-              />
-            )}
-          </div>
-        </article>
+                return (
+                  <tr key={manager.id}>
+                    <td><span className="lp-person"><Avatar name={fullName} size="sm" /><b style={{ fontWeight: 500 }}>{fullName}</b></span></td>
+                    <td data-label={t("team")}>{managedTeam?.name ?? tc("unassigned")}</td>
+                    <td className="lp-c" data-label={t("tableMembers")}>{memberCount}</td>
+                    <td className="lp-c" data-label={t("tableScore")}>{score}</td>
+                    <td data-label={t("tableReport")}>{manager.status === "active" ? report : manager.status}</td>
+                  </tr>
+                );
+              })}
+              {(invitations ?? []).map((invite) => {
+                const team = Array.isArray(invite.team) ? invite.team[0] : invite.team;
+                return (
+                  <tr key={invite.id}>
+                    <td><span className="lp-person"><Avatar name={invite.email} size="sm" /><b style={{ fontWeight: 500 }}>{invite.email}</b></span></td>
+                    <td data-label={t("team")}>{team?.name ?? tc("assignLater")}</td>
+                    <td className="lp-c" data-label={t("tableMembers")}>0</td>
+                    <td className="lp-c" data-label={t("tableScore")}><Pill tone="gold">{t("invitePending")}</Pill></td>
+                    <td data-label={t("tableReport")}>{t("awaitingAcceptance")}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </Table>
+        ) : (
+          <EmptyState eyebrow={t("noManagersEyebrow")} title={t("inviteFirstManagerTitle")} copy={t("inviteFirstManagerCopy")} />
+        )}
+      </Panel>
+
+      <div className="lp-narrow">
         <InvitationPanel
           title={t("inviteManager")}
           description={t("inviteFirstManagerCopy")}
           defaultRole="manager"
           teams={teamList.map((team) => ({ id: team.id, name: team.name }))}
         />
-      </section>
-      <section className="section-shell dashboard-section-tight">
+      </div>
+      <div>
         <CompanyPeopleManagementPanel
           mode="manager"
           teams={teamList.map((team) => ({ id: team.id, name: team.name, managerId: team.manager_id }))}
@@ -222,7 +221,7 @@ export default async function CompanyManagersPage({ params }: { params: Promise<
             };
           })}
         />
-      </section>
+      </div>
     </DashboardShell>
   );
 }

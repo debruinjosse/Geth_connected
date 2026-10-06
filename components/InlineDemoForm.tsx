@@ -2,7 +2,10 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { CheckCircle2 } from "lucide-react";
+import { Alert } from "@/components/ui/Alert";
+import { Button } from "@/components/ui/Button";
+import { Field, Input } from "@/components/ui/Fields";
+import { Panel } from "@/components/ui/Panel";
 
 type DemoField = {
   id: string;
@@ -10,6 +13,7 @@ type DemoField = {
   placeholder?: string;
 };
 
+/** Demo-mode form: collects nothing, just shows a success message. */
 export function InlineDemoForm({
   title,
   description,
@@ -26,39 +30,32 @@ export function InlineDemoForm({
 
   if (submitted) {
     return (
-      <div className="panel inline-form-success">
-        <CheckCircle2 size={34} color="var(--theme-emerald)" />
-        <strong>{title} {tc("demoSaved")}</strong>
-        <p>{description}</p>
-      </div>
+      <Panel>
+        <Alert tone="success" title={`${title} ${tc("demoSaved")}`}>
+          {description}
+        </Alert>
+      </Panel>
     );
   }
 
   return (
-    <form
-      className="panel inline-demo-form"
-      onSubmit={(event) => {
-        event.preventDefault();
-        setSubmitted(true);
-      }}
-    >
-      <div className="panel-top">
-        <div>
-          <h3>{title}</h3>
-          <p style={{ margin: "8px 0 0", color: "var(--theme-muted)" }}>{description}</p>
-        </div>
-      </div>
-      <div className="form-grid">
+    <Panel title={title} description={description}>
+      <form
+        className="lp-form"
+        onSubmit={(event) => {
+          event.preventDefault();
+          setSubmitted(true);
+        }}
+      >
         {fields.map((field) => (
-          <div className="form-field" key={field.id}>
-            <label htmlFor={field.id}>{field.label}</label>
-            <input id={field.id} className="input" placeholder={field.placeholder} />
-          </div>
+          <Field key={field.id} label={field.label} htmlFor={field.id}>
+            <Input id={field.id} placeholder={field.placeholder} />
+          </Field>
         ))}
-      </div>
-      <button className="btn btn-primary" type="submit">
-        {buttonLabel}
-      </button>
-    </form>
+        <div>
+          <Button type="submit">{buttonLabel}</Button>
+        </div>
+      </form>
+    </Panel>
   );
 }

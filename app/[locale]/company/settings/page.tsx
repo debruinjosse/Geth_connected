@@ -4,6 +4,8 @@ import { AccountSettingsPanel } from "@/components/AccountSettingsPanel";
 import { DashboardShell } from "@/components/DashboardShell";
 import { companyAdmin } from "@/lib/demo-data";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { Grid } from "@/components/ui/Grid";
+import { Panel } from "@/components/ui/Panel";
 
 function hasSupabaseServerConfig() {
   return Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
@@ -89,7 +91,7 @@ export default async function CompanySettingsPage({
         imageUrl: profile.profile_image
       }}
     >
-      <section className="dashboard-grid two">
+      <Grid cols="two">
         <AccountSettingsPanel
           email={profile.email ?? user.email ?? tc("noEmail")}
           firstName={profile.first_name ?? ""}
@@ -106,7 +108,7 @@ export default async function CompanySettingsPage({
           status={company?.status ?? tc("notSet")}
           adminEmail={profile.email}
         />
-      </section>
+      </Grid>
     </DashboardShell>
   );
 }
@@ -127,24 +129,22 @@ function CompanySettingsPanels({
   adminEmail: string;
 }) {
   return (
-    <>
-      <article className="panel dashboard-panel">
-        <h2>{t("workspaceDetails")}</h2>
-        <div className="profile-stack">
-          <div><strong>{t("company")}</strong><p>{companyName}</p></div>
-          <div><strong>{t("industry")}</strong><p>{industry}</p></div>
-          <div><strong>{t("status")}</strong><p>{status}</p></div>
-          <div><strong>{t("plan")}</strong><p>{plan}</p></div>
-        </div>
-      </article>
-      <article className="panel dashboard-panel">
-        <h2>{t("adminAccess")}</h2>
-        <div className="profile-stack">
-          <div><strong>{t("primaryAdmin")}</strong><p>{adminEmail}</p></div>
-          <div><strong>{t("teamManagement")}</strong><p>{t("teamManagementCopy")}</p></div>
-          <div><strong>{t("billing")}</strong><p>{t("billingCopy")}</p></div>
-        </div>
-      </article>
-    </>
+    <div className="lp-stack">
+      <Panel title={t("workspaceDetails")}>
+        <dl className="lp-defs">
+          <div><dt>{t("company")}</dt><dd>{companyName}</dd></div>
+          <div><dt>{t("industry")}</dt><dd>{industry}</dd></div>
+          <div><dt>{t("status")}</dt><dd style={{ textTransform: "capitalize" }}>{status}</dd></div>
+          <div><dt>{t("plan")}</dt><dd style={{ textTransform: "capitalize" }}>{plan}</dd></div>
+        </dl>
+      </Panel>
+      <Panel title={t("adminAccess")}>
+        <dl className="lp-defs lp-defs-one">
+          <div><dt>{t("primaryAdmin")}</dt><dd>{adminEmail}</dd></div>
+          <div><dt>{t("teamManagement")}</dt><dd>{t("teamManagementCopy")}</dd></div>
+          <div><dt>{t("billing")}</dt><dd>{t("billingCopy")}</dd></div>
+        </dl>
+      </Panel>
+    </div>
   );
 }

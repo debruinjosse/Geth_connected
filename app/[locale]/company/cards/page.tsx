@@ -6,6 +6,11 @@ import { companyAdmin, cardManagementRows } from "@/lib/demo-data";
 import { getLocalizedCategoryDisplayName, getLocalizedCardTitle, getLocalizedRecognitionSentence } from "@/lib/cards";
 import { getUnreadNotificationCount } from "@/lib/notifications";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { CardArtwork } from "@/components/CardArtwork";
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
+import { Panel } from "@/components/ui/Panel";
+import { Pill } from "@/components/ui/Pill";
 
 function hasSupabaseServerConfig() {
   return Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
@@ -25,26 +30,31 @@ function renderDemoCards(
       title={t("cardsTitle")}
       subtitle={t("cardsSubtitle")}
       user={companyAdmin}
-      actions={<a className="btn btn-dark" href={`/${locale}/cards`}>{t("openPublicLibrary")}</a>}
+      actions={
+        <Button href={`/${locale}/cards`} variant="ghost" size="sm" arrow>
+          {t("openPublicLibrary")}
+        </Button>
+      }
     >
-      <article className="panel dashboard-panel">
-        <div className="company-card-admin-grid">
-          {cardManagementRows.map((card) => (
-            <article className="company-card-admin-card" key={card.id}>
-              <div>
-                <span className="eyebrow">{getLocalizedCategoryDisplayName(card.category, locale)}</span>
-                <h3>{getLocalizedCardTitle({ title: card.title, slug: card.slug }, locale)}</h3>
-                <p>{card.sentence}</p>
+      <div className="lp-admin-cards">
+        {cardManagementRows.map((card) => (
+          <Card as="article" size="sm" className="lp-admin-card" key={card.id}>
+            <CardArtwork cardNumber={Number(card.number)} locale={locale} title={getLocalizedCardTitle({ title: card.title, slug: card.slug }, locale)} sizes="120px" />
+            <div className="lp-admin-card-body">
+              <span className="lp-eyebrow">{getLocalizedCategoryDisplayName(card.category, locale)}</span>
+              <h3>{getLocalizedCardTitle({ title: card.title, slug: card.slug }, locale)}</h3>
+              <p>{card.sentence}</p>
+              <div className="lp-edit-pills">
+                <Pill>#{card.number}</Pill>
+                <Pill tone={card.status === "Active" ? "green" : "neutral"}>{card.status === "Active" ? t("cardStatusActive") : t("cardStatusInactive")}</Pill>
               </div>
-              <div className="company-card-admin-meta">
-                <span>#{card.number}</span>
-                <span className="energy high">{card.status === "Active" ? t("cardStatusActive") : t("cardStatusInactive")}</span>
-              </div>
-              <a className="btn btn-secondary" href={`/${locale}/claim-card/${card.slug}`}>{t("openQrRoute")}</a>
-            </article>
-          ))}
-        </div>
-      </article>
+              <Button href={`/${locale}/claim-card/${card.slug}`} variant="ghost" size="sm" arrow>
+                {t("openQrRoute")}
+              </Button>
+            </div>
+          </Card>
+        ))}
+      </div>
     </DashboardShell>
   );
 }
@@ -118,36 +128,39 @@ export default async function CompanyCardsPage({ params }: { params: Promise<{ l
         initials: getInitials(profile.first_name, profile.last_name),
         team: company?.company_name ?? t("companyAdmin")
       }}
-      actions={<a className="btn btn-dark" href={`/${locale}/cards`}>{t("openPublicLibrary")}</a>}
+      actions={
+        <Button href={`/${locale}/cards`} variant="ghost" size="sm" arrow>
+          {t("openPublicLibrary")}
+        </Button>
+      }
       unreadNotifications={unreadNotifications}
     >
-      <article className="panel dashboard-panel">
-        {cards?.length ? (
-          <div className="company-card-admin-grid">
-            {cards.map((card) => (
-                <article className="company-card-admin-card" key={card.id}>
-                  <div>
-                    <span className="eyebrow">{getLocalizedCategoryDisplayName(card.category, locale)}</span>
-                    <h3>{getLocalizedCardTitle({ title: card.title, slug: card.qr_slug }, locale)}</h3>
-                    <p>{getLocalizedRecognitionSentence({ recognitionSentence: card.recognition_sentence, slug: card.qr_slug }, locale)}</p>
-                  </div>
-                  <div className="company-card-admin-meta">
-                    <span>#{String(card.card_number).padStart(2, "0")}</span>
-                    <span className={`energy ${card.active ? "high" : "low"}`.trim()}>{card.active ? t("cardStatusActive") : t("cardStatusInactive")}</span>
-                    <span>{t("cardUsedCount", { count: usageCounts.get(card.id) ?? 0 })}</span>
-                  </div>
-                  <a className="btn btn-secondary" href={`/${locale}/claim-card/${card.qr_slug}`}>{t("openQrRoute")}</a>
-                </article>
-              ))}
-          </div>
-        ) : (
-          <EmptyState
-            eyebrow={t("cardsTitle")}
-            title={t("cardLibraryEmptyTitle")}
-            copy={t("cardLibraryEmptyCopy")}
-          />
-        )}
-      </article>
+      {cards?.length ? (
+        <div className="lp-admin-cards">
+          {cards.map((card) => (
+            <Card as="article" size="sm" className="lp-admin-card" key={card.id}>
+              <CardArtwork cardNumber={card.card_number} locale={locale} title={getLocalizedCardTitle({ title: card.title, slug: card.qr_slug }, locale)} sizes="120px" />
+              <div className="lp-admin-card-body">
+                <span className="lp-eyebrow">{getLocalizedCategoryDisplayName(card.category, locale)}</span>
+                <h3>{getLocalizedCardTitle({ title: card.title, slug: card.qr_slug }, locale)}</h3>
+                <p>{getLocalizedRecognitionSentence({ recognitionSentence: card.recognition_sentence, slug: card.qr_slug }, locale)}</p>
+                <div className="lp-edit-pills">
+                  <Pill>#{String(card.card_number).padStart(2, "0")}</Pill>
+                  <Pill tone={card.active ? "green" : "neutral"}>{card.active ? t("cardStatusActive") : t("cardStatusInactive")}</Pill>
+                  <Pill tone="gold">{t("cardUsedCount", { count: usageCounts.get(card.id) ?? 0 })}</Pill>
+                </div>
+                <Button href={`/${locale}/claim-card/${card.qr_slug}`} variant="ghost" size="sm" arrow>
+                  {t("openQrRoute")}
+                </Button>
+              </div>
+            </Card>
+          ))}
+        </div>
+      ) : (
+        <Panel>
+          <EmptyState eyebrow={t("cardsTitle")} title={t("cardLibraryEmptyTitle")} copy={t("cardLibraryEmptyCopy")} />
+        </Panel>
+      )}
     </DashboardShell>
   );
 }

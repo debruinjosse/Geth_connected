@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
-import { CheckCircle2, Copy, MailPlus, UserCheck, UserX, XCircle } from "lucide-react";
+import { MailPlus, UserCheck, UserX } from "lucide-react";
 import {
   assignManagerToTeamAction,
   removeManagerFromTeamAction,
@@ -12,6 +12,13 @@ import {
   type CompanyPeopleMutationResult
 } from "@/app/actions/companyPeople";
 import { resendInvitationEmailAction } from "@/app/actions/invitations";
+import { Alert } from "@/components/ui/Alert";
+import { Avatar } from "@/components/ui/Avatar";
+import { Button } from "@/components/ui/Button";
+import { CopyField } from "@/components/ui/CopyField";
+import { Field, Select } from "@/components/ui/Fields";
+import { Panel } from "@/components/ui/Panel";
+import { Pill } from "@/components/ui/Pill";
 
 type TeamOption = {
   id: string;
@@ -41,13 +48,7 @@ type PendingInvite = {
 
 function Feedback({ state }: { state: CompanyPeopleMutationResult | null }) {
   if (!state?.message) return null;
-
-  return (
-    <p className={`team-form-feedback ${state.ok ? "success" : "error"}`.trim()}>
-      {state.ok ? <CheckCircle2 size={16} /> : <XCircle size={16} />}
-      {state.message}
-    </p>
-  );
+  return <Alert tone={state.ok ? "success" : "error"}>{state.message}</Alert>;
 }
 
 function statusLabel(status: PersonRow["status"], t: ReturnType<typeof useTranslations>) {
@@ -78,21 +79,12 @@ export function CompanyPeopleManagementPanel({
   const ti = useTranslations("invitations");
   const tc = useTranslations("common");
   const [message, setMessage] = useState<CompanyPeopleMutationResult | null>(null);
-  const [copiedInviteId, setCopiedInviteId] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
   function runAction(action: (formData: FormData) => Promise<CompanyPeopleMutationResult>, formData: FormData) {
     startTransition(async () => {
       const result = await action(formData);
       setMessage(result);
-    });
-  }
-
-  function copyInvite(invite: PendingInvite) {
-    startTransition(async () => {
-      await navigator.clipboard.writeText(invite.inviteLink);
-      setCopiedInviteId(invite.id);
-      window.setTimeout(() => setCopiedInviteId(null), 1800);
     });
   }
 
@@ -108,151 +100,161 @@ export function CompanyPeopleManagementPanel({
     });
   }
 
+  function renderAccess(person: PersonRow) {
+    return (
+      <form
+        className="lp-access-form"
+        action={(formData) => {
+          formData.set("profile_id", person.id);
+          formData.set("role", person.role);
+          formData.set("status", person.status === "disabled" ? "active" : "disabled");
+          runAction(updateProfileStatusAction, formData);
+        }}
+      >
+        <Button type="submit" variant={person.status === "disabled" ? "primary" : "ghost"} size="sm" disabled={isPending} icon={person.status === "disabled" ? <UserCheck /> : <UserX />}>
+          {person.status === "disabled" ? t("restoreAccess") : t("removeAccess")}
+        </Button>
+      </form>
+    );
+  }
+
   return (
-    <div className="team-panel-stack">
+    <div className="lp-stack">
       <Feedback state={message} />
 
       {people.length ? (
-        <div className="team-editor-list">
-          {people.map((person) => (
-            <article className="team-editor-card people-editor-card" key={person.id}>
-              <div className="people-editor-head">
-                <div>
-                  <strong>{person.name}</strong>
-                  <p>{person.email ?? person.role}</p>
+        <Panel>
+          <div className="lp-edit-list">
+            {people.map((person) => (
+              <div className="lp-edit-row" key={person.id}>
+                <div className="lp-edit-head">
+                  <span className="lp-person">
+                    <Avatar name={person.name} />
+                    <span>
+                      <b>{person.name}</b>
+                      <small>{person.email ?? person.role}</small>
+                    </span>
+                  </span>
+                  <span className="lp-edit-pills">
+                    {typeof person.cards === "number" ? <Pill>{t("cardsReceived", { count: person.cards })}</Pill> : null}
+                    <Pill tone={person.status === "active" ? "green" : person.status === "disabled" ? "neutral" : "gold"}>{statusLabel(person.status, t)}</Pill>
+                  </span>
                 </div>
-                <span className={`energy ${person.status === "active" ? "high" : person.status === "disabled" ? "low" : "mid"}`.trim()}>
-                  {statusLabel(person.status, t)}
-                </span>
-              </div>
 
-              <div className="people-editor-grid">
-                <form
-                  className="people-inline-form"
-                  action={(formData) => {
-                    formData.set("profile_id", person.id);
-                    formData.set("role", person.role);
-                    runAction(updateProfileTeamAction, formData);
-                  }}
-                >
-                  <label htmlFor={`${person.id}-team`}>{mode === "employee" ? t("teamAssignment") : t("defaultProfileTeam")}</label>
-                  <select id={`${person.id}-team`} className="input" name="team_id" defaultValue={person.teamId ?? ""}>
-                    <option value="">{tc("unassigned")}</option>
-                    {teams.map((team) => (
-                      <option value={team.id} key={team.id}>
-                        {team.name}
-                      </option>
-                    ))}
-                  </select>
-                  <button className="btn btn-secondary" type="submit" disabled={isPending}>
-                    {t("saveTeam")}
-                  </button>
-                </form>
+                <div className="lp-edit-grid">
+                  <form
+                    className="lp-inline-form"
+                    action={(formData) => {
+                      formData.set("profile_id", person.id);
+                      formData.set("role", person.role);
+                      runAction(updateProfileTeamAction, formData);
+                    }}
+                  >
+                    <Field label={mode === "employee" ? t("teamAssignment") : t("defaultProfileTeam")} htmlFor={`${person.id}-team`}>
+                      <Select id={`${person.id}-team`} name="team_id" defaultValue={person.teamId ?? ""}>
+                        <option value="">{tc("unassigned")}</option>
+                        {teams.map((team) => (
+                          <option value={team.id} key={team.id}>
+                            {team.name}
+                          </option>
+                        ))}
+                      </Select>
+                    </Field>
+                    <Button type="submit" variant="ghost" size="sm" disabled={isPending}>
+                      {t("saveTeam")}
+                    </Button>
+                  </form>
+
+                  {mode === "employee" ? renderAccess(person) : null}
+                  {mode === "manager" ? (
+                    <form
+                      className="lp-inline-form"
+                      action={(formData) => {
+                        formData.set("manager_id", person.id);
+                        runAction(assignManagerToTeamAction, formData);
+                      }}
+                    >
+                      <Field label={t("managedTeam")} htmlFor={`${person.id}-managed-team`}>
+                        <Select id={`${person.id}-managed-team`} name="team_id" defaultValue={person.managedTeamIds?.[0] ?? ""}>
+                          <option value="">{t("chooseTeam")}</option>
+                          {teams.map((team) => (
+                            <option value={team.id} key={team.id}>
+                              {team.name}
+                            </option>
+                          ))}
+                        </Select>
+                      </Field>
+                      <Button type="submit" variant="ghost" size="sm" disabled={isPending}>
+                        {t("assignManager")}
+                      </Button>
+                    </form>
+                  ) : null}
+                </div>
 
                 {mode === "manager" ? (
-                  <form
-                    className="people-inline-form"
-                    action={(formData) => {
-                      formData.set("manager_id", person.id);
-                      runAction(assignManagerToTeamAction, formData);
-                    }}
-                  >
-                    <label htmlFor={`${person.id}-managed-team`}>{t("managedTeam")}</label>
-                    <select id={`${person.id}-managed-team`} className="input" name="team_id" defaultValue={person.managedTeamIds?.[0] ?? ""}>
-                      <option value="">{t("chooseTeam")}</option>
-                      {teams.map((team) => (
-                        <option value={team.id} key={team.id}>
-                          {team.name}
-                        </option>
-                      ))}
-                    </select>
-                    <button className="btn btn-secondary" type="submit" disabled={isPending}>
-                      {t("assignManager")}
-                    </button>
-                  </form>
+                <div className="lp-edit-foot">
+                  <div className="lp-edit-chips">
+                    {mode === "manager"
+                      ? (person.managedTeamIds ?? []).map((teamId) => {
+                          const team = teams.find((item) => item.id === teamId);
+                          return (
+                            <form
+                              key={teamId}
+                              className="lp-chip-form"
+                              action={(formData) => {
+                                formData.set("team_id", teamId);
+                                runAction(removeManagerFromTeamAction, formData);
+                              }}
+                            >
+                              <span>{team?.name ?? t("managedTeam")}</span>
+                              <button type="submit" disabled={isPending} aria-label={t("remove")} title={t("remove")}>
+                                ×
+                              </button>
+                            </form>
+                          );
+                        })
+                      : null}
+                  </div>
+                  {mode === "manager" ? renderAccess(person) : null}
+                </div>
                 ) : null}
-              </div>
-
-              {mode === "manager" && person.managedTeamIds?.length ? (
-                <div className="people-managed-teams">
-                  {person.managedTeamIds.map((teamId) => {
-                    const team = teams.find((item) => item.id === teamId);
-                    return (
-                      <form
-                        key={teamId}
-                        action={(formData) => {
-                          formData.set("team_id", teamId);
-                          runAction(removeManagerFromTeamAction, formData);
-                        }}
-                      >
-                        <span>{team?.name ?? t("managedTeam")}</span>
-                        <button className="btn btn-secondary" type="submit" disabled={isPending}>
-                          {t("remove")}
-                        </button>
-                      </form>
-                    );
-                  })}
-                </div>
-              ) : null}
-
-              <div className="team-editor-actions">
-                <form
-                  action={(formData) => {
-                    formData.set("profile_id", person.id);
-                    formData.set("role", person.role);
-                    formData.set("status", person.status === "disabled" ? "active" : "disabled");
-                    runAction(updateProfileStatusAction, formData);
-                  }}
-                >
-                  <button className={`btn ${person.status === "disabled" ? "btn-primary" : "btn-secondary"}`} type="submit" disabled={isPending}>
-                    {person.status === "disabled" ? <UserCheck size={16} /> : <UserX size={16} />}
-                    {person.status === "disabled" ? t("restoreAccess") : t("removeAccess")}
-                  </button>
-                </form>
-                {typeof person.cards === "number" ? <span className="quality-pill">{t("cardsReceived", { count: person.cards })}</span> : null}
-              </div>
-            </article>
-          ))}
-        </div>
-      ) : null}
-
-      {pendingInvites.length ? (
-        <article className="panel dashboard-panel">
-          <div className="panel-top">
-            <h2>{mode === "employee" ? t("pendingEmployeeInvitations") : t("pendingManagerInvitations")}</h2>
-          </div>
-          <div className="invite-success-stack">
-            {pendingInvites.map((invite) => (
-              <div className="invite-link-card" key={invite.id}>
-                <div className="invite-link-meta">
-                  <strong>{invite.email}</strong>
-                  <small>{invite.teamName}</small>
-                </div>
-                <div className="invite-link-row">
-                  <input className="input" value={invite.inviteLink} readOnly aria-label={`Invite link for ${invite.email}`} />
-                  <button className="btn btn-secondary" type="button" onClick={() => copyInvite(invite)} disabled={isPending}>
-                    <Copy size={16} />
-                    {copiedInviteId === invite.id ? ti("copied") : ti("copy")}
-                  </button>
-                  <button className="btn btn-secondary" type="button" onClick={() => resendInvite(invite)} disabled={isPending}>
-                    <MailPlus size={16} />
-                    {t("resendEmail")}
-                  </button>
-                  <form
-                    action={(formData) => {
-                      formData.set("invitation_id", invite.id);
-                      runAction(revokeInvitationAction, formData);
-                    }}
-                  >
-                    <button className="btn btn-secondary" type="submit" disabled={isPending}>
-                      {t("revoke")}
-                    </button>
-                  </form>
-                </div>
               </div>
             ))}
           </div>
-        </article>
+        </Panel>
+      ) : null}
+
+      {pendingInvites.length ? (
+        <Panel title={mode === "employee" ? t("pendingEmployeeInvitations") : t("pendingManagerInvitations")}>
+          <div className="lp-edit-list">
+            {pendingInvites.map((invite) => (
+              <div className="lp-edit-row" key={invite.id}>
+                <div className="lp-edit-head">
+                  <div>
+                    <b>{invite.email}</b>
+                    <small>{invite.teamName}</small>
+                  </div>
+                  <span className="lp-edit-actions">
+                    <Button variant="ghost" size="sm" onClick={() => resendInvite(invite)} disabled={isPending} icon={<MailPlus />}>
+                      {t("resendEmail")}
+                    </Button>
+                    <form
+                      action={(formData) => {
+                        formData.set("invitation_id", invite.id);
+                        runAction(revokeInvitationAction, formData);
+                      }}
+                    >
+                      <Button type="submit" variant="ghost" size="sm" disabled={isPending}>
+                        {t("revoke")}
+                      </Button>
+                    </form>
+                  </span>
+                </div>
+                <CopyField value={invite.inviteLink} label={`Invite link for ${invite.email}`} copyLabel={ti("copy")} copiedLabel={ti("copied")} />
+              </div>
+            ))}
+          </div>
+        </Panel>
       ) : null}
     </div>
   );

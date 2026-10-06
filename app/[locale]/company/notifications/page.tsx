@@ -3,6 +3,8 @@ import { DashboardShell } from "@/components/DashboardShell";
 import { MarkAllNotificationsReadButton, NotificationInbox } from "@/components/NotificationInbox";
 import { companyAdmin, employeeNotifications } from "@/lib/demo-data";
 import { getNotificationInboxPageData } from "@/lib/notification-inbox-page";
+import { Feed, FeedItem } from "@/components/ui/Feed";
+import { Panel } from "@/components/ui/Panel";
 
 function hasSupabaseServerConfig() {
   return Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
@@ -13,21 +15,13 @@ async function DemoNotificationsPage({ locale }: { locale: string }) {
 
   return (
     <DashboardShell role="company" title={t("notificationsTitle")} subtitle={t("notificationsSubtitle")} user={companyAdmin}>
-      <section className="dashboard-grid">
-        <article className="panel dashboard-panel">
-          <div className="signal-list">
-            {employeeNotifications.map((notification) => (
-              <div className="signal-card" key={notification.id}>
-                <div>
-                  <strong>{notification.title}</strong>
-                  <p>{notification.detail}</p>
-                </div>
-                <span className="quality-pill">{notification.time}</span>
-              </div>
-            ))}
-          </div>
-        </article>
-      </section>
+      <Panel>
+        <Feed>
+          {employeeNotifications.map((notification) => (
+            <FeedItem key={notification.id} title={notification.title} note={notification.detail} meta={notification.time} />
+          ))}
+        </Feed>
+      </Panel>
     </DashboardShell>
   );
 }
@@ -60,8 +54,7 @@ export default async function CompanyNotificationsPage({ params }: { params: Pro
         ) : null
       }
     >
-      <section className="dashboard-grid">
-        <article className="panel dashboard-panel">
+      <Panel>
           <NotificationInbox
             notifications={data.notifications}
             emptyTitle={t("notificationsEmptyTitle")}
@@ -70,8 +63,7 @@ export default async function CompanyNotificationsPage({ params }: { params: Pro
             emptyActionHref={`/${locale}/company/employees`}
             locale={locale}
           />
-        </article>
-      </section>
+      </Panel>
     </DashboardShell>
   );
 }

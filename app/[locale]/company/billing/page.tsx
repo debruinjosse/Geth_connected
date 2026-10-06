@@ -6,6 +6,12 @@ import { companyAdmin } from "@/lib/demo-data";
 import { getUnreadNotificationCount } from "@/lib/notifications";
 import { getDateLocale } from "@/lib/locale-format";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { Alert } from "@/components/ui/Alert";
+import { Grid } from "@/components/ui/Grid";
+import { Panel } from "@/components/ui/Panel";
+import { Pill } from "@/components/ui/Pill";
+import { StatCard } from "@/components/ui/StatCard";
+import { Table } from "@/components/ui/Table";
 
 type BillingSearchParams = {
   billing?: string;
@@ -100,18 +106,12 @@ function getBillingMessage(code: string | undefined, t: BillingTranslation) {
 function renderDemoBilling(t: BillingTranslation) {
   return (
     <DashboardShell role="company" title={t("title")} subtitle={t("subtitle")} user={companyAdmin}>
-      <section className="dashboard-grid two billing-simplified-grid">
-        <article className="panel dashboard-panel">
-          <div className="eyebrow">{t("paymentEyebrow")}</div>
-          <h2>{t("invoice")}</h2>
-          <p className="section-copy">info@geth.pro</p>
-        </article>
-        <article className="panel dashboard-panel">
-          <div className="eyebrow">{t("configurationEyebrow")}</div>
-          <h2>{t("configurationTitle")}</h2>
-          <p className="section-copy">{t("configurationCopy")}</p>
-        </article>
-      </section>
+      <Grid cols="two">
+        <StatCard label={t("paymentEyebrow")} value={t("invoice")} helper="info@geth.pro" />
+        <Panel title={t("configurationTitle")} description={t("configurationCopy")}>
+          <Pill tone="gold">{t("configurationEyebrow")}</Pill>
+        </Panel>
+      </Grid>
     </DashboardShell>
   );
 }
@@ -232,71 +232,55 @@ export default async function CompanyBillingPage({
       }}
       unreadNotifications={unreadNotifications}
     >
-      {message ? (
-        <section className="panel dashboard-panel billing-status-banner">
-          <strong>{message}</strong>
-        </section>
-      ) : null}
+      {message ? <Alert tone="info">{message}</Alert> : null}
 
-      <section className="dashboard-grid two billing-simplified-grid">
-        <article className="panel dashboard-panel report-summary-card billing-payment-card">
-          <span className="eyebrow">{t("paymentEyebrow")}</span>
-          <strong>{formatPaymentMethod(billingMethod, t)}</strong>
-          <p>{billingEmail || t("billingEmailMissing")}</p>
-        </article>
-        <article className="panel dashboard-panel">
-          <div className="eyebrow">{t("configurationEyebrow")}</div>
-          <h2>{t("configurationTitle")}</h2>
-          <p className="section-copy">{t("configurationCopy")}</p>
-        </article>
-      </section>
+      <Grid cols="two">
+        <StatCard label={t("paymentEyebrow")} value={formatPaymentMethod(billingMethod, t)} helper={billingEmail || t("billingEmailMissing")} />
+        <Panel title={t("configurationTitle")} description={t("configurationCopy")}>
+          <Pill tone="gold">{t("configurationEyebrow")}</Pill>
+        </Panel>
+      </Grid>
 
-      <article className="panel dashboard-panel">
-        <div className="panel-top">
-          <div>
-            <h2>{t("generatedInvoices")}</h2>
-            <p className="section-copy">{t("generatedInvoicesCopy")}</p>
-          </div>
-        </div>
+      <Panel title={t("generatedInvoices")} description={t("generatedInvoicesCopy")}>
         {invoices?.length ? (
-          <div className="table-wrap">
-            <table className="dashboard-table">
-              <thead>
-                <tr>
-                  <th>{t("invoice")}</th>
-                  <th>{t("status")}</th>
-                  <th>{t("total")}</th>
-                  <th>{t("billingPeriod")}</th>
-                  <th>{t("users")}</th>
-                  <th>{t("dueDate")}</th>
-                  <th>{t("email")}</th>
-                  <th>{t("pdf")}</th>
+          <Table className="lp-table-flat lp-table-stack">
+            <thead>
+              <tr>
+                <th>{t("invoice")}</th>
+                <th>{t("status")}</th>
+                <th>{t("total")}</th>
+                <th>{t("billingPeriod")}</th>
+                <th className="lp-c">{t("users")}</th>
+                <th>{t("dueDate")}</th>
+                <th>{t("email")}</th>
+                <th>{t("pdf")}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {invoices.map((invoice) => (
+                <tr key={invoice.id}>
+                  <td><b style={{ fontWeight: 500 }}>{invoice.invoice_number}</b></td>
+                  <td data-label={t("status")}>
+                    <Pill tone={invoice.status === "paid" ? "green" : invoice.status === "overdue" ? "neutral" : "gold"}>{formatReadableStatus(invoice.status, t)}</Pill>
+                  </td>
+                  <td data-label={t("total")}>{formatMoney(invoice.total_cents, invoice.currency, "once", t)}</td>
+                  <td data-label={t("billingPeriod")}>{formatBillingInterval(invoice.billing_interval, t)}</td>
+                  <td className="lp-c" data-label={t("users")}>{invoice.seat_count ?? 1}</td>
+                  <td data-label={t("dueDate")}>{invoice.due_date ? formatDate(invoice.due_date, locale) : t("notSet")}</td>
+                  <td data-label={t("email")}>{invoice.email_sent_at ? t("emailSent") : invoice.email_error ? t("emailFailed") : t("emailPending")}</td>
+                  <td data-label={t("pdf")}>
+                    <a className="lp-link" href={`/${locale}/company/billing/invoices/${invoice.id}/pdf`}>
+                      {t("download")}
+                    </a>
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {invoices.map((invoice) => (
-                  <tr key={invoice.id}>
-                    <td><strong>{invoice.invoice_number}</strong></td>
-                    <td>{formatReadableStatus(invoice.status, t)}</td>
-                    <td>{formatMoney(invoice.total_cents, invoice.currency, "once", t)}</td>
-                    <td>{formatBillingInterval(invoice.billing_interval, t)}</td>
-                    <td>{invoice.seat_count ?? 1}</td>
-                    <td>{invoice.due_date ? formatDate(invoice.due_date, locale) : t("notSet")}</td>
-                    <td>{invoice.email_sent_at ? t("emailSent") : invoice.email_error ? t("emailFailed") : t("emailPending")}</td>
-                    <td>
-                      <a className="panel-link" href={`/${locale}/company/billing/invoices/${invoice.id}/pdf`}>
-                        {t("download")}
-                      </a>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+              ))}
+            </tbody>
+          </Table>
         ) : (
           <EmptyState eyebrow={t("emptyEyebrow")} title={t("emptyTitle")} copy={t("emptyCopy")} />
         )}
-      </article>
+      </Panel>
     </DashboardShell>
   );
 }

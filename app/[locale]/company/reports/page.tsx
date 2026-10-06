@@ -7,6 +7,12 @@ import { companyAdmin, companyReports } from "@/lib/demo-data";
 import { getUnreadNotificationCount } from "@/lib/notifications";
 import { fetchRecognitionReportRows, formatReportDate, getRecognitionReportRange } from "@/lib/reports/recognition-report";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { Button } from "@/components/ui/Button";
+import { Field, Input } from "@/components/ui/Fields";
+import { Grid } from "@/components/ui/Grid";
+import { Panel } from "@/components/ui/Panel";
+import { StatCard } from "@/components/ui/StatCard";
+import { Table } from "@/components/ui/Table";
 
 function hasSupabaseServerConfig() {
   return Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
@@ -21,17 +27,15 @@ async function renderDemoReports(locale: string) {
 
   return (
     <DashboardShell role="company" title={t("reportsTitle")} subtitle={t("reportsSubtitle")} user={companyAdmin}>
-      <section className="dashboard-grid three">
+      <Grid cols="three">
         {companyReports.map((report) => (
-          <article className="panel dashboard-panel" key={report.id}>
-            <h2>{report.title}</h2>
-            <p className="section-copy">{report.copy}</p>
-            <a className="btn btn-secondary" href={`/${locale}/company`}>
+          <Panel key={report.id} title={report.title} description={report.copy}>
+            <Button href={`/${locale}/company`} variant="ghost" size="sm" arrow>
               {t("openReport")}
-            </a>
-          </article>
+            </Button>
+          </Panel>
         ))}
-      </section>
+      </Grid>
     </DashboardShell>
   );
 }
@@ -96,96 +100,73 @@ export default async function CompanyReportsPage({
         team: t("companyAdmin")
       }}
       actions={
-        <a className="btn btn-secondary" href={exportHref}>
-          <Download size={16} /> {t("exportCsv")}
-        </a>
+        <Button href={exportHref} variant="ghost" size="sm" icon={<Download />}>
+          {t("exportCsv")}
+        </Button>
       }
       unreadNotifications={unreadNotifications}
     >
-      <section className="panel dashboard-panel report-controls-panel">
-        <form className="report-filter-form" method="get">
-          <label>
-            <span>{t("dateFrom")}</span>
-            <input type="date" name="from" defaultValue={range.from} />
-          </label>
-          <label>
-            <span>{t("dateTo")}</span>
-            <input type="date" name="to" defaultValue={range.to} />
-          </label>
-          <button className="btn btn-primary" type="submit">
-            {t("applyRange")}
-          </button>
-          <a className="btn btn-secondary" href={`/${locale}/company/reports`}>
+      <Panel>
+        <form className="lp-filters-bar" method="get">
+          <Field label={t("dateFrom")} htmlFor="report-from">
+            <Input id="report-from" type="date" name="from" defaultValue={range.from} />
+          </Field>
+          <Field label={t("dateTo")} htmlFor="report-to">
+            <Input id="report-to" type="date" name="to" defaultValue={range.to} />
+          </Field>
+          <Button type="submit">{t("applyRange")}</Button>
+          <Button href={`/${locale}/company/reports`} variant="ghost">
             {t("resetRange")}
-          </a>
+          </Button>
         </form>
-      </section>
+      </Panel>
 
-      <section className="dashboard-grid three report-summary-grid">
-        <article className="panel dashboard-panel report-summary-card">
-          <span className="eyebrow">{t("summaryRecognitions")}</span>
-          <strong>{rows.length}</strong>
-          <p>{t("claimedInRange")}</p>
-        </article>
-        <article className="panel dashboard-panel report-summary-card">
-          <span className="eyebrow">{t("employeesTitle")}</span>
-          <strong>{receiverCount}</strong>
-          <p>{t("recognizedRecipients")}</p>
-        </article>
-        <article className="panel dashboard-panel report-summary-card">
-          <span className="eyebrow">{t("teamsTitle")}</span>
-          <strong>{teamCount}</strong>
-          <p>{t("representedInReport")}</p>
-        </article>
-      </section>
+      <Grid cols="three">
+        <StatCard label={t("summaryRecognitions")} value={rows.length} helper={t("claimedInRange")} />
+        <StatCard label={t("employeesTitle")} value={receiverCount} helper={t("recognizedRecipients")} />
+        <StatCard label={t("teamsTitle")} value={teamCount} helper={t("representedInReport")} />
+      </Grid>
 
-      <section className="panel dashboard-panel">
-        <div className="panel-top">
-          <div>
-            <h2>{t("companyReportTitle")}</h2>
-            <p className="section-copy">{t("reportIncludesCopy")}</p>
-          </div>
-          <a className="btn btn-secondary" href={exportHref}>
-            <Download size={16} /> {t("downloadCsv")}
-          </a>
-        </div>
+      <Panel
+        title={t("companyReportTitle")}
+        description={t("reportIncludesCopy")}
+        action={
+          <Button href={exportHref} variant="ghost" size="sm" icon={<Download />}>
+            {t("downloadCsv")}
+          </Button>
+        }
+      >
         {rows.length ? (
-          <div className="table-wrap">
-            <table className="dashboard-table report-table">
-              <thead>
-                <tr>
-                  <th>{t("tableDate")}</th>
-                  <th>{t("tableReceiver")}</th>
-                  <th>{t("tableGiver")}</th>
-                  <th>{t("tableCard")}</th>
-                  <th>{t("tableCategory")}</th>
-                  <th>{t("team")}</th>
-                  <th>{t("tableNote")}</th>
+          <Table className="lp-table-flat lp-table-stack">
+            <thead>
+              <tr>
+                <th>{t("tableDate")}</th>
+                <th>{t("tableReceiver")}</th>
+                <th>{t("tableGiver")}</th>
+                <th>{t("tableCard")}</th>
+                <th>{t("tableCategory")}</th>
+                <th>{t("team")}</th>
+                <th>{t("tableNote")}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((row) => (
+                <tr key={row.id}>
+                  <td data-wide style={{ whiteSpace: "nowrap" }}>{formatReportDate(row.recognitionDate, locale)}</td>
+                  <td data-label={t("tableReceiver")}><b style={{ fontWeight: 500 }}>{row.receiver}</b></td>
+                  <td data-label={t("tableGiver")}>{row.giver}</td>
+                  <td data-label={t("tableCard")}>{row.cardTitle}</td>
+                  <td data-label={t("tableCategory")}>{row.category}</td>
+                  <td data-label={t("team")}>{row.team}</td>
+                  <td data-wide style={{ maxWidth: 280 }}>{row.personalNote || tc("noNote")}</td>
                 </tr>
-              </thead>
-              <tbody>
-                {rows.map((row) => (
-                  <tr key={row.id}>
-                    <td>{formatReportDate(row.recognitionDate, locale)}</td>
-                    <td><strong>{row.receiver}</strong></td>
-                    <td>{row.giver}</td>
-                    <td>{row.cardTitle}</td>
-                    <td>{row.category}</td>
-                    <td>{row.team}</td>
-                    <td className="report-note">{row.personalNote || tc("noNote")}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+              ))}
+            </tbody>
+          </Table>
         ) : (
-          <EmptyState
-            eyebrow={t("noReportRowsEyebrow")}
-            title={t("noRowsTitle")}
-            copy={t("noRowsCopy")}
-          />
+          <EmptyState eyebrow={t("noReportRowsEyebrow")} title={t("noRowsTitle")} copy={t("noRowsCopy")} />
         )}
-      </section>
+      </Panel>
     </DashboardShell>
   );
 }

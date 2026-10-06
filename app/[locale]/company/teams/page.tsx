@@ -6,6 +6,10 @@ import { InlineDemoForm } from "@/components/InlineDemoForm";
 import { TeamManagementPanel } from "@/components/TeamManagementPanel";
 import { companyAdmin, companyTeams } from "@/lib/demo-data";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { Grid } from "@/components/ui/Grid";
+import { Panel } from "@/components/ui/Panel";
+import { Pill } from "@/components/ui/Pill";
+import { Table } from "@/components/ui/Table";
 
 function hasSupabaseServerConfig() {
   return Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
@@ -61,25 +65,23 @@ function getActivityUserIds(recognitions: TeamRecognitionRow[], workforceIds: Se
 function renderDemoTeams(t: Awaited<ReturnType<typeof getTranslations>>) {
   return (
     <DashboardShell role="company" title={t("teamsTitle")} subtitle={t("teamsSubtitle")} user={companyAdmin}>
-      <section className="dashboard-grid two">
-        <article className="panel dashboard-panel">
-          <div className="table-wrap">
-            <table className="dashboard-table">
-              <thead><tr><th>{t("team")}</th><th>Members</th><th>{t("manager")}</th><th>Engagement</th><th>Recognitions</th></tr></thead>
-              <tbody>
-                {companyTeams.map((team) => (
-                  <tr key={team.id}>
-                    <td><strong>{team.name}</strong></td>
-                    <td>{team.members}</td>
-                    <td>{team.manager}</td>
-                    <td>{team.engagement}</td>
-                    <td>{team.recognitions}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </article>
+      <Panel>
+          <Table className="lp-table-flat lp-table-stack">
+            <thead><tr><th>{t("team")}</th><th>Members</th><th>{t("manager")}</th><th>Engagement</th><th>Recognitions</th></tr></thead>
+            <tbody>
+              {companyTeams.map((team) => (
+                <tr key={team.id}>
+                  <td><b style={{ fontWeight: 500 }}>{team.name}</b></td>
+                  <td data-label="Members">{team.members}</td>
+                  <td data-label={t("manager")}>{team.manager}</td>
+                  <td data-label="Engagement">{team.engagement}</td>
+                  <td data-label="Recognitions">{team.recognitions}</td>
+                </tr>
+              ))}
+            </tbody>
+          </Table>
+      </Panel>
+      <Grid cols="two">
         <InlineDemoForm
           title={t("createTeam")}
           description={t("createFirstTeamCopy")}
@@ -89,7 +91,7 @@ function renderDemoTeams(t: Awaited<ReturnType<typeof getTranslations>>) {
             { id: "team-manager", label: t("manager"), placeholder: "Lisa Jansen" }
           ]}
         />
-      </section>
+      </Grid>
     </DashboardShell>
   );
 }
@@ -223,38 +225,30 @@ export default async function CompanyTeamsPage({ params }: { params: Promise<{ l
         initials: getInitials(adminProfile.first_name, adminProfile.last_name),
         team: t("companyAdmin")
       }}
-      actions={<span className="quality-pill">{tc("liveData")}</span>}
+      actions={<Pill tone="green">{tc("liveData")}</Pill>}
     >
-      <section className="dashboard-grid two">
-        <article className="panel dashboard-panel">
-          <div className="table-wrap">
-            {tableRows.length ? (
-              <table className="dashboard-table">
-                <thead><tr><th>{t("team")}</th><th>Members</th><th>{t("manager")}</th><th>Engagement</th><th>Recognitions</th></tr></thead>
-                <tbody>
-                  {tableRows.map((team) => (
-                    <tr key={team.id}>
-                      <td><strong>{team.name}</strong></td>
-                      <td>{team.memberCount}</td>
-                      <td>{team.managerName}</td>
-                      <td>{team.engagement}</td>
-                      <td>{team.recognitions}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            ) : (
-              <EmptyState
-                eyebrow={t("noTeamsEyebrow")}
-                title={t("createFirstTeamTitle")}
-                copy={t("createFirstTeamCopy")}
-              />
-            )}
-          </div>
-        </article>
+      <Panel>
+        {tableRows.length ? (
+          <Table className="lp-table-flat lp-table-stack">
+            <thead><tr><th>{t("team")}</th><th>Members</th><th>{t("manager")}</th><th>Engagement</th><th>Recognitions</th></tr></thead>
+            <tbody>
+              {tableRows.map((team) => (
+                <tr key={team.id}>
+                  <td><b style={{ fontWeight: 500 }}>{team.name}</b></td>
+                  <td data-label="Members">{team.memberCount}</td>
+                  <td data-label={t("manager")}>{team.managerName}</td>
+                  <td data-label="Engagement">{team.engagement}</td>
+                  <td data-label="Recognitions">{team.recognitions}</td>
+                </tr>
+              ))}
+            </tbody>
+          </Table>
+        ) : (
+          <EmptyState eyebrow={t("noTeamsEyebrow")} title={t("createFirstTeamTitle")} copy={t("createFirstTeamCopy")} />
+        )}
+      </Panel>
 
-        <TeamManagementPanel teams={tableRows} managers={managerOptions} />
-      </section>
+      <TeamManagementPanel teams={tableRows} managers={managerOptions} />
     </DashboardShell>
   );
 }

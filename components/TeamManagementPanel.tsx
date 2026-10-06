@@ -2,8 +2,15 @@
 
 import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
-import { CheckCircle2, Pencil, Trash2, UsersRound } from "lucide-react";
+import { Pencil, Trash2, UsersRound } from "lucide-react";
 import { createTeamAction, deleteTeamAction, updateTeamAction, type TeamMutationResult } from "@/app/actions/teams";
+import { Alert } from "@/components/ui/Alert";
+import { Button } from "@/components/ui/Button";
+import { Field, Input, Select } from "@/components/ui/Fields";
+import { Grid } from "@/components/ui/Grid";
+import { Modal } from "@/components/ui/Modal";
+import { Panel } from "@/components/ui/Panel";
+import { Pill } from "@/components/ui/Pill";
 
 type ManagerOption = {
   id: string;
@@ -25,18 +32,14 @@ const idleState: TeamMutationResult = {
   message: ""
 };
 
-function TeamEditorRow({
-  team,
-  managers
-}: {
-  team: TeamRow;
-  managers: ManagerOption[];
-}) {
+function TeamEditorRow({ team, managers }: { team: TeamRow; managers: ManagerOption[] }) {
   const t = useTranslations("teamManagement");
+  const tl = useTranslations("landingV2");
   const [pending, startTransition] = useTransition();
   const [message, setMessage] = useState<TeamMutationResult>(idleState);
   const [name, setName] = useState(team.name);
   const [managerId, setManagerId] = useState(team.managerId ?? "");
+  const [confirming, setConfirming] = useState(false);
 
   function handleSave(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -52,74 +55,75 @@ function TeamEditorRow({
   }
 
   function handleDelete() {
-    if (!window.confirm(t("deleteConfirm", { name: team.name }))) {
-      return;
-    }
-
     const formData = new FormData();
     formData.set("team_id", team.id);
 
     startTransition(async () => {
       const result = await deleteTeamAction(formData);
       setMessage(result);
+      setConfirming(false);
     });
   }
 
   return (
-    <article className="team-editor-card">
-      <div className="panel-top">
+    <div className="lp-edit-row">
+      <div className="lp-edit-head">
         <div>
-          <h3>{team.name}</h3>
-          <p style={{ margin: "8px 0 0", color: "var(--theme-muted)" }}>
-            {t("memberRecognitionSummary", { members: team.memberCount, recognitions: team.recognitions })}
-          </p>
+          <b>{team.name}</b>
+          <small>{t("memberRecognitionSummary", { members: team.memberCount, recognitions: team.recognitions })}</small>
         </div>
-        <span className="quality-pill">{team.engagement}</span>
+        <Pill tone="gold">{team.engagement}</Pill>
       </div>
 
-      <form className="team-editor-form" onSubmit={handleSave}>
-        <div className="form-grid">
-          <div className="form-field">
-            <label htmlFor={`team-name-${team.id}`}>{t("teamName")}</label>
-            <input id={`team-name-${team.id}`} className="input" value={name} onChange={(event) => setName(event.target.value)} />
-          </div>
-          <div className="form-field">
-            <label htmlFor={`team-manager-${team.id}`}>{t("manager")}</label>
-            <select id={`team-manager-${team.id}`} className="input" value={managerId} onChange={(event) => setManagerId(event.target.value)}>
-              <option value="">{t("assignLater")}</option>
-              {managers.map((manager) => (
-                <option key={manager.id} value={manager.id}>
-                  {manager.name}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-
-        <div className="team-editor-actions">
-          <button className="btn btn-primary" type="submit" disabled={pending}>
-            <Pencil size={16} />
+      <form className="lp-edit-form" onSubmit={handleSave}>
+        <Field label={t("teamName")} htmlFor={`team-name-${team.id}`}>
+          <Input id={`team-name-${team.id}`} value={name} onChange={(event) => setName(event.target.value)} />
+        </Field>
+        <Field label={t("manager")} htmlFor={`team-manager-${team.id}`}>
+          <Select id={`team-manager-${team.id}`} value={managerId} onChange={(event) => setManagerId(event.target.value)}>
+            <option value="">{t("assignLater")}</option>
+            {managers.map((manager) => (
+              <option key={manager.id} value={manager.id}>
+                {manager.name}
+              </option>
+            ))}
+          </Select>
+        </Field>
+        <div className="lp-edit-actions">
+          <Button type="submit" size="sm" disabled={pending} icon={<Pencil />}>
             {pending ? t("saving") : t("saveTeam")}
-          </button>
-          <button className="btn btn-secondary" type="button" onClick={handleDelete} disabled={pending}>
-            <Trash2 size={16} />
+          </Button>
+          <Button variant="ghost" size="sm" onClick={() => setConfirming(true)} disabled={pending} icon={<Trash2 />}>
             {t("delete")}
-          </button>
+          </Button>
         </div>
       </form>
 
-      {message.message ? <p className={`team-form-feedback ${message.ok ? "success" : "error"}`.trim()}>{message.message}</p> : null}
-    </article>
+      {message.message ? <Alert tone={message.ok ? "success" : "error"}>{message.message}</Alert> : null}
+
+      <Modal
+        open={confirming}
+        onClose={() => setConfirming(false)}
+        closeLabel={tl("close")}
+        title={t("delete")}
+        footer={
+          <>
+            <Button variant="ghost" onClick={() => setConfirming(false)}>
+              {tl("close")}
+            </Button>
+            <Button onClick={handleDelete} disabled={pending} icon={<Trash2 />}>
+              {t("delete")}
+            </Button>
+          </>
+        }
+      >
+        {t("deleteConfirm", { name: team.name })}
+      </Modal>
+    </div>
   );
 }
 
-export function TeamManagementPanel({
-  teams,
-  managers
-}: {
-  teams: TeamRow[];
-  managers: ManagerOption[];
-}) {
+export function TeamManagementPanel({ teams, managers }: { teams: TeamRow[]; managers: ManagerOption[] }) {
   const t = useTranslations("teamManagement");
   const [pending, startTransition] = useTransition();
   const [message, setMessage] = useState<TeamMutationResult>(idleState);
@@ -143,53 +147,40 @@ export function TeamManagementPanel({
   }
 
   return (
-    <div className="team-panel-stack">
-      <form className="panel inline-demo-form team-create-panel" onSubmit={handleCreate}>
-        <div className="panel-top">
-          <div>
-            <h3>{t("createTeam")}</h3>
-            <p style={{ margin: "8px 0 0", color: "var(--theme-muted)" }}>{t("createTeamCopy")}</p>
-          </div>
-        </div>
-
-        <div className="form-grid">
-          <div className="form-field">
-            <label htmlFor="team-name">{t("teamName")}</label>
-            <input id="team-name" className="input" placeholder="Customer Success" value={name} onChange={(event) => setName(event.target.value)} />
-          </div>
-          <div className="form-field">
-            <label htmlFor="team-manager">{t("manager")}</label>
-            <select id="team-manager" className="input" value={managerId} onChange={(event) => setManagerId(event.target.value)}>
+    <Grid cols="two">
+      <Panel title={t("createTeam")} description={t("createTeamCopy")}>
+        <form className="lp-form" onSubmit={handleCreate}>
+          <Field label={t("teamName")} htmlFor="team-name">
+            <Input id="team-name" placeholder="Customer Success" value={name} onChange={(event) => setName(event.target.value)} />
+          </Field>
+          <Field label={t("manager")} htmlFor="team-manager">
+            <Select id="team-manager" value={managerId} onChange={(event) => setManagerId(event.target.value)}>
               <option value="">{t("assignLater")}</option>
               {managers.map((manager) => (
                 <option key={manager.id} value={manager.id}>
                   {manager.name}
                 </option>
               ))}
-            </select>
+            </Select>
+          </Field>
+          <div>
+            <Button type="submit" disabled={pending} icon={<UsersRound />}>
+              {pending ? t("creating") : t("createTeam")}
+            </Button>
           </div>
-        </div>
-
-        <button className="btn btn-primary" type="submit" disabled={pending}>
-          <UsersRound size={16} />
-          {pending ? t("creating") : t("createTeam")}
-        </button>
-
-        {message.message ? (
-          <p className={`team-form-feedback ${message.ok ? "success" : "error"}`.trim()}>
-            {message.ok ? <CheckCircle2 size={16} /> : null}
-            <span>{message.message}</span>
-          </p>
-        ) : null}
-      </form>
+          {message.message ? <Alert tone={message.ok ? "success" : "error"}>{message.message}</Alert> : null}
+        </form>
+      </Panel>
 
       {teams.length ? (
-        <div className="team-editor-list">
-          {teams.map((team) => (
-            <TeamEditorRow key={team.id} team={team} managers={managers} />
-          ))}
-        </div>
+        <Panel>
+          <div className="lp-edit-list">
+            {teams.map((team) => (
+              <TeamEditorRow key={team.id} team={team} managers={managers} />
+            ))}
+          </div>
+        </Panel>
       ) : null}
-    </div>
+    </Grid>
   );
 }

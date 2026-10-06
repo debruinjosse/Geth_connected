@@ -8,6 +8,11 @@ import { InvitationPanel } from "@/components/InvitationPanel";
 import { CompanyPeopleManagementPanel } from "@/components/CompanyPeopleManagementPanel";
 import { companyAdmin, companyEmployees } from "@/lib/demo-data";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { Avatar } from "@/components/ui/Avatar";
+import { Grid } from "@/components/ui/Grid";
+import { Panel } from "@/components/ui/Panel";
+import { Pill } from "@/components/ui/Pill";
+import { Table } from "@/components/ui/Table";
 
 function hasSupabaseServerConfig() {
   return Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
@@ -28,35 +33,33 @@ function formatRole(role: string, t: Awaited<ReturnType<typeof getTranslations>>
 function renderDemoEmployees(t: Awaited<ReturnType<typeof getTranslations>>) {
   return (
     <DashboardShell role="company" title={t("employeesTitle")} subtitle={t("employeesSubtitle")} user={companyAdmin}>
-      <section className="dashboard-grid two">
-        <article className="panel dashboard-panel">
-          <div className="table-wrap">
-            <table className="dashboard-table">
-              <thead>
-                <tr>
-                  <th>{t("tableName")}</th>
-                  <th>{t("tableRole")}</th>
-                  <th>{t("tableDepartment")}</th>
-                  <th>{t("team")}</th>
-                  <th>{t("tableStatus")}</th>
-                  <th>{t("tableCards")}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {companyEmployees.map((employee) => (
-                  <tr key={employee.id}>
-                    <td><strong>{employee.name}</strong></td>
-                    <td>{employee.role}</td>
-                    <td>{employee.team}</td>
-                    <td>{employee.team}</td>
-                    <td>{employee.status}</td>
-                    <td>{employee.cards}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </article>
+      <Panel>
+        <Table className="lp-table-flat lp-table-stack">
+          <thead>
+            <tr>
+              <th>{t("tableName")}</th>
+              <th>{t("tableRole")}</th>
+              <th>{t("tableDepartment")}</th>
+              <th>{t("team")}</th>
+              <th>{t("tableStatus")}</th>
+              <th className="lp-c">{t("tableCards")}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {companyEmployees.map((employee) => (
+              <tr key={employee.id}>
+                <td><span className="lp-person"><Avatar name={employee.name} size="sm" /><b style={{ fontWeight: 500 }}>{employee.name}</b></span></td>
+                <td data-label={t("tableRole")}>{employee.role}</td>
+                <td data-label={t("tableDepartment")}>{employee.team}</td>
+                <td data-label={t("team")}>{employee.team}</td>
+                <td data-label={t("tableStatus")}>{employee.status}</td>
+                <td className="lp-c" data-label={t("tableCards")}>{employee.cards}</td>
+              </tr>
+            ))}
+          </tbody>
+        </Table>
+      </Panel>
+      <Grid cols="two">
         <InlineDemoForm
           title={t("addEmployee")}
           description={t("employeesDemoDescription")}
@@ -67,7 +70,7 @@ function renderDemoEmployees(t: Awaited<ReturnType<typeof getTranslations>>) {
             { id: "employee-team", label: t("team"), placeholder: "Marketing" }
           ]}
         />
-      </section>
+      </Grid>
     </DashboardShell>
   );
 }
@@ -143,72 +146,66 @@ export default async function CompanyEmployeesPage({ params }: { params: Promise
         team: t("companyAdmin")
       }}
     >
-      <section className="dashboard-grid two">
-        <article className="panel dashboard-panel">
-          <div className="table-wrap">
-            {employees?.length || invitations?.length ? (
-              <table className="dashboard-table">
-                <thead>
-                  <tr>
-                    <th>{t("tableName")}</th>
-                    <th>{t("tableRole")}</th>
-                    <th>{t("tableDepartment")}</th>
-                    <th>{t("team")}</th>
-                    <th>{t("tableStatus")}</th>
-                    <th>{t("tableCards")}</th>
+      <Panel>
+        {employees?.length || invitations?.length ? (
+          <Table className="lp-table-flat lp-table-stack">
+            <thead>
+              <tr>
+                <th>{t("tableName")}</th>
+                <th>{t("tableRole")}</th>
+                <th>{t("tableDepartment")}</th>
+                <th>{t("team")}</th>
+                <th>{t("tableStatus")}</th>
+                <th className="lp-c">{t("tableCards")}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {(employees ?? []).map((employee) => {
+                const team = Array.isArray(employee.team) ? employee.team[0] : employee.team;
+                const department = Array.isArray(employee.department) ? employee.department[0] : employee.department;
+                const fullName = `${employee.first_name} ${employee.last_name}`.trim();
+                return (
+                  <tr key={employee.id}>
+                    <td><span className="lp-person"><Avatar name={fullName} size="sm" /><b style={{ fontWeight: 500 }}>{fullName}</b></span></td>
+                    <td data-label={t("tableRole")}>{formatRole(employee.role, t)}</td>
+                    <td data-label={t("tableDepartment")}>{department?.name ?? team?.name ?? tc("unassigned")}</td>
+                    <td data-label={t("team")}>{team?.name ?? tc("unassigned")}</td>
+                    <td data-label={t("tableStatus")}><Pill tone={employee.status === "active" ? "green" : "neutral"}>{employee.status}</Pill></td>
+                    <td className="lp-c" data-label={t("tableCards")}>{recognitionCounts.get(employee.id) ?? 0}</td>
                   </tr>
-                </thead>
-                <tbody>
-                  {(employees ?? []).map((employee) => {
-                    const team = Array.isArray(employee.team) ? employee.team[0] : employee.team;
-                    const department = Array.isArray(employee.department) ? employee.department[0] : employee.department;
-                    return (
-                      <tr key={employee.id}>
-                        <td><strong>{`${employee.first_name} ${employee.last_name}`.trim()}</strong></td>
-                        <td>{formatRole(employee.role, t)}</td>
-                        <td>{department?.name ?? team?.name ?? tc("unassigned")}</td>
-                        <td>{team?.name ?? tc("unassigned")}</td>
-                        <td>{employee.status}</td>
-                        <td>{recognitionCounts.get(employee.id) ?? 0}</td>
-                      </tr>
-                    );
-                  })}
-                  {(invitations ?? []).map((invite) => {
-                    const team = Array.isArray(invite.team) ? invite.team[0] : invite.team;
-                    const department = Array.isArray(invite.department) ? invite.department[0] : invite.department;
-                    return (
-                      <tr key={invite.id}>
-                        <td><strong>{invite.email}</strong></td>
-                        <td>{formatRole(invite.role, t)}</td>
-                        <td>{department?.name ?? team?.name ?? tc("assignLater")}</td>
-                        <td>{team?.name ?? tc("assignLater")}</td>
-                        <td>{tc("pendingInvite")}</td>
-                        <td>0</td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            ) : (
-              <EmptyState
-                eyebrow={t("noEmployeesEyebrow")}
-                title={t("inviteFirstEmployeeTitle")}
-                copy={t("inviteFirstEmployeeCopy")}
-              />
-            )}
-          </div>
-        </article>
+                );
+              })}
+              {(invitations ?? []).map((invite) => {
+                const team = Array.isArray(invite.team) ? invite.team[0] : invite.team;
+                const department = Array.isArray(invite.department) ? invite.department[0] : invite.department;
+                return (
+                  <tr key={invite.id}>
+                    <td><span className="lp-person"><Avatar name={invite.email} size="sm" /><b style={{ fontWeight: 500 }}>{invite.email}</b></span></td>
+                    <td data-label={t("tableRole")}>{formatRole(invite.role, t)}</td>
+                    <td data-label={t("tableDepartment")}>{department?.name ?? team?.name ?? tc("assignLater")}</td>
+                    <td data-label={t("team")}>{team?.name ?? tc("assignLater")}</td>
+                    <td data-label={t("tableStatus")}><Pill tone="gold">{tc("pendingInvite")}</Pill></td>
+                    <td className="lp-c" data-label={t("tableCards")}>0</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </Table>
+        ) : (
+          <EmptyState eyebrow={t("noEmployeesEyebrow")} title={t("inviteFirstEmployeeTitle")} copy={t("inviteFirstEmployeeCopy")} />
+        )}
+      </Panel>
+
+      <Grid cols="two">
         <InvitationPanel
           title={t("inviteEmployee")}
           description={t("inviteEmployeeDescription")}
           defaultRole="employee"
           teams={(teams ?? []).map((team) => ({ id: team.id, name: team.name }))}
         />
-      </section>
-      <section className="section-shell dashboard-section-tight">
         <BulkEmployeeImportPanel />
-      </section>
-      <section className="section-shell dashboard-section-tight">
+      </Grid>
+      <div>
         <CompanyPeopleManagementPanel
           mode="employee"
           teams={(teams ?? []).map((team) => ({ id: team.id, name: team.name }))}
@@ -236,7 +233,7 @@ export default async function CompanyEmployeesPage({ params }: { params: Promise
             };
           })}
         />
-      </section>
+      </div>
     </DashboardShell>
   );
 }
