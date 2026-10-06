@@ -1,8 +1,12 @@
 "use client";
 
-import { CheckCircle2, Mail } from "lucide-react";
+import { Mail } from "lucide-react";
 import type { FormEvent } from "react";
 import { useMemo, useState } from "react";
+import { Alert } from "@/components/ui/Alert";
+import { Button } from "@/components/ui/Button";
+import { Card, CardHead } from "@/components/ui/Card";
+import { Field, FieldGrid, Input, Select, Textarea } from "@/components/ui/Fields";
 
 const supportEmail = "info@geth.pro";
 const supportWhatsAppNumber = (process.env.NEXT_PUBLIC_SUPPORT_WHATSAPP_NUMBER || "31613795467").replace(/[^\d]/g, "");
@@ -41,7 +45,7 @@ type SupportStatus = "idle" | "ready";
 
 function WhatsAppIcon() {
   return (
-    <svg aria-hidden="true" className="whatsapp-icon" viewBox="0 0 32 32" fill="none">
+    <svg aria-hidden="true" viewBox="0 0 32 32" fill="none">
       <path
         d="M8.88 25.26 4.75 26.34l1.1-3.98a11.52 11.52 0 0 1-1.63-5.92C4.22 9.9 9.54 4.58 16.08 4.58S27.94 9.9 27.94 16.44 22.62 28.3 16.08 28.3c-2.6 0-5.02-.84-7.2-3.04Z"
         fill="#25D366"
@@ -167,130 +171,83 @@ export function SupportContactForm({ labels }: SupportContactFormProps) {
   }
 
   return (
-    <form className="panel support-form-panel" id="support-form" onSubmit={handleSubmit}>
-      <div className="support-form-header">
-        <div className="eyebrow support-form-eyebrow">{labels.eyebrow}</div>
-        <h2>{labels.title}</h2>
-        <p>{labels.copy}</p>
-      </div>
+    <Card as="form" size="lg" id="support-form" onSubmit={handleSubmit} noValidate>
+      <CardHead eyebrow={labels.eyebrow} title={labels.title}>
+        {labels.copy}
+      </CardHead>
 
       {status === "ready" ? (
-        <div className="support-success-panel" role="status" aria-live="polite">
-          <CheckCircle2 aria-hidden="true" size={22} />
-          <div>
-            <strong>{labels.successTitle}</strong>
-            <span>{labels.successCopy}</span>
-          </div>
-          <button type="button" className="support-reset-button" onClick={resetForm}>
+        <Alert tone="success" title={labels.successTitle} className="lp-mb">
+          {labels.successCopy}{" "}
+          <button type="button" onClick={resetForm} style={{ textDecoration: "underline", fontWeight: 500 }}>
             {labels.sendAnother}
           </button>
-        </div>
+        </Alert>
       ) : null}
 
-      <div className="support-field-grid">
-        <div className="support-field">
-          <label htmlFor="support-name">
-            {labels.name}
-            <span aria-label={labels.required}>*</span>
-          </label>
-          <input
-            id="support-name"
-            className="support-input"
-            value={form.name}
-            onChange={(event) => updateField("name", event.target.value)}
-            placeholder="Sarah van den Berg"
-            aria-invalid={Boolean(errors.name)}
-            aria-describedby={describedBy("name")}
-          />
-          {errors.name ? (
-            <small className="support-field-error" id="support-name-error">
-              {errors.name}
-            </small>
-          ) : null}
-        </div>
-        <div className="support-field">
-          <label htmlFor="support-email">
-            {labels.email}
-            <span aria-label={labels.required}>*</span>
-          </label>
-          <input
-            id="support-email"
-            className="support-input"
-            type="email"
-            value={form.email}
-            onChange={(event) => updateField("email", event.target.value)}
-            placeholder="sarah@company.com"
-            aria-invalid={Boolean(errors.email)}
-            aria-describedby={describedBy("email")}
-          />
-          {errors.email ? (
-            <small className="support-field-error" id="support-email-error">
-              {errors.email}
-            </small>
-          ) : null}
-        </div>
-        <div className="support-field">
-          <label htmlFor="support-company">{labels.company}</label>
-          <input
-            id="support-company"
-            className="support-input"
-            value={form.company}
-            onChange={(event) => updateField("company", event.target.value)}
-            placeholder="GETH partner company"
-          />
-        </div>
-        <div className="support-field">
-          <label htmlFor="support-request-type">{labels.requestType}</label>
-          <select
-            id="support-request-type"
-            className="support-input support-select"
-            value={form.requestType}
-            onChange={(event) => updateField("requestType", event.target.value)}
-          >
-            {labels.requestTypes.map((requestType) => (
-              <option key={requestType} value={requestType}>
-                {requestType}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="support-field support-message-field">
-          <label htmlFor="support-message">
-            {labels.message}
-            <span aria-label={labels.required}>*</span>
-          </label>
-          <textarea
-            id="support-message"
-            className="support-input"
-            value={form.message}
-            onChange={(event) => updateField("message", event.target.value)}
-            placeholder="Tell us what you need help with."
-            aria-invalid={Boolean(errors.message)}
-            aria-describedby={describedBy("message")}
-          />
-          {errors.message ? (
-            <small className="support-field-error" id="support-message-error">
-              {errors.message}
-            </small>
-          ) : null}
-        </div>
-      </div>
+      <div className="lp-form">
+        <FieldGrid>
+          <Field label={labels.name} htmlFor="support-name" required requiredLabel={labels.required} error={errors.name}>
+            <Input
+              id="support-name"
+              value={form.name}
+              onChange={(event) => updateField("name", event.target.value)}
+              placeholder="Sarah van den Berg"
+              autoComplete="name"
+              invalid={Boolean(errors.name)}
+              aria-describedby={describedBy("name")}
+            />
+          </Field>
+          <Field label={labels.email} htmlFor="support-email" required requiredLabel={labels.required} error={errors.email}>
+            <Input
+              id="support-email"
+              type="email"
+              value={form.email}
+              onChange={(event) => updateField("email", event.target.value)}
+              placeholder="sarah@company.com"
+              autoComplete="email"
+              invalid={Boolean(errors.email)}
+              aria-describedby={describedBy("email")}
+            />
+          </Field>
+          <Field label={labels.company} htmlFor="support-company">
+            <Input id="support-company" value={form.company} onChange={(event) => updateField("company", event.target.value)} placeholder="GETH partner company" autoComplete="organization" />
+          </Field>
+          <Field label={labels.requestType} htmlFor="support-request-type">
+            <Select id="support-request-type" value={form.requestType} onChange={(event) => updateField("requestType", event.target.value)}>
+              {labels.requestTypes.map((requestType) => (
+                <option key={requestType} value={requestType}>
+                  {requestType}
+                </option>
+              ))}
+            </Select>
+          </Field>
+          <Field className="lp-span-2" label={labels.message} htmlFor="support-message" required requiredLabel={labels.required} error={errors.message}>
+            <Textarea
+              id="support-message"
+              value={form.message}
+              onChange={(event) => updateField("message", event.target.value)}
+              placeholder="Tell us what you need help with."
+              invalid={Boolean(errors.message)}
+              aria-describedby={describedBy("message")}
+            />
+          </Field>
+        </FieldGrid>
 
-      <div className="support-actions">
-        <p>{labels.replyTime}</p>
-        <div className="support-action-buttons">
-          {whatsappHref ? (
-            <button className="btn btn-whatsapp" type="button" onClick={handleWhatsAppClick}>
-              <WhatsAppIcon />
-              {labels.whatsappAction}
-            </button>
-          ) : null}
-          <button className="btn btn-primary support-submit-button" type="submit" disabled={isSubmitting}>
-            <Mail aria-hidden="true" size={18} />
-            {isSubmitting ? labels.sending : labels.emailAction}
-          </button>
+        <div className="lp-form-foot">
+          <p>{labels.replyTime}</p>
+          <div className="lp-actions">
+            {whatsappHref ? (
+              <Button variant="ghost" onClick={handleWhatsAppClick} icon={<WhatsAppIcon />}>
+                {labels.whatsappAction}
+              </Button>
+            ) : null}
+            <Button type="submit" disabled={isSubmitting} icon={<Mail aria-hidden="true" />}>
+              {isSubmitting ? labels.sending : labels.emailAction}
+            </Button>
+          </div>
         </div>
       </div>
-    </form>
+    </Card>
   );
 }

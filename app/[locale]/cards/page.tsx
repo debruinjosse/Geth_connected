@@ -4,7 +4,15 @@ import { CardsLibraryClient } from "@/components/CardsLibraryClient";
 import { DashboardShell } from "@/components/DashboardShell";
 import { PublicSiteChrome } from "@/components/PublicSiteChrome";
 import { Link } from "@/i18n/navigation";
-import { BrandWordmark } from "@/components/BrandWordmark";
+import { Lock } from "lucide-react";
+import { CardRail } from "@/components/landing/CardRail";
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
+import { Container } from "@/components/ui/Container";
+import { Eyebrow } from "@/components/ui/Eyebrow";
+import { PageHero } from "@/components/ui/PageHero";
+import { buildRailCards, railFilters } from "@/lib/landing-cards";
+import { localizePublicHref } from "@/lib/navigation/public-nav";
 import { getPublicCardLibrary } from "@/lib/card-library";
 import { normalizeAppRole, type AppRole } from "@/lib/auth/roles";
 import { getUnreadNotificationCount } from "@/lib/notifications";
@@ -181,31 +189,57 @@ export default async function CardsPage({ params }: CardsPageProps) {
     );
   }
 
+  const lp = await getTranslations({ locale, namespace: "landingV2" });
+  const lang = locale === "nl" ? "nl" : "en";
+  const railCards = buildRailCards(lang, { com: lp("fCom"), cre: lp("fCre"), cmp: lp("fCmp"), col: lp("fCol") });
+  const railFilterList = railFilters({ all: lp("fAll"), com: lp("fCom"), cre: lp("fCre"), cmp: lp("fCmp"), col: lp("fCol") });
+
   return (
     <PublicSiteChrome ctaHref="/book-demo" ctaLabel={t("lockedDemo")} locale={locale}>
-      <section className="cards-page">
-        <div className="cards-hero">
-          <div className="eyebrow">{t("lockedEyebrow")}</div>
-          <h1 className="section-title">{t("lockedTitle")}</h1>
-          <p className="section-copy" style={{ maxWidth: 760 }}>
-            {t("lockedCopy")}
-          </p>
-        </div>
-        <section className="section-shell card-library-locked" style={{ paddingTop: 8 }}>
-          <div className="empty-state">
-            <span className="empty-state-icon"><BrandWordmark /></span>
-            <h2>{t("lockedPanelTitle")}</h2>
-            <p>{t("lockedPanelCopy")}</p>
-            <div className="hero-ctas">
-              <Link className="btn btn-primary" href="/book-demo">
-                {t("lockedDemo")}
-              </Link>
-              <Link className="btn btn-ghost" href="/signup?role=company_admin">
-                {t("lockedRegister")}
-              </Link>
+      <PageHero eyebrow={t("lockedEyebrow")} title={t("lockedTitle")} lead={t("lockedCopy")} />
+      <section className="lp-section-sm lp-bg-tint" style={{ paddingTop: 72 }}>
+        <Container>
+          <CardRail
+            header={
+              <div className="lp-sec-head">
+                <Eyebrow>{lp("cEye")}</Eyebrow>
+                <h2>{lp("cT")}</h2>
+                <p>{lp("cP")}</p>
+              </div>
+            }
+            cards={railCards}
+            filters={railFilterList}
+            ariaLabel={lp("cardsAria")}
+            filterLabel={lp("category")}
+            hint={lp("cHint")}
+            prevLabel={lp("prev")}
+            nextLabel={lp("next")}
+            closeLabel={lp("close")}
+          />
+        </Container>
+      </section>
+      <section className="lp-section-sm" style={{ paddingBottom: 120 }}>
+        <Container>
+          <Card tone="tint" size="lg" className="lp-rv">
+            <div className="lp-gate">
+              <div>
+                <span className="lp-icontile" aria-hidden="true">
+                  <Lock />
+                </span>
+                <h2>{t("lockedPanelTitle")}</h2>
+                <p style={{ color: "var(--ink-2)", marginTop: 12, maxWidth: "56ch" }}>{t("lockedPanelCopy")}</p>
+              </div>
+              <div className="lp-cta-row">
+                <Button href={localizePublicHref("/book-demo", locale)} arrow>
+                  {t("lockedDemo")}
+                </Button>
+                <Button href={localizePublicHref("/signup?role=company_admin", locale)} variant="ghost">
+                  {t("lockedRegister")}
+                </Button>
+              </div>
             </div>
-          </div>
-        </section>
+          </Card>
+        </Container>
       </section>
     </PublicSiteChrome>
   );

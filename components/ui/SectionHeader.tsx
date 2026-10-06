@@ -1,23 +1,28 @@
+import type { ReactNode } from "react";
 import { Eyebrow } from "@/components/ui/Eyebrow";
+import { cx } from "@/components/ui/cx";
 
+/** Eyebrow + h2 + optional supporting copy (the landing page section heading). */
 export function SectionHeader({
   eyebrow,
   title,
-  lead,
-  align = "left",
-  titleId
+  children,
+  center = false,
+  titleId,
+  className
 }: {
   eyebrow?: string;
-  title: string;
-  lead?: string;
-  align?: "left" | "center";
+  title: ReactNode;
+  children?: ReactNode;
+  center?: boolean;
   titleId?: string;
+  className?: string;
 }) {
   return (
-    <div className={`gt-section-header gt-section-header-${align}`}>
+    <div className={cx("lp-sec-head", center && "lp-center", className)} style={center ? { textAlign: "center" } : undefined}>
       {eyebrow ? <Eyebrow>{eyebrow}</Eyebrow> : null}
       <h2 id={titleId}>{title}</h2>
-      {lead ? <p className="gt-section-lead">{lead}</p> : null}
+      {children ? <p>{children}</p> : null}
     </div>
   );
 }

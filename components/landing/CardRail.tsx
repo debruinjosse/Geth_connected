@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import type { ReactNode } from "react";
+import { Modal } from "@/components/ui/Modal";
 
 export type RailCard = { id: string; cat: string; name: string; category: string; src: string };
 
@@ -13,7 +14,8 @@ export function CardRail({
   filterLabel,
   hint,
   prevLabel,
-  nextLabel
+  nextLabel,
+  closeLabel = "Close"
 }: {
   header: ReactNode;
   cards: RailCard[];
@@ -23,9 +25,11 @@ export function CardRail({
   hint: string;
   prevLabel: string;
   nextLabel: string;
+  closeLabel?: string;
 }) {
   const rail = useRef<HTMLDivElement>(null);
   const [active, setActive] = useState("all");
+  const [selected, setSelected] = useState<RailCard | null>(null);
 
   function pick(key: string) {
     setActive(key);
@@ -47,7 +51,19 @@ export function CardRail({
       <div className="lp-rail-wrap">
         <div className="lp-rail" ref={rail} tabIndex={0} aria-label={ariaLabel}>
           {cards.map((card) => (
-            <figure key={card.id} className={`lp-rc${active !== "all" && card.cat !== active ? " lp-hide" : ""}`}>
+            <figure
+              key={card.id}
+              className={`lp-rc${active !== "all" && card.cat !== active ? " lp-hide" : ""}`}
+              role="button"
+              tabIndex={0}
+              onClick={() => setSelected(card)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" || event.key === " ") {
+                  event.preventDefault();
+                  setSelected(card);
+                }
+              }}
+            >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={card.src} alt={card.name} loading="lazy" />
               <figcaption>
@@ -73,6 +89,15 @@ export function CardRail({
           </button>
         </div>
       </div>
+    <Modal open={selected !== null} onClose={() => setSelected(null)} title={selected?.name ?? ""} closeLabel={closeLabel}>
+        {selected ? (
+          <div className="lp-cardview">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={selected.src} alt={selected.name} />
+            <span>{selected.category}</span>
+          </div>
+        ) : null}
+      </Modal>
     </>
   );
 }

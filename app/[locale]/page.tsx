@@ -1,7 +1,9 @@
 /* eslint-disable @next/next/no-img-element */
 import Link from "next/link";
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import { CardRail, type RailCard } from "@/components/landing/CardRail";
+import { CardRail } from "@/components/landing/CardRail";
+import { buildRailCards, railFilters } from "@/lib/landing-cards";
+import { Button } from "@/components/ui/Button";
 import { PublicSiteChrome } from "@/components/PublicSiteChrome";
 import { localizePublicHref } from "@/lib/navigation/public-nav";
 
@@ -9,29 +11,11 @@ type LandingPageProps = {
   params: Promise<{ locale: string }>;
 };
 
-const ARROW = (
-  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M3 8h10M9 4l4 4-4 4" />
-  </svg>
-);
-
 const LINK_ARROW = (
   <svg viewBox="0 0 16 16" fill="none" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
     <path d="M3 8h10M9 4l4 4-4 4" />
   </svg>
 );
-
-/** One card per row of the preview rail: id → category + localized name. */
-const RAIL_CARDS = [
-  { id: "01", cat: "com", nl: "Luisteraar", en: "Listener" },
-  { id: "05", cat: "com", nl: "Empathisch", en: "Empathetic" },
-  { id: "14", cat: "cre", nl: "Vernieuwend", en: "Innovative" },
-  { id: "17", cat: "cre", nl: "Visionair", en: "Visionary" },
-  { id: "27", cat: "cmp", nl: "Doelgericht", en: "Goal-oriented" },
-  { id: "36", cat: "cmp", nl: "Resultaatgericht", en: "Results-oriented" },
-  { id: "40", cat: "col", nl: "Zorgzaam", en: "Caring" },
-  { id: "42", cat: "col", nl: "Teamspeler", en: "Team player" }
-] as const;
 
 const BADGES = [
   { file: "geth_badge_01_nieuw", key: "b1", locked: false },
@@ -65,26 +49,8 @@ export default async function LandingPage({ params }: LandingPageProps) {
   const demoHref = localizePublicHref("/book-demo", locale);
   const pricingHref = localizePublicHref("/pricing", locale);
 
-  const railCategories: Record<string, string> = {
-    com: t("fCom"),
-    cre: t("fCre"),
-    cmp: t("fCmp"),
-    col: t("fCol")
-  };
-  const railCards: RailCard[] = RAIL_CARDS.map((card) => ({
-    id: card.id,
-    cat: card.cat,
-    name: card[lang],
-    category: railCategories[card.cat],
-    src: `/landing/cards/${lang}/card_${card.id}_content.png`
-  }));
-  const railFilters = [
-    { key: "all", label: t("fAll") },
-    { key: "com", label: t("fCom") },
-    { key: "cre", label: t("fCre") },
-    { key: "cmp", label: t("fCmp") },
-    { key: "col", label: t("fCol") }
-  ];
+  const railCards = buildRailCards(lang, { com: t("fCom"), cre: t("fCre"), cmp: t("fCmp"), col: t("fCol") });
+  const railFilterList = railFilters({ all: t("fAll"), com: t("fCom"), cre: t("fCre"), cmp: t("fCmp"), col: t("fCol") });
 
   return (
     <PublicSiteChrome locale={locale}>
@@ -101,13 +67,12 @@ export default async function LandingPage({ params }: LandingPageProps) {
               </h1>
               <p className="lp-lead">{t("heroLead")}</p>
               <div className="lp-cta-row">
-                <Link href={demoHref} className="lp-btn lp-btn-primary">
-                  <span>{nav("bookDemo")}</span>
-                  {ARROW}
-                </Link>
-                <a href="#how-it-works" className="lp-btn lp-btn-ghost">
+                <Button href={demoHref} arrow>
+                  {nav("bookDemo")}
+                </Button>
+                <Button href="#how-it-works" variant="ghost">
                   {t("seeHow")}
-                </a>
+                </Button>
               </div>
               <div className="lp-trust">
                 <span>
@@ -291,12 +256,13 @@ export default async function LandingPage({ params }: LandingPageProps) {
                 </div>
               }
               cards={railCards}
-              filters={railFilters}
+              filters={railFilterList}
               ariaLabel={t("cardsAria")}
               filterLabel={t("category")}
               hint={t("cHint")}
               prevLabel={t("prev")}
               nextLabel={t("next")}
+              closeLabel={t("close")}
             />
           </div>
         </section>
@@ -359,10 +325,9 @@ export default async function LandingPage({ params }: LandingPageProps) {
               <span className="lp-eyebrow">{t("gEye")}</span>
               <h2 style={{ marginTop: 16 }}>{t("gT")}</h2>
               <p className="lp-lead">{t("gP")}</p>
-              <Link href={demoHref} className="lp-btn lp-btn-primary">
-                <span>{nav("bookDemo")}</span>
-                {ARROW}
-              </Link>
+              <Button href={demoHref} arrow>
+                {nav("bookDemo")}
+              </Button>
             </div>
             <div className="lp-badges lp-rv">
               {BADGES.map((badge) => (
@@ -383,12 +348,10 @@ export default async function LandingPage({ params }: LandingPageProps) {
               <h2>{t("mT")}</h2>
               <p className="lp-lead">{t("mP")}</p>
               <div className="lp-cta-row">
-                <Link href={demoHref} className="lp-btn lp-btn-primary">
-                  {nav("bookDemo")}
-                </Link>
-                <Link href={pricingHref} className="lp-btn lp-btn-ghost">
+                <Button href={demoHref}>{nav("bookDemo")}</Button>
+                <Button href={pricingHref} variant="ghost">
                   {t("mPrice")}
-                </Link>
+                </Button>
               </div>
             </div>
             <div className="lp-photo lp-rv">

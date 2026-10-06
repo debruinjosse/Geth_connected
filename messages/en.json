@@ -1911,6 +1911,7 @@
     "menuClose": "Close menu",
     "language": "Language",
     "openDashboard": "Open dashboard",
-    "signOut": "Sign out"
+    "signOut": "Sign out",
+    "close": "Close"
   }
 }

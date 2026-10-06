@@ -3,8 +3,11 @@
 import { FormEvent, useState } from "react";
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
-import { ArrowRight, CheckCircle2 } from "lucide-react";
 import { requestPasswordResetEmail } from "@/app/actions/passwordReset";
+import { Alert } from "@/components/ui/Alert";
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
+import { Field, Input } from "@/components/ui/Fields";
 
 export function ForgotPasswordExperience() {
   const locale = useLocale();
@@ -36,16 +39,14 @@ export function ForgotPasswordExperience() {
   }
 
   return (
-    <div className="auth-card">
+    <Card size="lg" className="lp-auth-card">
       <h2>{t("title")}</h2>
-      <p className="section-copy">{t("copy")}</p>
+      <p className="lp-sub">{t("copy")}</p>
 
-      <form onSubmit={handleSubmit}>
-        <div className="form-field">
-          <label htmlFor="forgot-email">{t("workEmail")}</label>
-          <input
+      <form className="lp-form" onSubmit={handleSubmit}>
+        <Field label={t("workEmail")} htmlFor="forgot-email">
+          <Input
             id="forgot-email"
-            className="input"
             type="email"
             placeholder={t("emailPlaceholder")}
             value={email}
@@ -53,23 +54,22 @@ export function ForgotPasswordExperience() {
             autoComplete="email"
             required
           />
-        </div>
-        <button className="btn btn-dark btn-full" disabled={busy} type="submit">
-          {busy ? t("sending") : t("sendLink")} <ArrowRight size={16} />
-        </button>
+        </Field>
+        <Button type="submit" block arrow disabled={busy}>
+          {busy ? t("sending") : t("sendLink")}
+        </Button>
       </form>
 
       {status ? (
-        <p className={`auth-status auth-status-${statusTone}`}>
-          <CheckCircle2 size={16} />
+        <Alert tone={statusTone} className="lp-mt">
           {status}
-        </p>
+        </Alert>
       ) : null}
 
-      <div className="auth-links">
+      <div className="lp-auth-switch">
         <Link href={`/${locale}/login`}>{t("backToLogin")}</Link>
         <Link href={`/${locale}`}>{t("backToSite")}</Link>
       </div>
-    </div>
+    </Card>
   );
 }

@@ -3,13 +3,16 @@
 import { FormEvent, useState } from "react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { ArrowRight, CheckCircle2, Eye, EyeOff } from "lucide-react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { Alert } from "@/components/ui/Alert";
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
+import { Field } from "@/components/ui/Fields";
+import { PasswordInput } from "@/components/ui/PasswordInput";
 
 export function ResetPasswordExperience() {
   const t = useTranslations("resetPassword");
   const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState("");
 
@@ -56,46 +59,39 @@ export function ResetPasswordExperience() {
   }
 
   return (
-    <div className="auth-card">
+    <Card size="lg" className="lp-auth-card">
       <h2>{t("title")}</h2>
-      <p className="section-copy">{t("copy")}</p>
+      <p className="lp-sub">{t("copy")}</p>
 
-      <form onSubmit={handleSubmit}>
-        <div className="form-field">
-          <label htmlFor="new-password">{t("newPassword")}</label>
-          <div className="password-input-wrap">
-            <input
-              id="new-password"
-              className="input"
-              type={showPassword ? "text" : "password"}
-              placeholder={t("placeholder")}
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              required
-              minLength={6}
-            />
-            <button className="password-toggle" type="button" onClick={() => setShowPassword((current) => !current)} aria-label={showPassword ? t("hidePassword") : t("showPassword")}>
-              {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
-            </button>
-          </div>
-        </div>
-
-        <button className="btn btn-dark btn-full" disabled={busy} type="submit">
-          {busy ? t("updating") : t("update")} <ArrowRight size={16} />
-        </button>
+      <form className="lp-form" onSubmit={handleSubmit}>
+        <Field label={t("newPassword")} htmlFor="new-password">
+          <PasswordInput
+            id="new-password"
+            placeholder={t("placeholder")}
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            required
+            minLength={6}
+            autoComplete="new-password"
+            showLabel={t("showPassword")}
+            hideLabel={t("hidePassword")}
+          />
+        </Field>
+        <Button type="submit" block arrow disabled={busy}>
+          {busy ? t("updating") : t("update")}
+        </Button>
       </form>
 
       {status ? (
-        <p className="auth-status">
-          <CheckCircle2 size={16} />
+        <Alert tone="info" className="lp-mt">
           {status}
-        </p>
+        </Alert>
       ) : null}
 
-      <div className="auth-links">
+      <div className="lp-auth-switch">
         <Link href="/login">{t("backToLogin")}</Link>
         <Link href="/">{t("backToSite")}</Link>
       </div>
-    </div>
+    </Card>
   );
 }

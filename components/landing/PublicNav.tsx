@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { locales, type AppLocale } from "@/i18n/routing";
+import type { AppLocale } from "@/i18n/routing";
+import { Button } from "@/components/ui/Button";
+import { LanguageToggle } from "@/components/ui/LanguageToggle";
 
 type NavLink = { href: string; label: string };
 
@@ -21,15 +22,6 @@ export type PublicNavProps = {
   mainNavLabel: string;
 };
 
-function getLocalizedPath(pathname: string, nextLocale: AppLocale) {
-  const parts = pathname.split("/");
-  if ((locales as readonly string[]).includes(parts[1])) {
-    parts[1] = nextLocale;
-    return parts.join("/") || `/${nextLocale}`;
-  }
-  return `/${nextLocale}${pathname === "/" ? "" : pathname}`;
-}
-
 export function PublicNav({
   locale,
   homeHref,
@@ -43,8 +35,6 @@ export function PublicNav({
   languageLabel,
   mainNavLabel
 }: PublicNavProps) {
-  const router = useRouter();
-  const pathname = usePathname() || `/${locale}`;
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
 
@@ -61,11 +51,6 @@ export function PublicNav({
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [open]);
-
-  function switchLocale(next: AppLocale) {
-    if (next === locale) return;
-    router.push(`${getLocalizedPath(pathname, next)}${window.location.search}${window.location.hash}`);
-  }
 
   return (
     <header className={`lp lp-nav${scrolled ? " lp-scrolled" : ""}`}>
@@ -88,16 +73,10 @@ export function PublicNav({
           <Link href={secondaryHref} className="lp-login">
             {secondaryLabel}
           </Link>
-          <div className="lp-lang" role="group" aria-label={languageLabel}>
-            {(locales as readonly AppLocale[]).map((item) => (
-              <button key={item} type="button" aria-pressed={item === locale} onClick={() => switchLocale(item)}>
-                {item.toUpperCase()}
-              </button>
-            ))}
-          </div>
-          <Link href={primaryHref} className="lp-btn lp-btn-primary lp-btn-sm">
+          <LanguageToggle locale={locale} label={languageLabel} />
+          <Button href={primaryHref} size="sm">
             {primaryLabel}
-          </Link>
+          </Button>
           <button
             type="button"
             className="lp-burger"
@@ -118,9 +97,9 @@ export function PublicNav({
         <Link className="lp-m" href={secondaryHref} onClick={() => setOpen(false)}>
           {secondaryLabel}
         </Link>
-        <Link className="lp-btn lp-btn-primary" href={primaryHref} onClick={() => setOpen(false)}>
+        <Button href={primaryHref} onClick={() => setOpen(false)}>
           {primaryLabel}
-        </Link>
+        </Button>
       </div>
     </header>
   );

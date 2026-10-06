@@ -1,6 +1,9 @@
+/* eslint-disable @next/next/no-img-element */
 import { setRequestLocale } from "next-intl/server";
 import { PublicSiteChrome } from "@/components/PublicSiteChrome";
-import { PricingPlansClient, type PricingLabels, type PricingTier } from "@/components/PricingPlansClient";
+import { PricingPlansClient, type PricingCompare, type PricingLabels, type PricingTier } from "@/components/PricingPlansClient";
+import { Container } from "@/components/ui/Container";
+import { PageHero } from "@/components/ui/PageHero";
 
 type PricingContent = {
   titleLine1: string;
@@ -8,6 +11,7 @@ type PricingContent = {
   labels: PricingLabels;
   tiers: PricingTier[];
   trust: Array<{ title: string; copy: string }>;
+  compare: PricingCompare;
 };
 
 const pricingContent: Record<string, PricingContent> = {
@@ -77,7 +81,22 @@ const pricingContent: Record<string, PricingContent> = {
         title: "Personal support",
         copy: "Direct contact with our team."
       }
-    ]
+    ],
+    compare: {
+      title: "Compare plans",
+      featureHeading: "Feature",
+      columns: ["Growth", "Custom"],
+      rows: [
+        { label: "Employees", values: ["Up to 50", "50+"] },
+        { label: "Unlimited recognition cards", values: [true, true] },
+        { label: "Advanced analytics", values: [true, true] },
+        { label: "Manager insights", values: [true, true] },
+        { label: "Company Insights", values: [true, true] },
+        { label: "SSO & integrations", values: [false, true] },
+        { label: "API access", values: [false, true] },
+        { label: "Support", values: ["Priority", "Dedicated"] }
+      ]
+    }
   },
   nl: {
     titleLine1: "Eenvoudige prijzen.",
@@ -145,7 +164,22 @@ const pricingContent: Record<string, PricingContent> = {
         title: "Persoonlijke support",
         copy: "Direct contact met ons team."
       }
-    ]
+    ],
+    compare: {
+      title: "Plannen vergelijken",
+      featureHeading: "Functie",
+      columns: ["Groei", "Maatwerk"],
+      rows: [
+        { label: "Medewerkers", values: ["Tot 50", "50+"] },
+        { label: "Onbeperkt waarderingskaarten versturen", values: [true, true] },
+        { label: "Geavanceerde analyses", values: [true, true] },
+        { label: "Inzichten voor leidinggevenden", values: [true, true] },
+        { label: "Company Insights", values: [true, true] },
+        { label: "SSO & integraties", values: [false, true] },
+        { label: "API-toegang", values: [false, true] },
+        { label: "Support", values: ["Prioriteit", "Dedicated"] }
+      ]
+    }
   }
 };
 
@@ -156,13 +190,16 @@ export default async function PricingPage({ params }: { params: Promise<{ locale
 
   return (
     <PublicSiteChrome locale={locale}>
-      <section className="section-shell page-shell pricing-page-shell">
-        <div className="section-head pricing-hero-copy">
-          <h1 className="section-title pricing-hero-title">
-            {copy.titleLine1} <span className="pricing-hero-accent">{copy.titleLine2}</span>
-          </h1>
-        </div>
-        <PricingPlansClient tiers={copy.tiers} labels={copy.labels} trustItems={copy.trust} />
+      <PageHero
+        centered
+        title={copy.titleLine1}
+        accent={copy.titleLine2}
+        decoration={<img className="lp-deco-card" src={`/landing/cards/${locale === "nl" ? "nl" : "en"}/card_01_cover.png`} alt="" />}
+      />
+      <section className="lp-section-sm" style={{ paddingTop: 8, paddingBottom: 112 }}>
+        <Container>
+          <PricingPlansClient tiers={copy.tiers} labels={copy.labels} trustItems={copy.trust} compare={copy.compare} />
+        </Container>
       </section>
     </PublicSiteChrome>
   );

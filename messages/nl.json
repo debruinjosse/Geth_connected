@@ -1911,6 +1911,7 @@
     "menuClose": "Menu sluiten",
     "language": "Taal",
     "openDashboard": "Dashboard openen",
-    "signOut": "Uitloggen"
+    "signOut": "Uitloggen",
+    "close": "Sluiten"
   }
 }

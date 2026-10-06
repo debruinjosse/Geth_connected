@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
+import { Button } from "@/components/ui/Button";
 import { LandingEffects } from "@/components/landing/LandingEffects";
 import { PublicNav } from "@/components/landing/PublicNav";
 import { getLocalizedDashboardHref, localizePublicHref, publicNavLinks } from "@/lib/navigation/public-nav";
@@ -118,7 +119,7 @@ export async function PublicSiteChrome({
       />
 
       <main id="top">
-        {children}
+        <div className="lp">{children}</div>
 
         <section className="lp lp-cta" id="demo" aria-labelledby="lp-cta-title">
           <div className="lp-wrap">
@@ -130,16 +131,13 @@ export async function PublicSiteChrome({
               <p>{ctaCopy}</p>
               <div className="lp-cta-row">
                 {!signedInUser && ctaButtonLabel ? (
-                  <Link href={ctaButtonHref} className="lp-btn lp-btn-gold">
-                    <span>{ctaButtonLabel}</span>
-                    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M3 8h10M9 4l4 4-4 4" />
-                    </svg>
-                  </Link>
+                  <Button href={ctaButtonHref} variant="gold" arrow>
+                    {ctaButtonLabel}
+                  </Button>
                 ) : null}
-                <Link href={localizeHref("/pricing", locale)} className="lp-btn lp-btn-ghost">
+                <Button href={localizeHref("/pricing", locale)} variant="ghost">
                   {lp("mPrice")}
-                </Link>
+                </Button>
               </div>
             </div>
           </div>

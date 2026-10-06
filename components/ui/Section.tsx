@@ -1,23 +1,32 @@
+import type { ReactNode } from "react";
+import { cx } from "@/components/ui/cx";
+import { Container } from "@/components/ui/Container";
+
+/** Page band with the system's vertical rhythm. Wraps children in a Container unless `bare`. */
 export function Section({
   children,
-  background = "default",
+  tone = "default",
+  size = "lg",
   id,
-  ariaLabelledby,
-  className
+  className,
+  bare = false,
+  ariaLabelledby
 }: {
-  children: React.ReactNode;
-  background?: "default" | "subtle" | "dark";
+  children: ReactNode;
+  tone?: "default" | "soft" | "tint";
+  size?: "lg" | "sm";
   id?: string;
-  ariaLabelledby?: string;
   className?: string;
+  bare?: boolean;
+  ariaLabelledby?: string;
 }) {
   return (
     <section
       id={id}
       aria-labelledby={ariaLabelledby}
-      className={`gt-section gt-section-${background}${className ? ` ${className}` : ""}`}
+      className={cx("lp-section", size === "sm" && "lp-section-sm", tone === "soft" && "lp-bg-soft", tone === "tint" && "lp-bg-tint", className)}
     >
-      {children}
+      {bare ? children : <Container>{children}</Container>}
     </section>
   );
 }

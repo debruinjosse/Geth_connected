@@ -3,11 +3,16 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
-import { ArrowRight, CheckCircle2, Eye, EyeOff } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { requestMagicLinkEmail } from "@/app/actions/magicLink";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { hasSupabaseBrowserConfig, type DemoRole } from "@/lib/demo-session";
 import type { InviteSignupPrefill } from "@/lib/auth/invite-signup-prefill";
+import { Alert } from "@/components/ui/Alert";
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
+import { Field, Input, Select } from "@/components/ui/Fields";
+import { PasswordInput } from "@/components/ui/PasswordInput";
 
 // Labels are translation keys under the `authForm` namespace.
 const signupRoles: Array<{ value: DemoRole; labelKey: string }> = [
@@ -52,7 +57,6 @@ export function AuthExperience({
   const [magicLinkBusy, setMagicLinkBusy] = useState(false);
   const [status, setStatus] = useState("");
   const [statusTone, setStatusTone] = useState<"success" | "error" | "info">("info");
-  const [showPassword, setShowPassword] = useState(false);
   const [selectedRole, setSelectedRole] = useState<DemoRole>(initialRole);
   const [form, setForm] = useState({
     name: "",
@@ -379,138 +383,135 @@ export function AuthExperience({
     }
   }
 
+  const authErrorCopy = getAuthErrorCopy(authError);
+
   return (
-    <div className="auth-card">
+    <Card size="lg" className="lp-auth-card">
       <h2>{mode === "signup" ? t("titleSignup") : t("titleLogin")}</h2>
-      <p className="section-copy">
-        {mode === "signup" ? t("introSignup") : t("introLogin")}
-      </p>
+      <p className="lp-sub">{mode === "signup" ? t("introSignup") : t("introLogin")}</p>
+
       {roleChoiceOnly ? (
-        <div className="auth-role-shortcuts auth-role-entry" aria-label={t("entryAria")}>
-          <p>{t("entryPrompt")}</p>
-          <div className="auth-role-shortcut-list">
+        <div aria-label={t("entryAria")}>
+          <p className="lp-roles-label">{t("entryPrompt")}</p>
+          <div className="lp-roles">
             {roleShortcuts.map((role) => (
-              <Link
-                className="auth-role-shortcut"
-                href={getAuthModeHref("login", role.value, getRoleTargetPath(role.value))}
-                key={role.value}
-              >
-                {t(role.labelKey)} <ArrowRight size={15} />
+              <Link className="lp-role" href={getAuthModeHref("login", role.value, getRoleTargetPath(role.value))} key={role.value}>
+                {t(role.labelKey)} <ArrowRight aria-hidden="true" />
               </Link>
             ))}
           </div>
         </div>
       ) : null}
+
       {!roleChoiceOnly && !ownerLoginOnly ? (
-        <div className="auth-mode-tabs" aria-label={t("modeTabsAria")}>
-          <Link className={mode === "login" ? "active" : ""} href={getAuthModeHref("login", selectedRole, getRoleTargetPath(selectedRole))}>
+        <div className="lp-seg lp-seg-block" aria-label={t("modeTabsAria")}>
+          <Link aria-current={mode === "login" ? "page" : undefined} href={getAuthModeHref("login", selectedRole, getRoleTargetPath(selectedRole))}>
             {t("tabLogin")}
           </Link>
-          <Link className={mode === "signup" ? "active" : ""} href={getAuthModeHref("signup", selectedRole, getRoleTargetPath(selectedRole))}>
+          <Link aria-current={mode === "signup" ? "page" : undefined} href={getAuthModeHref("signup", selectedRole, getRoleTargetPath(selectedRole))}>
             {t("tabSignup")}
           </Link>
         </div>
       ) : null}
+
       {!roleChoiceOnly && !ownerLoginOnly && !inviteSignupLocked ? (
-        <div className="auth-role-shortcuts" aria-label={mode === "signup" ? t("roleAriaSignup") : t("roleAriaLogin")}>
-          <p>{t("switchEntry")}</p>
-        <div className="auth-role-shortcut-list">
-          {roleShortcuts.map((role) => (
-            <Link
-              className={`auth-role-shortcut ${selectedRole === role.value ? "active" : ""}`}
-              href={getAuthModeHref(mode, role.value, getRoleTargetPath(role.value))}
-              key={role.value}
-              aria-current={selectedRole === role.value ? "page" : undefined}
-            >
-              {t(role.labelKey)}
-            </Link>
-          ))}
-        </div>
-        {inviteToken ? <span className="auth-role-shortcuts-note">{t("inviteNote")}</span> : null}
+        <div style={{ marginBottom: 22 }} aria-label={mode === "signup" ? t("roleAriaSignup") : t("roleAriaLogin")}>
+          <p className="lp-roles-label">{t("switchEntry")}</p>
+          <div className="lp-roles lp-roles-row">
+            {roleShortcuts.map((role) => (
+              <Link
+                className="lp-role"
+                href={getAuthModeHref(mode, role.value, getRoleTargetPath(role.value))}
+                key={role.value}
+                aria-current={selectedRole === role.value ? "page" : undefined}
+              >
+                {t(role.labelKey)}
+              </Link>
+            ))}
+          </div>
+          {inviteToken ? <p className="lp-hint" style={{ marginTop: 8 }}>{t("inviteNote")}</p> : null}
         </div>
       ) : null}
-      {inviteToken ? <p className="auth-status invite-status">{t("inviteStatus")}</p> : null}
-      {getAuthErrorCopy(authError) ? <p className="auth-status auth-error-status">{getAuthErrorCopy(authError)}</p> : null}
-      {authError === "missing_profile" ? (
-        <button className="btn btn-primary btn-full auth-switch-cta" type="button" onClick={repairProfileAndOpenDashboard} disabled={busy}>
-          {t("repairCta")} <ArrowRight size={16} />
-        </button>
-      ) : null}
 
-      {roleChoiceOnly ? null : <form onSubmit={handleSubmit}>
-        {mode === "signup" && !ownerLoginOnly ? (
-          <>
-            <div className="form-field">
-              <label htmlFor="name">{t("fullName")}</label>
-              <input id="name" className="input" placeholder={t("fullNamePlaceholder")} value={form.name} onChange={(event) => updateField("name", event.target.value)} autoComplete="name" required />
-            </div>
-            <div className="form-field">
-              <label htmlFor="company">{t("company")}</label>
-              <input id="company" className="input" placeholder={t("companyPlaceholder")} value={form.company} onChange={(event) => updateField("company", event.target.value)} autoComplete="organization" readOnly={inviteSignupLocked} required />
-            </div>
-          </>
+      <div className="lp-stack" style={{ gap: 14, marginBottom: authErrorCopy || inviteToken || authError === "missing_profile" ? 22 : 0 }}>
+        {inviteToken ? <Alert tone="info">{t("inviteStatus")}</Alert> : null}
+        {authErrorCopy ? <Alert tone={authError === "password_updated" ? "success" : "error"}>{authErrorCopy}</Alert> : null}
+        {authError === "missing_profile" ? (
+          <Button block arrow onClick={repairProfileAndOpenDashboard} disabled={busy}>
+            {t("repairCta")}
+          </Button>
         ) : null}
-        <div className="form-field">
-          <label htmlFor="auth-email">{t("workEmail")}</label>
-          <input id="auth-email" className="input" type="email" placeholder={t("emailPlaceholder")} value={form.email} onChange={(event) => updateField("email", event.target.value)} autoComplete="email" readOnly={inviteSignupLocked} required />
-        </div>
-        <div className="form-field">
-          <label htmlFor="auth-password">{t("password")}</label>
-          <div className="password-input-wrap">
-            <input id="auth-password" className="input" type={showPassword ? "text" : "password"} placeholder={t("passwordPlaceholder")} value={form.password} onChange={(event) => updateField("password", event.target.value)} autoComplete={mode === "signup" ? "new-password" : "current-password"} required minLength={6} />
-            <button className="password-toggle" type="button" onClick={() => setShowPassword((current) => !current)} aria-label={showPassword ? t("hidePassword") : t("showPassword")}>
-              {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
-            </button>
-          </div>
-        </div>
-        {mode === "signup" && !ownerLoginOnly ? (
-          <div className="form-field">
-            <label htmlFor="role">{t("accountType")}</label>
-            <select id="role" className="input" value={selectedSignupRole} onChange={(event) => setSelectedRole(event.target.value as DemoRole)} disabled={inviteSignupLocked}>
-              {signupRoles.map((role) => (
-                <option value={role.value} key={role.value}>
-                  {t(role.labelKey)}
-                </option>
-              ))}
-            </select>
-          </div>
-        ) : null}
+      </div>
 
-        <button className={`btn ${mode === "signup" ? "btn-primary" : "btn-dark"} btn-full`} disabled={busy} type="submit">
-          {submitBusy
-            ? t("working")
-            : supabaseReady
-              ? mode === "signup" && !ownerLoginOnly
-                ? t("titleSignup")
-                : t("titleLogin")
-              : t("demoMode")}{" "}
-          <ArrowRight size={16} />
-        </button>
-      </form>}
+      {roleChoiceOnly ? null : (
+        <form className="lp-form" onSubmit={handleSubmit}>
+          {mode === "signup" && !ownerLoginOnly ? (
+            <>
+              <Field label={t("fullName")} htmlFor="name">
+                <Input id="name" placeholder={t("fullNamePlaceholder")} value={form.name} onChange={(event) => updateField("name", event.target.value)} autoComplete="name" required />
+              </Field>
+              <Field label={t("company")} htmlFor="company">
+                <Input id="company" placeholder={t("companyPlaceholder")} value={form.company} onChange={(event) => updateField("company", event.target.value)} autoComplete="organization" readOnly={inviteSignupLocked} required />
+              </Field>
+            </>
+          ) : null}
+          <Field label={t("workEmail")} htmlFor="auth-email">
+            <Input id="auth-email" type="email" placeholder={t("emailPlaceholder")} value={form.email} onChange={(event) => updateField("email", event.target.value)} autoComplete="email" readOnly={inviteSignupLocked} required />
+          </Field>
+          <Field label={t("password")} htmlFor="auth-password">
+            <PasswordInput
+              id="auth-password"
+              placeholder={t("passwordPlaceholder")}
+              value={form.password}
+              onChange={(event) => updateField("password", event.target.value)}
+              autoComplete={mode === "signup" ? "new-password" : "current-password"}
+              required
+              minLength={6}
+              showLabel={t("showPassword")}
+              hideLabel={t("hidePassword")}
+            />
+          </Field>
+          {mode === "signup" && !ownerLoginOnly ? (
+            <Field label={t("accountType")} htmlFor="role">
+              <Select id="role" value={selectedSignupRole} onChange={(event) => setSelectedRole(event.target.value as DemoRole)} disabled={inviteSignupLocked}>
+                {signupRoles.map((role) => (
+                  <option value={role.value} key={role.value}>
+                    {t(role.labelKey)}
+                  </option>
+                ))}
+              </Select>
+            </Field>
+          ) : null}
+
+          <Button type="submit" block arrow disabled={busy}>
+            {submitBusy ? t("working") : supabaseReady ? (mode === "signup" && !ownerLoginOnly ? t("titleSignup") : t("titleLogin")) : t("demoMode")}
+          </Button>
+        </form>
+      )}
 
       {supabaseReady && !roleChoiceOnly ? (
-        <button className="btn btn-secondary btn-full auth-demo-cta" type="button" onClick={sendMagicLink} disabled={busy}>
-          {magicLinkBusy ? t("sendingMagicLink") : mode === "signup" && !ownerLoginOnly ? t("sendMagicLink") : t("emailMagicLink")}
-        </button>
-      ) : null}
-
-      {supabaseReady && mode === "login" && !roleChoiceOnly ? (
-        <Link className="btn btn-secondary btn-full auth-demo-cta" href={getLocalizedPublicPath("/forgot-password")}>
-          {t("resetPassword")}
-        </Link>
+        <div className="lp-stack" style={{ gap: 12, marginTop: 14 }}>
+          <Button variant="ghost" block onClick={sendMagicLink} disabled={busy}>
+            {magicLinkBusy ? t("sendingMagicLink") : mode === "signup" && !ownerLoginOnly ? t("sendMagicLink") : t("emailMagicLink")}
+          </Button>
+          {mode === "login" ? (
+            <Button variant="ghost" block href={getLocalizedPublicPath("/forgot-password")}>
+              {t("resetPassword")}
+            </Button>
+          ) : null}
+        </div>
       ) : null}
 
       {status ? (
-        <p className={`auth-status auth-status-${statusTone}`}>
-          <CheckCircle2 size={16} />
+        <Alert tone={statusTone} className="lp-mt">
           {status}
-        </p>
+        </Alert>
       ) : null}
 
-      <div className={`auth-links ${mode === "login" ? "auth-links-single" : ""}`}>
+      <div className="lp-auth-switch">
         {mode === "signup" && !ownerLoginOnly ? <Link href={getAuthModeHref("login")}>{t("alreadyHaveAccount")}</Link> : null}
         <Link href={getLocalizedPublicPath("/")}>{t("backToSite")}</Link>
       </div>
-    </div>
+    </Card>
   );
 }
