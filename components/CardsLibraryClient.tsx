@@ -4,7 +4,11 @@ import { useDeferredValue, useMemo, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { useSearchParams } from "next/navigation";
 import { ArrowRight, Gift, Search, Sparkles } from "lucide-react";
-import { GethCardVisual } from "@/components/GethCardVisual";
+import { CardArtwork } from "@/components/CardArtwork";
+import { Alert } from "@/components/ui/Alert";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Fields";
+import { Panel } from "@/components/ui/Panel";
 import {
   getCategoryDisplayName,
   getLocalizedCardDescription,
@@ -94,49 +98,29 @@ export function CardsLibraryClient({ cards }: { cards: GethCard[] }) {
   return (
     <>
       {giveIntent ? (
-        <div className="cards-give-intent-banner" role="status">
-          <strong>{t("giveIntentTitle")}</strong>
-          <p>{t("giveIntentCopy")}</p>
-        </div>
+        <Alert tone="info" title={t("giveIntentTitle")}>
+          {t("giveIntentCopy")}
+        </Alert>
       ) : null}
-      <section className="cards-filter-bar">
-        <div className="cards-category-chips" role="group" aria-label={t("filterAriaLabel")}>
-          <button
-            type="button"
-            className={`cards-category-chip${category === "all" ? " active" : ""}`}
-            aria-pressed={category === "all"}
-            onClick={() => setCategory("all")}
-          >
-            {t("filterAllCategories")}
-            <span className="cards-category-chip-count">{cards.length}</span>
+
+      <div className="lp-library-bar">
+        <div className="lp-filters" role="group" aria-label={t("filterAriaLabel")}>
+          <button type="button" aria-pressed={category === "all"} onClick={() => setCategory("all")}>
+            {t("filterAllCategories")} <small>{cards.length}</small>
           </button>
           {categoryFilters.map((value) => (
-            <button
-              key={value}
-              type="button"
-              className={`cards-category-chip${category === value ? " active" : ""}`}
-              aria-pressed={category === value}
-              onClick={() => setCategory(value)}
-            >
-              {getLocalizedCategoryDisplayName(value, locale)}
-              <span className="cards-category-chip-count">{categoryCounts[value] ?? 0}</span>
+            <button key={value} type="button" aria-pressed={category === value} onClick={() => setCategory(value)}>
+              {getLocalizedCategoryDisplayName(value, locale)} <small>{categoryCounts[value] ?? 0}</small>
             </button>
           ))}
         </div>
-        <div className="input-wrap">
-          <Search size={18} style={{ position: "absolute", top: 18, left: 16, color: "var(--theme-muted)" }} />
-          <input
-            aria-label={t("searchAriaLabel")}
-            className="input"
-            style={{ paddingLeft: 44 }}
-            placeholder={t("searchPlaceholder")}
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-          />
+        <div className="lp-input-icon lp-library-search">
+          <Search aria-hidden="true" />
+          <Input aria-label={t("searchAriaLabel")} placeholder={t("searchPlaceholder")} value={query} onChange={(event) => setQuery(event.target.value)} />
         </div>
-      </section>
+      </div>
 
-      <p className="cards-count">
+      <p className="lp-hint lp-library-count">
         {category !== "all" && !trimmedQuery
           ? t("showingInCategory", { visible: visibleCards.length, category: activeCategoryLabel ?? category })
           : searchActive
@@ -146,39 +130,42 @@ export function CardsLibraryClient({ cards }: { cards: GethCard[] }) {
       </p>
 
       {visibleCards.length ? (
-        <section className="cards-grid">
-          {visibleCards.map((card) => {
-            const cardHref = giveIntent
-              ? `/${locale}/give-card/${card.slug}`
-              : `/${locale}/claim-card/${card.slug}`;
+        <section className="lp-card-grid">
+          {visibleCards.map((card, index) => {
+            const cardHref = giveIntent ? `/${locale}/give-card/${card.slug}` : `/${locale}/claim-card/${card.slug}`;
+            const title = getLocalizedCardTitle(card, locale);
             return (
-              <a className="card-library-card" href={cardHref} key={card.slug}>
-                <div className="card-library-copy">
-                  <GethCardVisual card={card} variant="library" />
-                  <span className="card-library-action">
-                    {giveIntent ? <Gift size={15} /> : <Sparkles size={15} />}
-                    {giveIntent ? t("giveThisCard") : t("cta")} <ArrowRight size={14} />
-                  </span>
-                </div>
+              <a className="lp-cardtile" href={cardHref} key={card.slug}>
+                <CardArtwork cardNumber={card.cardNumber} locale={locale} title={title} priority={index < 4} />
+                <span className="lp-cardtile-meta">
+                  <b>{title}</b>
+                  <small>{getLocalizedCategoryDisplayName(card.category, locale)}</small>
+                </span>
+                <span className="lp-cardtile-cta">
+                  {giveIntent ? <Gift aria-hidden="true" /> : <Sparkles aria-hidden="true" />}
+                  {giveIntent ? t("giveThisCard") : t("cta")} <ArrowRight aria-hidden="true" />
+                </span>
               </a>
             );
           })}
         </section>
       ) : (
-        <section className="panel dashboard-panel cards-empty-search">
-          <h2>{t("emptyTitle")}</h2>
-          <p className="section-copy">{t("emptyCopy")}</p>
-          <button
-            className="btn btn-secondary"
-            type="button"
-            onClick={() => {
-              setQuery("");
-              setCategory("all");
-            }}
-          >
-            {t("clearSearch")}
-          </button>
-        </section>
+        <Panel>
+          <div className="lp-empty">
+            <h3>{t("emptyTitle")}</h3>
+            <p>{t("emptyCopy")}</p>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setQuery("");
+                setCategory("all");
+              }}
+            >
+              {t("clearSearch")}
+            </Button>
+          </div>
+        </Panel>
       )}
     </>
   );

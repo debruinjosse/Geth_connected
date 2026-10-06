@@ -1,6 +1,5 @@
 import { redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
-import { BarChart } from "@/components/BarChart";
 import { DashboardShell } from "@/components/DashboardShell";
 import { EmptyState } from "@/components/EmptyState";
 import { QualityBars } from "@/components/QualityBars";
@@ -10,6 +9,11 @@ import { managerTrendPoints, managerUser, topQualities } from "@/lib/demo-data";
 import { getManagerInsights } from "@/lib/data/manager-insights";
 import { getUnreadNotificationCount } from "@/lib/notifications";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { BarsChart } from "@/components/ui/BarsChart";
+import { Grid } from "@/components/ui/Grid";
+import { MeterList } from "@/components/ui/Meter";
+import { Panel } from "@/components/ui/Panel";
+import { Pill } from "@/components/ui/Pill";
 
 function hasSupabaseServerConfig() {
   return Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
@@ -27,17 +31,15 @@ export default async function ManagerAnalyticsPage() {
 
   if (!hasSupabaseServerConfig()) {
     return (
-      <DashboardShell role="manager" title={tp("analyticsTitle")} subtitle={tp("analyticsSubtitle")} user={managerUser} actions={<span className="quality-pill">{tc("demoFallback")}</span>}>
-        <section className="dashboard-grid two">
-          <article className="panel dashboard-panel">
-            <div className="panel-top"><h2>{tp("activityTitle")}</h2></div>
-            <BarChart items={getRecentMonthLabels(3, locale).map((label, index) => ({ label, value: managerTrendPoints[index] ?? 0, color: "var(--theme-emerald)" }))} />
-          </article>
-          <article className="panel dashboard-panel">
-            <div className="panel-top"><h2>{tp("qualitiesMix")}</h2></div>
+      <DashboardShell role="manager" title={tp("analyticsTitle")} subtitle={tp("analyticsSubtitle")} user={managerUser} actions={<Pill>{tc("demoFallback")}</Pill>}>
+        <Grid cols="two">
+          <Panel title={tp("activityTitle")}>
+            <BarsChart labels={getRecentMonthLabels(3, locale)} series={[{ name: tp("activityTitle"), color: "var(--purple)", values: getRecentMonthLabels(3, locale).map((_, index) => managerTrendPoints[index] ?? 0) }]} />
+          </Panel>
+          <Panel title={tp("qualitiesMix")}>
             <QualityBars items={localizeDemoQualityBars(topQualities, locale)} valueMode="count" />
-          </article>
-        </section>
+          </Panel>
+        </Grid>
       </DashboardShell>
     );
   }
@@ -70,37 +72,28 @@ export default async function ManagerAnalyticsPage() {
         team: insights.teamLabel,
         imageUrl: insights.profile.profile_image
       }}
-      actions={<span className="quality-pill">{insights.recognitionCount} recognitions</span>}
+      actions={<Pill>{insights.recognitionCount} recognitions</Pill>}
       unreadNotifications={unreadNotifications}
     >
-      <section className="dashboard-grid two">
-        <article className="panel dashboard-panel">
-          <div className="panel-top"><h2>{tp("activityTitle")}</h2></div>
+      <Grid cols="two">
+        <Panel title={tp("activityTitle")}>
           {insights.recognitionCount ? (
-            <BarChart items={insights.trendLabels.map((label, index) => ({ label, value: insights.trendPoints[index] ?? 0, color: "var(--theme-emerald)" }))} />
+            <BarsChart labels={insights.trendLabels} series={[{ name: tp("activityTitle"), color: "var(--purple)", values: insights.trendLabels.map((_, index) => insights.trendPoints[index] ?? 0) }]} />
           ) : (
             <EmptyState title={tp("noTrendTitle")} copy={tp("noTrendCopy")} />
           )}
-        </article>
-        <article className="panel dashboard-panel">
-          <div className="panel-top"><h2>{tp("qualitiesMix")}</h2></div>
+        </Panel>
+        <Panel title={tp("qualitiesMix")}>
           {insights.qualityBars.length ? <QualityBars items={insights.qualityBars} valueMode="count" /> : <EmptyState title={tp("noQualitiesTitle")} copy={tp("noQualitiesCopy")} />}
-        </article>
-      </section>
-      <article className="panel dashboard-panel">
-        <div className="panel-top"><h2>{tp("memberComparison")}</h2></div>
+        </Panel>
+      </Grid>
+      <Panel title={tp("memberComparison")}>
         {insights.memberComparison.length ? (
-          insights.memberComparison.map((member) => (
-            <div className="bar-row" key={member.label}>
-              <span>{member.label}</span>
-              <div className="bar-track"><span style={{ width: `${Math.max(8, member.value * 18)}%`, background: "var(--theme-ink)" }} /></div>
-              <strong>{member.value}</strong>
-            </div>
-          ))
+          <MeterList items={insights.memberComparison.map((member) => ({ label: member.label, value: member.value, color: "var(--purple)" }))} />
         ) : (
           <EmptyState title={tp("noComparisonTitle")} copy={tp("noComparisonCopy")} />
         )}
-      </article>
+      </Panel>
     </DashboardShell>
   );
 }

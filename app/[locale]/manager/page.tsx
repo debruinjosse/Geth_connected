@@ -1,13 +1,10 @@
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { Activity, Heart, UserRound, UsersRound } from "lucide-react";
-import { BarChart } from "@/components/BarChart";
 import { DashboardShell } from "@/components/DashboardShell";
-import { EmptyState } from "@/components/EmptyState";
-import { MetricCard } from "@/components/MetricCard";
-import { QualityBars, type QualityBarItem } from "@/components/QualityBars";
-import { SignalList } from "@/components/SignalList";
-import { TeamTable, type TeamMemberRow } from "@/components/TeamTable";
+import { ManagerOverview } from "@/components/manager/ManagerOverview";
+import { Pill } from "@/components/ui/Pill";
+import type { QualityBarItem } from "@/components/QualityBars";
+import type { TeamMemberRow } from "@/components/TeamTable";
 import { getLocalizedCardTitle, getLocalizedCategoryDisplayName, normalizeCategoryKey } from "@/lib/cards";
 import { getRecentMonthLabels } from "@/lib/locale-format";
 import { localizeDemoQualityBars, localizeDemoPeople } from "@/lib/localize-demo-content";
@@ -114,62 +111,18 @@ export default async function ManagerDashboardPage({ params }: { params: Promise
         title={t("overviewTitle")}
         subtitle={t("overviewSubtitle")}
         user={managerUser}
-        actions={<span className="quality-pill">{t("thisQuarter")}</span>}
+        actions={<Pill>{t("thisQuarter")}</Pill>}
       >
-        <section className="metrics-grid">
-          <MetricCard icon={<Heart />} value="124" label={t("totalRecognitions")} />
-          <MetricCard icon={<UsersRound />} value="92%" label={t("teamEngagement")} tone="var(--theme-emerald)" iconBackground="rgba(58, 166, 95, 0.12)" />
-          <MetricCard icon={<UserRound />} value="8" label={t("activeMembers")} tone="var(--theme-gold)" iconBackground="rgba(216, 162, 58, 0.12)" />
-          <MetricCard icon={<Activity />} value="4" label={t("signals")} />
-        </section>
-
-        <section className="dashboard-grid two">
-          <article className="panel dashboard-panel">
-            <div className="panel-top">
-              <h2>{t("teamTable")}</h2>
-            </div>
-            <TeamTable people={demoContent.localizedPeople} />
-          </article>
-          <aside className="panel dashboard-panel">
-            <div className="panel-top">
-              <h2>{t("teamSignals")}</h2>
-              <a href={signalsHref} style={{ color: "var(--theme-ink)", fontWeight: 700 }}>
-                {t("viewAll")}
-              </a>
-            </div>
-            <SignalList items={demoContent.localizedSignals} />
-          </aside>
-        </section>
-
-        <section className="dashboard-grid three">
-          <article className="panel dashboard-panel">
-            <div className="panel-top">
-              <h2>{t("activityTitle")}</h2>
-              <span className="quality-pill">{t("thisQuarter")}</span>
-            </div>
-            <BarChart items={demoContent.monthLabels3.map((label, index) => ({ label, value: managerTrendPoints[index] ?? 0, color: "var(--theme-emerald)" }))} />
-          </article>
-          <article className="panel dashboard-panel">
-            <div className="panel-top">
-              <h2>{t("topQualitiesTitle")}</h2>
-            </div>
-            <QualityBars items={demoContent.localizedTopQualities} valueMode="count" />
-          </article>
-          <article className="panel dashboard-panel">
-            <div className="panel-top">
-              <h2>{t("impactTitle")}</h2>
-              <span className="quality-pill">{t("thisQuarter")}</span>
-            </div>
-            <BarChart
-              compact
-              items={[
-                { label: t("lastQuarter"), value: 18, color: "rgba(42, 23, 61, 0.32)" },
-                { label: t("thisQuarter"), value: 23, color: "var(--theme-emerald)" },
-                { label: t("impactChange"), value: 23, valueLabel: "+23%", color: "var(--theme-gold)", helper: t("comparedLast") }
-              ]}
-            />
-          </article>
-        </section>
+        <ManagerOverview
+          variant="full"
+          metrics={{ recognitions: 124, engagement: 92, members: 8, signals: 4 }}
+          people={demoContent.localizedPeople}
+          signals={demoContent.localizedSignals}
+          signalsHref={signalsHref}
+          activity={{ labels: demoContent.monthLabels3, values: demoContent.monthLabels3.map((_, index) => managerTrendPoints[index] ?? 0), hasData: true }}
+          qualities={demoContent.localizedTopQualities}
+          impact={{ previous: 18, current: 23, percent: 23, hasData: true }}
+        />
       </DashboardShell>
     );
   }
@@ -187,62 +140,18 @@ export default async function ManagerDashboardPage({ params }: { params: Promise
         title={t("overviewTitle")}
         subtitle={t("overviewSubtitle")}
         user={managerUser}
-        actions={<span className="quality-pill">{t("thisQuarter")}</span>}
+        actions={<Pill>{t("thisQuarter")}</Pill>}
       >
-        <section className="metrics-grid">
-          <MetricCard icon={<Heart />} value="124" label={t("totalRecognitions")} />
-          <MetricCard icon={<UsersRound />} value="92%" label={t("teamEngagement")} tone="var(--theme-emerald)" iconBackground="rgba(58, 166, 95, 0.12)" />
-          <MetricCard icon={<UserRound />} value="8" label={t("activeMembers")} tone="var(--theme-gold)" iconBackground="rgba(216, 162, 58, 0.12)" />
-          <MetricCard icon={<Activity />} value="4" label={t("signals")} />
-        </section>
-
-        <section className="dashboard-grid two">
-          <article className="panel dashboard-panel">
-            <div className="panel-top">
-              <h2>{t("teamTable")}</h2>
-            </div>
-            <TeamTable people={demoContent.localizedPeople} />
-          </article>
-          <aside className="panel dashboard-panel">
-            <div className="panel-top">
-              <h2>{t("teamSignals")}</h2>
-              <a href={signalsHref} style={{ color: "var(--theme-ink)", fontWeight: 700 }}>
-                {t("viewAll")}
-              </a>
-            </div>
-            <SignalList items={demoContent.localizedSignals} />
-          </aside>
-        </section>
-
-        <section className="dashboard-grid three">
-          <article className="panel dashboard-panel">
-            <div className="panel-top">
-              <h2>{t("activityTitle")}</h2>
-              <span className="quality-pill">{t("thisQuarter")}</span>
-            </div>
-            <BarChart items={demoContent.monthLabels3.map((label, index) => ({ label, value: managerTrendPoints[index] ?? 0, color: "var(--theme-emerald)" }))} />
-          </article>
-          <article className="panel dashboard-panel">
-            <div className="panel-top">
-              <h2>{t("topQualitiesTitle")}</h2>
-            </div>
-            <QualityBars items={demoContent.localizedTopQualities} valueMode="count" />
-          </article>
-          <article className="panel dashboard-panel">
-            <div className="panel-top">
-              <h2>{t("impactTitle")}</h2>
-              <span className="quality-pill">{t("thisQuarter")}</span>
-            </div>
-            <BarChart
-              compact
-              items={[
-                { label: t("lastQuarter"), value: 18, color: "rgba(42, 23, 61, 0.32)" },
-                { label: t("thisQuarter"), value: 23, color: "var(--theme-emerald)" },
-                { label: t("impactChange"), value: 23, valueLabel: "+23%", color: "var(--theme-gold)", helper: t("comparedLast") }
-              ]}
-            />
-          </article>
-        </section>
+        <ManagerOverview
+          variant="full"
+          metrics={{ recognitions: 124, engagement: 92, members: 8, signals: 4 }}
+          people={demoContent.localizedPeople}
+          signals={demoContent.localizedSignals}
+          signalsHref={signalsHref}
+          activity={{ labels: demoContent.monthLabels3, values: demoContent.monthLabels3.map((_, index) => managerTrendPoints[index] ?? 0), hasData: true }}
+          qualities={demoContent.localizedTopQualities}
+          impact={{ previous: 18, current: 23, percent: 23, hasData: true }}
+        />
       </DashboardShell>
     );
   }
@@ -284,44 +193,19 @@ export default async function ManagerDashboardPage({ params }: { params: Promise
           initials: getInitials(managerProfile.first_name, managerProfile.last_name),
           team: teamLabel
         }}
-        actions={<span className="quality-pill">{t("liveData")}</span>}
+        actions={<Pill tone="green">{t("liveData")}</Pill>}
         unreadNotifications={unreadNotifications}
       >
-        <section className="metrics-grid">
-          <MetricCard icon={<Heart />} value="0" label={t("totalRecognitions")} />
-          <MetricCard icon={<UsersRound />} value="0%" label={t("teamEngagement")} tone="var(--theme-emerald)" iconBackground="rgba(58, 166, 95, 0.12)" />
-          <MetricCard icon={<UserRound />} value="0" label={t("activeMembers")} tone="var(--theme-gold)" iconBackground="rgba(216, 162, 58, 0.12)" />
-          <MetricCard icon={<Activity />} value="0" label={t("signals")} />
-        </section>
-
-        <section className="dashboard-grid two">
-          <article className="panel dashboard-panel">
-            <EmptyState
-              eyebrow={t("emptyNoTeamEyebrow")}
-              title={t("emptyNoTeamTitle")}
-              copy={t("emptyNoTeamCopy")}
-            />
-          </article>
-          <aside className="panel dashboard-panel">
-            <EmptyState
-              eyebrow={t("emptySignalsPendingEyebrow")}
-              title={t("emptySignalsPendingTitle")}
-              copy={t("emptySignalsPendingCopy")}
-            />
-          </aside>
-        </section>
-
-        <section className="dashboard-grid three">
-          <article className="panel dashboard-panel">
-            <EmptyState eyebrow={t("emptyActivityEyebrow")} title={t("emptyActivityTitle")} copy={t("emptyActivityCopy")} />
-          </article>
-          <article className="panel dashboard-panel">
-            <EmptyState eyebrow={t("emptyQualitiesEyebrow")} title={t("emptyQualitiesTitle")} copy={t("emptyQualitiesCopy")} />
-          </article>
-          <article className="panel dashboard-panel">
-            <EmptyState eyebrow={t("emptyImpactEyebrow")} title={t("emptyImpactTitle")} copy={t("emptyImpactCopy")} />
-          </article>
-        </section>
+        <ManagerOverview
+          variant="noTeam"
+          metrics={{ recognitions: 0, engagement: 0, members: 0, signals: 0 }}
+          people={[]}
+          signals={[]}
+          signalsHref={signalsHref}
+          activity={{ labels: [], values: [], hasData: false }}
+          qualities={[]}
+          impact={{ previous: 0, current: 0, percent: 0, hasData: false }}
+        />
       </DashboardShell>
     );
   }
@@ -523,103 +407,19 @@ export default async function ManagerDashboardPage({ params }: { params: Promise
         initials: getInitials(managerProfile.first_name, managerProfile.last_name),
         team: teamLabel
       }}
-      actions={<span className="quality-pill">{t("liveData")}</span>}
+      actions={<Pill tone="green">{t("liveData")}</Pill>}
       unreadNotifications={unreadNotifications}
     >
-      <section className="metrics-grid">
-        <MetricCard icon={<Heart />} value={recognitions.length} label={t("totalRecognitions")} />
-        <MetricCard icon={<UsersRound />} value={`${engagementScore}%`} label={t("teamEngagement")} tone="var(--theme-emerald)" iconBackground="rgba(58, 166, 95, 0.12)" />
-        <MetricCard icon={<UserRound />} value={teamTableRows.length} label={t("activeMembers")} tone="var(--theme-gold)" iconBackground="rgba(216, 162, 58, 0.12)" />
-        <MetricCard icon={<Activity />} value={signalItems.length} label={t("signals")} />
-      </section>
-
-      <section className="dashboard-grid two">
-        <article className="panel dashboard-panel">
-          <div className="panel-top">
-            <h2>{t("teamTable")}</h2>
-          </div>
-          {teamTableRows.length ? (
-            <TeamTable people={teamTableRows} />
-          ) : (
-            <EmptyState eyebrow={t("emptyMembersEyebrow")} title={t("emptyMembersTitle")} copy={t("emptyMembersCopy")} />
-          )}
-        </article>
-        <aside className="panel dashboard-panel">
-          <div className="panel-top">
-            <h2>{t("teamSignals")}</h2>
-            <a href={signalsHref} style={{ color: "var(--theme-ink)", fontWeight: 700 }}>
-              {t("viewAll")}
-            </a>
-          </div>
-          {signalItems.length ? (
-            <SignalList items={signalItems} />
-          ) : (
-            <EmptyState eyebrow={t("emptyNoSignalsEyebrow")} title={t("emptyNoSignalsTitle")} copy={t("emptyNoSignalsCopy")} />
-          )}
-        </aside>
-      </section>
-
-      <section className="dashboard-grid three">
-        <article className="panel dashboard-panel">
-          <div className="panel-top">
-            <h2>{t("activityTitle")}</h2>
-            <span className="quality-pill">{t("thisQuarter")}</span>
-          </div>
-          {recognitions.length ? (
-            <BarChart items={trendLabels.map((label, index) => ({ label, value: trendPoints[index] ?? 0, color: "var(--theme-emerald)" }))} />
-          ) : (
-            <EmptyState eyebrow={t("emptyActivityYetEyebrow")} title={t("emptyActivityTitle")} copy={t("emptyActivityYetCopy")} />
-          )}
-        </article>
-        <article className="panel dashboard-panel">
-          <div className="panel-top">
-            <h2>{t("topQualitiesTitle")}</h2>
-          </div>
-          {topQualityBars.length ? (
-            <QualityBars items={topQualityBars} valueMode="count" />
-          ) : (
-            <EmptyState eyebrow={t("emptyQualitiesYetEyebrow")} title={t("emptyQualitiesYetTitle")} copy={t("emptyQualitiesYetCopy")} />
-          )}
-        </article>
-        <article className="panel dashboard-panel">
-          <div className="panel-top">
-            <h2>{t("impactTitle")}</h2>
-            <span className="quality-pill">{t("thisQuarter")}</span>
-          </div>
-          {recognitions.length ? (
-            <>
-              <BarChart
-                compact
-                items={[
-                  { label: t("lastQuarter"), value: previousQuarterCount, color: "rgba(42, 23, 61, 0.32)" },
-                  { label: t("thisQuarter"), value: currentQuarterCount, color: "var(--theme-emerald)" },
-                  {
-                    label: t("impactChange"),
-                    value: Math.abs(impactPercent),
-                    valueLabel: `${impactPercent > 0 ? "+" : ""}${impactPercent}%`,
-                    color: impactPercent >= 0 ? "var(--theme-gold)" : "var(--theme-red)",
-                    helper: previousQuarterCount > 0 ? t("comparedLast") : t("comparedEmpty")
-                  }
-                ]}
-              />
-              <div className="impact-card manager-impact-legacy" aria-hidden="true">
-              <div className="hero-growth-badge">{impactPercent >= 0 ? "↑" : "↓"}</div>
-              <strong style={{ display: "block", marginTop: 18, fontSize: 52, color: "var(--theme-ink-soft)" }}>
-                {impactPercent > 0 ? "+" : ""}
-                {impactPercent}%
-              </strong>
-              <p style={{ margin: "8px 0 0", color: "var(--theme-muted)" }}>
-                {previousQuarterCount > 0
-                  ? t("impactCopy")
-                  : t("impactCopyEmpty")}
-              </p>
-              </div>
-            </>
-          ) : (
-            <EmptyState eyebrow={t("emptyImpactEyebrow")} title={t("emptyImpactTitle")} copy={t("emptyImpactCopyAlt")} />
-          )}
-        </article>
-      </section>
+      <ManagerOverview
+        variant="full"
+        metrics={{ recognitions: recognitions.length, engagement: engagementScore, members: teamTableRows.length, signals: signalItems.length }}
+        people={teamTableRows}
+        signals={signalItems}
+        signalsHref={signalsHref}
+        activity={{ labels: trendLabels, values: trendPoints, hasData: recognitions.length > 0 }}
+        qualities={topQualityBars}
+        impact={{ previous: previousQuarterCount, current: currentQuarterCount, percent: impactPercent, hasData: recognitions.length > 0 }}
+      />
     </DashboardShell>
   );
 }

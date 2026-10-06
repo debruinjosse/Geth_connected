@@ -1,20 +1,22 @@
+import { MeterList } from "@/components/ui/Meter";
+import { normalizeCategoryKey } from "@/lib/cards";
 import { topQualities } from "@/lib/demo-data";
-import { categoryColors, normalizeCategoryKey } from "@/lib/cards";
 import { normalizeQualityBarPercentages } from "@/lib/quality-percentages";
 
 export type QualityBarItem = { label: string; value: number; category: string };
 
+const CATEGORY_COLOR: Record<string, string> = {
+  Communication: "var(--cat-com)",
+  Creativity: "var(--cat-cre)",
+  Competence: "var(--cat-cmp)",
+  Collegiality: "var(--cat-col)"
+};
+
 function resolveBarColor(category: string) {
-  const categoryKey = normalizeCategoryKey(category);
-  return categoryColors[categoryKey] ?? categoryColors[category] ?? "var(--theme-ink)";
+  return CATEGORY_COLOR[normalizeCategoryKey(category)] ?? "var(--purple)";
 }
 
-function getBarWidth(value: number, valueMode: "count" | "percent", maxCount: number) {
-  if (value <= 0) return 0;
-  if (valueMode === "percent") return value;
-  return Math.max(8, Math.round((value / maxCount) * 100));
-}
-
+/** Top qualities as coloured meters (colour = card category). */
 export function QualityBars({
   items = topQualities,
   valueMode = "percent",
@@ -26,34 +28,16 @@ export function QualityBars({
 }) {
   const suffix = valueSuffix ?? (valueMode === "percent" ? "%" : "");
   const displayItems = valueMode === "percent" ? normalizeQualityBarPercentages(items) : items;
-  const maxCount = Math.max(...displayItems.map((item) => item.value), 1);
 
   return (
-    <div>
-      {displayItems.map((quality) => {
-        const barColor = resolveBarColor(quality.category);
-        const barWidth = getBarWidth(quality.value, valueMode, maxCount);
-
-        return (
-          <div className="bar-row" key={quality.label}>
-            <span>{quality.label}</span>
-            <div className="bar-track">
-              <span
-                className="bar-fill"
-                style={{
-                  width: `${barWidth}%`,
-                  minWidth: barWidth > 0 ? "8px" : undefined,
-                  backgroundColor: barColor
-                }}
-              />
-            </div>
-            <b>
-              {quality.value}
-              {suffix}
-            </b>
-          </div>
-        );
-      })}
-    </div>
+    <MeterList
+      max={valueMode === "percent" ? 100 : undefined}
+      items={displayItems.map((quality) => ({
+        label: quality.label,
+        value: quality.value,
+        valueLabel: `${quality.value}${suffix}`,
+        color: resolveBarColor(quality.category)
+      }))}
+    />
   );
 }

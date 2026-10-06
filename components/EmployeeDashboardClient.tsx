@@ -280,7 +280,7 @@ export function EmployeeDashboardClient({ data }: { data?: EmployeeDashboardData
         <StatCard icon={<Heart />} value={resolvedData.cardsReceived} label={t("received")} helper={t("receivedHelper")} />
         <StatCard icon={<Send />} value={resolvedData.cardsGiven} label={t("given")} helper={t("givenHelper")} />
         <StatCard icon={<Scale />} value={recognitionBalanceValue} label={t("balance")} helper={t("balanceHelper")} />
-        <Card size="sm" className="lp-stat">
+        <Card size="sm" className="lp-stat lp-span-m">
           <div className="lp-stat-top">
             <span className="lp-stat-label">{t("topThreeQualities")}</span>
           </div>

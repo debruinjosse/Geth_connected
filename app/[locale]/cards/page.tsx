@@ -6,7 +6,7 @@ import { PublicSiteChrome } from "@/components/PublicSiteChrome";
 import { Link } from "@/i18n/navigation";
 import { Lock } from "lucide-react";
 import { CardRail } from "@/components/landing/CardRail";
-import { Button } from "@/components/ui/Button";
+import { Button, buttonClass } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Container } from "@/components/ui/Container";
 import { Eyebrow } from "@/components/ui/Eyebrow";
@@ -60,7 +60,7 @@ function getDashboardAction(
 ) {
   if (role === "employee") {
     return (
-      <Link className="btn btn-secondary compact" href="/employee/scan">
+      <Link className={buttonClass({ variant: "ghost", size: "sm" })} href="/employee/scan">
         {labels.scanCard}
       </Link>
     );
@@ -68,7 +68,7 @@ function getDashboardAction(
 
   if (role === "company") {
     return (
-      <Link className="btn btn-secondary compact" href="/company/cards">
+      <Link className={buttonClass({ variant: "ghost", size: "sm" })} href="/company/cards">
         {labels.manageDecks}
       </Link>
     );
@@ -76,7 +76,7 @@ function getDashboardAction(
 
   if (role === "admin") {
     return (
-      <Link className="btn btn-secondary compact" href="/admin/cards">
+      <Link className={buttonClass({ variant: "ghost", size: "sm" })} href="/admin/cards">
         {labels.manageCards}
       </Link>
     );
@@ -180,11 +180,9 @@ export default async function CardsPage({ params }: CardsPageProps) {
         unreadNotifications={authenticatedContext.unreadNotifications}
         actions={getDashboardAction(authenticatedContext.dashboardRole, actionLabels)}
       >
-        <section className="cards-page dashboard-card-library">
-          <Suspense fallback={<p className="section-copy">{t("loading")}</p>}>
-            <CardsLibraryClient cards={cards} />
-          </Suspense>
-        </section>
+        <Suspense fallback={<p className="lp-hint">{t("loading")}</p>}>
+          <CardsLibraryClient cards={cards} />
+        </Suspense>
       </DashboardShell>
     );
   }

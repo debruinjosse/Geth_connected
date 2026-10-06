@@ -84,7 +84,7 @@ async function main() {
   const give = await fetchText(givePath);
   const giveOk =
     give.status === 200 &&
-    give.text.includes("claim-page") &&
+    give.text.includes("lp-claim") &&
     !give.text.includes("Who gave you this card?");
   results.push({
     name: "Give-card route (not claim copy)",

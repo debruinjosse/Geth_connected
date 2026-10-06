@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { HelpCircle } from "lucide-react";
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import { BrandLogo } from "@/components/BrandLogo";
+import { LanguageToggle } from "@/components/ui/LanguageToggle";
+import type { AppLocale } from "@/i18n/routing";
 import { ClaimCardClient } from "./ClaimCardClient";
 import { getPublicCardBySlug } from "@/lib/card-library";
 import { loadCompanyColleagues, type ColleagueOption } from "@/lib/colleagues";
@@ -93,17 +94,22 @@ export async function ClaimCardRoute({
   }
 
   return (
-    <main className="claim-page claim-one-page">
-      <header className="claim-header">
-        <BrandLogo href={`/${locale}`} />
-        <div className="claim-header-right">
-          <a className="claim-help" href="mailto:info@geth.pro?subject=GETH%20claim%20card%20help">
-            <HelpCircle size={16} style={{ verticalAlign: "middle", marginRight: 6 }} />
+    <main className="lp lp-claim">
+      <header className="lp-claim-bar">
+        <Link href={`/${locale}`} className="lp-brand" aria-label="GETH®">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/landing/geth-crest.svg" alt="" />
+          <b>
+            GETH<sup>®</sup>
+          </b>
+        </Link>
+        <div className="lp-claim-bar-right">
+          <a href="mailto:info@geth.pro?subject=GETH%20claim%20card%20help">
+            <HelpCircle aria-hidden="true" />
             {t("help")}
           </a>
-          <Link className="claim-help" href={receiverUser.dashboardHref}>
-            {tNav("hi", { name: receiverUser.name.split(" ")[0] || "there" })}
-          </Link>
+          <Link href={receiverUser.dashboardHref}>{tNav("hi", { name: receiverUser.name.split(" ")[0] || "there" })}</Link>
+          <LanguageToggle locale={locale as AppLocale} label={tNav("language")} />
         </div>
       </header>
       <ClaimCardClient

@@ -30,8 +30,42 @@ export function SignalList({
 }) {
   const locale = useLocale();
   const t = useTranslations("employeeHome");
-  const tm = useTranslations("manager");
   const coaching = variant === "coaching";
+
+  if (!coaching) {
+    return (
+      <div className="lp-feed">
+        {items.map((signal) => (
+          <div className="lp-feed-item" key={signal.id}>
+            <span className="lp-signal-dot" style={{ background: signal.tone }} aria-hidden="true" />
+            <div className="lp-feed-main">
+              {signal.title ? <div className="lp-feed-title">{signal.title}</div> : null}
+              <p className="lp-feed-note">{signal.detail}</p>
+              {signal.highlights?.length ? (
+                <div className="lp-chips" aria-label={t("signalHighlightsAria")}>
+                  {signal.highlights.map((highlight) => (
+                    <span className="lp-chip-q" key={`${signal.id}-${highlight.label}`} style={{ "--c": highlight.tone } as CSSProperties}>
+                      {highlight.label}
+                      <small>
+                        {highlight.category} · {t("signalHighlightCards", { count: highlight.count })}
+                      </small>
+                    </span>
+                  ))}
+                </div>
+              ) : null}
+              {signal.actionHref && signal.actionLabel ? (
+                <div className="lp-feed-actions">
+                  <Link className="lp-link" href={localizeHref(signal.actionHref, locale)}>
+                    {signal.actionLabel}
+                  </Link>
+                </div>
+              ) : null}
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
 
   return (
     <div className={`signal-list${coaching ? " signal-list-coaching" : ""}`}>
@@ -39,7 +73,7 @@ export function SignalList({
         <div className={`signal-card${coaching ? " signal-card-coaching" : ""}`} key={signal.id}>
           <div style={{ display: "flex", alignItems: coaching ? "flex-start" : "center", gap: 12 }}>
             <span className="signal-icon" style={{ color: signal.tone }} aria-hidden="true">
-              {coaching ? <Sparkles size={16} /> : <span className="signal-icon-label">{tm("signalBadge")}</span>}
+              <Sparkles size={16} />
             </span>
             <div>
               {!coaching && signal.title ? <strong>{signal.title}</strong> : null}

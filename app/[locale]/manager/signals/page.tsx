@@ -7,6 +7,8 @@ import { managerUser, teamSignals } from "@/lib/demo-data";
 import { getManagerInsights } from "@/lib/data/manager-insights";
 import { getUnreadNotificationCount } from "@/lib/notifications";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { Panel } from "@/components/ui/Panel";
+import { Pill } from "@/components/ui/Pill";
 
 function hasSupabaseServerConfig() {
   return Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
@@ -24,8 +26,8 @@ export default async function ManagerSignalsPage() {
 
   if (!hasSupabaseServerConfig()) {
     return (
-      <DashboardShell role="manager" title={tp("signalsTitle")} subtitle={tp("signalsSubtitle")} user={managerUser} actions={<span className="quality-pill">{tc("demoFallback")}</span>}>
-        <article className="panel dashboard-panel"><SignalList items={teamSignals} /></article>
+      <DashboardShell role="manager" title={tp("signalsTitle")} subtitle={tp("signalsSubtitle")} user={managerUser} actions={<Pill>{tc("demoFallback")}</Pill>}>
+        <Panel><SignalList items={teamSignals} /></Panel>
       </DashboardShell>
     );
   }
@@ -57,16 +59,16 @@ export default async function ManagerSignalsPage() {
         initials: getInitials(insights.profile.first_name, insights.profile.last_name),
         team: insights.teamLabel
       }}
-      actions={<span className="quality-pill">{insights.signalItems.length} signals</span>}
+      actions={<Pill>{insights.signalItems.length} signals</Pill>}
       unreadNotifications={unreadNotifications}
     >
-      <article className="panel dashboard-panel">
+      <Panel>
         {insights.signalItems.length ? (
           <SignalList items={insights.signalItems} />
         ) : (
           <EmptyState title={tp("noSignalsTitle")} copy={tp("noSignalsCopy")} />
         )}
-      </article>
+      </Panel>
     </DashboardShell>
   );
 }

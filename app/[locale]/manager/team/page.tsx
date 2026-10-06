@@ -10,6 +10,13 @@ import { managerUser, people } from "@/lib/demo-data";
 import { getManagerInsights } from "@/lib/data/manager-insights";
 import { getUnreadNotificationCount } from "@/lib/notifications";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { Alert } from "@/components/ui/Alert";
+import { Button } from "@/components/ui/Button";
+import { Feed, FeedItem } from "@/components/ui/Feed";
+import { Field, Select, Textarea } from "@/components/ui/Fields";
+import { Grid } from "@/components/ui/Grid";
+import { Panel } from "@/components/ui/Panel";
+import { Pill } from "@/components/ui/Pill";
 
 function hasSupabaseServerConfig() {
   return Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
@@ -33,8 +40,8 @@ export default async function ManagerTeamPage({
 
   if (!hasSupabaseServerConfig()) {
     return (
-      <DashboardShell role="manager" title={tp("teamTitle")} subtitle={tp("teamSubtitle")} user={managerUser} actions={<span className="quality-pill">{tc("demoFallback")}</span>}>
-        <article className="panel dashboard-panel"><TeamTable people={localizeDemoPeople(people, locale)} /></article>
+      <DashboardShell role="manager" title={tp("teamTitle")} subtitle={tp("teamSubtitle")} user={managerUser} actions={<Pill>{tc("demoFallback")}</Pill>}>
+        <Panel><TeamTable people={localizeDemoPeople(people, locale)} /></Panel>
       </DashboardShell>
     );
   }
@@ -92,74 +99,62 @@ export default async function ManagerTeamPage({
         initials: getInitials(insights.profile.first_name, insights.profile.last_name),
         team: insights.teamLabel
       }}
-      actions={<span className="quality-pill">{insights.teamRows.length} members</span>}
+      actions={<Pill>{insights.teamRows.length} members</Pill>}
       unreadNotifications={unreadNotifications}
     >
-      <article className="panel dashboard-panel">
+      <Panel>
         {insights.teamRows.length ? (
           <TeamTable people={insights.teamRows} />
         ) : (
           <EmptyState title={tp("noMembersTitle")} copy={tp("noMembersCopy")} />
         )}
-      </article>
+      </Panel>
       {insights.teamRows.length ? (
-        <article className="panel dashboard-panel manager-note-panel">
-          <div className="panel-top">
-            <div>
-              <h2>{tp("noteTitle")}</h2>
-              <p>{tp("noteCopy")}</p>
+        <Grid cols="two">
+          <Panel title={tp("noteTitle")} description={tp("noteCopy")}>
+            <div className="lp-stack" style={{ gap: 14, marginBottom: queryParams.note ? 20 : 0 }}>
+              {queryParams.note === "sent" ? <Alert tone="success">{tp("noteSent")}</Alert> : null}
+              {queryParams.note === "error" ? <Alert tone="error">{tp("noteError")}</Alert> : null}
+              {queryParams.note === "not_allowed" ? <Alert tone="error">{tp("noteNotAllowed")}</Alert> : null}
             </div>
-          </div>
-          {queryParams.note === "sent" ? <p className="team-form-feedback success">{tp("noteSent")}</p> : null}
-          {queryParams.note === "error" ? <p className="team-form-feedback error">{tp("noteError")}</p> : null}
-          {queryParams.note === "not_allowed" ? <p className="team-form-feedback error">{tp("noteNotAllowed")}</p> : null}
-          <form className="manager-note-form" action={sendManagerNoteAction}>
-            <input type="hidden" name="return_to" value={`/${locale}/manager/team`} />
-            <label>
-              <span>{tp("employee")}</span>
-              <select name="recipient_id" required>
-                <option value="">{tp("chooseEmployee")}</option>
-                {insights.teamRows.map((member) => (
-                  <option value={member.id} key={member.id}>
-                    {member.name} - {member.team}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label>
-              <span>{tp("note")}</span>
-              <textarea name="note_body" rows={4} maxLength={500} placeholder={tp("notePlaceholder")} required />
-            </label>
-            <button className="btn btn-primary" type="submit">
-              {tp("sendNote")}
-            </button>
-          </form>
-          <div className="manager-notes-history">
-            <h3>{tp("sentNotesTitle")}</h3>
-            <p className="section-copy">{tp("sentNotesCopy")}</p>
+            <form className="lp-form" action={sendManagerNoteAction}>
+              <input type="hidden" name="return_to" value={`/${locale}/manager/team`} />
+              <Field label={tp("employee")} htmlFor="note-recipient">
+                <Select id="note-recipient" name="recipient_id" required defaultValue="">
+                  <option value="">{tp("chooseEmployee")}</option>
+                  {insights.teamRows.map((member) => (
+                    <option value={member.id} key={member.id}>
+                      {member.name} - {member.team}
+                    </option>
+                  ))}
+                </Select>
+              </Field>
+              <Field label={tp("note")} htmlFor="note-body">
+                <Textarea id="note-body" name="note_body" rows={4} maxLength={500} placeholder={tp("notePlaceholder")} required />
+              </Field>
+              <div>
+                <Button type="submit" arrow>
+                  {tp("sendNote")}
+                </Button>
+              </div>
+            </form>
+          </Panel>
+
+          <Panel title={tp("sentNotesTitle")} description={tp("sentNotesCopy")}>
             {sentNotes?.length ? (
-              <div className="signal-list">
+              <Feed>
                 {sentNotes.map((note) => {
                   const recipient = Array.isArray(note.recipient) ? note.recipient[0] : note.recipient;
-                  const recipientName =
-                    `${recipient?.first_name ?? ""} ${recipient?.last_name ?? ""}`.trim() || tp("employee");
+                  const recipientName = `${recipient?.first_name ?? ""} ${recipient?.last_name ?? ""}`.trim() || tp("employee");
 
-                  return (
-                    <div className="signal-card" key={note.id}>
-                      <div>
-                        <strong>{recipientName}</strong>
-                        <p>{note.body}</p>
-                      </div>
-                      <span className="quality-pill">{formatNoteDate(note.created_at)}</span>
-                    </div>
-                  );
+                  return <FeedItem key={note.id} avatar={recipientName} title={recipientName} note={note.body} metaSub={formatNoteDate(note.created_at)} />;
                 })}
-              </div>
+              </Feed>
             ) : (
               <EmptyState title={tp("sentNotesEmptyTitle")} copy={tp("sentNotesEmptyCopy")} />
             )}
-          </div>
-        </article>
+          </Panel>
+        </Grid>
       ) : null}
     </DashboardShell>
   );

@@ -1,3 +1,5 @@
+import { MeterList } from "@/components/ui/Meter";
+
 type BarChartItem = {
   key?: string;
   label: string;
@@ -7,40 +9,25 @@ type BarChartItem = {
   valueLabel?: string;
 };
 
+/** Horizontal comparison bars (legacy API) rendered with the shared meter list. */
 export function BarChart({
   items,
-  valueSuffix = "",
-  compact = false
+  valueSuffix = ""
 }: {
   items: BarChartItem[];
   valueSuffix?: string;
+  /** kept for API compatibility */
   compact?: boolean;
 }) {
-  const max = Math.max(...items.map((item) => item.value), 1);
-
   return (
-    <div className={compact ? "bar-chart compact" : "bar-chart"} aria-label="Bar chart">
-      {items.map((item, index) => {
-        const width = item.value > 0 ? Math.max(8, Math.round((item.value / max) * 100)) : 0;
-
-        return (
-          <div className="bar-chart-row" key={item.key ?? `${item.label}-${index}`}>
-            <div className="bar-chart-meta">
-              <span>{item.label}</span>
-              <strong>
-                {item.valueLabel ?? `${item.value}${valueSuffix}`}
-              </strong>
-            </div>
-            {item.helper ? <p>{item.helper}</p> : null}
-            <div className="bar-chart-track">
-              <span
-                className="bar-chart-fill"
-                style={{ width: `${width}%`, background: item.color ?? "var(--theme-ink)" }}
-              />
-            </div>
-          </div>
-        );
-      })}
-    </div>
+    <MeterList
+      items={items.map((item) => ({
+        label: item.label,
+        value: item.value,
+        valueLabel: item.valueLabel ?? `${item.value}${valueSuffix}`,
+        helper: item.helper,
+        color: item.color
+      }))}
+    />
   );
 }

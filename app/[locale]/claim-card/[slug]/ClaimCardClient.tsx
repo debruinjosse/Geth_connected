@@ -1,15 +1,20 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { useDeferredValue, useState, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { ArrowLeft, ArrowRight, CheckCircle2, Search } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, CheckCircle2, Search } from "lucide-react";
 import { claimRecognition, giveRecognition } from "@/app/actions/claimRecognition";
-import { GethCardVisual } from "@/components/GethCardVisual";
-import { getLocalizedGethCard, type GethCard } from "@/lib/cards";
+import { CardArtwork } from "@/components/CardArtwork";
+import { Alert } from "@/components/ui/Alert";
+import { Avatar } from "@/components/ui/Avatar";
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
+import { Field, Input, Textarea } from "@/components/ui/Fields";
+import { Pill } from "@/components/ui/Pill";
+import { getLocalizedCategoryDisplayName, getLocalizedGethCard, type GethCard } from "@/lib/cards";
 import { people } from "@/lib/demo-data";
 import { hasSupabaseBrowserConfig, saveStoredRecognition } from "@/lib/demo-session";
 
@@ -27,11 +32,7 @@ type ClaimGiverOption = {
 };
 
 function ProfileAvatar({ person }: { person: Pick<ClaimGiverOption, "name" | "initials" | "imageUrl"> }) {
-  return (
-    <div className="avatar">
-      {person.imageUrl ? <Image src={person.imageUrl} alt={`${person.name} profile`} width={48} height={48} unoptimized /> : person.initials}
-    </div>
-  );
+  return <Avatar name={person.name} initials={person.initials} imageUrl={person.imageUrl} />;
 }
 
 export function ClaimCardClient({
@@ -77,20 +78,18 @@ export function ClaimCardClient({
 
   if (!card) {
     return (
-      <div className="claim-empty">
-        <section className="panel claim-empty-card">
-          <div className="eyebrow">{t("cardNotFound")}</div>
-          <h1 className="claim-empty-title">We couldn&apos;t find &ldquo;{requestedSlug}&rdquo;.</h1>
-          <p className="section-copy">The QR route may be inactive, renamed, or not part of this deck.</p>
-          <div style={{ display: "flex", justifyContent: "center", gap: 14, marginTop: 26, flexWrap: "wrap" }}>
-            <Link className="btn btn-dark" href={`${localePrefix}/cards`}>
-              Open card library
-            </Link>
-            <Link className="btn btn-secondary" href={localePrefix}>
+      <div className="lp-claim-empty">
+        <Card size="lg" className="lp-claim-notfound">
+          <span className="lp-eyebrow">{t("cardNotFound")}</span>
+          <h1>We couldn&apos;t find &ldquo;{requestedSlug}&rdquo;.</h1>
+          <p className="lp-lead">The QR route may be inactive, renamed, or not part of this deck.</p>
+          <div className="lp-cta-row" style={{ justifyContent: "center", marginTop: 28 }}>
+            <Button href={`${localePrefix}/cards`}>Open card library</Button>
+            <Button href={localePrefix} variant="ghost">
               Back home
-            </Link>
+            </Button>
           </div>
-        </section>
+        </Card>
       </div>
     );
   }
@@ -155,253 +154,218 @@ export function ClaimCardClient({
     });
   }
 
-  return (
-    <section className="claim-shell">
-      <div>
-        <div className="claim-progress">
-          {stages.map((stage, index) => {
-            const stageNumber = index + 1;
-            const active = stageNumber === step;
-            const complete = stageNumber < step;
-            return (
-              <div className={`claim-progress-step ${active ? "active" : ""} ${complete ? "complete" : ""}`.trim()} key={stage}>
-                <span>{complete ? "✓" : stageNumber}</span>
-                <strong>{t(stage)}</strong>
-              </div>
-            );
-          })}
-        </div>
+  const cardTitle = displayCard?.title ?? card.title;
+  const cardCategory = getLocalizedCategoryDisplayName(card.category, locale);
 
-        <GethCardVisual card={displayCard ?? card} variant="claim" locale={locale} />
+  return (
+    <section className="lp-claim-grid">
+      <div className="lp-claim-card-col">
+        <div className="lp-claim-stage">
+          <CardArtwork cardNumber={card.cardNumber} locale={locale} title={cardTitle} priority sizes="(max-width: 1020px) 60vw, 360px" className="lp-claim-art" />
+          <div className="lp-claim-caption">
+            <b>{cardTitle}</b>
+            <Pill tone="gold">{cardCategory}</Pill>
+          </div>
+        </div>
       </div>
 
-      <div className="claim-right">
-        <section className="claim-form">
+      <div className="lp-claim-right">
+        <Card size="lg" className="lp-claim-form">
           {done ? (
-            <div className="claim-success-state">
-              <CheckCircle2 size={70} color="var(--theme-emerald)" />
+            <div className="lp-claim-success">
+              <span className="lp-icontile lp-icontile-lg" aria-hidden="true">
+                <Check />
+              </span>
               <h2>{flowMode === "give" ? t("sentTitle") : t("claimedTitle")}</h2>
-              <p>
-                {flowMode === "give"
-                  ? t("sentCopy", { name: selectedPerson?.name ?? t("yourTeammate") })
-                  : t("claimedCopy")}
-              </p>
-              <div className="claim-success-actions">
-                <Link className="btn btn-dark" href={`${localePrefix}/dashboard`}>
+              <p>{flowMode === "give" ? t("sentCopy", { name: selectedPerson?.name ?? t("yourTeammate") }) : t("claimedCopy")}</p>
+              <div className="lp-cta-row" style={{ justifyContent: "center", marginTop: 8 }}>
+                <Button href={`${localePrefix}/dashboard`} arrow>
                   {t("openDashboard")}
-                </Link>
-                <Link
-                  className="btn btn-secondary"
-                  href={`${localePrefix}/cards${flowMode === "give" ? "?intent=give" : ""}`}
-                >
+                </Button>
+                <Button href={`${localePrefix}/cards${flowMode === "give" ? "?intent=give" : ""}`} variant="ghost">
                   {flowMode === "give" ? t("giveAnother") : t("claimAnother")}
-                </Link>
+                </Button>
               </div>
             </div>
           ) : (
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={step}
-                initial={prefersReducedMotion ? false : { opacity: 0, y: 12 }}
-                animate={prefersReducedMotion ? {} : { opacity: 1, y: 0 }}
-                exit={prefersReducedMotion ? {} : { opacity: 0, y: -12 }}
-                transition={{ duration: 0.28, ease: transitionEase }}
-              >
-                {step === 1 ? (
-                  <>
-                    <h2>{flowMode === "give" ? t("step1GiveTitle") : t("step1ClaimTitle")}</h2>
-                    {flowMode === "give" ? (
-                      <>
-                        <p>{t("step1GiveCopy")}</p>
-                        <div className="claim-selected-card-summary">
-                          <span className="approval-eyebrow">{t("step1GiveCardLabel")}</span>
-                          <strong>{displayCard?.title ?? card.title}</strong>
-                          <span className="claim-category-badge">{displayCard?.category ?? card.category}</span>
+            <>
+              <ol className="lp-stepper" aria-label={t(stages[step - 1])}>
+                {stages.map((stage, index) => {
+                  const stageNumber = index + 1;
+                  const state = stageNumber === step ? "lp-now" : stageNumber < step ? "lp-done" : "";
+                  return (
+                    <li className={state} key={stage} aria-current={stageNumber === step ? "step" : undefined}>
+                      <span>{stageNumber < step ? <Check aria-hidden="true" /> : stageNumber}</span>
+                      <small>{t(stage)}</small>
+                    </li>
+                  );
+                })}
+              </ol>
+
+              <AnimatePresence mode="wait">
+                <motion.div
+                  className="lp-claim-body"
+                  key={step}
+                  initial={prefersReducedMotion ? false : { opacity: 0, y: 12 }}
+                  animate={prefersReducedMotion ? {} : { opacity: 1, y: 0 }}
+                  exit={prefersReducedMotion ? {} : { opacity: 0, y: -12 }}
+                  transition={{ duration: 0.28, ease: transitionEase }}
+                >
+                  {step === 1 ? (
+                    <div className="lp-claim-step">
+                      <h2>{flowMode === "give" ? t("step1GiveTitle") : t("step1ClaimTitle")}</h2>
+                      {flowMode === "give" ? <p>{t("step1GiveCopy")}</p> : null}
+                      <div className="lp-claim-chosen">
+                        <div>
+                          {flowMode === "give" ? <span className="lp-eyebrow">{t("step1GiveCardLabel")}</span> : null}
+                          <b>{cardTitle}</b>
                         </div>
-                      </>
-                    ) : null}
-                  </>
-                ) : null}
-
-                {step === 2 ? (
-                  <>
-                    <h2>{flowMode === "give" ? t("step2GiveTitle") : t("step2ClaimTitle")}</h2>
-                    <p>
-                      {flowMode === "give"
-                        ? t("step2GiveCopy")
-                        : t("step2ClaimCopy")}
-                    </p>
-                    {flowMode === "give" && companyName ? (
-                      <p className="claim-colleagues-context">{t("colleaguesAt", { companyName })}</p>
-                    ) : null}
-                    <div className="form-field">
-                      <label htmlFor="giver-search">{t("searchLabel")}</label>
-                      <div className="input-wrap">
-                        <Search size={18} style={{ position: "absolute", left: 16, top: 18, color: "var(--theme-muted)" }} />
-                        <input
-                          id="giver-search"
-                          className="input"
-                          style={{ paddingLeft: 46 }}
-                          value={query}
-                          onChange={(event) => setQuery(event.target.value)}
-                          placeholder={t("searchLabel")}
-                        />
+                        <Pill tone="gold">{cardCategory}</Pill>
                       </div>
                     </div>
-                    <div className="signal-list">
-                      {filteredPeople.length ? (
-                        filteredPeople.map((person) => (
-                          <label className="person-option" key={person.id}>
-                            <div className="person-details">
-                              <ProfileAvatar person={person} />
-                              <div>
-                                <strong>{person.name}</strong>
-                                <p style={{ margin: "4px 0 0" }}>{person.team}</p>
-                              </div>
-                            </div>
-                            <input type="radio" name="giver" value={person.id} checked={selectedGiver === person.id} onChange={(event) => selectTeammate(event.target.value)} />
-                          </label>
-                        ))
-                      ) : (
-                        <div className="person-option" aria-live="polite">
-                          <div className="person-details">
-                            <div>
-                              <strong>{t("noColleagues")}</strong>
-                              <p style={{ margin: "4px 0 0" }}>
-                                {hasSupabaseBrowserConfig()
-                                  ? t("noColleaguesLoggedIn", { role: flowMode === "give" ? t("roleRecipient") : t("roleGiver") })
-                                  : t("noColleaguesDemo", { role: flowMode === "give" ? t("roleRecipient") : t("roleGiver") })}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </>
-                ) : null}
-
-                {step === 3 ? (
-                  <>
-                    <h2>{flowMode === "give" && selectedPerson ? t("step3GiveTitle", { name: selectedPerson.name }) : t("step3ClaimTitle")}</h2>
-                    <p>
-                      {flowMode === "give"
-                        ? t("step3GiveCopy")
-                        : t("step3ClaimCopy")}
-                    </p>
-                    {selectedPerson ? (
-                      <div className="selected-giver-card">
-                        <span className="approval-eyebrow">
-                          {flowMode === "give" ? t("selectedReceiver") : t("selectedGiver")}
-                        </span>
-                        <div className="person-details">
-                          <ProfileAvatar person={selectedPerson} />
-                          <div>
-                            <strong>{selectedPerson.name}</strong>
-                            <p>{selectedPerson.team}</p>
-                          </div>
-                        </div>
-                      </div>
-                    ) : null}
-                    <div className="form-field">
-                      <label htmlFor="note">{t("noteLabel")}</label>
-                      <textarea
-                        id="note"
-                        className="input"
-                        maxLength={280}
-                        value={note}
-                        onChange={(event) => setNote(event.target.value)}
-                        placeholder={
-                          flowMode === "give"
-                            ? t("notePlaceholderGive")
-                            : t("notePlaceholderClaim")
-                        }
-                      />
-                      <span className="field-help">{t("noteCharCount", { count: note.length })}</span>
-                    </div>
-                  </>
-                ) : null}
-
-                {step === 4 ? (
-                  <>
-                    <h2>{flowMode === "give" ? t("step4GiveTitle") : t("step4ClaimTitle")}</h2>
-                    <p className="claim-step-copy">
-                      {flowMode === "give"
-                        ? t("step4GiveCopy")
-                        : t("step4ClaimCopy")}
-                    </p>
-                    <div className="claim-summary">
-                      <div className="claim-summary-row">
-                        <strong>{t("summaryCard")}</strong>
-                        <p>{displayCard?.title ?? card.title}</p>
-                      </div>
-                      <div className="claim-summary-row">
-                        <strong>{t("category")}</strong>
-                        <p>{displayCard?.category ?? card.category}</p>
-                      </div>
-                      <div className="claim-summary-row">
-                        <strong>{t("receiver")}</strong>
-                        <p>{flowMode === "give" ? selectedPerson?.name ?? t("noReceiver") : resolvedReceiverName}</p>
-                      </div>
-                      <div className="claim-summary-row">
-                        <strong>{t("givenBy")}</strong>
-                        <p>{flowMode === "give" ? resolvedReceiverName : selectedPerson ? `${selectedPerson.name} - ${selectedPerson.team}` : t("noGiver")}</p>
-                      </div>
-                      <div className="claim-summary-row">
-                        <strong>{t("noteLabel")}</strong>
-                        <p>{note || t("noteAdded")}</p>
-                      </div>
-                      <div className="claim-summary-row">
-                        <strong>{t("claimSource")}</strong>
-                        <p>
-                          {flowMode === "give"
-                            ? giveClaimOrigin === "manual_entry"
-                              ? t("sourceManual")
-                              : giveClaimOrigin === "direct_link"
-                                ? t("sourceLink")
-                                : t("sourceLibrary")
-                            : claimOrigin === "qr_scan"
-                              ? t("sourceQr")
-                              : claimOrigin === "manual_entry"
-                                ? t("sourceManual")
-                                : t("sourceLink")}
-                        </p>
-                      </div>
-                    </div>
-                  </>
-                ) : null}
-
-                {submitError ? (
-                  <p className="claim-error" role="alert">
-                    {submitError}
-                  </p>
-                ) : null}
-
-                <div className="claim-actions">
-                  {step > 1 ? (
-                    <button
-                      className="btn btn-secondary"
-                      type="button"
-                      onClick={() => setStep((current) => (current > 1 ? ((current - 1) as 1 | 2 | 3 | 4) : current))}
-                    >
-                      <ArrowLeft size={16} /> {t("back")}
-                    </button>
                   ) : null}
-                  {step < 4 ? (
-                    <button className="btn btn-primary" disabled={step === 2 && !selectedGiver} onClick={() => setStep((current) => (current < 4 ? ((current + 1) as 1 | 2 | 3 | 4) : current))}>
-                      {t("continue")} <ArrowRight size={16} />
-                    </button>
-                  ) : (
-                    <button className="btn btn-primary" disabled={!selectedGiver || isPending} onClick={submit}>
-                      {isPending ? t("saving") : flowMode === "give" ? t("sendCard") : t("claimRecognition")} <ArrowRight size={16} />
-                    </button>
-                  )}
-                </div>
-              </motion.div>
-            </AnimatePresence>
-          )}
-        </section>
 
-        {!done ? <p className="claim-support">{t("support")}</p> : null}
+                  {step === 2 ? (
+                    <div className="lp-claim-step">
+                      <h2>{flowMode === "give" ? t("step2GiveTitle") : t("step2ClaimTitle")}</h2>
+                      <p>{flowMode === "give" ? t("step2GiveCopy") : t("step2ClaimCopy")}</p>
+                      {flowMode === "give" && companyName ? <p className="lp-hint">{t("colleaguesAt", { companyName })}</p> : null}
+                      <Field label={t("searchLabel")} htmlFor="giver-search">
+                        <div className="lp-input-icon">
+                          <Search aria-hidden="true" />
+                          <Input id="giver-search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder={t("searchLabel")} />
+                        </div>
+                      </Field>
+                      <div className="lp-people" role="radiogroup">
+                        {filteredPeople.length ? (
+                          filteredPeople.map((person) => (
+                            <label className={`lp-person-option${selectedGiver === person.id ? " lp-picked" : ""}`} key={person.id}>
+                              <ProfileAvatar person={person} />
+                              <span className="lp-person-text">
+                                <b>{person.name}</b>
+                                <small>{person.team}</small>
+                              </span>
+                              <input type="radio" name="giver" value={person.id} checked={selectedGiver === person.id} onChange={(event) => selectTeammate(event.target.value)} />
+                              <span className="lp-radio" aria-hidden="true">
+                                <Check />
+                              </span>
+                            </label>
+                          ))
+                        ) : (
+                          <Alert tone="info" title={t("noColleagues")}>
+                            {hasSupabaseBrowserConfig()
+                              ? t("noColleaguesLoggedIn", { role: flowMode === "give" ? t("roleRecipient") : t("roleGiver") })
+                              : t("noColleaguesDemo", { role: flowMode === "give" ? t("roleRecipient") : t("roleGiver") })}
+                          </Alert>
+                        )}
+                      </div>
+                    </div>
+                  ) : null}
+
+                  {step === 3 ? (
+                    <div className="lp-claim-step">
+                      <h2>{flowMode === "give" && selectedPerson ? t("step3GiveTitle", { name: selectedPerson.name }) : t("step3ClaimTitle")}</h2>
+                      <p>{flowMode === "give" ? t("step3GiveCopy") : t("step3ClaimCopy")}</p>
+                      {selectedPerson ? (
+                        <div className="lp-claim-chosen">
+                          <div className="lp-person-option lp-picked" style={{ border: 0, padding: 0, background: "none", boxShadow: "none" }}>
+                            <ProfileAvatar person={selectedPerson} />
+                            <span className="lp-person-text">
+                              <span className="lp-eyebrow">{flowMode === "give" ? t("selectedReceiver") : t("selectedGiver")}</span>
+                              <b>{selectedPerson.name}</b>
+                              <small>{selectedPerson.team}</small>
+                            </span>
+                          </div>
+                        </div>
+                      ) : null}
+                      <Field label={t("noteLabel")} htmlFor="note" hint={t("noteCharCount", { count: note.length })}>
+                        <Textarea
+                          id="note"
+                          maxLength={280}
+                          value={note}
+                          onChange={(event) => setNote(event.target.value)}
+                          placeholder={flowMode === "give" ? t("notePlaceholderGive") : t("notePlaceholderClaim")}
+                        />
+                      </Field>
+                    </div>
+                  ) : null}
+
+                  {step === 4 ? (
+                    <div className="lp-claim-step">
+                      <h2>{flowMode === "give" ? t("step4GiveTitle") : t("step4ClaimTitle")}</h2>
+                      <p>{flowMode === "give" ? t("step4GiveCopy") : t("step4ClaimCopy")}</p>
+                      <dl className="lp-summary">
+                        <div>
+                          <dt>{t("summaryCard")}</dt>
+                          <dd>{cardTitle}</dd>
+                        </div>
+                        <div>
+                          <dt>{t("category")}</dt>
+                          <dd>{cardCategory}</dd>
+                        </div>
+                        <div>
+                          <dt>{t("receiver")}</dt>
+                          <dd>{flowMode === "give" ? selectedPerson?.name ?? t("noReceiver") : resolvedReceiverName}</dd>
+                        </div>
+                        <div>
+                          <dt>{t("givenBy")}</dt>
+                          <dd>{flowMode === "give" ? resolvedReceiverName : selectedPerson ? `${selectedPerson.name} - ${selectedPerson.team}` : t("noGiver")}</dd>
+                        </div>
+                        <div>
+                          <dt>{t("noteLabel")}</dt>
+                          <dd>{note || t("noteAdded")}</dd>
+                        </div>
+                        <div>
+                          <dt>{t("claimSource")}</dt>
+                          <dd>
+                            {flowMode === "give"
+                              ? giveClaimOrigin === "manual_entry"
+                                ? t("sourceManual")
+                                : giveClaimOrigin === "direct_link"
+                                  ? t("sourceLink")
+                                  : t("sourceLibrary")
+                              : claimOrigin === "qr_scan"
+                                ? t("sourceQr")
+                                : claimOrigin === "manual_entry"
+                                  ? t("sourceManual")
+                                  : t("sourceLink")}
+                          </dd>
+                        </div>
+                      </dl>
+                    </div>
+                  ) : null}
+
+                  {submitError ? (
+                    <div style={{ marginTop: 20 }}>
+                      <Alert tone="error">{submitError}</Alert>
+                    </div>
+                  ) : null}
+
+                  <div className="lp-claim-actions">
+                    {step > 1 ? (
+                      <Button variant="ghost" onClick={() => setStep((current) => (current > 1 ? ((current - 1) as 1 | 2 | 3 | 4) : current))} icon={<ArrowLeft />}>
+                        {t("back")}
+                      </Button>
+                    ) : (
+                      <span />
+                    )}
+                    {step < 4 ? (
+                      <Button disabled={step === 2 && !selectedGiver} onClick={() => setStep((current) => (current < 4 ? ((current + 1) as 1 | 2 | 3 | 4) : current))} arrow>
+                        {t("continue")}
+                      </Button>
+                    ) : (
+                      <Button disabled={!selectedGiver || isPending} onClick={submit} arrow>
+                        {isPending ? t("saving") : flowMode === "give" ? t("sendCard") : t("claimRecognition")}
+                      </Button>
+                    )}
+                  </div>
+                </motion.div>
+              </AnimatePresence>
+            </>
+          )}
+        </Card>
+
+        {!done ? <p className="lp-hint lp-claim-support">{t("support")}</p> : null}
       </div>
     </section>
   );
