@@ -938,9 +938,6 @@ export function getLocalizedAnalyticCategoryLabel(category: string, locale?: str
   return labels[normalizedCategory] ?? labels.default;
 }
 
-export function getAnalyticCategoryLabel(category: string) {
-  return getLocalizedAnalyticCategoryLabel(category, "en");
-}
 
 export function mapCardLibraryRowToCard(row: CardLibraryRow): GethCard {
   const canonicalCard = getCanonicalCardBySlugOrNumber(row.card_number, row.qr_slug);

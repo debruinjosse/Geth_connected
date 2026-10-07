@@ -1,5 +1,7 @@
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
+import { Alert } from "@/components/ui/Alert";
+import { Card } from "@/components/ui/Card";
 import { AuthShell } from "@/components/AuthShell";
 import { AuthCallbackStatus } from "@/components/AuthCallbackStatus";
 
@@ -49,11 +51,9 @@ export default async function AuthCallbackPage({
     >
       <Suspense
         fallback={
-          <div className="auth-card">
-            <div className="invite-feedback success">
-              <span>Completing your secure sign-in...</span>
-            </div>
-          </div>
+          <Card className="lp-auth-card">
+            <Alert tone="info">Completing your secure sign-in...</Alert>
+          </Card>
         }
       >
         <AuthCallbackStatus expectedRole={role} inviteToken={invite} targetPath={next} />

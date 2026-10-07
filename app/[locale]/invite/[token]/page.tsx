@@ -1,7 +1,10 @@
-import Link from "next/link";
-import { ArrowRight, CheckCircle2, Mail, ShieldAlert } from "lucide-react";
+import { Mail } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import { AuthShell } from "@/components/AuthShell";
+import { Alert } from "@/components/ui/Alert";
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
+import { Pill } from "@/components/ui/Pill";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -72,12 +75,10 @@ export default async function InvitePage({
         title={t("noSupabaseTitle")}
         subtitle={t("noSupabaseSubtitle")}
       >
-        <div className="auth-card">
-          <p className="section-copy">{t("noSupabaseCopy")}</p>
-          <Link className="btn btn-dark" href={`/${locale}/login`}>
-            {t("backToLogin")}
-          </Link>
-        </div>
+        <Card className="lp-auth-card">
+          <p className="lp-sub">{t("noSupabaseCopy")}</p>
+          <Button href={`/${locale}/login`}>{t("backToLogin")}</Button>
+        </Card>
       </AuthShell>
     );
   }
@@ -122,12 +123,12 @@ export default async function InvitePage({
       title={isAccepted ? t("titleAccepted") : t("title")}
       subtitle={isAccepted ? t("subtitleAccepted") : t("subtitle")}
     >
-      <div className="auth-card invite-card">
+      <Card className="lp-auth-card">
         {invitation ? (
-          <div className="invite-summary">
-            <div className="quality-pill">{company?.company_name ?? t("companyWorkspaceFallback")}</div>
+          <>
+            <Pill tone="gold">{company?.company_name ?? t("companyWorkspaceFallback")}</Pill>
             <h2 style={{ marginTop: 18 }}>{company?.company_name ?? t("companyInviteFallback")}</h2>
-            <p className="section-copy">
+            <p className="lp-sub">
               {t.rich("inviteSummary", {
                 email: invitedEmail,
                 role: localizedRole,
@@ -135,86 +136,71 @@ export default async function InvitePage({
                 strong: (chunks) => <strong>{chunks}</strong>
               })}
             </p>
-          </div>
+          </>
         ) : (
-          <div className="invite-feedback error">
-            <ShieldAlert size={18} />
-            <span>{t("tokenNotFound")}</span>
-          </div>
+          <Alert tone="error">{t("tokenNotFound")}</Alert>
         )}
 
         {isAccepted ? (
-          <div className="invite-success-stack">
-            <div className="invite-feedback success">
-              <CheckCircle2 size={18} />
-              <span>{t("profileAttached")}</span>
-            </div>
-            <Link className="btn btn-dark" href={next || `/${locale}/employee`}>
-              {t("openWorkspace")} <ArrowRight size={16} />
-            </Link>
+          <div className="lp-stack">
+            <Alert tone="success">{t("profileAttached")}</Alert>
+            <Button href={next || `/${locale}/employee`} arrow block>
+              {t("openWorkspace")}
+            </Button>
           </div>
         ) : isError ? (
-          <div className="invite-success-stack">
-            <div className="invite-feedback error">
-              <ShieldAlert size={18} />
-              <span>{getReasonCopy(reason)}</span>
-            </div>
-            <div className="auth-links" style={{ marginTop: 0 }}>
-              <Link href={`/${locale}/login?invite=${token}`}>{t("tryLoginAgain")}</Link>
-              <Link href={`/${locale}/signup?invite=${token}`}>{t("createAccount")}</Link>
+          <div className="lp-stack">
+            <Alert tone="error">{getReasonCopy(reason)}</Alert>
+            <div className="lp-invite-actions">
+              <Button variant="ghost" href={`/${locale}/login?invite=${token}`}>
+                {t("tryLoginAgain")}
+              </Button>
+              <Button variant="ghost" href={`/${locale}/signup?invite=${token}`}>
+                {t("createAccount")}
+              </Button>
             </div>
           </div>
         ) : invitation ? (
-          <div className="invite-success-stack">
-            <div className="invite-link-card">
-              <div className="invite-link-meta">
-                <strong>{t("invitationDetails")}</strong>
-                <small>{t("expiresOn", { date: expiryLabel })}</small>
-              </div>
-              <div className="invite-status-points">
-                <span>
-                  <Mail size={14} />
-                  {t("invitedEmail", { email: invitedEmail })}
-                </span>
-                <span>{t("roleLine", { role: localizedRole })}</span>
-                <span>{t("teamLine", { team: team?.name ?? t("teamAssignLater") })}</span>
-              </div>
+          <div className="lp-stack">
+            <div className="lp-invite-points">
+              <strong>{t("invitationDetails")}</strong>
+              <span>
+                <Mail />
+                {t("invitedEmail", { email: invitedEmail })}
+              </span>
+              <span>{t("roleLine", { role: localizedRole })}</span>
+              <span>{t("teamLine", { team: team?.name ?? t("teamAssignLater") })}</span>
+              <small className="lp-hint">{t("expiresOn", { date: expiryLabel })}</small>
             </div>
 
             {user ? (
               loggedInWithMatchingEmail ? (
-                <Link className="btn btn-dark" href={`/auth/callback?invite=${token}`}>
-                  {t("acceptInvitation")} <ArrowRight size={16} />
-                </Link>
+                <Button href={`/auth/callback?invite=${token}`} arrow block>
+                  {t("acceptInvitation")}
+                </Button>
               ) : (
-                <div className="invite-feedback error">
-                  <ShieldAlert size={18} />
-                  <span>{t("loggedInMismatch", { sessionEmail: user.email ?? "", invitedEmail })}</span>
-                </div>
+                <Alert tone="error">{t("loggedInMismatch", { sessionEmail: user.email ?? "", invitedEmail })}</Alert>
               )
             ) : (
-              <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
-                <Link className="btn btn-dark" href={`/${locale}/signup?invite=${token}`}>
-                  {t("createAccount")} <ArrowRight size={16} />
-                </Link>
-                <Link className="btn btn-secondary" href={`/${locale}/login?invite=${token}`}>
+              <div className="lp-invite-actions">
+                <Button href={`/${locale}/signup?invite=${token}`} arrow>
+                  {t("createAccount")}
+                </Button>
+                <Button variant="ghost" href={`/${locale}/login?invite=${token}`}>
                   {t("logIn")}
-                </Link>
+                </Button>
               </div>
             )}
           </div>
         ) : (
-          <div className="invite-success-stack">
-            <div className="invite-feedback error">
-              <ShieldAlert size={18} />
-              <span>{t("noLongerAvailable")}</span>
-            </div>
-            <Link className="btn btn-secondary" href={`/${locale}/login`}>
+          <div className="lp-stack">
+            <Alert tone="error">{t("noLongerAvailable")}</Alert>
+            <Button variant="ghost" href={`/${locale}/login`}>
               {t("backToLogin")}
-            </Link>
+            </Button>
           </div>
         )}
-      </div>
+      </Card>
     </AuthShell>
   );
 }

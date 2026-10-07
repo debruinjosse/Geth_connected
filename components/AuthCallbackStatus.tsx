@@ -1,9 +1,10 @@
 "use client";
 
+import { Alert } from "@/components/ui/Alert";
+import { Card } from "@/components/ui/Card";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { LoaderCircle } from "lucide-react";
 import type { EmailOtpType } from "@supabase/supabase-js";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
@@ -125,12 +126,10 @@ export function AuthCallbackStatus({ inviteToken, targetPath, expectedRole }: { 
   }, [expectedRole, inviteToken, searchParams, t, targetPath]);
 
   return (
-    <div className="auth-card">
-      <div className="invite-feedback success">
-        <LoaderCircle className="spin-soft" size={18} />
-        <span>{status}</span>
-      </div>
-      <p className="section-copy">{t("copy")}</p>
-    </div>
+    <Card className="lp-auth-card">
+      <Alert tone="info" title={status}>
+        {t("copy")}
+      </Alert>
+    </Card>
   );
 }

@@ -70,37 +70,4 @@ function normalizeMarqueeColor(value: string, defaultHex: string) {
   return normalized;
 }
 
-export function buildMarqueeConfig(
-  localeOverrides: Record<string, string>,
-  settingsOverrides: Record<string, string>,
-  locale: string
-): MarqueeConfig {
-  const itemsFromStore = parseMarqueeItems(localeOverrides.marqueeItems);
-  const items = itemsFromStore.length ? itemsFromStore : getDefaultMarqueeItemsForLocale(locale);
 
-  const enabledValue = settingsOverrides.marqueeEnabled ?? DEFAULT_MARQUEE_SETTINGS.marqueeEnabled;
-  const scrollSpeed = Number(settingsOverrides.marqueeScrollSpeed ?? DEFAULT_MARQUEE_SETTINGS.marqueeScrollSpeed);
-  const backgroundColor = normalizeMarqueeColor(
-    settingsOverrides.marqueeBackgroundColor ?? "",
-    "#fffdf8"
-  );
-  const textColor = normalizeMarqueeColor(settingsOverrides.marqueeTextColor ?? "", "#2a173d");
-  const dividerStyle = parseMarqueeDividerStyle(
-    settingsOverrides.marqueeDividerStyle ?? DEFAULT_MARQUEE_SETTINGS.marqueeDividerStyle
-  );
-
-  return {
-    enabled: enabledValue !== "0" && enabledValue !== "false",
-    scrollSpeed: Number.isFinite(scrollSpeed) && scrollSpeed > 0 ? scrollSpeed : 42,
-    backgroundColor,
-    textColor,
-    dividerStyle,
-    items
-  };
-}
-
-export function serializeMarqueeSettings(settingsOverrides: Record<string, string>) {
-  return Object.fromEntries(
-    MARQUEE_SETTING_KEYS.map((key) => [key, settingsOverrides[key] ?? DEFAULT_MARQUEE_SETTINGS[key] ?? ""])
-  );
-}

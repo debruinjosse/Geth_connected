@@ -61,7 +61,7 @@ export function AdminMarqueeSection({
   const dividerStyleValue = getSettingValue("marqueeDividerStyle", defaults, overrides);
 
   return (
-    <div className="admin-marquee-section">
+    <div className="lp-marquee-section">
       {showSettings ? (
         <FieldGrid>
           <Field label="Enable marquee" htmlFor={`${locale}-marqueeEnabled`}>
@@ -89,22 +89,22 @@ export function AdminMarqueeSection({
         </FieldGrid>
       ) : null}
 
-      <div className="admin-marquee-items">
-        <div className="admin-marquee-items-header">
+      <div className="lp-marquee-items">
+        <div className="lp-marquee-items-header">
           <strong>Marquee text items</strong>
           <Button variant="ghost" size="sm" type="button" onClick={addItem} icon={<Plus />}>Add item</Button>
         </div>
         {items.length ? (
-          <div className="admin-marquee-items-list">
+          <div className="lp-marquee-items-list">
             {items.map((item, index) => (
-              <div className="admin-marquee-item-row" key={`marquee-item-${index}`}>
+              <div className="lp-marquee-item-row" key={`marquee-item-${index}`}>
                 <input
                   className="lp-input"
                   value={item}
                   onChange={(event) => updateItem(index, event.target.value)}
                   placeholder="Recognition That Lasts"
                 />
-                <div className="admin-marquee-item-actions">
+                <div className="lp-marquee-item-actions">
                   <button
                     className="lp-icon-btn"
                     type="button"

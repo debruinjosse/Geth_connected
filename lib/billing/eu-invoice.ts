@@ -60,30 +60,6 @@ export function getMissingInvoiceConfigFromEnv() {
   return requiredInvoiceEnv.filter((name) => !getEnv(name));
 }
 
-/** @deprecated Use `getInvoiceConfig` from `@/lib/billing/platform-settings`. */
-export function getInvoiceConfigFromEnv(): InvoiceConfig {
-  const missing = getMissingInvoiceConfigFromEnv();
-  if (missing.length) {
-    throw new Error(`Missing invoice configuration: ${missing.join(", ")}`);
-  }
-
-  const paymentTermsDays = Number(getEnv("GETH_INVOICE_PAYMENT_TERMS_DAYS") || 14);
-  const vatRatePercent = Number(getEnv("GETH_INVOICE_VAT_RATE_PERCENT") || 21);
-
-  return {
-    sellerLegalName: getEnv("GETH_INVOICE_SELLER_NAME"),
-    sellerVatNumber: getEnv("GETH_INVOICE_SELLER_VAT_NUMBER"),
-    sellerBillingAddress: getEnv("GETH_INVOICE_SELLER_ADDRESS"),
-    sellerEmail: getEnv("GETH_INVOICE_SELLER_EMAIL"),
-    paymentIban: getEnv("GETH_INVOICE_PAYMENT_IBAN"),
-    paymentBic: getEnv("GETH_INVOICE_PAYMENT_BIC"),
-    paymentBankName: getEnv("GETH_INVOICE_PAYMENT_BANK_NAME"),
-    paymentReferencePrefix: getEnv("GETH_INVOICE_PAYMENT_REFERENCE_PREFIX"),
-    paymentTerms: getEnv("GETH_INVOICE_PAYMENT_TERMS") || `Payment due within ${paymentTermsDays} days by bank transfer.`,
-    paymentTermsDays: Number.isFinite(paymentTermsDays) && paymentTermsDays > 0 ? paymentTermsDays : 14,
-    vatRateBps: Number.isFinite(vatRatePercent) && vatRatePercent >= 0 ? Math.round(vatRatePercent * 100) : 2100
-  };
-}
 
 export function createInvoiceNumber() {
   const date = new Date();

@@ -47,15 +47,7 @@ function clearDemoCookie() {
   document.cookie = `${DEMO_SESSION_COOKIE}=; path=/; max-age=0; SameSite=Lax`;
 }
 
-export function getRouteForRole(role: DemoRole) {
-  return roleRoutes[role];
-}
 
-export function setDemoSession(session: DemoSession) {
-  if (!canUseStorage()) return;
-  window.localStorage.setItem(SESSION_KEY, JSON.stringify(session));
-  writeDemoCookie(session);
-}
 
 export function getDemoSession() {
   if (!canUseStorage()) return null;

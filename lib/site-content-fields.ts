@@ -88,11 +88,6 @@ export const HOME_FINAL_CTA_FIELDS: SiteContentField[] = [
   { key: "finalCtaButtonHref", label: "CTA link (optional)" }
 ];
 
-/** @deprecated Use section-specific exports */
-export const HOME_CONTENT_FIELDS: SiteContentField[] = [
-  ...HOME_HERO_FIELDS,
-  ...HOME_AUDIENCE_FIELDS
-];
 
 export const HOME_CMS_SECTIONS: HomeContentSection[] = [
   {

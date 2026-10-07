@@ -4,7 +4,7 @@ import { MarkAllNotificationsReadButton, NotificationInbox } from "@/components/
 import { employeeNotifications, superAdminUser } from "@/lib/demo-data";
 import { getNotificationInboxPageData } from "@/lib/notification-inbox-page";
 import { Panel } from "@/components/ui/Panel";
-import { Pill } from "@/components/ui/Pill";
+import { Feed, FeedItem } from "@/components/ui/Feed";
 
 function hasSupabaseServerConfig() {
   return Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
@@ -17,17 +17,11 @@ async function DemoNotificationsPage({ locale }: { locale: string }) {
     <DashboardShell role="admin" title={t("notificationsTitle")} subtitle={t("notificationsSubtitle")} user={superAdminUser}>
       <div className="lp-stack">
         <Panel>
-          <div className="signal-list">
+          <Feed>
             {employeeNotifications.map((notification) => (
-              <div className="signal-card" key={notification.id}>
-                <div>
-                  <strong>{notification.title}</strong>
-                  <p>{notification.detail}</p>
-                </div>
-                <Pill>{notification.time}</Pill>
-              </div>
+              <FeedItem key={notification.id} title={notification.title} note={notification.detail} meta={notification.time} />
             ))}
-          </div>
+          </Feed>
         </Panel>
       </div>
     </DashboardShell>

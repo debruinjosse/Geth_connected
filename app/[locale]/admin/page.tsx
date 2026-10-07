@@ -152,7 +152,7 @@ export default async function AdminDashboardPage({ params }: { params: Promise<{
         </Panel>
       </Grid>
 
-      <Panel title={t("recentCompaniesTitle")} description={t("recentCompaniesCopy")} action={<><Link href={`/${locale}/admin/companies`} className="panel-link">{tc("viewAll")}</Link></>}>
+      <Panel title={t("recentCompaniesTitle")} description={t("recentCompaniesCopy")} action={<><Link href={`/${locale}/admin/companies`} className="lp-link">{tc("viewAll")}</Link></>}>
         {companies?.length ? (
           <>
             <Table className="lp-table-flat lp-table-stack">

@@ -75,52 +75,6 @@ export const managerUser = demoUsers.manager;
 export const companyAdmin = demoUsers.company_admin;
 export const superAdminUser = demoUsers.super_admin;
 
-export const demoAccounts = [
-  {
-    id: "demo-employee",
-    userId: demoUsers.employee.id,
-    name: demoUsers.employee.name,
-    initials: demoUsers.employee.initials,
-    role: demoUsers.employee.role,
-    email: demoUsers.employee.email,
-    company: "ABC Company",
-    badge: "Employee demo",
-    description: "Explore the claim flow, personal dashboard, recent recognitions, and growth insights."
-  },
-  {
-    id: "demo-manager",
-    userId: demoUsers.manager.id,
-    name: demoUsers.manager.name,
-    initials: demoUsers.manager.initials,
-    role: demoUsers.manager.role,
-    email: demoUsers.manager.email,
-    company: "ABC Company",
-    badge: "Manager demo",
-    description: "Review team activity, member trends, signals, and recognition impact across your team."
-  },
-  {
-    id: "demo-company-admin",
-    userId: demoUsers.company_admin.id,
-    name: demoUsers.company_admin.name,
-    initials: demoUsers.company_admin.initials,
-    role: demoUsers.company_admin.role,
-    email: demoUsers.company_admin.email,
-    company: "ABC Company",
-    badge: "Company admin",
-    description: "Open the company workspace with employees, managers, reports, cards, and billing pages."
-  },
-  {
-    id: "demo-super-admin",
-    userId: demoUsers.super_admin.id,
-    name: demoUsers.super_admin.name,
-    initials: demoUsers.super_admin.initials,
-    role: demoUsers.super_admin.role,
-    email: demoUsers.super_admin.email,
-    company: "GETH Platform",
-    badge: "Platform admin",
-    description: "Audit companies, subscriptions, QR routes, analytics, and the platform-wide card library."
-  }
-] as const;
 
 export const people: DemoUser[] = [
   { id: "u-mark", name: "Mark de Vries", initials: "MV", team: "Marketing Team", role: "employee", email: "mark@geth-demo.com", cardsReceived: 18, cardsGiven: 6, trend: 3, energy: "HOOG", topQuality: "Uniter" },
@@ -163,8 +117,6 @@ export const employeeCategoryBreakdown = [
 
 export const employeeGrowthPoints = [26, 46, 36, 64, 56, 91];
 export const managerTrendPoints = [56, 74, 96];
-export const companyTrendThisQuarter = [112, 148, 186];
-export const companyTrendLastQuarter = [74, 112, 146];
 export const platformGrowthPoints = [120, 158, 194, 216];
 
 export const teamSignals = [
@@ -174,10 +126,6 @@ export const teamSignals = [
   { id: "s4", tone: "var(--theme-emerald)", title: "Great team!", detail: "Your engagement score is above company average." }
 ];
 
-export const employeeMessages = [
-  { id: "m1", title: "Clear Communicator from Sarah Manager", excerpt: "Seed recognition for Jamie Miller.", time: "Today" },
-  { id: "m2", title: "Uniter from Ali Ahmed", excerpt: "Thank you for keeping recognition visible.", time: "Yesterday" }
-];
 
 export const employeeNotifications = [
   { id: "n1", title: "Card claimed", detail: "Your Uniter recognition was successfully added to your profile.", time: "Just now" },
@@ -240,20 +188,7 @@ export const subscriptions = [
   { id: "sub4", company: "Fieldhouse Group", plan: "Growth", renewal: "Paused", status: "Paused" }
 ];
 
-export const qrRoutes = gethCards.slice(0, 8).map((card) => ({
-  id: `qr-${card.id}`,
-  slug: card.slug,
-  title: card.title,
-  destination: `/claim-card/${card.slug}`,
-  status: card.active ? "Active" : "Inactive"
-}));
 
-export const platformMetrics = [
-  { label: "Companies", value: "48" },
-  { label: "Live subscriptions", value: "36" },
-  { label: "Monthly recognitions", value: "12.8k" },
-  { label: "Demo accounts", value: "14" }
-];
 
 export const cardManagementRows = gethCards.slice(0, 8).map((card) => ({
   id: card.id,

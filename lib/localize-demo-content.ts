@@ -15,9 +15,6 @@ export function localizeDemoCategoryLabel(label: string, locale: string) {
   return getLocalizedCategoryDisplayName(label, locale);
 }
 
-export function localizeDemoAnalyticLabel(label: string, locale: string) {
-  return getLocalizedAnalyticCategoryLabel(label, locale);
-}
 
 export function localizeDemoPeople(people: DemoUser[], locale: string): DemoUser[] {
   return people.map((person) => ({

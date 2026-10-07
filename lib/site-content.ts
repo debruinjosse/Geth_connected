@@ -56,10 +56,3 @@ export function pickSiteContentText(overrides: Record<string, string>, fallback:
   return custom || fallback;
 }
 
-export function pickOptionalSiteContentText(overrides: Record<string, string>, fallback: string, key: string) {
-  if (Object.prototype.hasOwnProperty.call(overrides, key)) {
-    return overrides[key].trim();
-  }
-
-  return fallback.trim();
-}

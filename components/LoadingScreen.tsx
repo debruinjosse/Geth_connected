@@ -1,19 +1,5 @@
-import { BrandLogo } from "@/components/BrandLogo";
+import { StatusScreen } from "@/components/ui/StatusScreen";
 
 export function LoadingScreen() {
-  return (
-    <main className="loading-screen">
-      <div className="loading-panel">
-        <BrandLogo />
-        <div className="loading-status">
-          <p>Preparing your recognition experience</p>
-          <div className="loading-orbit" aria-hidden="true">
-            <span />
-            <span />
-            <span />
-          </div>
-        </div>
-      </div>
-    </main>
-  );
+  return <StatusScreen title="Preparing your recognition experience" busy />;
 }

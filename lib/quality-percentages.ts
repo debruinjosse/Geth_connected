@@ -18,16 +18,3 @@ export function normalizeQualityBarPercentages(items: QualityBarItem[]): Quality
   return items.map((item, index) => ({ ...item, value: percentages[index] ?? 0 }));
 }
 
-export function qualityBarsFromCounts(
-  entries: Array<{ label: string; category: string; count: number }>,
-  limit = 5
-): QualityBarItem[] {
-  const topEntries = entries.sort((a, b) => b.count - a.count).slice(0, limit);
-  const percentages = getPercentageMix(topEntries.map((entry) => entry.count));
-
-  return topEntries.map((entry, index) => ({
-    label: entry.label,
-    category: entry.category,
-    value: percentages[index] ?? 0
-  }));
-}

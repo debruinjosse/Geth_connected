@@ -7,6 +7,7 @@ import { getAllSiteContentForNamespace } from "@/lib/site-content";
 import { getUnreadNotificationCount } from "@/lib/notifications";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { SegmentedLocaleTabs } from "@/components/admin/SegmentedLocaleTabs";
+import { Alert } from "@/components/ui/Alert";
 import { Panel } from "@/components/ui/Panel";
 
 function hasSupabaseServerConfig() {
@@ -28,7 +29,7 @@ export default async function AdminSiteContentPage({ params }: { params: Promise
     return (
       <DashboardShell role="admin" title={t("siteContentTitle")} subtitle={t("siteContentSubtitle")} user={{ name: tc("platformAdminName"), initials: "GA", team: tc("platformTeam") }}>
         <Panel>
-          <p className="section-copy">{t("siteContentDemoCopy")}</p>
+          <Alert tone="info">{t("siteContentDemoCopy")}</Alert>
         </Panel>
       </DashboardShell>
     );
