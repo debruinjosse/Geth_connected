@@ -70,6 +70,12 @@ function getFallbackCompanyName(email: string) {
     .join(" ")} Workspace`;
 }
 
+export async function companySlugExists(admin: SupabaseClient, companyName: string) {
+  const { data, error } = await admin.from("companies").select("id").eq("slug", slugifyCompanyName(companyName)).maybeSingle();
+  if (error) throw error;
+  return Boolean(data);
+}
+
 async function findOrCreateCompany(admin: SupabaseClient, companyName: string) {
   const slug = slugifyCompanyName(companyName);
   const { data: existingCompany, error: companyLookupError } = await admin
@@ -82,8 +88,10 @@ async function findOrCreateCompany(admin: SupabaseClient, companyName: string) {
     throw companyLookupError;
   }
 
+  // Joining an existing company must always go through an invitation. Without this guard anyone
+  // could type a known company name at signup and become its company admin.
   if (existingCompany) {
-    return existingCompany.id;
+    throw new InvitationBootstrapError("COMPANY_ALREADY_EXISTS");
   }
 
   const { data: createdCompany, error: companyCreateError } = await admin

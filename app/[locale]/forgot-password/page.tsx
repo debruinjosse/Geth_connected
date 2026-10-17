@@ -10,7 +10,7 @@ export default async function ForgotPasswordPage({ params }: { params: Promise<{
       locale={locale}
       eyebrow="Account recovery"
       title="Set a new password"
-      subtitle="Enter your work email and choose a new password. No email link required."
+      subtitle="Enter your work email and we will email you a secure link to choose a new password."
     >
       <ForgotPasswordExperience />
     </AuthShell>

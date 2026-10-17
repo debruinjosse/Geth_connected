@@ -13,6 +13,8 @@ import { AdminTeamDeleteButton } from "@/components/AdminTeamDeleteButton";
 import { DashboardShell } from "@/components/DashboardShell";
 import { EmptyState } from "@/components/EmptyState";
 import { MetricCard } from "@/components/MetricCard";
+import { CopyField } from "@/components/ui/CopyField";
+import { getProductionAppUrl } from "@/lib/app-url";
 import { getCompanyCardCategories } from "@/lib/company-card-categories";
 import { getCompanyInsightFeatures } from "@/lib/company-insight-features";
 import { getUnreadNotificationCount } from "@/lib/notifications";
@@ -185,7 +187,11 @@ export default async function AdminCompanyDetailPage({
       unreadNotifications={unreadNotifications}
     >
       {created ? (
-        <Alert tone="success">{t("companyCreatedSuccess")}</Alert>
+        invite === "created-email-failed" ? (
+          <Alert tone="error">{t("companyCreatedEmailFailed")}</Alert>
+        ) : (
+          <Alert tone="success">{t("companyCreatedSuccess")}</Alert>
+        )
       ) : null}
       {contact === "updated" ? (
         <Alert tone="success">{t("contactUpdatedSuccess")}</Alert>
@@ -343,6 +349,12 @@ export default async function AdminCompanyDetailPage({
                   note={t("inviteExpires", { role: inviteRow.role.replace("_", " "), date: formatDate(inviteRow.expires_at, dateLocale) })}
                   tag={<StatusPill raw={inviteRow.status}>{inviteRow.status}</StatusPill>}
                 >
+                  <CopyField
+                    value={`${getProductionAppUrl()}/${locale}/invite/${inviteRow.token}`}
+                    label={t("inviteLinkAria")}
+                    copyLabel={t("copyLink")}
+                    copiedLabel={t("copiedLink")}
+                  />
                   <Link className="lp-link" href={`/${locale}/invite/${inviteRow.token}`}>{t("openRegistrationLink")}</Link>
                 </FeedItem>
               ))}

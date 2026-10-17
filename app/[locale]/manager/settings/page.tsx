@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { Activity, Settings, UsersRound, ArrowRight } from "lucide-react";
 import { AccountSettingsPanel } from "@/components/AccountSettingsPanel";
+import { loadOwnPersonalDetails } from "@/lib/data/personal-details";
 import { DashboardShell } from "@/components/DashboardShell";
 import { EmptyState } from "@/components/EmptyState";
 import { managerUser } from "@/lib/demo-data";
@@ -69,6 +70,7 @@ export default async function ManagerSettingsPage({
   }
 
   const unreadNotifications = await getUnreadNotificationCount(supabase, user.id);
+  const personalDetails = await loadOwnPersonalDetails(supabase, user.id);
   const managerName = `${insights.profile.first_name ?? ""} ${insights.profile.last_name ?? ""}`.trim() || tc("managerRole");
 
   return (
@@ -87,6 +89,7 @@ export default async function ManagerSettingsPage({
     >
       <Grid cols="two">
         <AccountSettingsPanel
+          personalDetails={personalDetails}
           email={user.email ?? tc("noEmailOnSession")}
           firstName={insights.profile.first_name ?? ""}
           lastName={insights.profile.last_name ?? ""}

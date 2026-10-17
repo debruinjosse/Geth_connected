@@ -20,6 +20,10 @@ export type PublicNavProps = {
   closeLabel: string;
   languageLabel: string;
   mainNavLabel: string;
+  contactLabel: string;
+  contactHref: string;
+  linkedinLabel: string;
+  linkedinHref?: string;
 };
 
 export function PublicNav({
@@ -33,7 +37,11 @@ export function PublicNav({
   menuLabel,
   closeLabel,
   languageLabel,
-  mainNavLabel
+  mainNavLabel,
+  contactLabel,
+  contactHref,
+  linkedinLabel,
+  linkedinHref
 }: PublicNavProps) {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
@@ -70,6 +78,19 @@ export function PublicNav({
           ))}
         </nav>
         <div className="lp-nav-end">
+          <a href={contactHref} className="lp-icon-btn" aria-label={contactLabel} title={contactLabel}>
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <rect x="3" y="5" width="18" height="14" rx="2" />
+              <path d="m3.5 7 8.5 6 8.5-6" />
+            </svg>
+          </a>
+          {linkedinHref ? (
+            <a href={linkedinHref} className="lp-icon-btn" aria-label={linkedinLabel} title={linkedinLabel} target="_blank" rel="noopener noreferrer">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true">
+                <path d="M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5ZM3 9.75h4v11.5H3V9.75Zm6.5 0h3.83v1.57h.06c.53-1 1.84-2.07 3.78-2.07 4.04 0 4.78 2.66 4.78 6.12v5.88h-4v-5.2c0-1.24-.02-2.83-1.73-2.83-1.73 0-2 1.35-2 2.74v5.29h-4V9.75Z" />
+              </svg>
+            </a>
+          ) : null}
           <Link href={secondaryHref} className="lp-login">
             {secondaryLabel}
           </Link>
@@ -97,6 +118,14 @@ export function PublicNav({
         <Link className="lp-m" href={secondaryHref} onClick={() => setOpen(false)}>
           {secondaryLabel}
         </Link>
+        <a className="lp-m" href={contactHref} onClick={() => setOpen(false)}>
+          {contactLabel}
+        </a>
+        {linkedinHref ? (
+          <a className="lp-m" href={linkedinHref} target="_blank" rel="noopener noreferrer" onClick={() => setOpen(false)}>
+            LinkedIn
+          </a>
+        ) : null}
         <Button href={primaryHref} onClick={() => setOpen(false)}>
           {primaryLabel}
         </Button>

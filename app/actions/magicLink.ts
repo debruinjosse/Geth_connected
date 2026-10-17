@@ -4,7 +4,7 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { resolveAuthUserIdByEmail } from "@/lib/auth/resolve-auth-user-id";
 import { buildAuthCallbackEmailLink } from "@/lib/auth/build-auth-callback-link";
 import { getAuthCallbackUrl } from "@/lib/app-url";
-import { InviteEmailError, sendMagicLinkEmail } from "@/lib/mail/nodemailer";
+import { InviteEmailError, getSmtpUserMessage, sendMagicLinkEmail } from "@/lib/mail/nodemailer";
 import type { ActionResult } from "@/lib/actions/types";
 
 type MagicLinkMode = "login" | "signup";
@@ -28,18 +28,7 @@ function buildServerAuthCallbackRedirect(clientRedirect: string) {
 }
 
 function getSmtpErrorMessage(error: InviteEmailError) {
-  switch (error.code) {
-    case "SMTP_MISSING":
-      return "Email is not configured on the server yet. Contact support or try again later.";
-    case "SMTP_AUTH_FAILED":
-      return "Email login failed for info@geth.pro. Check SMTP username and password on the server.";
-    case "SMTP_CONNECTION_FAILED":
-      return "Could not connect to the mail server. Check SMTP host and port settings.";
-    case "SMTP_SEND_FAILED":
-      return "The mail server rejected the message. Check that info@geth.pro is allowed to send.";
-    default:
-      return error.message;
-  }
+  return getSmtpUserMessage(error);
 }
 
 /**

@@ -99,12 +99,19 @@ export default async function ManagerTeamPage({
         initials: getInitials(insights.profile.first_name, insights.profile.last_name),
         team: insights.teamLabel
       }}
-      actions={<Pill>{insights.teamRows.length} members</Pill>}
+      actions={
+        <>
+          <Pill>{insights.teamRows.length} members</Pill>
+          <Button variant="ghost" size="sm" href={`/${locale}/manager/messages`}>
+            {tp("messagesTitle")}
+          </Button>
+        </>
+      }
       unreadNotifications={unreadNotifications}
     >
       <Panel>
         {insights.teamRows.length ? (
-          <TeamTable people={insights.teamRows} />
+          <TeamTable people={insights.teamRows} linkMembers />
         ) : (
           <EmptyState title={tp("noMembersTitle")} copy={tp("noMembersCopy")} />
         )}

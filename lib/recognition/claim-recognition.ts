@@ -6,6 +6,17 @@ import { createNotification } from "@/lib/notifications";
 import { hasSmtpConfig, sendRecognitionReceivedEmail } from "@/lib/mail/nodemailer";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { getAppUrl } from "@/lib/stripe/server";
+
+/** Roles that can give and receive recognition cards. Managers take part like any other teammate. */
+const RECOGNITION_ROLES = ["employee", "manager"];
+
+function recognitionHome(role: string) {
+  return role === "manager" ? "/manager" : "/employee";
+}
+
+function recognitionCards(role: string) {
+  return role === "manager" ? "/manager/my-cards" : "/employee/cards";
+}
 import type { ActionResult } from "@/lib/actions/types";
 
 /**
@@ -59,10 +70,10 @@ export async function claimRecognitionCore(
       return { ok: false as const, error: "Your profile is missing company information.", code: "PROFILE_MISSING" as const };
     }
 
-    if (receiverProfile.role !== "employee") {
+    if (!RECOGNITION_ROLES.includes(receiverProfile.role)) {
       return {
         ok: false as const,
-        error: "Only employees can claim recognition cards.",
+        error: "Only employees and managers can claim recognition cards.",
         code: "EMPLOYEE_ONLY" as const
       };
     }
@@ -97,13 +108,13 @@ export async function claimRecognitionCore(
     if (
       giverError ||
       !giverProfile ||
-      giverProfile.role !== "employee" ||
+      !RECOGNITION_ROLES.includes(giverProfile.role) ||
       giverProfile.status !== "active" ||
       giverProfile.company_id !== receiverProfile.company_id
     ) {
       return {
         ok: false as const,
-        error: "Choose an active employee from your company as the giver.",
+        error: "Choose an active teammate from your company as the giver.",
         code: "GIVER_NOT_FOUND" as const
       };
     }
@@ -154,7 +165,7 @@ export async function claimRecognitionCore(
         type: "recognition_received",
         title: "Recognition claimed",
         body: `Your ${cardRecord.title} recognition was sent to ${giverName} for verification.`,
-        href: "/employee"
+        href: recognitionHome(receiverProfile.role)
       });
 
       await createNotification(admin, {
@@ -206,10 +217,10 @@ export async function giveRecognitionCore(
       return { ok: false as const, error: "Your profile is missing company information.", code: "PROFILE_MISSING" as const };
     }
 
-    if (giverProfile.role !== "employee") {
+    if (!RECOGNITION_ROLES.includes(giverProfile.role)) {
       return {
         ok: false as const,
-        error: "Only employees can give recognition cards.",
+        error: "Only employees and managers can give recognition cards.",
         code: "EMPLOYEE_ONLY" as const
       };
     }
@@ -224,7 +235,7 @@ export async function giveRecognitionCore(
       .eq("id", receiverUserId)
       .eq("company_id", giverProfile.company_id)
       .eq("status", "active")
-      .eq("role", "employee")
+      .in("role", RECOGNITION_ROLES)
       .maybeSingle<{
         id: string;
         company_id: string | null;
@@ -253,7 +264,8 @@ export async function giveRecognitionCore(
     const giverName = `${giverProfile.first_name ?? ""} ${giverProfile.last_name ?? ""}`.trim() || giverProfile.email || "A teammate";
     const receiverName = `${receiverProfile.first_name ?? ""} ${receiverProfile.last_name ?? ""}`.trim() || receiverProfile.email || "your teammate";
     const claimOrigin = input.claimOrigin ?? "card_library";
-    let acknowledgementPending = true;
+    // Managers have no acknowledge screen, so a card given to a manager counts immediately.
+    let acknowledgementPending = receiverProfile.role !== "manager";
 
     let { data: insertedRecognition, error: insertError } = await supabase
       .from("recognition_events")
@@ -269,7 +281,7 @@ export async function giveRecognitionCore(
         claim_origin: claimOrigin,
         originated_digitally: true,
         claimed_at: new Date().toISOString(),
-        status: "pending_acknowledgement"
+        ...(acknowledgementPending ? { status: "pending_acknowledgement" } : {})
       })
       .select("id")
       .single<{ id: string }>();
@@ -313,7 +325,7 @@ export async function giveRecognitionCore(
         body: acknowledgementPending
           ? `${giverName} gave you a ${cardRecord.title} card. Please acknowledge that you received it.`
           : `${giverName} gave you a ${cardRecord.title} card.`,
-        href: "/employee"
+        href: recognitionHome(receiverProfile.role)
       });
 
       await createNotification(admin, {
@@ -324,7 +336,7 @@ export async function giveRecognitionCore(
         body: acknowledgementPending
           ? `Your ${cardRecord.title} card was sent to ${receiverName} for acknowledgement.`
           : `Your ${cardRecord.title} card was sent to ${receiverName}.`,
-        href: "/employee/cards"
+        href: recognitionCards(giverProfile.role)
       });
 
       if (receiverProfile.email && hasSmtpConfig()) {
@@ -334,7 +346,7 @@ export async function giveRecognitionCore(
             giverName,
             cardTitle: cardRecord.title,
             personalNote: input.personalNote,
-            dashboardUrl: `${getAppUrl()}/en/employee`,
+            dashboardUrl: `${getAppUrl()}/en${recognitionHome(receiverProfile.role)}`,
             acknowledgementPending
           });
         } catch (error) {

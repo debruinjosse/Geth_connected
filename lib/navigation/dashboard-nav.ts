@@ -35,6 +35,9 @@ export const dashboardNavByRole: Record<DashboardRole, DashboardNavItem[]> = {
     { labelKey: "navMyTeam", href: "/manager/team", icon: UsersRound },
     { labelKey: "navSignals", href: "/manager/signals", icon: Activity },
     { labelKey: "navAnalytics", href: "/manager/analytics", icon: BarChart3 },
+    { labelKey: "navScanCard", href: "/manager/scan", icon: QrCode },
+    { labelKey: "navMyCards", href: "/manager/my-cards", icon: "vertical-card" },
+    { labelKey: "navMessages", href: "/manager/messages", icon: "geth-bird" },
     { labelKey: "navCards", href: "/cards", icon: "vertical-card" },
     { labelKey: "navReports", href: "/manager/reports", icon: FileBarChart2 }
   ],

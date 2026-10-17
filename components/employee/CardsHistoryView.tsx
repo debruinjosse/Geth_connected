@@ -1,0 +1,177 @@
+import { getTranslations } from "next-intl/server";
+import { redirect } from "next/navigation";
+import { QrCode } from "lucide-react";
+import { DashboardShell } from "@/components/DashboardShell";
+import { EmptyState } from "@/components/EmptyState";
+import { RecognitionTabs } from "@/components/employee/RecognitionTabs";
+import { Button } from "@/components/ui/Button";
+import { Grid } from "@/components/ui/Grid";
+import { Panel } from "@/components/ui/Panel";
+import { Pill } from "@/components/ui/Pill";
+import { RecognitionList, type RecognitionItem } from "@/components/RecognitionList";
+import { getLocalizedCardTitle } from "@/lib/cards";
+import { localizeDemoRecognitions } from "@/lib/localize-demo-content";
+import { currentUser, recognitions as demoRecognitions } from "@/lib/demo-data";
+import { getUnreadNotificationCount } from "@/lib/notifications";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
+
+function hasSupabaseServerConfig() {
+  return Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+}
+
+function getInitials(firstName: string | null, lastName: string | null) {
+  return `${firstName?.[0] ?? ""}${lastName?.[0] ?? ""}`.toUpperCase() || "GU";
+}
+
+function displayDate(value: string, locale: string) {
+  const dateLocale = locale === "nl" ? "nl-NL" : "en-US";
+  return new Intl.DateTimeFormat(dateLocale, { month: "short", day: "numeric", year: "numeric" }).format(new Date(value));
+}
+
+type RecognitionRow = {
+  id: string;
+  created_at: string;
+  personal_note: string | null;
+  giver_name: string | null;
+  giver_email: string | null;
+  giver_user_id: string | null;
+  receiver_user_id: string;
+  card: { title: string; category: string; qr_slug?: string | null } | Array<{ title: string; category: string; qr_slug?: string | null }> | null;
+};
+
+function cardFromRow(row: RecognitionRow) {
+  return Array.isArray(row.card) ? row.card[0] : row.card;
+}
+
+export async function CardsHistoryView({ locale, role }: { locale: string; role: "employee" | "manager" }) {
+  const t = await getTranslations({ locale, namespace: "employeePages" });
+  const tc = await getTranslations({ locale, namespace: "common" });
+
+  if (!hasSupabaseServerConfig()) {
+    return (
+      <DashboardShell role={role} title={t("cardsTitle")} subtitle={t("cardsSubtitle")} user={currentUser} actions={<Pill>{tc("demoFallback")}</Pill>}>
+        <Grid cols="two">
+          <Panel title={t("historyTitle")} action={<Pill>{t("countReceived", { count: demoRecognitions.length })}</Pill>}>
+            <RecognitionList items={localizeDemoRecognitions(demoRecognitions, locale)} />
+          </Panel>
+          <Panel>
+            <EmptyState title={t("supabaseEmptyTitle")} copy={t("supabaseEmptyCopy")} />
+          </Panel>
+        </Grid>
+      </DashboardShell>
+    );
+  }
+
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+    error: userError
+  } = await supabase.auth.getUser();
+
+  if (userError || !user) redirect(`/${locale}/login`);
+
+  const { data: profile, error: profileError } = await supabase
+    .from("profiles")
+    .select("id, first_name, last_name, team_id, profile_image")
+    .eq("id", user.id)
+    .maybeSingle<{
+      id: string;
+      first_name: string | null;
+      last_name: string | null;
+      team_id: string | null;
+      profile_image: string | null;
+    }>();
+
+  if (profileError || !profile) redirect("/auth/repair-profile");
+
+  const [{ data: team }, { data: receivedRows, error: receivedError }, { data: givenRows, error: givenError }, unreadNotifications] = await Promise.all([
+    profile.team_id
+      ? supabase.from("teams").select("name").eq("id", profile.team_id).maybeSingle<{ name: string }>()
+      : Promise.resolve({ data: null }),
+    supabase
+      .from("recognition_events")
+      .select("id, created_at, personal_note, giver_name, giver_email, giver_user_id, receiver_user_id, card:card_library(title, category, qr_slug)")
+      .eq("receiver_user_id", user.id)
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("recognition_events")
+      .select("id, created_at, personal_note, giver_name, giver_email, giver_user_id, receiver_user_id, card:card_library(title, category, qr_slug)")
+      .eq("giver_user_id", user.id)
+      .order("created_at", { ascending: false }),
+    getUnreadNotificationCount(supabase, user.id)
+  ]);
+
+  if (receivedError || givenError) throw new Error(t("errLoadCards"));
+
+  const allRows = [...((receivedRows ?? []) as RecognitionRow[]), ...((givenRows ?? []) as RecognitionRow[])];
+  const userIds = Array.from(new Set(allRows.flatMap((row) => [row.giver_user_id, row.receiver_user_id]).filter((value): value is string => Boolean(value))));
+  const { data: people } = userIds.length
+    ? await supabase.from("profiles").select("id, first_name, last_name").in("id", userIds)
+    : { data: [] as Array<{ id: string; first_name: string | null; last_name: string | null }> };
+  const peopleMap = new Map((people ?? []).map((person) => [person.id, `${person.first_name ?? ""} ${person.last_name ?? ""}`.trim() || tc("gethUser")]));
+
+  const received: RecognitionItem[] = ((receivedRows ?? []) as RecognitionRow[]).flatMap((row) => {
+    const card = cardFromRow(row);
+    if (!card) return [];
+    return [{
+      id: row.id,
+      from: row.giver_user_id ? peopleMap.get(row.giver_user_id) ?? tc("colleague") : row.giver_name ?? row.giver_email ?? tc("colleague"),
+      card: getLocalizedCardTitle({ title: card.title, slug: card.qr_slug ?? undefined }, locale),
+      category: card.category,
+      note: row.personal_note ?? tc("noPersonalNote"),
+      date: displayDate(row.created_at, locale),
+      createdAt: row.created_at
+    }];
+  });
+
+  const given: RecognitionItem[] = ((givenRows ?? []) as RecognitionRow[]).flatMap((row) => {
+    const card = cardFromRow(row);
+    if (!card) return [];
+    return [{
+      id: row.id,
+      from: t("toName", { name: peopleMap.get(row.receiver_user_id) ?? tc("teammate") }),
+      card: getLocalizedCardTitle({ title: card.title, slug: card.qr_slug ?? undefined }, locale),
+      category: card.category,
+      note: row.personal_note ?? tc("noPersonalNote"),
+      date: displayDate(row.created_at, locale),
+      createdAt: row.created_at
+    }];
+  });
+
+  return (
+    <DashboardShell
+      role={role}
+      title={t("cardsTitle")}
+      subtitle={t("cardsSubtitle")}
+      user={{
+        name: `${profile.first_name ?? ""} ${profile.last_name ?? ""}`.trim() || tc("gethUser"),
+        initials: getInitials(profile.first_name, profile.last_name),
+        team: team?.name ?? tc("noTeam"),
+        imageUrl: profile.profile_image
+      }}
+      actions={
+        <>
+          <Button href={`/${locale}/${role}/scan`} size="sm" icon={<QrCode />}>
+            {t("scanCard")}
+          </Button>
+          <Button href={`/${locale}/cards`} variant="ghost" size="sm">
+            {tc("browseCards")}
+          </Button>
+        </>
+      }
+      unreadNotifications={unreadNotifications}
+    >
+      <RecognitionTabs
+        ariaLabel={t("cardsTitle")}
+        received={received}
+        given={given}
+        receivedLabel={t("receivedTitle")}
+        givenLabel={t("givenTitle")}
+        receivedCount={t("countReceived", { count: received.length })}
+        givenCount={t("countSent", { count: given.length })}
+        receivedEmpty={<EmptyState title={t("receivedEmptyTitle")} copy={t("receivedEmptyCopy")} />}
+        givenEmpty={<EmptyState title={t("givenEmptyTitle")} copy={t("givenEmptyCopy")} actionLabel={tc("openCardLibrary")} actionHref={`/${locale}/cards`} />}
+      />
+    </DashboardShell>
+  );
+}

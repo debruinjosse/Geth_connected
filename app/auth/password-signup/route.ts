@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { bootstrapProfile, InvitationBootstrapError } from "@/lib/auth/bootstrap-profile";
+import { bootstrapProfile, companySlugExists, InvitationBootstrapError } from "@/lib/auth/bootstrap-profile";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 type PasswordSignupBody = {
@@ -31,6 +31,19 @@ export async function POST(request: NextRequest) {
 
   if (role === "company_admin" && !body.company?.trim()) {
     return NextResponse.json({ error: "Company name is required for company admin signup." }, { status: 400 });
+  }
+
+  if (role === "company_admin" && !body.inviteToken) {
+    try {
+      if (await companySlugExists(createSupabaseAdminClient(), body.company!.trim())) {
+        return NextResponse.json(
+          { error: "A company with this name already exists. Ask your platform admin for your company invitation link to join it." },
+          { status: 409 }
+        );
+      }
+    } catch {
+      return NextResponse.json({ error: "We could not verify the company name. Please try again." }, { status: 500 });
+    }
   }
 
   if (role === "employee" && !body.inviteToken) {
@@ -70,6 +83,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ ok: true, redirectTo: bootstrap.redirectTo });
   } catch (error) {
     if (error instanceof InvitationBootstrapError) {
+      if (error.code === "COMPANY_ALREADY_EXISTS") {
+        return NextResponse.json({ error: "A company with this name already exists. Ask your platform admin for your company invitation link to join it." }, { status: 409 });
+      }
       return NextResponse.json({ error: error.code.replaceAll("_", " ").toLowerCase() }, { status: 400 });
     }
 

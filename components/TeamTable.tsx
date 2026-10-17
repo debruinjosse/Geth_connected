@@ -1,6 +1,7 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import Link from "next/link";
+import { useLocale, useTranslations } from "next-intl";
 import { ArrowDownRight, ArrowUpRight, Minus } from "lucide-react";
 import { Avatar } from "@/components/ui/Avatar";
 import { Pill } from "@/components/ui/Pill";
@@ -29,8 +30,9 @@ function energyLabel(energy: TeamMemberRow["energy"], t: ReturnType<typeof useTr
 }
 
 /** Team overview: person, cards in/out, monthly trend, energy level and top quality. */
-export function TeamTable({ people }: { people: TeamMemberRow[] }) {
+export function TeamTable({ people, linkMembers = false }: { people: TeamMemberRow[]; /** Link each member to their manager detail page. */ linkMembers?: boolean }) {
   const t = useTranslations("teamTable");
+  const locale = useLocale();
 
   return (
     <Table className="lp-table-flat lp-table-stack">
@@ -53,7 +55,7 @@ export function TeamTable({ people }: { people: TeamMemberRow[] }) {
                 <span className="lp-person">
                   <Avatar name={person.name} size="sm" />
                   <span>
-                    <b>{person.name}</b>
+                    <b>{linkMembers ? <Link className="lp-link" href={`/${locale}/manager/team/${person.id}`}>{person.name}</Link> : person.name}</b>
                     <small>{person.team}</small>
                   </span>
                 </span>

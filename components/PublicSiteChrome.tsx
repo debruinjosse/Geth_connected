@@ -1,3 +1,4 @@
+import { siteConfig } from "@/lib/site-config";
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
@@ -116,6 +117,10 @@ export async function PublicSiteChrome({
         closeLabel={nav("closeMenu")}
         languageLabel={lp("language")}
         mainNavLabel={lp("mainNav")}
+        contactLabel={lp("contactUs")}
+        contactHref={`mailto:${siteConfig.contactEmail}`}
+        linkedinLabel={lp("followLinkedin")}
+        linkedinHref={siteConfig.linkedinUrl || undefined}
       />
 
       <main id="top">
@@ -156,8 +161,8 @@ export async function PublicSiteChrome({
                 </b>
               </Link>
               <p>{lp("fTag")}</p>
-              <a className="lp-mail" href="mailto:info@geth.pro">
-                info@geth.pro
+              <a className="lp-mail" href={`mailto:${siteConfig.contactEmail}`}>
+                {siteConfig.contactEmail}
               </a>
             </div>
             {footerColumns.map((column) => (
@@ -176,6 +181,11 @@ export async function PublicSiteChrome({
           <div className="lp-f-bottom">
             <span>© 2026 GETH®</span>
             <span>{lp("fReg")}</span>
+            {siteConfig.kvkNumber ? (
+              <span>
+                {lp("fKvk")}: {siteConfig.kvkNumber}
+              </span>
+            ) : null}
           </div>
         </div>
       </footer>

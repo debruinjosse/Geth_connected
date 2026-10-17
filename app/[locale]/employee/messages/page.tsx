@@ -66,7 +66,7 @@ export default async function EmployeeMessagesPage({ params }: { params: Promise
 
   if (profileError || !profile) redirect("/auth/repair-profile");
 
-  const [{ data: team }, { data: messages, error: messagesError }, unreadNotifications] = await Promise.all([
+  const [{ data: team }, { data: messages, error: messagesError }, { data: managerNotes }, unreadNotifications] = await Promise.all([
     profile.team_id
       ? supabase.from("teams").select("name").eq("id", profile.team_id).maybeSingle<{ name: string }>()
       : Promise.resolve({ data: null }),
@@ -76,6 +76,14 @@ export default async function EmployeeMessagesPage({ params }: { params: Promise
       .eq("receiver_user_id", user.id)
       .not("personal_note", "is", null)
       .order("created_at", { ascending: false }),
+    // Notes from the employee's manager. Needs the "recipients can read their manager notes" policy
+    // (migration 040); until it is applied this simply returns nothing.
+    supabase
+      .from("manager_notes")
+      .select("id, body, created_at, manager:profiles!manager_notes_manager_user_id_fkey(first_name, last_name)")
+      .eq("recipient_user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(50),
     getUnreadNotificationCount(supabase, user.id)
   ]);
 
@@ -100,6 +108,17 @@ export default async function EmployeeMessagesPage({ params }: { params: Promise
       }}
       unreadNotifications={unreadNotifications}
     >
+      {managerNotes?.length ? (
+        <Panel title={t("managerNotesTitle")}>
+          <Feed>
+            {managerNotes.map((note) => {
+              const manager = Array.isArray(note.manager) ? note.manager[0] : note.manager;
+              const managerName = `${manager?.first_name ?? ""} ${manager?.last_name ?? ""}`.trim() || tc("managerRole");
+              return <FeedItem key={note.id} avatar={managerName} title={t("managerNoteHeading", { manager: managerName })} note={note.body} meta={formatDate(note.created_at, locale)} />;
+            })}
+          </Feed>
+        </Panel>
+      ) : null}
       <Panel>
           {messages?.length ? (
             <Feed>

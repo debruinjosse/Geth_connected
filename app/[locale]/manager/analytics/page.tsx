@@ -3,6 +3,7 @@ import { getLocale, getTranslations } from "next-intl/server";
 import { DashboardShell } from "@/components/DashboardShell";
 import { EmptyState } from "@/components/EmptyState";
 import { QualityBars } from "@/components/QualityBars";
+import { CategoryBreakdown } from "@/components/manager/CategoryBreakdown";
 import { getRecentMonthLabels } from "@/lib/locale-format";
 import { localizeDemoQualityBars } from "@/lib/localize-demo-content";
 import { managerTrendPoints, managerUser, topQualities } from "@/lib/demo-data";
@@ -87,6 +88,18 @@ export default async function ManagerAnalyticsPage() {
           {insights.qualityBars.length ? <QualityBars items={insights.qualityBars} valueMode="count" /> : <EmptyState title={tp("noQualitiesTitle")} copy={tp("noQualitiesCopy")} />}
         </Panel>
       </Grid>
+      <CategoryBreakdown
+        insights={insights}
+        labels={{
+          title: tp("categoryDistribution"),
+          copy: tp("categoryDistributionCopy"),
+          byTeamTitle: tp("categoryByTeamTitle"),
+          byTeamCopy: tp("categoryByTeamCopy"),
+          emptyTitle: tp("categoryEmptyTitle"),
+          emptyCopy: tp("categoryEmptyCopy"),
+          countLabel: (count) => tp("cardsCount", { count })
+        }}
+      />
       <Panel title={tp("memberComparison")}>
         {insights.memberComparison.length ? (
           <MeterList items={insights.memberComparison.map((member) => ({ label: member.label, value: member.value, color: "var(--purple)" }))} />

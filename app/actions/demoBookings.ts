@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { getTranslations } from "next-intl/server";
 import { createDemoBookingIcs } from "@/lib/calendar/demo-booking";
-import { sendDemoBookingDecisionEmail, sendDemoBookingRequestEmails } from "@/lib/mail/nodemailer";
+import { InviteEmailError, getSmtpUserMessage, sendDemoBookingDecisionEmail, sendDemoBookingRequestEmails } from "@/lib/mail/nodemailer";
 import { isAppLocale, type AppLocale } from "@/i18n/routing";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -152,20 +152,38 @@ export async function createDemoBookingAction(_previousState: DemoBookingState =
       throw new Error(error?.message || t("errorCouldNotSave"));
     }
 
-    await sendDemoBookingRequestEmails({
-      adminEmails,
-      requesterEmail: email,
-      requesterSubject: t("emailRequesterSubject"),
-      requesterText,
-      adminSubject: t("emailAdminSubject", { company }),
-      adminText
-    });
+    // The booking is already saved, so a mail problem must never be reported as a failed booking.
+    let mailResult: Awaited<ReturnType<typeof sendDemoBookingRequestEmails>> | null = null;
+    try {
+      mailResult = await sendDemoBookingRequestEmails({
+        adminEmails,
+        requesterEmail: email,
+        requesterSubject: t("emailRequesterSubject"),
+        requesterText,
+        adminSubject: t("emailAdminSubject", { company }),
+        adminText
+      });
+    } catch (mailError) {
+      if (!(mailError instanceof InviteEmailError)) {
+        console.error("[demo-booking] unexpected mail error", mailError);
+      }
+    }
 
     revalidatePath("/admin/demo-bookings");
+
+    if (!mailResult) {
+      return { ok: true, message: t("successMailPending") };
+    }
+    if (!mailResult.requesterSent) {
+      return { ok: true, message: t("successConfirmationFailed") };
+    }
     return { ok: true, message: t("successMessage", { email }) };
   } catch (error) {
-    const messageText = error instanceof Error ? error.message : t("errorCouldNotSubmit");
-    return { ok: false, message: messageText };
+    if (error instanceof InviteEmailError) {
+      return { ok: false, message: getSmtpUserMessage(error, t("errorCouldNotSubmit")) };
+    }
+    console.error("[demo-booking] failed", error);
+    return { ok: false, message: t("errorCouldNotSubmit") };
   }
 }
 

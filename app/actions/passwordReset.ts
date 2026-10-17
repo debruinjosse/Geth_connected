@@ -3,7 +3,7 @@
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { buildAuthCallbackEmailLink } from "@/lib/auth/build-auth-callback-link";
 import { getAuthCallbackUrl } from "@/lib/app-url";
-import { InviteEmailError, sendPasswordResetEmail } from "@/lib/mail/nodemailer";
+import { InviteEmailError, getSmtpUserMessage, sendPasswordResetEmail } from "@/lib/mail/nodemailer";
 import type { ActionResult } from "@/lib/actions/types";
 
 /**
@@ -50,7 +50,7 @@ export async function requestPasswordResetEmail(email: string): Promise<ActionRe
     return { ok: true as const };
   } catch (error) {
     if (error instanceof InviteEmailError) {
-      return { ok: false as const, error: error.message };
+      return { ok: false as const, error: getSmtpUserMessage(error) };
     }
 
     const authMessage =

@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { findAuthUserIdByEmail } from "@/lib/auth/find-auth-user-by-email";
+import { getProductionAppUrl } from "@/lib/app-url";
 import { sendCompanyAdminWelcomeEmail, sendInviteEmail } from "@/lib/mail/nodemailer";
 import { createPlatformAdminNotifications } from "@/lib/notifications";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
@@ -97,7 +98,7 @@ async function createInvite({
 }
 
 function getInviteBaseUrl() {
-  return process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") || "http://localhost:3000";
+  return getProductionAppUrl();
 }
 
 function getLocalizedRoleLabel(role: string, locale: string) {
@@ -248,6 +249,10 @@ export async function createCompanyWorkspaceAction(formData: FormData) {
     invitedBy: auth.user.id
   });
 
+  // A mail failure must not abort the rest of the setup (manager invite, notifications). The
+  // invites already exist; the platform admin can copy/resend their links from the company page.
+  let emailFailed = false;
+
   if (companyAdminInvitation) {
     try {
       await sendCompanyAdminWelcomeEmail({
@@ -259,8 +264,7 @@ export async function createCompanyWorkspaceAction(formData: FormData) {
       });
     } catch (error) {
       console.error("[createCompanyWorkspaceAction] company admin invite email failed", error);
-      revalidatePath("/admin/companies");
-      redirect(`/${locale}/admin/companies/${company.id}?created=1&invite=created-email-failed`);
+      emailFailed = true;
     }
   }
 
@@ -286,8 +290,7 @@ export async function createCompanyWorkspaceAction(formData: FormData) {
         });
       } catch (error) {
         console.error("[createCompanyWorkspaceAction] manager invite email failed", error);
-        revalidatePath("/admin/companies");
-        redirect(`/${locale}/admin/companies/${company.id}?created=1&invite=created-email-failed`);
+        emailFailed = true;
       }
     }
   }
@@ -302,7 +305,7 @@ export async function createCompanyWorkspaceAction(formData: FormData) {
 
   revalidatePath("/admin");
   revalidatePath("/admin/companies");
-  redirect(`/${locale}/admin/companies/${company.id}?created=1`);
+  redirect(`/${locale}/admin/companies/${company.id}?created=1${emailFailed ? "&invite=created-email-failed" : ""}`);
 }
 
 /** Role: `platform_admin`/`super_admin` only. Sets a company's status (active/inactive/demo). */
@@ -540,7 +543,8 @@ export async function createCompanyInviteFromAdminAction(formData: FormData) {
         expiresAt: invitation.expires_at,
         locale
       });
-    } catch {
+    } catch (error) {
+      console.error("[createCompanyInviteFromAdminAction] invite email failed", error);
       revalidatePath("/admin/companies");
       revalidatePath(`/admin/companies/${companyId}`);
       redirect(`${returnTo}?invite=created-email-failed`);

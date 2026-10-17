@@ -194,3 +194,60 @@ export async function sendPasswordResetFromSettingsAction(formData: FormData) {
 
   redirect(`${returnTo}?settings=reset-email-sent`);
 }
+
+const GENDER_VALUES = ["female", "male", "non_binary", "prefer_not_to_say"];
+
+/**
+ * Any authenticated user saves their own optional personal details (gender, birthdate, mobile
+ * number, city) into `profile_personal_details`. RLS limits the row to the signed-in user.
+ */
+export async function updateOwnPersonalDetailsAction(formData: FormData) {
+  const returnTo = getSafeReturnPath(formData.get("returnTo"));
+  const gender = String(formData.get("gender") ?? "").trim();
+  const birthdate = String(formData.get("birthdate") ?? "").trim();
+  const mobileNumber = String(formData.get("mobileNumber") ?? "").trim();
+  const city = String(formData.get("city") ?? "").trim();
+
+  if (gender && !GENDER_VALUES.includes(gender)) {
+    redirect(`${returnTo}?settings=personal-details-invalid`);
+  }
+  if (birthdate && (!/^\d{4}-\d{2}-\d{2}$/.test(birthdate) || new Date(birthdate) > new Date())) {
+    redirect(`${returnTo}?settings=personal-details-invalid`);
+  }
+  if (mobileNumber && !/^\+?[0-9 ()-]{6,24}$/.test(mobileNumber)) {
+    redirect(`${returnTo}?settings=personal-details-invalid`);
+  }
+  if (city.length > 80) {
+    redirect(`${returnTo}?settings=personal-details-invalid`);
+  }
+
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+    error: userError
+  } = await supabase.auth.getUser();
+
+  if (userError || !user) {
+    redirect("/login");
+  }
+
+  const { error } = await supabase.from("profile_personal_details").upsert(
+    {
+      user_id: user.id,
+      gender: gender || null,
+      birthdate: birthdate || null,
+      mobile_number: mobileNumber || null,
+      city: city || null,
+      updated_at: new Date().toISOString()
+    },
+    { onConflict: "user_id" }
+  );
+
+  if (error) {
+    console.error("[updateOwnPersonalDetailsAction] upsert failed", error.message);
+    redirect(`${returnTo}?settings=personal-details-failed`);
+  }
+
+  revalidatePath(returnTo);
+  redirect(`${returnTo}?settings=personal-details-updated`);
+}

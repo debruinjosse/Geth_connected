@@ -36,6 +36,41 @@ export class InviteEmailError extends Error {
     this.name = "InviteEmailError";
     this.code = code;
     this.cause = cause;
+
+    // Always record the real SMTP failure server-side (Vercel logs / terminal). The user-facing
+    // message is intentionally generic, so without this the root cause is invisible in production.
+    if (cause && !(cause instanceof InviteEmailError)) {
+      logSmtpFailure(message, code, cause);
+    }
+  }
+}
+
+function logSmtpFailure(context: string, code: InviteEmailErrorCode, cause: unknown) {
+  const smtp = cause as { code?: string; command?: string; responseCode?: number; response?: string; message?: string };
+  console.error("[mail] send failed", {
+    context,
+    code,
+    smtpCode: smtp?.code,
+    command: smtp?.command,
+    responseCode: smtp?.responseCode,
+    response: smtp?.response,
+    reason: smtp?.message
+  });
+}
+
+/** User-facing text for an email failure, without leaking credentials or hard-coding a mailbox. */
+export function getSmtpUserMessage(error: InviteEmailError, fallback?: string) {
+  switch (error.code) {
+    case "SMTP_MISSING":
+      return "Email is not configured on the server yet. Contact support or try again later.";
+    case "SMTP_AUTH_FAILED":
+      return "The server could not log in to the mail service. An administrator needs to check the SMTP username and password.";
+    case "SMTP_CONNECTION_FAILED":
+      return "Could not connect to the mail server. Please try again in a moment.";
+    case "SMTP_SEND_FAILED":
+      return "The mail server rejected the message. Please check the email address and try again.";
+    default:
+      return fallback ?? error.message;
   }
 }
 
@@ -389,6 +424,13 @@ export async function sendCalendarInviteEmail({
   }
 }
 
+export type DemoBookingEmailResult = { adminSent: boolean; requesterSent: boolean };
+
+/**
+ * Sends the admin notification and the requester confirmation independently, so that a failure of
+ * one (e.g. an undeliverable requester address) never hides that the other was delivered.
+ * Throws only when BOTH fail; otherwise reports which one went out.
+ */
 export async function sendDemoBookingRequestEmails({
   adminEmails,
   requesterEmail,
@@ -403,27 +445,45 @@ export async function sendDemoBookingRequestEmails({
   requesterText: string;
   adminSubject: string;
   adminText: string;
-}) {
+}): Promise<DemoBookingEmailResult> {
+  let config: SmtpConfig;
+  let transport: ReturnType<typeof createSmtpTransport>;
   try {
-    const config = getSmtpConfig();
-    const transport = createSmtpTransport();
-    await transport.sendMail({
+    config = getSmtpConfig();
+    transport = createSmtpTransport();
+  } catch (error) {
+    throw new InviteEmailError(classifySmtpError(error), "Demo booking email could not be sent.", error);
+  }
+
+  const [admin, requester] = await Promise.allSettled([
+    transport.sendMail({
       from: config.from,
       replyTo: requesterEmail || config.replyTo,
       to: adminEmails.join(","),
       subject: adminSubject,
       text: adminText
-    });
-    await transport.sendMail({
+    }),
+    transport.sendMail({
       from: config.from,
       replyTo: config.replyTo,
       to: requesterEmail,
       subject: requesterSubject,
       text: requesterText
-    });
-  } catch (error) {
-    throw new InviteEmailError(classifySmtpError(error), "Demo booking email could not be sent.", error);
+    })
+  ]);
+
+  const result = { adminSent: admin.status === "fulfilled", requesterSent: requester.status === "fulfilled" };
+  if (!result.adminSent && !result.requesterSent) {
+    const reason = admin.status === "rejected" ? admin.reason : (requester as PromiseRejectedResult).reason;
+    throw new InviteEmailError(classifySmtpError(reason), "Demo booking email could not be sent.", reason);
   }
+  if (admin.status === "rejected") {
+    logSmtpFailure("Demo booking admin notification failed.", classifySmtpError(admin.reason), admin.reason);
+  }
+  if (requester.status === "rejected") {
+    logSmtpFailure("Demo booking requester confirmation failed.", classifySmtpError(requester.reason), requester.reason);
+  }
+  return result;
 }
 
 export async function sendDemoBookingDecisionEmail({

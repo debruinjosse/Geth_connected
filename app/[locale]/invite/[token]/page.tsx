@@ -179,7 +179,12 @@ export default async function InvitePage({
                   {t("acceptInvitation")}
                 </Button>
               ) : (
-                <Alert tone="error">{t("loggedInMismatch", { sessionEmail: user.email ?? "", invitedEmail })}</Alert>
+                <>
+                  <Alert tone="error">{t("loggedInMismatch", { sessionEmail: user.email ?? "", invitedEmail })}</Alert>
+                  <Button href={`/auth/signout?next=${encodeURIComponent(`/${locale}/invite/${token}`)}`} arrow block>
+                    {t("switchAccount")}
+                  </Button>
+                </>
               )
             ) : (
               <div className="lp-invite-actions">

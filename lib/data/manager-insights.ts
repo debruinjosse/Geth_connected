@@ -1,7 +1,19 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { QualityBarItem } from "@/components/QualityBars";
 import type { TeamMemberRow } from "@/components/TeamTable";
-import { categoryColors, getLocalizedAnalyticCategoryLabel, getLocalizedCardTitle, normalizeCategoryKey } from "@/lib/cards";
+import { categoryColors, getLocalizedAnalyticCategoryLabel, getLocalizedCardTitle, getLocalizedCategoryDisplayName, normalizeCategoryKey } from "@/lib/cards";
+
+export type CategorySegment = { category: string; label: string; count: number; share: number };
+
+const FOUR_C = ["Communication", "Creativity", "Competence", "Collegiality"] as const;
+
+function buildCategorySegments(counts: Map<string, number>, locale: string): CategorySegment[] {
+  const total = FOUR_C.reduce((sum, category) => sum + (counts.get(category) ?? 0), 0);
+  return FOUR_C.map((category) => {
+    const count = counts.get(category) ?? 0;
+    return { category, label: getLocalizedCategoryDisplayName(category, locale), count, share: total ? Math.round((count / total) * 100) : 0 };
+  });
+}
 
 export type ManagerInsights = {
   profile: {
@@ -17,6 +29,10 @@ export type ManagerInsights = {
   trendLabels: string[];
   qualityBars: QualityBarItem[];
   memberComparison: Array<{ label: string; value: number }>;
+  /** Recognition count per core value ("C") across all managed teams. */
+  categorySegments: CategorySegment[];
+  /** Same breakdown per managed team. */
+  categoryByTeam: Array<{ teamId: string; teamName: string; total: number; segments: CategorySegment[] }>;
   recognitionCount: number;
   activeMemberCount: number;
   engagementScore: number;
@@ -140,6 +156,8 @@ export async function getManagerInsights(
       ),
       qualityBars: [],
       memberComparison: [],
+      categorySegments: buildCategorySegments(new Map(), locale),
+      categoryByTeam: [],
       recognitionCount: 0,
       activeMemberCount: 0,
       engagementScore: 0
@@ -151,7 +169,9 @@ export async function getManagerInsights(
     supabase
       .from("recognition_events")
       .select("id, receiver_user_id, giver_user_id, team_id, created_at, card:card_library(title, category, card_number, qr_slug)")
-      .in("team_id", teamIds)
+      // Include cards the manager personally gave or received, even when their own team_id is
+      // not one of the teams they manage.
+      .or(`team_id.in.(${teamIds.join(",")}),receiver_user_id.eq.${userId},giver_user_id.eq.${userId}`)
       .order("created_at", { ascending: false })
   ]);
 
@@ -184,6 +204,8 @@ export async function getManagerInsights(
   const recognitionsByGiver = new Map<string, typeof recognitions>();
   const qualityCounts = new Map<string, { value: number; category: string }>();
   const monthlyCounts = new Map<string, number>();
+  const categoryCounts = new Map<string, number>();
+  const categoryCountsByTeam = new Map<string, Map<string, number>>();
 
   for (const recognition of recognitions) {
     const card = Array.isArray(recognition.card) ? recognition.card[0] : recognition.card;
@@ -191,6 +213,14 @@ export async function getManagerInsights(
       const displayCard = getDisplayCard(card, locale);
       const existing = qualityCounts.get(displayCard.title);
       qualityCounts.set(displayCard.title, { value: (existing?.value ?? 0) + 1, category: displayCard.category });
+
+      const categoryKey = normalizeCategoryKey(card.category);
+      categoryCounts.set(categoryKey, (categoryCounts.get(categoryKey) ?? 0) + 1);
+      if (recognition.team_id && teamNameMap.has(recognition.team_id)) {
+        const perTeam = categoryCountsByTeam.get(recognition.team_id) ?? new Map<string, number>();
+        perTeam.set(categoryKey, (perTeam.get(categoryKey) ?? 0) + 1);
+        categoryCountsByTeam.set(recognition.team_id, perTeam);
+      }
     }
 
     if (!recognitionsByReceiver.has(recognition.receiver_user_id)) recognitionsByReceiver.set(recognition.receiver_user_id, []);
@@ -345,6 +375,11 @@ export async function getManagerInsights(
         category: info.category
       }));
     })(),
+    categorySegments: buildCategorySegments(categoryCounts, locale),
+    categoryByTeam: managedTeams.map((team) => {
+      const segments = buildCategorySegments(categoryCountsByTeam.get(team.id) ?? new Map(), locale);
+      return { teamId: team.id, teamName: team.name, total: segments.reduce((sum, segment) => sum + segment.count, 0), segments };
+    }),
     memberComparison: teamRows.map((member) => ({ label: member.name, value: member.cardsReceived })).sort((a, b) => b.value - a.value).slice(0, 8),
     recognitionCount: recognitions.length,
     activeMemberCount,

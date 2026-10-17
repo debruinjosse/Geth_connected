@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { AccountSettingsPanel } from "@/components/AccountSettingsPanel";
+import { loadOwnPersonalDetails } from "@/lib/data/personal-details";
 import { DashboardShell } from "@/components/DashboardShell";
 import { localizeDemoTopQualities } from "@/lib/localize-demo-content";
 import { currentUser, employeeTopQualities } from "@/lib/demo-data";
@@ -90,6 +91,7 @@ export default async function EmployeeProfilePage({
       : Promise.resolve({ data: null })
   ]);
   const name = `${profile.first_name ?? ""} ${profile.last_name ?? ""}`.trim() || tc("gethUser");
+  const personalDetails = await loadOwnPersonalDetails(supabase, user.id);
 
   return (
     <DashboardShell
@@ -100,6 +102,7 @@ export default async function EmployeeProfilePage({
     >
       <Grid cols="two">
         <AccountSettingsPanel
+          personalDetails={personalDetails}
           email={profile.email ?? user.email ?? tc("noEmail")}
           firstName={profile.first_name ?? ""}
           lastName={profile.last_name ?? ""}

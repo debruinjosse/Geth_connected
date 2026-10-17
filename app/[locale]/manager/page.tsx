@@ -219,7 +219,7 @@ export default async function ManagerDashboardPage({ params }: { params: Promise
     supabase
       .from("recognition_events")
       .select("id, receiver_user_id, giver_user_id, created_at, card:card_library(title, category, card_number, qr_slug)")
-      .in("team_id", teamIds)
+      .or(`team_id.in.(${teamIds.join(",")}),receiver_user_id.eq.${user.id},giver_user_id.eq.${user.id}`)
       .order("created_at", { ascending: false })
   ]);
 

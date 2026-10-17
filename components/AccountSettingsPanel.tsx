@@ -2,12 +2,12 @@
 
 import { KeyRound, Save, UploadCloud } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { sendPasswordResetFromSettingsAction, updateOwnProfileNameAction, updateOwnProfilePhotoAction } from "@/app/actions/accountSettings";
+import { sendPasswordResetFromSettingsAction, updateOwnPersonalDetailsAction, updateOwnProfileNameAction, updateOwnProfilePhotoAction } from "@/app/actions/accountSettings";
 import { ProfilePhotoUploadField } from "@/components/ProfilePhotoUploadField";
 import { Alert } from "@/components/ui/Alert";
 import { Avatar } from "@/components/ui/Avatar";
 import { Button } from "@/components/ui/Button";
-import { Field, FieldGrid, Input } from "@/components/ui/Fields";
+import { Field, FieldGrid, Input, Select } from "@/components/ui/Fields";
 import { Panel } from "@/components/ui/Panel";
 
 function getSettingsMessage(t: (key: string) => string, code?: string) {
@@ -16,6 +16,12 @@ function getSettingsMessage(t: (key: string) => string, code?: string) {
       return { tone: "success", copy: t("profileUpdated") };
     case "profile-photo-updated":
       return { tone: "success", copy: t("profilePhotoUpdated") };
+    case "personal-details-updated":
+      return { tone: "success", copy: t("personalDetailsUpdated") };
+    case "personal-details-invalid":
+      return { tone: "error", copy: t("personalDetailsInvalid") };
+    case "personal-details-failed":
+      return { tone: "error", copy: t("personalDetailsFailed") };
     case "reset-email-sent":
       return { tone: "success", copy: t("resetEmailSent") };
     case "first-name-required":
@@ -37,7 +43,15 @@ function getSettingsMessage(t: (key: string) => string, code?: string) {
   }
 }
 
+export type PersonalDetails = {
+  gender: string | null;
+  birthdate: string | null;
+  mobileNumber: string | null;
+  city: string | null;
+};
+
 export function AccountSettingsPanel({
+  personalDetails,
   email,
   firstName,
   lastName,
@@ -45,6 +59,8 @@ export function AccountSettingsPanel({
   returnTo,
   statusCode
 }: {
+  /** When provided, shows the optional personal-details form (gender, birthdate, mobile, city). */
+  personalDetails?: PersonalDetails | null;
   email: string;
   firstName: string;
   lastName: string;
@@ -97,6 +113,39 @@ export function AccountSettingsPanel({
           </Button>
         </div>
       </form>
+
+      {personalDetails !== undefined ? (
+        <form action={updateOwnPersonalDetailsAction} className="lp-settings-block">
+          <input type="hidden" name="returnTo" value={returnTo} />
+          <b style={{ fontWeight: 500 }}>{t("personalDetails")}</b>
+          <p className="lp-hint" style={{ fontSize: 14.5, margin: "4px 0 16px" }}>{t("personalDetailsCopy")}</p>
+          <FieldGrid>
+            <Field label={t("gender")} htmlFor="settings-gender">
+              <Select id="settings-gender" name="gender" defaultValue={personalDetails?.gender ?? ""}>
+                <option value="">{t("genderUnset")}</option>
+                <option value="female">{t("genderFemale")}</option>
+                <option value="male">{t("genderMale")}</option>
+                <option value="non_binary">{t("genderNonBinary")}</option>
+                <option value="prefer_not_to_say">{t("genderPreferNot")}</option>
+              </Select>
+            </Field>
+            <Field label={t("birthdate")} htmlFor="settings-birthdate">
+              <Input id="settings-birthdate" name="birthdate" type="date" defaultValue={personalDetails?.birthdate ?? ""} />
+            </Field>
+            <Field label={t("mobileNumber")} htmlFor="settings-mobile">
+              <Input id="settings-mobile" name="mobileNumber" type="tel" autoComplete="tel" placeholder="+31 6 12345678" defaultValue={personalDetails?.mobileNumber ?? ""} />
+            </Field>
+            <Field label={t("city")} htmlFor="settings-city">
+              <Input id="settings-city" name="city" autoComplete="address-level2" maxLength={80} defaultValue={personalDetails?.city ?? ""} />
+            </Field>
+          </FieldGrid>
+          <div style={{ marginTop: 18 }}>
+            <Button type="submit" size="sm" icon={<Save />}>
+              {t("savePersonalDetails")}
+            </Button>
+          </div>
+        </form>
+      ) : null}
 
       <form action={sendPasswordResetFromSettingsAction} className="lp-settings-block">
         <input type="hidden" name="returnTo" value={returnTo} />
